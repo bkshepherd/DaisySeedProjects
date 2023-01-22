@@ -1,4 +1,4 @@
-# GuitarPedal1590b
+# Guitar Pedal 1590b
 A project to create a digital effect pedal based on the Electro-Smith Daisy Seed that fits into a standard 1590B sized Guitar Pedal enclosure.
 
 ![FinalProduct](docs/images/FinalProduct.png) ![CircuitBoard](docs/images/CircuitBoard.png) ![PCBs](docs/images/PCBs.png)
