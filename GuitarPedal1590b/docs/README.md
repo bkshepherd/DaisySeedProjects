@@ -3,7 +3,7 @@ Some quick instructions for how to make the GuitarPedal1590B Hardware.  This doc
 
 ## Getting Started
 
-1. Order the PCBs
+### 1. Order the PCBs
 
 The KiCad files are included for the full schematic and pcb board layout in the **pcb** folder.  You really don't need to know anything about KiCad to order the PCB and get it made, but they are there for reference.
 
@@ -13,11 +13,15 @@ Visit that website and simply upload the **DaisySeedPedal1590b.kicad_pcb** file.
 
 ![PCBs](images/PCBs.png)
 
-2. Source the electronic components. A full list of all the required components can be found in the [Bill_of_Materials_BOM.xlsx](Bill_of_Materials_BOM.xlsx) file.  Almost everything uses Through-Hole type components, but there are a few SMD components.
+### 2. Source the Components
+
+A full list of all the required components can be found in the [Bill_of_Materials_BOM.xlsx](Bill_of_Materials_BOM.xlsx) file.  Almost everything uses Through-Hole type components, but there are a few SMD components.
 
 You'll also need to order the enclosure.  I used this one from Amazon: https://www.amazon.com/dp/B07VKR51NN
 
-3. Solder all the components to their appropriate locations on the circuit boards. The SMD parts are tricky, but there aren't many, and I was able to hand solder them just fine.  One tricky thing is to use appropriate lengths of wire for the various knobs and switches so that they will reach the proper locations on the enclosure, so plan ahead!
+### 3. Solder Everything
+
+The SMD parts are tricky, but there aren't many, and I was able to hand solder them just fine. One tricky thing is to use appropriate lengths of wire for the various knobs and switches so that they will reach the proper locations on the enclosure, so plan ahead!
 
 It will roughly look like this when finished with this step:
 
@@ -25,14 +29,18 @@ It will roughly look like this when finished with this step:
 
 (I ommited the 2 toggle switches and the 2nd footswitch from my build)
 
-4. Flash the Software to the Hardware
+### 4. Flash the Software to the Hardware
 
 Before you attempt to get everything fitted into the enclosure, it's best to make sure all the hardware works.
 
 You'll need to compile the code and flash it into the Daisy Seed on the hardware. Instructions can be found [here](../README.md).
 
-5. You'll need to drill the appropriate holes into the enclosure. I used an electric drill with some step drill bits, which worked great.  It's a bit hard to get everything lined up, so measure carefully. I made a quick template, printed, and taped it before I drilled my holes:
+### 5. Drill Holes in the Enclosure
+
+I used an electric drill by hand with some step drill bits, which worked great. It's a bit hard to get everything lined up, so measure carefully. I made a quick template, printed, and taped it before I drilled my holes:
 
 ![HoleTemplate](images/HoleTemplate.png)
 
-6. Jam everything into the enclosure, and ENJOY!
+### 6. Jam everything into the enclosure, and ENJOY!
+
+![FinalProduct](images/FinalProduct.png)
