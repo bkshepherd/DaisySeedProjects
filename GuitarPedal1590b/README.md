@@ -1,6 +1,8 @@
 # GuitarPedal1590b
 A project to create a digital FX Guitar Pedal based on the Electro-Smith Daisy Seed that fits into a standard 1590B sized enclosure.
 
+![FinalProduct](docs/images/FinalProduct.png)
+
 This project includes a KiCad project with the necessary schematics and PCB layout files to create everything you need to build the hardware and code the provides a hardware attraction layer as well as sample code with a basic chorus effect that uses the hardware.
 
 Information about the Daisy Seed can be found at:
