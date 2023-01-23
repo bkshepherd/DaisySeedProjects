@@ -6,7 +6,7 @@ Also, I just want to achnowledge that the schematics for the circuits were kit b
 * [Electro-Smith: Daisy Petal Rev 5 Schematics](https://github.com/electro-smith/Hardware/blob/master/reference/daisy_petal/ES_Daisy_Petal_Rev5.pdf)
 * [Simple DIY Electronic Music Projects](https://diyelectromusic.wordpress.com/2022/08/29/3v3-midi-module-pcb/)
 
-Getting everything into KiCad and the PCB layouts are my own design.
+Getting everything into KiCad and the PCB layouts are all my own work.
 
 ## 1. Order the PCBs
 
