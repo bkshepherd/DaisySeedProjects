@@ -1,6 +1,6 @@
 {
   "board": {
-    "active_layer": 0,
+    "active_layer": 40,
     "active_layer_preset": "",
     "auto_track_width": false,
     "hidden_nets": [],
@@ -33,7 +33,6 @@
       3,
       4,
       5,
-      7,
       8,
       9,
       10,
@@ -43,6 +42,7 @@
       14,
       15,
       16,
+      17,
       18,
       19,
       20,
@@ -60,14 +60,13 @@
       33,
       34,
       35,
-      36,
-      37
+      36
     ],
     "visible_layers": "ffffeff_ffffffff",
     "zone_display_mode": 0
   },
   "meta": {
-    "filename": "DaisySeedPedal.kicad_prl",
+    "filename": "DaisySeedPedal1590b.kicad_prl",
     "version": 3
   },
   "project": {

@@ -46,6 +46,8 @@ I used an electric drill by hand with some step drill bits, which worked great. 
 
 ![HoleTemplate](images/HoleTemplate.png)
 
+This is the [Drill Template](EnclosureDrillTemplate.pdf) I used. 
+
 ## 6. Jam everything into the enclosure, and ENJOY!
 
 ![FinalProduct](images/FinalProduct.png)
