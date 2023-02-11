@@ -6,6 +6,7 @@ A project to create a digital effect pedal based on the Electro-Smith Daisy Seed
 This project includes a KiCad project with the necessary schematics and PCB layout files to create everything you need to build the hardware and code the provides a hardware attraction layer as well as sample code with a custom Tremolo effect that uses the hardware.
 
 Click on this image for a Demo Video:
+
 [![Demo Video](https://img.youtube.com/vi/gWRPFADz1Wg/0.jpg)](https://www.youtube.com/watch?v=gWRPFADz1Wg)
 
 Information about the Daisy Seed can be found at:
