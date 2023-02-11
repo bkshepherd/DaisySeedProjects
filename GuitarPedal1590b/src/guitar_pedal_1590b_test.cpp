@@ -16,14 +16,15 @@ using MyOledDisplay = OledDisplay<SSD130x4WireSpi128x64Driver>;
 
 GuitarPedal1590B hardware;
 MyOledDisplay display;
-Chorus     ch;
+
+Tremolo    treml, tremr;
+Oscillator freq_osc;
+int  waveform;
+float osc_freq;
+Parameter osc_freq_knob;
 
 bool  effectOn;
 float led2Brightness;
-float wet;
-
-float deltarget, del;
-float lfotarget, lfo;
 
 static void AudioCallback(AudioHandle::InputBuffer  in,
                      AudioHandle::OutputBuffer out,
@@ -33,12 +34,28 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
     hardware.ProcessAnalogControls();
     hardware.ProcessDigitalControls();
 
-    // Handle knobs
-    float k = hardware.knobs[0].Process();
-    ch.SetLfoFreq(k * k * 20.f);
-    lfo = hardware.knobs[1].Process();
-    del = hardware.knobs[2].Process();
-    ch.SetFeedback(hardware.knobs[3].Process());
+    // Handle knobs Tremelo
+    float tremFreqMin = 1.0f;
+    float tremFreqMax = hardware.knobs[0].Process() * 20.f; //0 - 20 Hz
+    treml.SetDepth(hardware.knobs[1].Process());
+    tremr.SetDepth(hardware.knobs[1].Value());
+
+    float w = hardware.knobs[3].Process();
+    int numChoices = Oscillator::WAVE_LAST;
+    waveform = w * numChoices;
+    freq_osc.SetWaveform(waveform);
+    float knob2Value = osc_freq_knob.Process();
+    float freq_osc_min = 0.01f;
+    freq_osc.SetFreq(freq_osc_min + (knob2Value * 3.0f)); //0 - 20 Hz
+
+    float mod = freq_osc.Process();
+
+    if (knob2Value < 0.01) {
+        mod = 1.0f;
+    }
+
+    treml.SetFreq(tremFreqMin + (tremFreqMax - tremFreqMin) * mod); 
+    tremr.SetFreq(tremFreqMin + (tremFreqMax - tremFreqMin) * mod);
 
     //If the First Footswitch button is pressed, toggle the effect enabled
     effectOn ^= hardware.switches[0].RisingEdge();
@@ -46,22 +63,15 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
     // Process Audio
     for(size_t i = 0; i < size; i++)
     {
-        fonepole(del, deltarget, .0001f); //smooth at audio rate
-        ch.SetDelay(del);
-
-        fonepole(lfo, lfotarget, .0001f); //smooth at audio rate
-        ch.SetLfoDepth(lfo);
-
-
         out[0][i] = in[0][i];
         out[1][i] = in[1][i];
 
         if(effectOn)
         {
-            ch.Process(in[0][i]);
-
-            out[0][i] = ch.GetLeft() * wet + in[0][i] * (1.f - wet);
-            out[1][i] = ch.GetRight() * wet + in[1][i] * (1.f - wet);
+            // Tremelo
+            led2Brightness = treml.Process(1.0f);
+            out[0][i] = treml.Process(in[0][i]);
+            out[1][i] = tremr.Process(in[1][i]);
         }
     }
 }
@@ -85,7 +95,7 @@ void HandleMidiMessage(MidiEvent m)
             if(m.data[1] != 0)
             {
                 p = m.AsNoteOn();
-                led2Brightness = ((float)p.velocity / 127.0f);
+                //led2Brightness = ((float)p.velocity / 127.0f);
                 //osc.SetFreq(mtof(p.note));
                 //osc.SetAmp((p.velocity / 127.0f));
             }
@@ -105,7 +115,7 @@ void HandleMidiMessage(MidiEvent m)
                     //filt.SetRes(((float)p.value / 127.0f));
                     break;
                 default: 
-                    led2Brightness = ((float)p.value / 127.0f);
+                    //led2Brightness = ((float)p.value / 127.0f);
                 break;
             }
             break;
@@ -127,13 +137,20 @@ int main(void)
     */
 
     float sample_rate = hardware.AudioSampleRate();
-    ch.Init(sample_rate);
 
-    effectOn  = true;
+    treml.Init(sample_rate);
+    tremr.Init(sample_rate);
+    treml.SetWaveform(Oscillator::WAVE_SIN);
+    tremr.SetWaveform(Oscillator::WAVE_SIN);
+    waveform = 0;
+    osc_freq = 0.0f;
+    freq_osc.Init(sample_rate);
+    freq_osc.SetWaveform(waveform);
+    freq_osc.SetAmp(1.0f);
+    freq_osc.SetFreq(osc_freq);
+    osc_freq_knob.Init(hardware.knobs[2], 0.0, 1.0f, Parameter::Curve::EXPONENTIAL);
+    effectOn  = false;
     led2Brightness = 0.f;
-    wet       = .9f;
-    deltarget = del = 0.f;
-    lfotarget = lfo = 0.f;
  
     // start callback
     hardware.StartAdc();
