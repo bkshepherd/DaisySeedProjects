@@ -48,6 +48,8 @@ I used an electric drill by hand with some step drill bits, which worked great. 
 
 This is the [Drill Template](EnclosureDrillTemplate.pdf) I used. 
 
+Please note that this Tempalte doesn't include the holes on the top for the midi in / out and power jack.  Their position really depends on how everything fits into the enclosure, so you'll have to figure it out. Where you put the power in connector also depends on what type of connector you are using. You'll just have to fine somewhere with enough clearance.  It's tight for sure.
+
 ## 6. Jam everything into the enclosure, and ENJOY!
 
 ![FinalProduct](images/FinalProduct.png)
