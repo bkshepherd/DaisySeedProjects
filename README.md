@@ -7,4 +7,4 @@ http://electro-smith.com
 
 ## Projects:
 ### 1. [Guitar Effect Pedal in 1590b Enclosure](GuitarPedal1590b/README.md)
-
+### 2. [Guitar Effect Pedal in 125b Enclosure](GuitarPedal125b/README.md)
