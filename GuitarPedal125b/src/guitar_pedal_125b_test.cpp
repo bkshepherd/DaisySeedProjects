@@ -92,7 +92,7 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
     tremr.SetFreq(tremFreqMin + (tremFreqMax - tremFreqMin) * mod);
 
     //If the First Footswitch button is pressed, toggle the effect enabled
-    effectOn ^= hardware.switches[0].RisingEdge();
+    effectOn ^= hardware.switches[1].RisingEdge();
 
     // Process Audio
     for(size_t i = 0; i < size; i++)
@@ -201,8 +201,8 @@ int main(void)
     while(1)
     {
         //LED stuff
-        hardware.SetLed((GuitarPedal125B::LedIndex)0, effectOn);
-        hardware.SetLed((GuitarPedal125B::LedIndex)1, led2Brightness);
+        hardware.SetLed((GuitarPedal125B::LedIndex)1, effectOn);
+        hardware.SetLed((GuitarPedal125B::LedIndex)0, led2Brightness);
         hardware.UpdateLeds();
         
         // Handle MIDI Events
@@ -216,7 +216,8 @@ int main(void)
         // Do something with display
         hardware.display.Fill(false);
         hardware.display.SetCursor(0, 0);
-        hardware.display.WriteString("Guitar Pedal", Font_7x10, true);
+        sprintf(strbuff, "Guitar Pedal (%d):", effectOn);
+        hardware.display.WriteString(strbuff, Font_7x10, true);
         hardware.display.SetCursor(0, 15);
         hardware.display.WriteString("Made by Keith", Font_7x10, true);
         hardware.display.SetCursor(0, 30);
