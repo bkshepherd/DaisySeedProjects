@@ -1,4 +1,11 @@
-21453959059940939
+21462336092604988
+AudioConnector-PJ320A
+TRRS-PJ-320A
+
+
+0
+4
+4
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -62964,6 +62971,13 @@ Mounting 4.5mm 9774100982
 0
 8
 1
+NMJ6HCD2
+NEUTRIK_NMJ6HCD2
+
+
+0
+6
+6
 NetTie
 NetTie-2_SMD_Pad0.5mm
 Net tie, 2 pin, 0.5mm square SMD pads
@@ -64070,6 +64084,20 @@ DIL DIP PDIP 2.54mm 7.62mm 300mil
 0
 4
 4
+PDS1-S5-S5-M
+CONV_PDS1-S5-S5-M
+
+
+0
+5
+4
+PEC11R-4XXXK-SXXXX
+PEC11R-4XXXK-SXXXX
+PEC11R-4xxxK-Sxxxx
+Undefined or Miscellaneous
+0
+5
+5
 Package_BGA
 Analog_BGA-28_4.0x6.25mm_Layout4x7_P0.8mm_Ball0.45mm_Pad0.4
 Analog BGA-28 4.0mm x 6.25mm package, pitch 0.4mm pad, based on https://www.analog.com/media/en/technical-documentation/data-sheets/8063fa.pdf
@@ -79453,6 +79481,13 @@ Potentiometer_THT
 Potentiometer_Vishay_T73YP_Vertical
 Potentiometer, vertical, Vishay T73YP, http://www.vishay.com/docs/51016/t73.pdf
 Potentiometer vertical Vishay T73YP
+0
+3
+3
+RD901F
+RD901F4015R1B10K00DL1
+RD901F-40-15R1-B10K-00DL1-3
+Variable Resistor
 0
 3
 3
