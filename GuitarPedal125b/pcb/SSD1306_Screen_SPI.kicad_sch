@@ -12,7 +12,7 @@
   )
 
   (lib_symbols
-    (symbol "Keiths_Symbols:OLED_DISPLAY_SSD1306_SPI" (in_bom yes) (on_board yes)
+    (symbol "GuitarPedal125B:OLED_DISPLAY_SSD1306_SPI" (in_bom yes) (on_board yes)
       (property "Reference" "U" (at 0 2.54 0)
         (effects (font (size 1.27 1.27)))
       )
@@ -218,7 +218,7 @@
     )
   )
 
-  (symbol (lib_id "Keiths_Symbols:OLED_DISPLAY_SSD1306_SPI") (at 138.43 102.87 0) (unit 1)
+  (symbol (lib_id "GuitarPedal125B:OLED_DISPLAY_SSD1306_SPI") (at 138.43 102.87 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 77511a75-6963-4c15-828b-892802ff5e06)
     (property "Reference" "U6" (at 137.16 100.33 0)

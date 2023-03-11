@@ -1,3 +1,5 @@
 (sym_lib_table
+  (version 7)
   (lib (name "NMJ6HCD2")(type "KiCad")(uri "/Users/kshep/Documents/KiCad/Parts/NMJ6HCD2/NMJ6HCD2.kicad_sym")(options "")(descr ""))
+  (lib (name "GuitarPedal125B")(type "KiCad")(uri "${KIPRJMOD}/CustomSymbols.kicad_sym")(options "")(descr ""))
 )
