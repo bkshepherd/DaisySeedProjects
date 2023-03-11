@@ -1,2 +1,4 @@
 (fp_lib_table
+  (version 7)
+  (lib (name "GuitarPedal125B")(type "KiCad")(uri "${KIPRJMOD}/CustomFootprints.pretty")(options "")(descr ""))
 )

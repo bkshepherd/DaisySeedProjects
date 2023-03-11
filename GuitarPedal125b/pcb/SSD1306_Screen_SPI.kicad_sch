@@ -227,7 +227,7 @@
     (property "Value" "OLED_DISPLAY_SSD1306_SPI" (at 125.73 96.52 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Footprint" "Keiths_Reusable_Footprints:HiLetgo_OLED_SPI" (at 138.43 102.87 0)
+    (property "Footprint" "GuitarPedal125B:HiLetgo_OLED_SPI" (at 138.43 102.87 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "" (at 138.43 102.87 0)
