@@ -20,8 +20,6 @@ float led2Brightness;
 
 int encoder1Value = 0;
 bool encoder1Pressed = false;
-int encoder2Value = 0;
-bool encoder2Pressed = false;
 
 static void AudioCallback(AudioHandle::InputBuffer  in,
                      AudioHandle::OutputBuffer out,
@@ -41,15 +39,6 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
         encoder1Pressed = false;
     }
 
-    if (hardware.encoders[1].Pressed())
-    {
-        encoder2Pressed = true;
-    }
-    else
-    {
-        encoder2Pressed = false;
-    }
-
     if (hardware.encoders[0].Increment() > 0)
     {
         encoder1Value++;
@@ -57,15 +46,6 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
     else if (hardware.encoders[0].Increment() < 0)
     {
         encoder1Value--;
-    }
-
-    if (hardware.encoders[1].Increment() > 0)
-    {
-        encoder2Value++;
-    }
-    else if (hardware.encoders[1].Increment() < 0)
-    {
-        encoder2Value--;
     }
 
     // Handle knobs Tremelo
@@ -77,7 +57,7 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
     //float w = hardware.knobs[3].Process();
     //int numChoices = Oscillator::WAVE_LAST;
     //waveform = w * numChoices;
-    //freq_osc.SetWaveform(waveform);
+    freq_osc.SetWaveform(waveform);
     float knob2Value = osc_freq_knob.Process();
     float freq_osc_min = 0.01f;
     freq_osc.SetFreq(freq_osc_min + (knob2Value * 3.0f)); //0 - 20 Hz
@@ -88,11 +68,12 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
         mod = 1.0f;
     }
 
-    treml.SetFreq(tremFreqMin + (tremFreqMax - tremFreqMin) * mod); 
-    tremr.SetFreq(tremFreqMin + (tremFreqMax - tremFreqMin) * mod);
+    treml.SetFreq(tremFreqMin + tremFreqMax * mod); 
+    tremr.SetFreq(tremFreqMin + tremFreqMax * mod);
 
     //If the First Footswitch button is pressed, toggle the effect enabled
     effectOn ^= hardware.switches[1].RisingEdge();
+    hardware.SetAudioBypass(!effectOn);
 
     // Process Audio
     for(size_t i = 0; i < size; i++)
@@ -104,7 +85,7 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
         {
             // Tremelo
             led2Brightness = treml.Process(1.0f);
-            out[0][i] = treml.Process(in[0][i]);
+            out[0][i] = in[0][i] * led2Brightness;
             out[1][i] = tremr.Process(in[1][i]);
         }
         else
@@ -201,10 +182,9 @@ int main(void)
     while(1)
     {
         //LED stuff
-        hardware.SetLed((GuitarPedal125B::LedIndex)1, effectOn);
         hardware.SetLed((GuitarPedal125B::LedIndex)0, led2Brightness);
-        hardware.UpdateLeds();
-        
+        hardware.SetLed((GuitarPedal125B::LedIndex)1, effectOn);
+
         // Handle MIDI Events
         hardware.midi.Listen();
 
@@ -223,9 +203,7 @@ int main(void)
         hardware.display.SetCursor(0, 30);
         sprintf(strbuff, "Enc1: %d,%d", encoder1Pressed, encoder1Value);
         hardware.display.WriteString(strbuff, Font_7x10, true);
-        hardware.display.SetCursor(0, 45);
-        sprintf(strbuff, "Enc2: %d,%d", encoder2Pressed, encoder2Value);
-        hardware.display.WriteString(strbuff, Font_7x10, true);
+    
         hardware.display.Update();
 
     }

@@ -10,21 +10,21 @@ using namespace bkshepherd;
 
 // Hardware related defines.
 // Switches
-#define SWITCH_1_PIN 5         // Foot Switch 1
-#define SWITCH_2_PIN 4         // Foot Switch 2
+#define SWITCH_1_PIN 6         // Foot Switch 1
+#define SWITCH_2_PIN 5         // Foot Switch 2
 
 // Knobs
 #define KNOB_PIN_1 15
 #define KNOB_PIN_2 16
 #define KNOB_PIN_3 17
+#define KNOB_PIN_4 18
+#define KNOB_PIN_5 19
+#define KNOB_PIN_6 20
 
 // Encoders
-#define ENCODER_1_BUTTON_PIN 14
-#define ENCODER_1_A_PIN 13
-#define ENCODER_1_B_PIN 12
-#define ENCODER_2_BUTTON_PIN 1
-#define ENCODER_2_A_PIN 3
-#define ENCODER_2_B_PIN 2
+#define ENCODER_1_BUTTON_PIN 4
+#define ENCODER_1_A_PIN 3
+#define ENCODER_1_B_PIN 2
 
 // LEDS
 #define LED_1_PIN 22
@@ -55,8 +55,8 @@ void GuitarPedal125B::Init(bool boost)
     SetAudioBlockSize(48);
 
     // Init the HW Audio Bypass
-    audioBypassTrigger.Init(daisy::seed::D6, GPIO::Mode::OUTPUT);
-    SetAudioBypass(false);
+    audioBypassTrigger.Init(daisy::seed::D1, GPIO::Mode::OUTPUT);
+    SetAudioBypass(true);
 
     // Configure the Display
     MyOledDisplay::Config disp_cfg;
@@ -187,11 +187,6 @@ void GuitarPedal125B::ClearLeds()
     }
 }
 
-void GuitarPedal125B::UpdateLeds()
-{
-    //led_driver_.SwapBuffersAndTransmit();
-}
-
 void GuitarPedal125B::SetLed(LedIndex k, float bright)
 {
     size_t idx;
@@ -219,9 +214,6 @@ void GuitarPedal125B::InitEncoders()
                             seed.GetPin(ENCODER_1_B_PIN),
                             seed.GetPin(ENCODER_1_BUTTON_PIN));
 
-    encoders[ENCODER_2].Init(seed.GetPin(ENCODER_2_A_PIN),
-                            seed.GetPin(ENCODER_2_B_PIN),
-                            seed.GetPin(ENCODER_2_BUTTON_PIN));
 }
 
 void GuitarPedal125B::InitLeds()
@@ -245,7 +237,10 @@ void GuitarPedal125B::InitAnalogControls()
     cfg[KNOB_1].InitSingle(seed.GetPin(KNOB_PIN_1));
     cfg[KNOB_2].InitSingle(seed.GetPin(KNOB_PIN_2));
     cfg[KNOB_3].InitSingle(seed.GetPin(KNOB_PIN_3));
-    
+    cfg[KNOB_4].InitSingle(seed.GetPin(KNOB_PIN_4));
+    cfg[KNOB_5].InitSingle(seed.GetPin(KNOB_PIN_5));
+    cfg[KNOB_6].InitSingle(seed.GetPin(KNOB_PIN_6));
+
     seed.adc.Init(cfg, KNOB_LAST);
     // Make an array of pointers to the knob.
     for(int i = 0; i < KNOB_LAST; i++)

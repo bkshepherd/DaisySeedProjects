@@ -36,6 +36,9 @@ class GuitarPedal125B
         KNOB_1,    /**< & */
         KNOB_2,    /**< & */
         KNOB_3,    /**< & */
+        KNOB_4,    /**< & */
+        KNOB_5,    /**< & */
+        KNOB_6,    /**< & */
         KNOB_LAST, /**< & */
     };
 
@@ -43,7 +46,6 @@ class GuitarPedal125B
     enum EncoderIndex
     {
         ENCODER_1,    /**< & */
-        ENCODER_2,    /**< & */
         ENCODER_LAST, /**< & */
     };
 
@@ -144,9 +146,6 @@ class GuitarPedal125B
 
     /** Turn all leds off */
     void ClearLeds();
-
-    /** Update Leds to values you had set. */
-    void UpdateLeds();
 
     /**
        Set Led
