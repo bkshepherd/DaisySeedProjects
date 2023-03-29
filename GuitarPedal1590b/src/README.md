@@ -1,7 +1,7 @@
-#Getting Started
+# Getting Started
 This directory includes all the Sample Code that uses the custom guitar_pedal_1590b hardware. 
 
-Currently, the sample code implements a chorus effect on the Audio input and routes it to the Audio Output on the hardware.  The various hardware knobs and switches are also mapped to parameters on the effect. There is also some limited Midi In/Out and OLED display screen test code.
+Currently, the sample code implements a Tremolo effect on the Audio input and routes it to the Audio Output on the hardware.  The various hardware knobs and switches are also mapped to parameters on the effect. There is also some limited Midi In/Out test code.
 
 Before you can use the software you'll need to do the following:
 
@@ -29,4 +29,4 @@ Plug your guitar into the Input and connect the Output to your amp.
 
 ## 5. Enjoy!!!
 
-The foot switch toggles the Chorus effect on / off and the 4 dials control different aspects of the chorus effect.
+The foot switch toggles the Tremolo effect on / off and the 4 knobs control different aspects of the effect.
