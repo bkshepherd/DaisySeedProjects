@@ -14,7 +14,9 @@ A project to create a digital effect pedal based on the Electro-Smith Daisy Seed
 
 This project is still work in progress and is an evolution of my [1590B sized Pedal](https://github.com/bkshepherd/DaisySeedProjects/tree/main/GuitarPedal1590b). Documenation is sparse at the moment, but I hope to improve it over time.
 
-![CircuitBoard](docs/images/CircuitBoard-Front.png) ![CircuitBoard](docs/images/CircuitBoard-Back.png) ![PCBs](docs/images/PCBs.png)
+![FinishedProduct](docs/images/FinishedProduct.png) ![FinishedProductBack](docs/images/FinishedProduct-Back.png)
+![CircuitBoard](docs/images/CircuitBoard-Front.png) ![CircuitBoard](docs/images/CircuitBoard-Back.png)
+![Enclosure](docs/images/Enclosure-Drilled.png) ![PCBs](docs/images/PCBs.png)
 
 ### Features
 
