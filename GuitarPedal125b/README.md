@@ -32,7 +32,7 @@ This project is still work in progress and is an evolution of my [1590B sized Pe
 9. Standard 9v center pin negative power jack
 10. Easy access to the Daisy Seed USB port and reset buttons for updating the firmware
 11. Primarily SMD parts for easy assembly by your PCB provider
-12. Easily order a custom drilled enclosure from Tayda!
+12. Easily order a custom drilled enclosure from Tayda! [Template Here](https://drill.taydakits.com/box-designs/new?public_key=ZXRnaU9PaWx0b1hNa3VxeTJua3d2dz09Cg==)
 
 This project includes a KiCad project with the necessary schematics and PCB layout files to create everything you need to build the hardware. I actually used JLCPCB to manufacture the PCB and assemble the SMD parts and most of the through-hole parts.  The BOM file is in the proper format for them to assemble it with their available parts.  Sample Code is also provided with a hardware attraction layer as well as a custom Tremolo effect that uses the hardware.
 
