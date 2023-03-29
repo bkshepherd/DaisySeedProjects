@@ -2,8 +2,7 @@
 
 ### Rev 3 - 3/29/2023
 
-### Updates include:
-
+Updates include:
 1. Improved 4 Layer PCB Layout, much easier to assemble!
 2. Replaced all SMD parts with through-hole alternative
 
