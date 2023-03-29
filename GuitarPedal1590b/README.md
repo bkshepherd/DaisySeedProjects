@@ -9,7 +9,7 @@ Updates include:
 
 ### Overview
 
-A project to create a digital effect pedal based on the Electro-Smith Daisy Seed that fits into a standard 1590B sized Guitar Pedal enclosure. Electro-Smith sells a guitar pedal, but it's a much larger format, and I wanted something as small as possible.  The PedalPCB Terrarium was another option, but it's mono only, so I decided to build my own. This one is Stereo In / Out and has Midi In / Out, so it's quite flexible and can be programmed to do a lot.
+A project to create a digital effect pedal based on the Electro-Smith Daisy Seed that fits into a standard 1590B sized Guitar Pedal enclosure. Electro-Smith sells a guitar pedal, but it's a much larger format, and I wanted something as small as possible.  The PedalPCB Terrarium was another option, but it's mono only, so I decided to build my own. This one is a smaller form factor than both, operates in Mono or Stereo, and has Midi support, so it's capable little pedal platform.
 
 ![FinalProduct](docs/images/FinalProduct.png) ![Backside](docs/images/Alive.png)
 
@@ -17,14 +17,15 @@ A project to create a digital effect pedal based on the Electro-Smith Daisy Seed
 
 ### Features
 
-1. Buffered Stereo Input and Outputs for Guitar Level signals
-2. TRS Mini MIDI Input and Outputs
-3. 4 Pots
-4. Up to 2 Footswitches
-5. Up to 2 Leds
-6. Standard 9v center pin negative power jack
-7. Easily Assembled from easily sourced through-hole parts, no SMD soldering required!
-8. Easily order a custom drilled enclosure from Tayda!
+1. Small 1590B pedal board friendly enclosure!
+2. Buffered Stereo Input and Outputs for Guitar Level signals
+3. TRS Mini MIDI Input and Outputs
+4. 4 Pots
+5. Up to 2 Footswitches
+6. Up to 2 Leds
+7. Standard 9v center pin negative power jack
+8. Easily Assembled from easily sourced through-hole parts, no SMD soldering required!
+9. Easily order a custom drilled enclosure from Tayda!
 
 This project includes a KiCad project with the necessary schematics and PCB layout files to create everything you need to build the hardware and code the provides a hardware attraction layer as well as sample code with a custom Tremolo effect that uses the hardware.
 
