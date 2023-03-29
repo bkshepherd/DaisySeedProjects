@@ -17,9 +17,22 @@ This project is still work in progress and is an evolution of my [1590B sized Pe
 ![CircuitBoard](docs/images/CircuitBoard-Front.png) ![CircuitBoard](docs/images/CircuitBoard-Back.png) ![PCBs](docs/images/PCBs.png)
 
 ### Features
-This one uses a slightly larger enclosure, incorporates primarily SMD parts, includes a display two digital rotary encoders with push buttons, 3 analog potentiometers, relayed based audio bypass switching, stereo in / out audio trs jacks, and midi in / out mini-trs jacks, so it's quite flexible and can be programmed to do a lot.
 
-This project includes a KiCad project with the necessary schematics and PCB layout files to create everything you need to build the hardware. I actually used JLCPCB to manufacture the PCB and assemble the first prototype board.  The BOM file is in the proper format for them to assemble it with their available parts.  Sample Code is also provided with a hardware attraction layer as well as a custom Tremolo effect that uses the hardware.
+1. 125B size pedal board friendly enclosure!
+2. Buffered Stereo Input and Outputs for Guitar Level signals
+2. Relay based "True Bypass" switching
+3. TRS Mini MIDI Input and Outputs
+4. OLED Display
+5. Rotary Encoder for Display Navigation
+6. 6 Pots
+7. Up to 2 Footswitches
+8. Up to 2 Leds
+9. Standard 9v center pin negative power jack
+10. Easy access to the Daisy Seed USB port and reset buttons for updating the firmware
+11. Primarily SMD parts for easy assembly by your PCB provider
+12. Easily order a custom drilled enclosure from Tayda!
+
+This project includes a KiCad project with the necessary schematics and PCB layout files to create everything you need to build the hardware. I actually used JLCPCB to manufacture the PCB and assemble the SMD parts and most of the through-hole parts.  The BOM file is in the proper format for them to assemble it with their available parts.  Sample Code is also provided with a hardware attraction layer as well as a custom Tremolo effect that uses the hardware.
 
 Information about the Daisy Seed can be found at:
 
