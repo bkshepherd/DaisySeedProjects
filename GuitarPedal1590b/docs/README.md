@@ -44,6 +44,8 @@ You'll need to compile the code and flash it into the Daisy Seed on the hardware
 
 You can order a custom drilled & powder coated enclosure from Tayda using this [Custom Drill Template](https://drill.taydakits.com/box-designs/new?public_key=YWRhVFFGU0Z2c3RJR09VQ1U4S3EvUT09Cg==)
 
+Please note, the top two tiny holes inbetween the knobs are so you can reach the flash and reset buttons on the DaisySeed, for easy re-programming during development.  You can keep or omit them. 
+
 ...or you can use an electric drill by hand with some step drill bits. It's a bit hard to get everything lined up, so measure carefully.
 
 ## 6. Jam everything into the enclosure, and ENJOY!
