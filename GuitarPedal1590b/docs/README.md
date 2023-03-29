@@ -42,7 +42,9 @@ You'll need to compile the code and flash it into the Daisy Seed on the hardware
 
 ## 5. Drill Holes in the Enclosure
 
-I used an electric drill by hand with some step drill bits, which worked great. It's a bit hard to get everything lined up, so measure carefully.
+You can order a custom drilled & powder coated enclosure from Tayda using this [Custom Drill Template](https://drill.taydakits.com/box-designs/new?public_key=YWRhVFFGU0Z2c3RJR09VQ1U4S3EvUT09Cg==)
+
+...or you can use an electric drill by hand with some step drill bits. It's a bit hard to get everything lined up, so measure carefully.
 
 ## 6. Jam everything into the enclosure, and ENJOY!
 
