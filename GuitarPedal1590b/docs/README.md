@@ -14,7 +14,7 @@ The KiCad files are included for the full schematic and pcb board layout in the 
 
 I like to order my PCBs from https://oshpark.com or https://www.jlcpcb.com, but anywhere should work fine.
 
-Visit that website and simply upload the **DaisySeedPedal1590b.kicad_pcb** file. They will show you what it's going to look like and they will give you a price for ordering 3 pcbs (that's their minimum order).  I think I paid ~$40.  It will take a week or two for it arrive and they look like this:
+To get it built at Osh Park, simply upload the **DaisySeedPedal1590b.kicad_pcb** file to their website. They will show you what it's going to look like and they will give you a price for ordering 3 pcbs (that's their minimum order).  I think I paid ~$40.  It will take a week or two for it arrive and they look like this:
 
 ![PCBs](images/PCBs.png)
 
