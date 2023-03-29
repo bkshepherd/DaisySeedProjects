@@ -1,7 +1,7 @@
 # Guitar Pedal 1590b
 A project to create a digital effect pedal based on the Electro-Smith Daisy Seed that fits into a standard 1590B sized Guitar Pedal enclosure. Electro-Smith sells a guitar pedal, but it's a much larger format, and I wanted something as small as possible.  The PedalPCB Terrarium was another option, but it's mono only, so I decided to build my own.  This one is Stereo In / Out and has Midi In / Out, so it's quite flexible and can be programmed to do a lot.
 
-![FinalProduct](docs/images/FinalProduct.png) ![Backside](docs/images/Backside.png)
+![FinalProduct](docs/images/FinalProduct.png) ![Backside](docs/images/Alive.png)
 
 ![CircuitBoard](docs/images/CircuitBoard.png) ![PCBs](docs/images/PCBs.png)
 

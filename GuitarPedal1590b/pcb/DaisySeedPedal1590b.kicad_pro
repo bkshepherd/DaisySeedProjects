@@ -478,6 +478,14 @@
       {
         "netclass": "Power",
         "pattern": "/Power/VIN"
+      },
+      {
+        "netclass": "Power",
+        "pattern": "POWER_JACK_PWR"
+      },
+      {
+        "netclass": "Power",
+        "pattern": "GND"
       }
     ]
   },
@@ -558,8 +566,8 @@
       "Midi InOut"
     ],
     [
-      "612d1ae5-1da2-4a6b-bf25-f29f73f7519e",
-      "SSD1306 Screen SPI"
+      "807948aa-ae34-47ab-a0ef-520926664b1c",
+      "Controls"
     ]
   ],
   "text_variables": {}

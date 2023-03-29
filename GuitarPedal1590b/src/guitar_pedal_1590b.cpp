@@ -10,10 +10,8 @@ using namespace bkshepherd;
 
 // Hardware related defines.
 // Switches
-#define SWITCH_1_PIN 19         // Foot Switch 1
-#define SWITCH_2_PIN 20         // Foot Switch 2
-#define SWITCH_3_PIN 24         // Toggle Switch 1
-#define SWITCH_4_PIN 25         // Toggle Switch 2
+#define SWITCH_1_PIN 6         // Foot Switch 1
+#define SWITCH_2_PIN 5         // Foot Switch 2
 
 // Knobs
 #define KNOB_PIN_1 15
@@ -35,6 +33,10 @@ void GuitarPedal1590B::Init(bool boost)
     InitAnalogControls();
     InitMidi();
     SetAudioBlockSize(48);
+
+    // Init the HW Audio Bypass
+    audioBypassTrigger.Init(daisy::seed::D1, GPIO::Mode::OUTPUT);
+    SetAudioBypass(true);
 }
 
 void GuitarPedal1590B::DelayMs(size_t del)
@@ -140,6 +142,11 @@ void GuitarPedal1590B::ProcessDigitalControls()
     }
 }
 
+void GuitarPedal1590B::SetAudioBypass(bool enabled)
+{
+    audioBypass = enabled;
+    audioBypassTrigger.Write(!audioBypass);
+}
 
 void GuitarPedal1590B::ClearLeds()
 {
@@ -147,11 +154,6 @@ void GuitarPedal1590B::ClearLeds()
     {
         SetLed(static_cast<LedIndex>(i), 0.0f);
     }
-}
-
-void GuitarPedal1590B::UpdateLeds()
-{
-    //led_driver_.SwapBuffersAndTransmit();
 }
 
 void GuitarPedal1590B::SetLed(LedIndex k, float bright)
@@ -167,8 +169,6 @@ void GuitarPedal1590B::InitSwitches()
     uint8_t pin_numbers[SWITCH_LAST] = {
         SWITCH_1_PIN,
         SWITCH_2_PIN,
-        SWITCH_3_PIN,
-        SWITCH_4_PIN,
     };
 
     for(size_t i = 0; i < SWITCH_LAST; i++)

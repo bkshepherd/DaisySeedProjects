@@ -1,7 +1,7 @@
 # Building the Hardware
-Some quick instructions for how to make the GuitarPedal1590B Hardware.  This document assumes you know the basics about soldering and circuit board assembly.  You'll also need to be fairly handy with a drill to mount the various knobs and switches on the enclosure.
+Some quick instructions for how to make the GuitarPedal1590B Hardware.  This document assumes you know the basics about soldering and circuit board assembly.  You'll also need to be fairly handy with a drill to mount the various knobs and switches on the enclosure (or you can order one pre-made from Tayda).
 
-Also, I just want to achnowledge that the schematics for the circuits were kit bashed together from the following sources with some additions of my own:
+Also, I just want to acknowledge that the schematics for the circuits were kit bashed together from the following sources with some additions of my own:
 
 * [Electro-Smith: Daisy Petal Rev 5 Schematics](https://github.com/electro-smith/Hardware/blob/master/reference/daisy_petal/ES_Daisy_Petal_Rev5.pdf)
 * [Simple DIY Electronic Music Projects](https://diyelectromusic.wordpress.com/2022/08/29/3v3-midi-module-pcb/)
@@ -12,7 +12,7 @@ Getting everything into KiCad and the PCB layouts are all my own work.
 
 The KiCad files are included for the full schematic and pcb board layout in the **pcb** folder.  You really don't need to know anything about KiCad to order the PCB and get it made, but they are there for reference.
 
-I like to order my PCBs from https://oshpark.com, but anywhere should work fine.
+I like to order my PCBs from https://oshpark.com or https://www.jlcpcb.com, but anywhere should work fine.
 
 Visit that website and simply upload the **DaisySeedPedal1590b.kicad_pcb** file. They will show you what it's going to look like and they will give you a price for ordering 3 pcbs (that's their minimum order).  I think I paid ~$40.  It will take a week or two for it arrive and they look like this:
 
@@ -20,19 +20,19 @@ Visit that website and simply upload the **DaisySeedPedal1590b.kicad_pcb** file.
 
 ## 2. Source the Components
 
-A full list of all the required components can be found in the [Bill_of_Materials_BOM.xlsx](Bill_of_Materials_BOM.xlsx) file.  Almost everything uses Through-Hole type components, but there are a few SMD components.
+A full list of all the required components can be found in the [Bill_of_Materials_BOM.xlsx](Bill_of_Materials_BOM.xlsx) file.  Everything uses Through-Hole type components for simplicity sake.
 
-You'll also need to order the enclosure.  I used this one from Amazon: https://www.amazon.com/dp/B07VKR51NN
+You'll also need to order the enclosure, which is 1590B sized.
+
+You can either order a generic one like this from Amazon: https://www.amazon.com/dp/B07VKR51NN and drill your own holes, or you can order one pre-drilled from Tayda.
 
 ## 3. Solder Everything
-
-The SMD parts are tricky, but there aren't many, and I was able to hand solder them just fine. One tricky thing is to use appropriate lengths of wire for the various knobs and switches so that they will reach the proper locations on the enclosure, so plan ahead!
 
 It will roughly look like this when finished with this step:
 
 ![CircuitBoard](images/CircuitBoard.png)
 
-(I ommited the 2 toggle switches and the 2nd footswitch from my build)
+(I omitted the 2nd foot switch from my build)
 
 ## 4. Flash the Software to the Hardware
 
@@ -42,13 +42,7 @@ You'll need to compile the code and flash it into the Daisy Seed on the hardware
 
 ## 5. Drill Holes in the Enclosure
 
-I used an electric drill by hand with some step drill bits, which worked great. It's a bit hard to get everything lined up, so measure carefully. I made a quick template, printed, and taped it before I drilled my holes:
-
-![HoleTemplate](images/HoleTemplate.png)
-
-This is the [Drill Template](EnclosureDrillTemplate.pdf) I used. 
-
-Please note that this Tempalte doesn't include the holes on the top for the midi in / out and power jack.  Their position really depends on how everything fits into the enclosure, so you'll have to figure it out. Where you put the power in connector also depends on what type of connector you are using. You'll just have to fine somewhere with enough clearance.  It's tight for sure.
+I used an electric drill by hand with some step drill bits, which worked great. It's a bit hard to get everything lined up, so measure carefully.
 
 ## 6. Jam everything into the enclosure, and ENJOY!
 

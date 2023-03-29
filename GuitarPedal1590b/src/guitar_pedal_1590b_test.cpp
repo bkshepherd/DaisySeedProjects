@@ -1,21 +1,12 @@
 #include <string.h>
 #include "guitar_pedal_1590b.h"
 #include "daisysp.h"
-#include "dev/oled_ssd130x.h"
 
 using namespace daisy;
 using namespace daisysp;
 using namespace bkshepherd;
 
-/** Typedef the OledDisplay to make syntax cleaner below 
- *  This is a 4Wire SPI Transport controlling an 128x64 sized SSDD1306
- * 
- *  There are several other premade test 
-*/
-using MyOledDisplay = OledDisplay<SSD130x4WireSpi128x64Driver>;
-
 GuitarPedal1590B hardware;
-MyOledDisplay display;
 
 Tremolo    treml, tremr;
 Oscillator freq_osc;
@@ -40,9 +31,9 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
     treml.SetDepth(hardware.knobs[1].Process());
     tremr.SetDepth(hardware.knobs[1].Value());
 
-    float w = hardware.knobs[3].Process();
-    int numChoices = Oscillator::WAVE_LAST;
-    waveform = w * numChoices;
+    //float w = hardware.knobs[3].Process();
+    //int numChoices = Oscillator::WAVE_LAST;
+    //waveform = w * numChoices;
     freq_osc.SetWaveform(waveform);
     float knob2Value = osc_freq_knob.Process();
     float freq_osc_min = 0.01f;
@@ -54,11 +45,12 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
         mod = 1.0f;
     }
 
-    treml.SetFreq(tremFreqMin + (tremFreqMax - tremFreqMin) * mod); 
-    tremr.SetFreq(tremFreqMin + (tremFreqMax - tremFreqMin) * mod);
+    treml.SetFreq(tremFreqMin + tremFreqMax * mod); 
+    tremr.SetFreq(tremFreqMin + tremFreqMax * mod);
 
     //If the First Footswitch button is pressed, toggle the effect enabled
-    effectOn ^= hardware.switches[0].RisingEdge();
+    effectOn ^= hardware.switches[1].RisingEdge();
+    hardware.SetAudioBypass(!effectOn);
 
     // Process Audio
     for(size_t i = 0; i < size; i++)
@@ -70,8 +62,12 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
         {
             // Tremelo
             led2Brightness = treml.Process(1.0f);
-            out[0][i] = treml.Process(in[0][i]);
+            out[0][i] = in[0][i] * led2Brightness;
             out[1][i] = tremr.Process(in[1][i]);
+        }
+        else
+        {
+            led2Brightness = 0.0f;
         }
     }
 }
@@ -129,13 +125,6 @@ int main(void)
     hardware.Init();
     hardware.SetAudioBlockSize(4);
 
-    /* Configure the Display
-    MyOledDisplay::Config disp_cfg;
-    disp_cfg.driver_config.transport_config.pin_config.dc    = hw.GetPin(9);
-    disp_cfg.driver_config.transport_config.pin_config.reset = hw.GetPin(30);
-    display.Init(disp_cfg);
-    */
-
     float sample_rate = hardware.AudioSampleRate();
 
     treml.Init(sample_rate);
@@ -165,14 +154,11 @@ int main(void)
     midiData[2] = 0b01111111;
     hardware.midi.SendMessage(midiData, sizeof(uint8_t) * 3);
 
-    //char strbuff[128], szF[8];
-
     while(1)
     {
         //LED stuff
-        hardware.SetLed((GuitarPedal1590B::LedIndex)0, effectOn);
-        hardware.SetLed((GuitarPedal1590B::LedIndex)1, led2Brightness);
-        hardware.UpdateLeds();
+        hardware.SetLed((GuitarPedal1590B::LedIndex)0, led2Brightness);
+        hardware.SetLed((GuitarPedal1590B::LedIndex)1, effectOn);
         
         // Handle MIDI Events
         hardware.midi.Listen();
@@ -181,23 +167,6 @@ int main(void)
         {
             HandleMidiMessage(hardware.midi.PopEvent());
         }
-
-        /* Do something with display
-        display.Fill(false);
-        display.SetCursor(0, 0);
-        display.WriteString("Guitar Pedal", Font_7x10, true);
-        display.SetCursor(0, 15);
-        display.WriteString("Made by Keith", Font_7x10, true);
-        display.SetCursor(0, 30);
-        dtostrf(hw.adc.GetFloat(0), 6, 4, szF);
-        sprintf(strbuff, "ADC0: %s", szF);
-        display.WriteString(strbuff, Font_7x10, true);
-        display.SetCursor(0, 45);
-        dtostrf(hw.adc.GetFloat(1), 6, 4, szF);
-        sprintf(strbuff, "ADC1: %s", szF);
-        display.WriteString(strbuff, Font_7x10, true);
-        display.Update();
-        */
 
     }
 }

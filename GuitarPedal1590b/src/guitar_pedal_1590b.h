@@ -19,8 +19,6 @@ class GuitarPedal1590B
     {
         SWITCH_1,    /**< Footswitch */
         SWITCH_2,    /**< Footswitch */
-        SWITCH_3,    /**< Toggle */
-        SWITCH_4,    /**< Toggle */
         SWITCH_LAST, /**< Last enum item */
     };
 
@@ -127,11 +125,11 @@ class GuitarPedal1590B
     /** Process digital controls */
     void ProcessDigitalControls();
 
+    /** Toggle the Hardware Audio Bypass (if applicable) */
+    void SetAudioBypass(bool enabled);
+
     /** Turn all leds off */
     void ClearLeds();
-
-    /** Update Leds to values you had set. */
-    void UpdateLeds();
 
     /**
        Set Led
@@ -145,6 +143,8 @@ class GuitarPedal1590B
     Switch        switches[SWITCH_LAST] /**< & */;
     Led           leds[LED_LAST]; /**< & */
     MidiUartHandler midi;
+    GPIO audioBypassTrigger;
+    bool audioBypass;
 
   private:
     void SetHidUpdateRates();
