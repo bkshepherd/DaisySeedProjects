@@ -10,3 +10,4 @@ http://electro-smith.com
 ![FinalProduct1590b](GuitarPedal1590b/docs/images/FinalProduct.png) ![CircuitBoard1590b](GuitarPedal1590b/docs/images/CircuitBoard.png)
 ### 2. Guitar Effect Pedal in 1590b Enclosure (SMD Parts) - COMING SOON!
 ### 3. [Guitar Effect Pedal in 125b Enclosure](GuitarPedal125b/README.md) (SMD Parts)
+![FinalProduct125b](GuitarPedal125b/docs/images/FinalProduct.png) ![CircuitBoard125b](GuitarPedal125b/docs/images/CircuitBoard-Back.png)
