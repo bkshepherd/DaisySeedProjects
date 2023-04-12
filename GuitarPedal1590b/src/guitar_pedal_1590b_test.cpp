@@ -49,7 +49,7 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
     tremr.SetFreq(tremFreqMin + tremFreqMax * mod);
 
     //If the First Footswitch button is pressed, toggle the effect enabled
-    effectOn ^= hardware.switches[1].RisingEdge();
+    effectOn ^= hardware.switches[0].RisingEdge();
     hardware.SetAudioBypass(!effectOn);
 
     // Process Audio
@@ -157,8 +157,8 @@ int main(void)
     while(1)
     {
         //LED stuff
-        hardware.SetLed((GuitarPedal1590B::LedIndex)0, led2Brightness);
-        hardware.SetLed((GuitarPedal1590B::LedIndex)1, effectOn);
+        hardware.SetLed((GuitarPedal1590B::LedIndex)0, effectOn);
+        hardware.SetLed((GuitarPedal1590B::LedIndex)1, led2Brightness);
         
         // Handle MIDI Events
         hardware.midi.Listen();

@@ -6,8 +6,8 @@
 
   (title_block
     (title "Daisy Seed Guitar Pedal 1590B")
-    (date "2023-03-17")
-    (rev "3")
+    (date "2023-04-12")
+    (rev "4")
     (company "Made by Keith Shepherd (kshep@mac.com)")
     (comment 1 "https://github.com/electro-smith/Hardware/blob/master/reference/daisy_petal/")
     (comment 2 "Schematic loosly based on the Electro-Smith Daisy Petal Reference Hardware Rev 5")
