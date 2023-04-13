@@ -1,5 +1,12 @@
 # Guitar Pedal 1590b
 
+### Rev 4 - 4/12/2023
+
+Updates include:
+1. Updated PCB layout to move some components farther away from the edges
+2. Swapped LED 1 & 2 placment to make Led 1 in the primary position 
+3. Updated code to make Footswitch 1 & Led 1 enable / disabe the effect
+
 ### Rev 3 - 3/29/2023
 
 Updates include:
