@@ -1,5 +1,10 @@
 # Guitar Pedal 125b
 
+### Rev 3 - 4/14/2023
+
+Updates include:
+1. Swapped the placement of the Footswitches and LEDs on the PCB to be consistent with my other pedals.
+
 ### Rev 2 - 3/29/2023
 
 Updates include:
