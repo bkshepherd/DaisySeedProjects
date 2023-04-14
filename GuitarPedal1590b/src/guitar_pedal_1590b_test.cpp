@@ -17,10 +17,22 @@ Parameter osc_freq_knob;
 bool  effectOn;
 float led2Brightness;
 
+uint32_t lastTimeStampUS;
+uint32_t timeSinceEnableToggleUS;
+bool crossFading = false;
+bool crossFadingToEffectOn = false;
+float crossFadingWetFactor = 0.0f;
+float crossFadingDryFactor = 1.0f;
+
 static void AudioCallback(AudioHandle::InputBuffer  in,
                      AudioHandle::OutputBuffer out,
                      size_t                    size)
 {
+    // Handle Time
+    uint32_t currentTimeStampUS = System::GetUs();
+    uint32_t elapsedTimeStampUS = currentTimeStampUS - lastTimeStampUS;
+    lastTimeStampUS = currentTimeStampUS;
+
     // Handle Inputs
     hardware.ProcessAnalogControls();
     hardware.ProcessDigitalControls();
@@ -49,25 +61,82 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
     tremr.SetFreq(tremFreqMin + tremFreqMax * mod);
 
     //If the First Footswitch button is pressed, toggle the effect enabled
+    bool oldEffectOn = effectOn;
     effectOn ^= hardware.switches[0].RisingEdge();
     hardware.SetAudioBypass(!effectOn);
+
+    if (effectOn != oldEffectOn)
+    {
+        // Effect State has been toggled. 
+        timeSinceEnableToggleUS = 0;
+
+        crossFading = true;
+
+        if (effectOn)
+        {
+            crossFadingToEffectOn = true;
+            hardware.seed.PrintLine("Crossfade to EffectOn");
+        }
+        else
+        {
+            crossFadingToEffectOn = false;
+            hardware.seed.PrintLine("Crossfade to EffectOff");
+        }
+    }
+
+    if (crossFading)
+    {
+        timeSinceEnableToggleUS = timeSinceEnableToggleUS + elapsedTimeStampUS;
+
+        if (timeSinceEnableToggleUS < 250000)
+        {
+            float fadeFactor = timeSinceEnableToggleUS / 250000.0f;
+            
+            if (crossFadingToEffectOn)
+            {
+                crossFadingDryFactor = 1.0f - fadeFactor;
+                crossFadingWetFactor = fadeFactor;
+            }
+            else
+            {
+                crossFadingDryFactor = fadeFactor;
+                crossFadingWetFactor = 1.0f - fadeFactor;
+            }
+        }
+        else
+        {
+            crossFading = false;
+        }
+    }
 
     // Process Audio
     for(size_t i = 0; i < size; i++)
     {
-        out[0][i] = in[0][i];
-        out[1][i] = in[1][i];
-
-        if(effectOn)
+        if (crossFading)
         {
             // Tremelo
             led2Brightness = treml.Process(1.0f);
-            out[0][i] = in[0][i] * led2Brightness;
-            out[1][i] = tremr.Process(in[1][i]);
+            out[0][i] = (in[0][i] * crossFadingDryFactor) + (in[0][i] * led2Brightness * crossFadingWetFactor);
+            out[1][i] = (in[1][i] * crossFadingDryFactor) + (tremr.Process(in[1][i]) * crossFadingWetFactor);
+
+            if (!effectOn)
+            {
+                led2Brightness = 0.0f;
+            }
         }
         else
         {
+            out[0][i] = in[0][i];
+            out[1][i] = in[1][i];
             led2Brightness = 0.0f;
+
+            if(effectOn)
+            {
+                // Tremelo
+                led2Brightness = treml.Process(1.0f);
+                out[0][i] = in[0][i] * led2Brightness;
+                out[1][i] = tremr.Process(in[1][i]);
+            }
         }
     }
 }
@@ -153,6 +222,9 @@ int main(void)
     midiData[1] = 0b00001010;
     midiData[2] = 0b01111111;
     hardware.midi.SendMessage(midiData, sizeof(uint8_t) * 3);
+
+    hardware.seed.StartLog();
+    lastTimeStampUS = System::GetUs();
 
     while(1)
     {
