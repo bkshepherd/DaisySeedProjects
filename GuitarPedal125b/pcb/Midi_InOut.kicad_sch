@@ -764,7 +764,7 @@
     (property "Value" "H11L1" (at 154.94 93.345 0)
       (effects (font (size 1.27 1.27)))
     )
-    (property "Footprint" "Package_DIP:DIP-6_W8.89mm_SMDSocket_LongPads" (at 142.494 95.25 0)
+    (property "Footprint" "GuitarPedal125B:SOP-6_2.54mm" (at 142.494 95.25 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "https://www.onsemi.com/pub/Collateral/H11L3M-D.PDF" (at 142.494 95.25 0)

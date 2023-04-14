@@ -1,4 +1,4 @@
-21614791433688612
+21614797060584152
 AudioConnector-PJ320A
 TRRS-PJ-320A
 
@@ -54348,13 +54348,6 @@ Fuse Fuseholder TR5 Littelfuse/Wickmann No. 460 No560
 2
 2
 GuitarPedal125B
-CaliforniaJOS_PowerJack
-
-
-0
-3
-3
-GuitarPedal125B
 Generic_PowerJack
 
 
@@ -54375,6 +54368,13 @@ potentiometer vertical 9mm single
 0
 5
 3
+GuitarPedal125B
+SOP-6_2.54mm
+6-lead surface-mounted (SMD) DIP package, row spacing 9.53 mm (375 mils)
+SMD DIP DIL PDIP SMDIP 2.54mm 9.53mm 375mil
+0
+6
+6
 Heatsink
 Heatsink_35x26mm_1xFixation3mm_Fischer-SK486-35
 Heatsink, 35mm x 26mm, 1x Fixation 3mm, Fischer SK486-35
