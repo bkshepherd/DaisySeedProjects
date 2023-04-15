@@ -5,6 +5,9 @@
 Updates include:
 1. Swapped the placement of the Footswitches and LEDs on the PCB to be consistent with my other pedals.
 
+Known Issues:
+1. Relay bypass has an audible pop when enabling / disabling the effect. Sounds like a common issue with relay and 3pdt switch true bypass systems.  Investigating fixing / minimizing it with an a solution similar to this [anti-pop system](https://www.coda-effects.com/2016/08/relay-bypass-with-anti-pop-system.html). Hope to add this in Rev 4.
+
 ### Rev 2 - 3/29/2023
 
 Updates include:
