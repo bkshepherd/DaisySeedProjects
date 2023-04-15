@@ -8,14 +8,9 @@ using namespace bkshepherd;
 
 GuitarPedal1590B hardware;
 
-Tremolo    treml, tremr;
-Oscillator freq_osc;
-int  waveform;
-float osc_freq;
-Parameter osc_freq_knob;
-
-bool  effectOn;
-float led2Brightness;
+bool  effectOn = false;
+bool relayBypassEnabled = false;
+float led2Brightness = 0.0f;
 
 uint32_t lastTimeStampUS;
 uint32_t timeSinceEnableToggleUS;
@@ -23,6 +18,14 @@ bool crossFading = false;
 bool crossFadingToEffectOn = false;
 float crossFadingWetFactor = 0.0f;
 float crossFadingDryFactor = 1.0f;
+uint32_t crossFadingTransitionTimeUS = 250000;
+
+// Effect
+Tremolo    treml, tremr;
+Oscillator freq_osc;
+int  waveform;
+float osc_freq;
+Parameter osc_freq_knob;
 
 static void AudioCallback(AudioHandle::InputBuffer  in,
                      AudioHandle::OutputBuffer out,
@@ -63,8 +66,16 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
     //If the First Footswitch button is pressed, toggle the effect enabled
     bool oldEffectOn = effectOn;
     effectOn ^= hardware.switches[0].RisingEdge();
-    hardware.SetAudioBypass(!effectOn);
 
+    if (relayBypassEnabled)
+    { 
+        hardware.SetAudioBypass(!effectOn);
+    }
+    else
+    {
+        hardware.SetAudioBypass(false);
+    }
+    
     if (effectOn != oldEffectOn)
     {
         // Effect State has been toggled. 
@@ -88,9 +99,9 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
     {
         timeSinceEnableToggleUS = timeSinceEnableToggleUS + elapsedTimeStampUS;
 
-        if (timeSinceEnableToggleUS < 250000)
+        if (timeSinceEnableToggleUS < crossFadingTransitionTimeUS)
         {
-            float fadeFactor = timeSinceEnableToggleUS / 250000.0f;
+            float fadeFactor = timeSinceEnableToggleUS / (float)crossFadingTransitionTimeUS;
             
             if (crossFadingToEffectOn)
             {
@@ -207,8 +218,6 @@ int main(void)
     freq_osc.SetAmp(1.0f);
     freq_osc.SetFreq(osc_freq);
     osc_freq_knob.Init(hardware.knobs[2], 0.0, 1.0f, Parameter::Curve::EXPONENTIAL);
-    effectOn  = false;
-    led2Brightness = 0.f;
  
     // start callback
     hardware.StartAdc();
