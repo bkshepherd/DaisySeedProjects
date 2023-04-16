@@ -3,11 +3,6 @@
 using namespace daisy;
 using namespace bkshepherd;
 
-#ifndef SAMPLE_RATE
-//#define SAMPLE_RATE DSY_AUDIO_SAMPLE_RATE
-#define SAMPLE_RATE 48014.f
-#endif
-
 // Hardware related defines.
 // Switches
 #define SWITCH_1_PIN 6         // Foot Switch 1
@@ -24,15 +19,19 @@ using namespace bkshepherd;
 
 void GuitarPedal1590B::Init(bool boost)
 {
-    // Set Some numbers up for accessors.
-    // Initialize the hardware.
+    // Initialize the seed hardware.
     seed.Configure();
     seed.Init(boost);
+
+    // Initialize all the hardware accessories
     InitSwitches();
     InitLeds();
     InitAnalogControls();
     InitMidi();
-    SetAudioBlockSize(48);
+
+    // Set Default Audio Configurations
+    SetAudioBlockSize(4);
+    SetAudioSampleRate(SaiHandle::Config::SampleRate::SAI_48KHZ);
 
     // Init the HW Audio Bypass
     audioBypassTrigger.Init(daisy::seed::D1, GPIO::Mode::OUTPUT);

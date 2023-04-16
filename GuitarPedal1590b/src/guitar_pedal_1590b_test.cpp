@@ -9,16 +9,17 @@ using namespace bkshepherd;
 GuitarPedal1590B hardware;
 
 bool  effectOn = false;
-bool relayBypassEnabled = false;
+bool relayBypassEnabled = true;
 float led2Brightness = 0.0f;
 
 uint32_t lastTimeStampUS;
-uint32_t timeSinceEnableToggleUS;
+int samplesSinceEnableToggled;
 bool crossFading = false;
 bool crossFadingToEffectOn = false;
-float crossFadingWetFactor = 0.0f;
-float crossFadingDryFactor = 1.0f;
-uint32_t crossFadingTransitionTimeUS = 250000;
+float crossFadingWetFactor;
+float crossFadingDryFactor;
+int crossFadingTransitionTimeInSeconds = 0.25f;
+int crossFadingTransitionTimeInSamples;
 
 // Effect
 Tremolo    treml, tremr;
@@ -31,11 +32,6 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
                      AudioHandle::OutputBuffer out,
                      size_t                    size)
 {
-    // Handle Time
-    uint32_t currentTimeStampUS = System::GetUs();
-    uint32_t elapsedTimeStampUS = currentTimeStampUS - lastTimeStampUS;
-    lastTimeStampUS = currentTimeStampUS;
-
     // Handle Inputs
     hardware.ProcessAnalogControls();
     hardware.ProcessDigitalControls();
@@ -76,47 +72,22 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
         hardware.SetAudioBypass(false);
     }
     
+    // Handle Effect State being Toggled.
     if (effectOn != oldEffectOn)
     {
-        // Effect State has been toggled. 
-        timeSinceEnableToggleUS = 0;
-
+        // Setup Effect Crossfade to happen over a specified number of samples based on the time config
+        samplesSinceEnableToggled = 0;
         crossFading = true;
 
         if (effectOn)
         {
             crossFadingToEffectOn = true;
-            hardware.seed.PrintLine("Crossfade to EffectOn");
+            hardware.seed.PrintLine("Crossfade to EffectOn over %d samples", crossFadingTransitionTimeInSamples);
         }
         else
         {
             crossFadingToEffectOn = false;
-            hardware.seed.PrintLine("Crossfade to EffectOff");
-        }
-    }
-
-    if (crossFading)
-    {
-        timeSinceEnableToggleUS = timeSinceEnableToggleUS + elapsedTimeStampUS;
-
-        if (timeSinceEnableToggleUS < crossFadingTransitionTimeUS)
-        {
-            float fadeFactor = timeSinceEnableToggleUS / (float)crossFadingTransitionTimeUS;
-            
-            if (crossFadingToEffectOn)
-            {
-                crossFadingDryFactor = 1.0f - fadeFactor;
-                crossFadingWetFactor = fadeFactor;
-            }
-            else
-            {
-                crossFadingDryFactor = fadeFactor;
-                crossFadingWetFactor = 1.0f - fadeFactor;
-            }
-        }
-        else
-        {
-            crossFading = false;
+            hardware.seed.PrintLine("Crossfade to EffectOff over %d samples", crossFadingTransitionTimeInSamples);
         }
     }
 
@@ -125,6 +96,26 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
     {
         if (crossFading)
         {
+            if (samplesSinceEnableToggled < crossFadingTransitionTimeInSamples)
+            {
+                float fadeFactor = (float)samplesSinceEnableToggled / (float)crossFadingTransitionTimeInSamples;
+                
+                if (crossFadingToEffectOn)
+                {
+                    crossFadingDryFactor = 1.0f - fadeFactor;
+                    crossFadingWetFactor = fadeFactor;
+                }
+                else
+                {
+                    crossFadingDryFactor = fadeFactor;
+                    crossFadingWetFactor = 1.0f - fadeFactor;
+                }
+            }
+            else
+            {
+                crossFading = false;
+            }
+
             // Tremelo
             led2Brightness = treml.Process(1.0f);
             out[0][i] = (in[0][i] * crossFadingDryFactor) + (in[0][i] * led2Brightness * crossFadingWetFactor);
@@ -134,6 +125,9 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
             {
                 led2Brightness = 0.0f;
             }
+
+            // Increment the Sample Count
+            samplesSinceEnableToggled += 1;
         }
         else
         {
@@ -150,6 +144,12 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
             }
         }
     }
+}
+
+int GetNumberOfSamplesForTime(float time)
+{
+    // Calculates the number of samples for a specified amount of time in seconds.
+    return (int)(hardware.AudioSampleRate() * time);
 }
 
 // Typical Switch case for Message Type.
@@ -202,11 +202,16 @@ void HandleMidiMessage(MidiEvent m)
 
 int main(void)
 {
+    // Initialize the Hardware
     hardware.Init();
     hardware.SetAudioBlockSize(4);
+    hardware.SetAudioSampleRate(SaiHandle::Config::SampleRate::SAI_48KHZ);
 
+    // Set the number of samples to use for the crossfade based on the hardware sample rate
+    crossFadingTransitionTimeInSamples = GetNumberOfSamplesForTime(crossFadingTransitionTimeInSeconds);
+
+    // Setup the Tremolo Effect
     float sample_rate = hardware.AudioSampleRate();
-
     treml.Init(sample_rate);
     tremr.Init(sample_rate);
     treml.SetWaveform(Oscillator::WAVE_SIN);
@@ -219,10 +224,11 @@ int main(void)
     freq_osc.SetFreq(osc_freq);
     osc_freq_knob.Init(hardware.knobs[2], 0.0, 1.0f, Parameter::Curve::EXPONENTIAL);
  
-    // start callback
+    // Start the Audio Callback
     hardware.StartAdc();
     hardware.StartAudio(AudioCallback);
 
+    // Setup Midi Receiving
     hardware.midi.StartReceive();
 
     // Send Test Midi Message
@@ -232,11 +238,17 @@ int main(void)
     midiData[2] = 0b01111111;
     hardware.midi.SendMessage(midiData, sizeof(uint8_t) * 3);
 
+    // Setup Logging
     hardware.seed.StartLog();
     lastTimeStampUS = System::GetUs();
 
     while(1)
     {
+        // Handle Time
+        uint32_t currentTimeStampUS = System::GetUs();
+        //uint32_t elapsedTimeStampUS = currentTimeStampUS - lastTimeStampUS;
+        lastTimeStampUS = currentTimeStampUS;
+
         //LED stuff
         hardware.SetLed((GuitarPedal1590B::LedIndex)0, effectOn);
         hardware.SetLed((GuitarPedal1590B::LedIndex)1, led2Brightness);
@@ -248,6 +260,5 @@ int main(void)
         {
             HandleMidiMessage(hardware.midi.PopEvent());
         }
-
     }
 }
