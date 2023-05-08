@@ -4,6 +4,7 @@ Some quick instructions for how to make the GuitarPedal1590B Hardware.  This doc
 Quick note, I couldn't include some of the custom footprints for specific components due to licenses that wouldn't allow redistribution.  Here is a list of where you can find some of them:
 
 * PDS1-S5-S5-D - https://www.cui.com/product/dc-dc-converters/isolated/pds1-d-series (click on "all models" for downloadable footprints)
+* Neutrik NMJ6HCD2 - https://www.snapeda.com/parts/NMJ6HCD2/Neutrik/view-part/
 
 Also, I just want to acknowledge that the schematics for the circuits were kit bashed together from the following sources with some additions of my own:
 
