@@ -5,6 +5,7 @@ Quick note, I couldn't include some of the custom footprints for specific compon
 
 * PDS1-S5-S5-D - https://www.cui.com/product/dc-dc-converters/isolated/pds1-d-series (click on "all models" for downloadable footprints)
 * Neutrik NMJ6HCD2 - https://www.snapeda.com/parts/NMJ6HCD2/Neutrik/view-part/
+* PJ-320A - Footprint and STEP Model found on this repository https://github.com/keebio/Keebio-Parts.pretty
 
 Also, I just want to acknowledge that the schematics for the circuits were kit bashed together from the following sources with some additions of my own:
 
