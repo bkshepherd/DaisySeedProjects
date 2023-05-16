@@ -1,20 +1,11 @@
 # Guitar Pedal 125b
 
-### Rev 3 - 4/14/2023
+### Rev 4 - 5/16/2023
 
 Updates include:
-1. Swapped the placement of the Footswitches and LEDs on the PCB to be consistent with my other pedals.
-
-Known Issues:
-1. Relay bypass has an audible pop when enabling / disabling the effect. Sounds like a common issue with relay and 3pdt switch true bypass systems.  Investigating fixing / minimizing it with an a solution similar to this [anti-pop system](https://www.coda-effects.com/2016/08/relay-bypass-with-anti-pop-system.html). Hope to add this in Rev 4.
-
-### Rev 2 - 3/29/2023
-
-Updates include:
-1. Added 3 Additional Pots (Total of 6)
-2. Improved OLED Screen Placement
-3. Removed an Encoder (now just 1)
-4. Tayda Custom Drill Template for easily ordering a pre-drilled enclosure
+1. Updated PCB design to improve the True Bypass relay switching to include an anti-pop hardware mute.
+2. Update Example Software to take advantage of the anti-pop mute.
+3. Update Example Software to provide a basic menu system for the OLED Screen
 
 ### Overview
 
@@ -51,3 +42,20 @@ http://electro-smith.com
 Information about KiCad can be found at:
 
 https://www.kicad.org
+
+## Past Revisions
+### Rev 3 - 4/14/2023
+
+Updates include:
+1. Swapped the placement of the Footswitches and LEDs on the PCB to be consistent with my other pedals.
+
+Known Issues:
+1. Relay bypass has an audible pop when enabling / disabling the effect. Sounds like a common issue with relay and 3pdt switch true bypass systems.  Investigating fixing / minimizing it with an a solution similar to this [anti-pop system](https://www.coda-effects.com/2016/08/relay-bypass-with-anti-pop-system.html). Hope to add this in Rev 4.
+
+### Rev 2 - 3/29/2023
+
+Updates include:
+1. Added 3 Additional Pots (Total of 6)
+2. Improved OLED Screen Placement
+3. Removed an Encoder (now just 1)
+4. Tayda Custom Drill Template for easily ordering a pre-drilled enclosure
