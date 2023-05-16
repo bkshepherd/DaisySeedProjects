@@ -58,6 +58,10 @@ void GuitarPedal125B::Init(bool boost)
     audioBypassTrigger.Init(daisy::seed::D1, GPIO::Mode::OUTPUT);
     SetAudioBypass(true);
 
+    // Init the HW Audio Mute
+    audioMuteTrigger.Init(daisy::seed::D12, GPIO::Mode::OUTPUT);
+    SetAudioMute(false);
+
     // Configure the Display
     MyOledDisplay::Config disp_cfg;
     disp_cfg.driver_config.transport_config.pin_config.dc    = seed.GetPin(DISPLAY_DC_PIN);
@@ -177,6 +181,12 @@ void GuitarPedal125B::SetAudioBypass(bool enabled)
 {
     audioBypass = enabled;
     audioBypassTrigger.Write(!audioBypass);
+}
+
+void GuitarPedal125B::SetAudioMute(bool enabled)
+{
+    audioMute = enabled;
+    audioMuteTrigger.Write(audioMute);
 }
 
 void GuitarPedal125B::ClearLeds()

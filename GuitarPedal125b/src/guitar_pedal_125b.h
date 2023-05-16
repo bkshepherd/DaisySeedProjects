@@ -142,7 +142,11 @@ class GuitarPedal125B
     /** Process digital controls */
     void ProcessDigitalControls();
 
+    /** Toggle the Hardware Audio Bypass (if applicable) */
     void SetAudioBypass(bool enabled);
+
+    /** Toggle the Hardware Audio Mute (if applicable) */
+    void SetAudioMute(bool enabled);
 
     /** Turn all leds off */
     void ClearLeds();
@@ -163,6 +167,8 @@ class GuitarPedal125B
     MidiUartHandler midi;
     GPIO audioBypassTrigger;
     bool audioBypass;
+    GPIO audioMuteTrigger;
+    bool audioMute;
 
   private:
     void SetHidUpdateRates();
