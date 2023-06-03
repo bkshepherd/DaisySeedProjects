@@ -202,7 +202,14 @@ void GuitarPedal125B::SetLed(LedIndex k, float bright)
     size_t idx;
     idx = k < LED_LAST ? k : LED_1;
     leds[idx].Set(bright);
-    leds[idx].Update();
+}
+
+void GuitarPedal125B::UpdateLeds()
+{
+    for(size_t i = 0; i < LED_LAST; i++)
+    {
+        leds[i].Update();
+    }
 }
 
 void GuitarPedal125B::InitSwitches()

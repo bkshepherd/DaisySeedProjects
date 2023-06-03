@@ -158,6 +158,9 @@ class GuitarPedal125B
      */
     void SetLed(LedIndex idx, float bright);
 
+    /** Updates all the LEDs based on their values */
+    void UpdateLeds();
+
     DaisySeed seed;    /**< & */
     MyOledDisplay display;
     AnalogControl knobs[KNOB_LAST]; /**< & */

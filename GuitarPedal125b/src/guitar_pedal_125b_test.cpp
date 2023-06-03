@@ -271,6 +271,11 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
             out[1][i] = tremr.Process(in[1][i]);
         }
     }
+
+    // Handle LEDs
+    hardware.SetLed((GuitarPedal125B::LedIndex)0, led1Brightness);
+    hardware.SetLed((GuitarPedal125B::LedIndex)1, led2Brightness);
+    hardware.UpdateLeds();
 }
 
 // Typical Switch case for Message Type.
@@ -361,10 +366,6 @@ int main(void)
     {
         // Handle UI
         ui.Process();
-
-        // Handle LEDs
-        hardware.SetLed((GuitarPedal125B::LedIndex)0, led1Brightness);
-        hardware.SetLed((GuitarPedal125B::LedIndex)1, led2Brightness);
 
         // Handle Updaing Settings from Menus
         treml.SetWaveform(tremWaveformListMappedValues.GetIndex());
