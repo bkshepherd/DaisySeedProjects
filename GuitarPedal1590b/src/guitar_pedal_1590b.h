@@ -128,6 +128,9 @@ class GuitarPedal1590B
     /** Toggle the Hardware Audio Bypass (if applicable) */
     void SetAudioBypass(bool enabled);
 
+        /** Toggle the Hardware Audio Mute (if applicable) */
+    void SetAudioMute(bool enabled);
+
     /** Turn all leds off */
     void ClearLeds();
 
@@ -138,6 +141,9 @@ class GuitarPedal1590B
      */
     void SetLed(LedIndex idx, float bright);
 
+    /** Updates all the LEDs based on their values */
+    void UpdateLeds();
+
     DaisySeed seed;    /**< & */
     AnalogControl knobs[KNOB_LAST]; /**< & */
     Switch        switches[SWITCH_LAST] /**< & */;
@@ -145,6 +151,8 @@ class GuitarPedal1590B
     MidiUartHandler midi;
     GPIO audioBypassTrigger;
     bool audioBypass;
+    GPIO audioMuteTrigger;
+    bool audioMute;
 
   private:
     void SetHidUpdateRates();

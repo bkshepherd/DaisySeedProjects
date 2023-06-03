@@ -18,7 +18,7 @@ bool crossFading = false;
 bool crossFadingToEffectOn = false;
 float crossFadingWetFactor;
 float crossFadingDryFactor;
-int crossFadingTransitionTimeInSeconds = 0.25f;
+float crossFadingTransitionTimeInSeconds = 0.25f;
 int crossFadingTransitionTimeInSamples;
 
 // Effect
@@ -144,6 +144,11 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
             }
         }
     }
+
+    //LED stuff
+    hardware.SetLed((GuitarPedal1590B::LedIndex)0, effectOn);
+    hardware.SetLed((GuitarPedal1590B::LedIndex)1, led2Brightness);
+    hardware.UpdateLeds();
 }
 
 int GetNumberOfSamplesForTime(float time)
@@ -248,10 +253,6 @@ int main(void)
         uint32_t currentTimeStampUS = System::GetUs();
         //uint32_t elapsedTimeStampUS = currentTimeStampUS - lastTimeStampUS;
         lastTimeStampUS = currentTimeStampUS;
-
-        //LED stuff
-        hardware.SetLed((GuitarPedal1590B::LedIndex)0, effectOn);
-        hardware.SetLed((GuitarPedal1590B::LedIndex)1, led2Brightness);
         
         // Handle MIDI Events
         hardware.midi.Listen();

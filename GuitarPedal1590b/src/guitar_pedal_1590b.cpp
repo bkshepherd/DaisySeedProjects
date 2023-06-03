@@ -36,6 +36,10 @@ void GuitarPedal1590B::Init(bool boost)
     // Init the HW Audio Bypass
     audioBypassTrigger.Init(daisy::seed::D1, GPIO::Mode::OUTPUT);
     SetAudioBypass(true);
+
+    // Init the HW Audio Mute
+    audioMuteTrigger.Init(daisy::seed::D12, GPIO::Mode::OUTPUT);
+    SetAudioMute(false);
 }
 
 void GuitarPedal1590B::DelayMs(size_t del)
@@ -147,6 +151,12 @@ void GuitarPedal1590B::SetAudioBypass(bool enabled)
     audioBypassTrigger.Write(!audioBypass);
 }
 
+void GuitarPedal1590B::SetAudioMute(bool enabled)
+{
+    audioMute = enabled;
+    audioMuteTrigger.Write(audioMute);
+}
+
 void GuitarPedal1590B::ClearLeds()
 {
     for(size_t i = 0; i < LED_LAST; i++)
@@ -160,7 +170,14 @@ void GuitarPedal1590B::SetLed(LedIndex k, float bright)
     size_t idx;
     idx = k < LED_LAST ? k : LED_1;
     leds[idx].Set(bright);
-    leds[idx].Update();
+}
+
+void GuitarPedal1590B::UpdateLeds()
+{
+    for(size_t i = 0; i < LED_LAST; i++)
+    {
+        leds[i].Update();
+    }
 }
 
 void GuitarPedal1590B::InitSwitches()
