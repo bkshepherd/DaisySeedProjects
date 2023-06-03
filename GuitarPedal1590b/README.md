@@ -1,18 +1,10 @@
 # Guitar Pedal 1590b
 
-### Rev 4 - 4/12/2023
+### Rev 5 - 6/3/2023
 
 Updates include:
-1. Updated PCB layout to move some components farther away from the edges
-2. Swapped the placement of Footswitches and LEDs for consistency with my other projects 
-3. Updated code to make Footswitch 1 & Led 1 enable / disabe the effect
-
-### Rev 3 - 3/29/2023
-
-Updates include:
-1. Improved 4 Layer PCB Layout, much easier to assemble!
-2. Replaced all SMD parts with through-hole alternative
-3. Tayda Custom Drill Template for easily ordering a pre-drilled enclosure
+1. Updated PCB to properly ground input / output jacks when no plug is inserted
+2. Fixed a software issue causing noise from the LED.
 
 ### Overview
 
@@ -52,3 +44,18 @@ Getting Started:
 
 1. [Build the Hardware](docs/README.md)
 2. [Deploy the Software to the Hardware](src/README.md)
+
+## Past Revisions
+### Rev 4 - 4/12/2023
+
+Updates include:
+1. Updated PCB layout to move some components farther away from the edges
+2. Swapped the placement of Footswitches and LEDs for consistency with my other projects 
+3. Updated code to make Footswitch 1 & Led 1 enable / disabe the effect
+
+### Rev 3 - 3/29/2023
+
+Updates include:
+1. Improved 4 Layer PCB Layout, much easier to assemble!
+2. Replaced all SMD parts with through-hole alternative
+3. Tayda Custom Drill Template for easily ordering a pre-drilled enclosure
