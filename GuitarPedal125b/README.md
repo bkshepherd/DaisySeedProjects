@@ -33,7 +33,26 @@ This project is still work in progress and is an evolution of my [1590B sized Pe
 11. Primarily SMD parts for easy assembly by your PCB provider
 12. Easily order a custom drilled enclosure from Tayda! [Template Here](https://drill.taydakits.com/box-designs/new?public_key=ZXRnaU9PaWx0b1hNa3VxeTJua3d2dz09Cg==)
 
-This project includes a KiCad project with the necessary schematics and PCB layout files to create everything you need to build the hardware. I actually used JLCPCB to manufacture the PCB and assemble the SMD parts and most of the through-hole parts.  The BOM file is in the proper format for them to assemble it with their available parts.  Sample Code is also provided with a hardware attraction layer as well as a custom Tremolo effect that uses the hardware.
+This project includes a KiCad project with the necessary schematics and PCB layout files to create everything you need to build the hardware. I actually used JLCPCB to manufacture the PCB and assemble the SMD parts and most of the through-hole parts.  The BOM file is in the proper format for them to assemble it with their available parts. You will then need to hand solder the following additional parts:
+
+1. 2 Headers 20-Pin Single Row for the Daisy Seed. I used these from [Amazon](https://www.amazon.com/dp/B09MYBZZKZ)
+2. 6 Pots. These are the ones I used [PRS11R-415F-N103B1](https://www.newark.com/bourns/prs11r-415f-n103b1/rotary-potentiometer-10kohm-0/dp/65AH0672). Also make sure to use some non-conductive double sided tape under them to prevent any contact with the circuit board.
+3. 1 Rotary Encoder. This is the one I used [PEC11R-4215K-S24](https://www.mouser.com/ProductDetail/652-PEC11R-4215K-S24)
+4. 1 OLED Screen. This is the one I used from [Amazon](https://www.amazon.com/dp/B01MQPQF24)
+5. 2 Leds (3mm Any Color). These are the one I used from [Amazon](https://www.amazon.com/dp/B07QXR5MZB)
+7. 2 Footswitches. These are the ones I used from [Amazon](https://www.amazon.com/dp/B08TBTWDYV)
+
+Make sure to solder them in the following order (everything goes on the side without the SMD parts, except the 20-pin headers):
+
+1. Pots 1 - 3
+2. Rotary Encoder
+3. Both 20pin Headers (make sure this goes on the side with all the SMD parts!)
+4. Pots 4 - 6
+5. OLED Screen
+6. 2 Leds
+7. 2 Footswitches
+
+Sample Code is also provided with a hardware abstraction layer as well as a custom Tremolo effect that uses the hardware.
 
 Information about the Daisy Seed can be found at:
 
