@@ -5,6 +5,7 @@
 Updates include:
 1. Updated PCB to properly ground input / output jacks when no plug is inserted
 2. Fixed a software issue causing noise from the LED.
+3. Included exported Gerber files to make it easy to order PCBs from JCLPCB. Detailed instructions can be found on the [Build the Hardware](docs/README.md) page. This requires no knowledge of KiCad to get the PCBs made.
 
 ### Overview
 
