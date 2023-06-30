@@ -1,11 +1,11 @@
 # Guitar Pedal 125b
 
-### Rev 4 - 5/16/2023
+### Rev 5 - 6/30/2023
 
 Updates include:
-1. Updated PCB design to improve the True Bypass relay switching to include an anti-pop hardware mute.
-2. Update Example Software to take advantage of the anti-pop mute.
-3. Update Example Software to provide a basic menu system for the OLED Screen
+1. Updated placement of screen slightly to ease installation.
+2. Updated POT footprint mounting holes to be slightly larger.
+3. Properly grounded Audio TRS jacks when no cable is inserted.
 
 ### Overview
 
@@ -63,6 +63,13 @@ Information about KiCad can be found at:
 https://www.kicad.org
 
 ## Past Revisions
+### Rev 4 - 5/16/2023
+
+Updates include:
+1. Updated PCB design to improve the True Bypass relay switching to include an anti-pop hardware mute.
+2. Update Example Software to take advantage of the anti-pop mute.
+3. Update Example Software to provide a basic menu system for the OLED Screen
+4. 
 ### Rev 3 - 4/14/2023
 
 Updates include:
