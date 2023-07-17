@@ -1,7 +1,7 @@
 #Getting Started
 This directory includes all the Sample Code that uses the custom guitar_pedal_125b hardware. 
 
-Currently, the sample code implements a chorus effect on the Audio input and routes it to the Audio Output on the hardware.  The various hardware knobs and switches are also mapped to parameters on the effect. There is also some limited Midi In/Out and OLED display screen test code.
+Currently, the sample code implements a Tremolo effect on the Audio input and routes it to the Audio Output on the hardware.  The various hardware knobs and switches are also mapped to parameters on the effect. There is also some limited Midi In/Out, OLED display screen, and True Bypass test code.
 
 Before you can use the software you'll need to do the following:
 
