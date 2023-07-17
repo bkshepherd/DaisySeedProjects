@@ -122,7 +122,7 @@ It should look like this when fixed.
 
 ![PCB Assembly Options](images/JLCPCB-AssemblyAddToCart.png)
 
-They will give you a price for ordering 5 assembled pcbs (that's their minimum order).  I think I paid ~$150 to have the PCB manufactured, assembled, and shipped to my door.  It will take a week or two for it arrive and they look like this:
+They will give you a price for ordering 5 assembled pcbs (that's their minimum order).  I think I paid ~$150 to have the PCB manufactured, assembled, and shipped to my door. Keep an eye on your email to confirm the order at the various steps. It will take a week or two for it arrive and they look like this:
 
 ![PCBs](images/PCBs.png)
 
