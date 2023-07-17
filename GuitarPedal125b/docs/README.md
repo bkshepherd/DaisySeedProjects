@@ -69,7 +69,10 @@ JLCPCB will order and assemble most of the parts for this project.  There are a 
 1. Have the Gerber, Drill, BOM, and Centroid files handy. (Keep the files zipped)
 2. Visit the [JLCPCB Website](https://www.jlcpcb.com).
 3. Click the **Order Now** button in the top menu bar.
-4. Click the **Add Gerber File** button. ![Add Gerbers](images/JLCPCB-OrderNow.png)
+4. Click the **Add Gerber File** button.
+  
+   ![Add Gerbers](images/JLCPCB-OrderNow.png)
+   
 5. Upload the zipped Gerber files you downloaded above.
 6. After processing the files it should provide a screen with various options. Most everything is fine by default, but you should use ENIG finishing options instead of HASL, you should check the Confirm Production File option and turn on PCB Assembly. ![Processed Gerbers](images/JLCPCB-Options.png)
 7. Once you turn on PCB Assembly, you will need to confirm that you want the Top Side assembled and definitely select the Confirm Parts Placement option. ![PCB Assembly Options](images/JLCPCB-AssemblyOptions.png)
@@ -79,7 +82,7 @@ JLCPCB will order and assemble most of the parts for this project.  There are a 
 11. Click Add BOM and upload the BOM file. Either the one you generated or the one you downloaded above [JLCPCB BOM](../pcb/BOM_JLCSMT_DaisySeedGuitarPedal125b.xlsx).
 12. Click Add CPL and upload the Centroid file. Either the one you generated or the one you downloaded above [JLCPCB Centroid](../pcb/JLCPCB-Gerbers/DaisySeedPedal125b-top-pos.csv). 
 13. After the files are uploaded click Process BOM and CPL. ![PCB Assembly Options](images/JLCPCB-AssemblyProcessBOMCentroid.png)
-14. This page asks you to confirm the parts.  You should see at the top 28 Parts Detected and 28 Parts Confirmed. ![PCB Assembly Options](images/JLCPCB-AssemblyBOMCentroidConfirm.png).  If it tells you any parts are missing, you may need to substitute. For instance, the parts you ordered from global parts sourcing may have ended up with a different JLCPCB Part number than the ones in the supplied files.  If that is the case you can click on the part in the list and search for the proper part and replace it.  Repeat this process until all parts are accounted for.
+14. This page asks you to confirm the parts.  You should see at the top 28 Parts Detected and 28 Parts Confirmed. ![PCB Assembly Options](images/JLCPCB-AssemblyBOMCentroidConfirm.png) If it tells you any parts are missing, you may need to substitute. For instance, the parts you ordered from global parts sourcing may have ended up with a different JLCPCB Part number than the ones in the supplied files.  If that is the case you can click on the part in the list and search for the proper part and replace it.  Repeat this process until all parts are accounted for.
 15. Click Next.
 16. This next page allows you to view the placement of the Components.  Notice that a few of the parts of not placed or rotated properly. (this is due to differences in KiCad's footprint library and JLCPCB's library). ![PCB Assembly Options](images/JLCPCB-AssemblyPlacement.png)
 17. You will have to manually fix them in this viewer.  Simply click each part that is not properly placed, and use the buttons to rotate and move them until they are in place. The parts that need fixing are J1,J4,J5,U1,U3,U4,U5,U7,U8,K1,K2,Q1.  It should look like this when fixed. ![PCB Assembly Options](images/JLCPCB-AssemblyPlacementFixed.png)
@@ -92,11 +95,22 @@ They will give you a price for ordering 5 pcbs (that's their minimum order).  I 
 
 ## 5. Solder Everything
 
+As mentioned above, JLCPCB will not have assembled all the parts.  Primarily the pots, encoders, leds, foot swithces, and screen will still need to be assembled by hand.  
+
+Make sure to solder them in the following order (everything goes on the side without the SMD parts, except the 20-pin headers):
+
+1. Pots 1 - 3
+2. Rotary Encoder
+3. Both 20pin Headers (make sure this goes on the side with all the SMD parts!)
+4. Pots 4 - 6
+5. OLED Screen
+6. 2 Leds
+7. 2 Footswitches
+   
 It will roughly look like this when finished with this step:
 
-![CircuitBoard](images/CircuitBoard.png)
-
-(I omitted the 2nd foot switch from my build)
+![CircuitBoard](images/CircuitBoard-Front.png)
+![CircuitBoard](images/CircuitBoard-Back.png)
 
 ## 6. Flash the Software to the Hardware
 
@@ -106,7 +120,7 @@ You'll need to compile the code and flash it into the Daisy Seed on the hardware
 
 ## 7. Order the Enclosure
 
-You'll also need to order the enclosure, which is 1590B sized.
+You'll also need to order the enclosure, which is 125B sized.
 
 You can either order a generic one like this from Amazon: https://www.amazon.com/dp/B07VKR51NN and drill your own holes (which is a pain in the butt), or you can order a custom drilled & powder coated enclosure from Tayda using this [Custom Drill Template](https://drill.taydakits.com/box-designs/new?public_key=YWRhVFFGU0Z2c3RJR09VQ1U4S3EvUT09Cg==)
 
