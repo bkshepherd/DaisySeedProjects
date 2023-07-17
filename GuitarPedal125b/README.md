@@ -53,7 +53,7 @@ Updates include:
 1. Updated PCB design to improve the True Bypass relay switching to include an anti-pop hardware mute.
 2. Update Example Software to take advantage of the anti-pop mute.
 3. Update Example Software to provide a basic menu system for the OLED Screen
-4. 
+
 ### Rev 3 - 4/14/2023
 
 Updates include:
