@@ -6,7 +6,7 @@ Updates include:
 1. Updated placement of screen slightly to ease installation.
 2. Updated POT footprint mounting holes to be slightly larger.
 3. Properly grounded Audio TRS jacks when no cable is inserted.
-4. Included exported Gerber and Assembly files to make it easy to order assembled PCBs from JCLPCB. Detailed instructions can be found on the [Build the Hardware](docs/README.md) page. This requires no knowledge of KiCad to get the PCBs made.
+4. Included exported Gerber and Assembly files to make it easy to order assembled PCBs from JCLPCB. Detailed instructions can be found on the [Build the Hardware](docs/README.md) page. This requires no knowledge of KiCad to get the PCBs made and mostly Assembled.
 
 ### Overview
 
