@@ -16,13 +16,14 @@ float led1Brightness = 0.0f;
 float led2Brightness = 0.0f;
 bool midiEnabled = true;
 bool relayBypassEnabled = true;
+bool splitMonoInputToStereo = false; // Only available when not using true bypass
 
 bool muteOn = false;
 float muteOffTransitionTimeInSeconds = 0.02f;
 int muteOffTransitionTimeInSamples;
 int samplesTilMuteOff;
 
-bool bypassOn = true;
+bool bypassOn = false;
 float bypassToggleTransitionTimeInSeconds = 0.01f;
 int bypassToggleTransitionTimeInSamples;
 int samplesTilBypassToggle;
@@ -38,7 +39,7 @@ const int                kNumMainMenuItems =  2;
 AbstractMenu::ItemConfig mainMenuItems[kNumMainMenuItems];
 const int                kNumTremoloMenuItems = 4;
 AbstractMenu::ItemConfig tremoloMenuItems[kNumTremoloMenuItems];
-const int                kNumGlobalSettingsMenuItems = 3;
+const int                kNumGlobalSettingsMenuItems = 4;
 AbstractMenu::ItemConfig globalSettingsMenuItems[kNumGlobalSettingsMenuItems];
 
 // Tremolo menu items
@@ -152,11 +153,15 @@ void InitUiPages()
     globalSettingsMenuItems[0].asCheckboxItem.valueToModify = &relayBypassEnabled;
 
     globalSettingsMenuItems[1].type = daisy::AbstractMenu::ItemType::checkboxItem;
-    globalSettingsMenuItems[1].text = "Midi";
-    globalSettingsMenuItems[1].asCheckboxItem.valueToModify = &midiEnabled;
+    globalSettingsMenuItems[1].text = "Split Mono";
+    globalSettingsMenuItems[1].asCheckboxItem.valueToModify = &splitMonoInputToStereo;
 
-    globalSettingsMenuItems[2].type = daisy::AbstractMenu::ItemType::closeMenuItem;
-    globalSettingsMenuItems[2].text = "Back";
+    globalSettingsMenuItems[2].type = daisy::AbstractMenu::ItemType::checkboxItem;
+    globalSettingsMenuItems[2].text = "Midi";
+    globalSettingsMenuItems[2].asCheckboxItem.valueToModify = &midiEnabled;
+
+    globalSettingsMenuItems[3].type = daisy::AbstractMenu::ItemType::closeMenuItem;
+    globalSettingsMenuItems[3].text = "Back";
 
     globalSettingsMenu.Init(globalSettingsMenuItems, kNumGlobalSettingsMenuItems);
 }
@@ -239,6 +244,11 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
     }
 
     // Process Audio
+    float outputLeft;
+    float outputRight;
+    float inputLeft;
+    float inputRight; 
+
     for(size_t i = 0; i < size; i++)
     {
         // Handle Timing for the Hardware Mute and Relay Bypass
@@ -258,9 +268,19 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
             }
         }
 
+        // Handle Mono vs Stereo
+        inputLeft = in[0][i];
+        inputRight = in[1][i];
+
+        // Split the Mono Input to Stereo (Only allowed if relay bypass non enabled)
+        if (splitMonoInputToStereo && !relayBypassEnabled)
+        {
+            inputRight = inputLeft;
+        }
+
         // By default the Effect is Bypassed and Output == Input and the led is off
-        out[0][i] = in[0][i];
-        out[1][i] = in[1][i];
+        outputLeft = inputLeft;
+        outputRight = inputRight;
         led1Brightness = 0.0f;
         led2Brightness = 0.0f;
 
@@ -269,9 +289,12 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
             // Apply the Tremolo Effect and modulate the LED at the frequency of the Tremolo
             led1Brightness = 1.0f;
             led2Brightness = treml.Process(1.0f);
-            out[0][i] = in[0][i] * led2Brightness;
-            out[1][i] = tremr.Process(in[1][i]);
+            outputLeft = inputLeft * led2Brightness;
+            outputRight = tremr.Process(inputRight);
         }
+
+        out[0][i] = outputLeft;
+        out[1][i] = outputRight;
     }
 
     // Handle LEDs
@@ -363,6 +386,12 @@ int main(void)
     midiData[1] = 0b00001010;
     midiData[2] = 0b01111111;
     hardware.midi.SendMessage(midiData, sizeof(uint8_t) * 3);
+
+    // Setup Relay Bypass State
+    if (relayBypassEnabled)
+    {
+        bypassOn = true;
+    }
 
     // Setup Debug Logging
     //hardware.seed.StartLog();
