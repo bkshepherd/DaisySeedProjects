@@ -10,17 +10,19 @@ using namespace bkshepherd;
 GuitarPedal125B hardware;
 
 // Hardware Related Variables
+bool useDebugDisplay = false;
 bool  effectOn = false;
 float led1Brightness = 0.0f;
 float led2Brightness = 0.0f;
-
 bool midiEnabled = true;
 bool relayBypassEnabled = true;
-bool bypassOn = false;
+
 bool muteOn = false;
 float muteOffTransitionTimeInSeconds = 0.02f;
 int muteOffTransitionTimeInSamples;
 int samplesTilMuteOff;
+
+bool bypassOn = true;
 float bypassToggleTransitionTimeInSeconds = 0.01f;
 int bypassToggleTransitionTimeInSamples;
 int samplesTilBypassToggle;
@@ -362,10 +364,32 @@ int main(void)
     midiData[2] = 0b01111111;
     hardware.midi.SendMessage(midiData, sizeof(uint8_t) * 3);
 
+    // Setup Debug Logging
+    //hardware.seed.StartLog();
+    char strbuff[128];
+
     while(1)
     {
-        // Handle UI
-        ui.Process();
+        // Handle Display
+        if (useDebugDisplay)
+        {
+            // Debug Display hijacks the display to simply output text
+            hardware.display.Fill(false);
+            hardware.display.SetCursor(0, 0);
+            hardware.display.WriteString("Debug:", Font_7x10, true);
+            hardware.display.SetCursor(0, 15);
+            sprintf(strbuff, "MuteOn: %d", muteOn);
+            hardware.display.WriteString(strbuff, Font_7x10, true);
+            hardware.display.SetCursor(0, 30);
+            sprintf(strbuff, "BypassOn: %d", bypassOn);
+            hardware.display.WriteString(strbuff, Font_7x10, true);
+            hardware.display.Update();
+        }
+        else
+        {
+            // Default behavior is to use the menu system.
+            ui.Process();
+        }
 
         // Handle Updaing Settings from Menus
         treml.SetWaveform(tremWaveformListMappedValues.GetIndex());
