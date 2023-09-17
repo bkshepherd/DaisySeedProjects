@@ -59,6 +59,13 @@ int  waveform;
 float osc_freq;
 Parameter osc_freq_knob;
 
+bool isCrossFading = false;
+bool isCrossFadingForward = true;   // True goes Source->Target, False goes Target->Source
+CrossFade crossFaderLeft, crossFaderRight;
+float crossFaderTransitionTimeInSeconds = 0.1f;
+int crossFaderTransitionTimeInSamples;
+int samplesTilCrossFadingComplete;
+
 /** This is the type of display we use on the patch. This is provided here for better readability. */
 using OledDisplayType = decltype(GuitarPedal125B::display);
 
@@ -189,6 +196,10 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
                      AudioHandle::OutputBuffer out,
                      size_t                    size)
 {
+    // Process Audio
+    float inputLeft;
+    float inputRight;
+
     // Handle Inputs
     hardware.ProcessAnalogControls();
     hardware.ProcessDigitalControls();
@@ -231,6 +242,11 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
     // Handle Effect State being Toggled.
     if (effectOn != oldEffectOn)
     {
+        // Setup the crossfade
+        isCrossFading = true;
+        samplesTilCrossFadingComplete = crossFaderTransitionTimeInSamples;
+        isCrossFadingForward = effectOn;
+
         // Start the timing sequence for the Hardware Mute and Relay Bypass.
         if (relayBypassEnabled)
         {
@@ -243,14 +259,27 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
         }
     }
 
-    // Process Audio
-    float outputLeft;
-    float outputRight;
-    float inputLeft;
-    float inputRight; 
-
     for(size_t i = 0; i < size; i++)
     {
+        if (isCrossFading)
+        {
+            float crossFadeFactor = (float)samplesTilCrossFadingComplete / (float)crossFaderTransitionTimeInSamples;
+
+            if (isCrossFadingForward){
+                crossFadeFactor = 1.0f - crossFadeFactor;
+            }
+
+            crossFaderLeft.SetPos(crossFadeFactor);
+            crossFaderRight.SetPos(crossFadeFactor);
+
+            samplesTilCrossFadingComplete -= 1;
+
+            if (samplesTilCrossFadingComplete < 0)
+            {
+                isCrossFading = false;
+            }
+        }
+
         // Handle Timing for the Hardware Mute and Relay Bypass
         if (muteOn) {
             // Decrement the Sample Counts for the timing of the mute and bypass
@@ -278,23 +307,34 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
             inputRight = inputLeft;
         }
 
-        // By default the Effect is Bypassed and Output == Input and the led is off
-        outputLeft = inputLeft;
-        outputRight = inputRight;
+        // Setup Master Crossfader. By default source & target is always the input signal
+        float crossFadeSourceLeft = inputLeft;
+        float crossFadeSourceRight = inputRight;
+        float crossFadeTargetLeft = inputLeft;
+        float crossFadeTargetRight = inputRight;
+        float effectOutputLeft = inputLeft;
+        float effectOutputRight = inputRight;
+
+        // By default the leds are off
         led1Brightness = 0.0f;
         led2Brightness = 0.0f;
-
-        if(effectOn)
+        
+        // Only calculate the effect when it's needed
+        if(effectOn || isCrossFading)
         {
             // Apply the Tremolo Effect and modulate the LED at the frequency of the Tremolo
             led1Brightness = 1.0f;
             led2Brightness = treml.Process(1.0f);
-            outputLeft = inputLeft * led2Brightness;
-            outputRight = tremr.Process(inputRight);
+            effectOutputLeft = inputLeft * led2Brightness;
+            effectOutputRight = tremr.Process(inputRight);
         }
 
-        out[0][i] = outputLeft;
-        out[1][i] = outputRight;
+        // Setup the crossfade target to be the effect
+        crossFadeTargetLeft = effectOutputLeft;
+        crossFadeTargetRight = effectOutputRight;
+
+        out[0][i] = crossFaderLeft.Process(crossFadeSourceLeft, crossFadeTargetLeft);
+        out[1][i] = crossFaderRight.Process(crossFadeSourceRight, crossFadeTargetRight);
     }
 
     // Handle LEDs
@@ -361,6 +401,7 @@ int main(void)
     // Set the number of samples to use for the crossfade based on the hardware sample rate
     muteOffTransitionTimeInSamples = GetNumberOfSamplesForTime(muteOffTransitionTimeInSeconds);
     bypassToggleTransitionTimeInSamples = GetNumberOfSamplesForTime(bypassToggleTransitionTimeInSeconds);
+    crossFaderTransitionTimeInSamples = GetNumberOfSamplesForTime(crossFaderTransitionTimeInSeconds);
 
     InitUi();
     InitUiPages();
@@ -374,7 +415,13 @@ int main(void)
     freq_osc.SetAmp(1.0f);
     freq_osc.SetFreq(osc_freq);
     osc_freq_knob.Init(hardware.knobs[2], 0.0, 1.0f, Parameter::Curve::EXPONENTIAL);
- 
+    
+    // Setup the cross fader
+    crossFaderLeft.Init();
+    crossFaderRight.Init();
+    crossFaderLeft.SetPos(0.0f);
+    crossFaderRight.SetPos(0.0f);
+
     // start callback
     hardware.StartAdc();
     hardware.StartAudio(AudioCallback);
@@ -411,6 +458,9 @@ int main(void)
             hardware.display.WriteString(strbuff, Font_7x10, true);
             hardware.display.SetCursor(0, 30);
             sprintf(strbuff, "BypassOn: %d", bypassOn);
+            hardware.display.WriteString(strbuff, Font_7x10, true);
+            hardware.display.SetCursor(0, 45);
+            sprintf(strbuff, "CrossFader: %d", (int)(crossFaderLeft.GetPos(0) * 100.0f));
             hardware.display.WriteString(strbuff, Font_7x10, true);
             hardware.display.Update();
         }
