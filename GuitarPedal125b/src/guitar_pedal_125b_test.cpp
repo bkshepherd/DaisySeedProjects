@@ -1,5 +1,6 @@
 #include <string.h>
 #include "guitar_pedal_125b.h"
+#include "modulated_tremolo_module.h"
 #include "daisysp.h"
 
 using namespace daisy;
@@ -15,8 +16,8 @@ bool  effectOn = false;
 float led1Brightness = 0.0f;
 float led2Brightness = 0.0f;
 bool midiEnabled = true;
-bool relayBypassEnabled = true;
-bool splitMonoInputToStereo = false; // Only available when not using true bypass
+bool relayBypassEnabled = false;
+bool splitMonoInputToStereo = true; // Only available when not using true bypass
 
 bool muteOn = false;
 float muteOffTransitionTimeInSeconds = 0.02f;
@@ -53,10 +54,7 @@ MappedStringListValue tremWaveformListMappedValues(tremWaveformListValues, 5, 0)
 MappedStringListValue tremOscWaveformListMappedValues(tremWaveformListValues, 5, 0);
 
 // Effect Related Variables
-Tremolo    treml, tremr;
-Oscillator freq_osc;
-int  waveform;
-float osc_freq;
+BaseEffectModule *activeEffect = NULL;
 Parameter osc_freq_knob;
 
 bool isCrossFading = false;
@@ -206,22 +204,13 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
 
     GenerateUiEvents();
 
-    // Handle knobs Tremolo
-    float tremFreqMin = 1.0f;
-    float tremFreqMax = hardware.knobs[0].Process() * 20.f; //0 - 20 Hz
-    treml.SetDepth(hardware.knobs[1].Process());
-    tremr.SetDepth(hardware.knobs[1].Value());
-    float knob2Value = osc_freq_knob.Process();
-    float freq_osc_min = 0.01f;
-    freq_osc.SetFreq(freq_osc_min + (knob2Value * 3.0f)); //0 - 20 Hz
-    float mod = freq_osc.Process();
-
-    if (knob2Value < 0.01) {
-        mod = 1.0f;
+    // Handle knobs for active effect
+    if (activeEffect != NULL)
+    {
+        activeEffect->SetParameterAsMagnitude(2, hardware.knobs[0].Process());
+        activeEffect->SetParameterAsMagnitude(1, hardware.knobs[1].Process());
+        activeEffect->SetParameterAsMagnitude(4, osc_freq_knob.Process());
     }
-
-    treml.SetFreq(tremFreqMin + tremFreqMax * mod); 
-    tremr.SetFreq(tremFreqMin + tremFreqMax * mod);
 
     //If the First Footswitch button is pressed, toggle the effect enabled
     bool oldEffectOn = effectOn;
@@ -319,14 +308,16 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
         led1Brightness = 0.0f;
         led2Brightness = 0.0f;
         
-        // Only calculate the effect when it's needed
-        if(effectOn || isCrossFading)
+        // Only calculate the active effect when it's needed
+        if(activeEffect != NULL && (effectOn || isCrossFading))
         {
-            // Apply the Tremolo Effect and modulate the LED at the frequency of the Tremolo
+            // Apply the Active Effect
+            effectOutputLeft = activeEffect->ProcessStereoLeft(inputLeft);
+            effectOutputRight = activeEffect->ProcessStereoRight(inputRight);
+
+            // Update state of the LEDs
             led1Brightness = 1.0f;
-            led2Brightness = treml.Process(1.0f);
-            effectOutputLeft = inputLeft * led2Brightness;
-            effectOutputRight = tremr.Process(inputRight);
+            led2Brightness = activeEffect->GetOutputLEDBrightness();
         }
 
         // Setup the crossfade target to be the effect
@@ -408,12 +399,9 @@ int main(void)
     ui.OpenPage(mainMenu);
     UI::SpecialControlIds ids;
 
-    treml.Init(sample_rate);
-    tremr.Init(sample_rate);
-    osc_freq = 0.0f;
-    freq_osc.Init(sample_rate);
-    freq_osc.SetAmp(1.0f);
-    freq_osc.SetFreq(osc_freq);
+    activeEffect = new ModulatedTremoloModule();
+    activeEffect->Init(sample_rate);
+
     osc_freq_knob.Init(hardware.knobs[2], 0.0, 1.0f, Parameter::Curve::EXPONENTIAL);
     
     // Setup the cross fader
@@ -470,10 +458,12 @@ int main(void)
             ui.Process();
         }
 
-        // Handle Updaing Settings from Menus
-        treml.SetWaveform(tremWaveformListMappedValues.GetIndex());
-        tremr.SetWaveform(tremWaveformListMappedValues.GetIndex());
-        freq_osc.SetWaveform(tremOscWaveformListMappedValues.GetIndex());
+        // Handle Updating Activre Effect Settings From Menus
+        if (activeEffect != NULL)
+        {
+            activeEffect->SetParameter(0, tremWaveformListMappedValues.GetIndex());
+            activeEffect->SetParameter(3, tremOscWaveformListMappedValues.GetIndex());
+        }
 
         // Handle MIDI Events
         if (midiEnabled)
