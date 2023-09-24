@@ -1,6 +1,7 @@
 #include <string.h>
 #include "guitar_pedal_125b.h"
 #include "modulated_tremolo_module.h"
+#include "overdrive_module.h"
 #include "daisysp.h"
 
 using namespace daisy;
@@ -32,30 +33,29 @@ int samplesTilBypassToggle;
 // Menu System Variables
 daisy::UI ui;
 FullScreenItemMenu mainMenu;
-FullScreenItemMenu tremoloMenu;
+FullScreenItemMenu activeEffectSettingsMenu;
 FullScreenItemMenu globalSettingsMenu;
 UiEventQueue       eventQueue;
 
+// Pot Monitoring Variables
+float knobValueChangeTolerance = 1.0f / 256.0f;
+bool knobValueCacheChanged[hardware.KNOB_LAST];
+float knobValueCache[hardware.KNOB_LAST];
+
 const int                kNumMainMenuItems =  2;
 AbstractMenu::ItemConfig mainMenuItems[kNumMainMenuItems];
-const int                kNumTremoloMenuItems = 4;
-AbstractMenu::ItemConfig tremoloMenuItems[kNumTremoloMenuItems];
 const int                kNumGlobalSettingsMenuItems = 4;
 AbstractMenu::ItemConfig globalSettingsMenuItems[kNumGlobalSettingsMenuItems];
+int                      numActiveEffectSettingsItems = 0;
+AbstractMenu::ItemConfig *activeEffectSettingsMenuItems = NULL;
 
-// Tremolo menu items
-const char* tremTypeListValues[]
-    = {"Simple", "Harmonic"};
-MappedStringListValue tremTypeListMappedValues(tremTypeListValues, 2, 0);
-
-const char* tremWaveformListValues[]
-    = {"Sine", "Triangle", "Saw", "Ramp", "Square"};
-MappedStringListValue tremWaveformListMappedValues(tremWaveformListValues, 5, 0);
-MappedStringListValue tremOscWaveformListMappedValues(tremWaveformListValues, 5, 0);
+// Effect Settings Value Items
+MappedIntValue **activeEffectSettingValues = NULL;
 
 // Effect Related Variables
 BaseEffectModule *activeEffect = NULL;
-Parameter osc_freq_knob;
+ModulatedTremoloModule tremoloEffectModule;
+OverdriveModule overdriveEffectModule;
 
 bool isCrossFading = false;
 bool isCrossFadingForward = true;   // True goes Source->Target, False goes Target->Source
@@ -77,6 +77,7 @@ void FlushCanvas(const daisy::UiCanvasDescriptor& canvasDescriptor)
         display.Update();
     }
 }
+
 void ClearCanvas(const daisy::UiCanvasDescriptor& canvasDescriptor)
 {
     if(canvasDescriptor.id_ == 0)
@@ -113,12 +114,12 @@ void InitUi()
 void InitUiPages()
 {
     // ====================================================================
-    // The main menu
+    // The Main Menu
     // ====================================================================
 
     mainMenuItems[0].type = daisy::AbstractMenu::ItemType::openUiPageItem;
-    mainMenuItems[0].text = "Tremolo";
-    mainMenuItems[0].asOpenUiPageItem.pageToOpen = &tremoloMenu;
+    mainMenuItems[0].text = activeEffect->GetName();
+    mainMenuItems[0].asOpenUiPageItem.pageToOpen = &activeEffectSettingsMenu;
 
     mainMenuItems[1].type = daisy::AbstractMenu::ItemType::openUiPageItem;
     mainMenuItems[1].text = "Settings";
@@ -127,28 +128,25 @@ void InitUiPages()
     mainMenu.Init(mainMenuItems, kNumMainMenuItems);
 
     // ====================================================================
-    // The "Tremolo" menu
+    // The "Settings" menu for the Active Effect (depends on what effect is active)
     // ====================================================================
 
-    tremoloMenuItems[0].type = daisy::AbstractMenu::ItemType::valueItem;
-    tremoloMenuItems[0].text = "Type";
-    tremoloMenuItems[0].asMappedValueItem.valueToModify
-        = &tremTypeListMappedValues;
+    numActiveEffectSettingsItems = activeEffect->GetParameterCount();
+    activeEffectSettingValues = new MappedIntValue*[numActiveEffectSettingsItems];
+    activeEffectSettingsMenuItems = new AbstractMenu::ItemConfig[numActiveEffectSettingsItems + 1];
+    
+    for (int i = 0; i < numActiveEffectSettingsItems; i++)
+    {
+        activeEffectSettingsMenuItems[i].type = daisy::AbstractMenu::ItemType::valueItem;
+        activeEffectSettingsMenuItems[i].text = activeEffect->GetParameterName(i);
+        activeEffectSettingValues[i] = new MappedIntValue(0, 127, activeEffect->GetParameter(i), 1, 5);
+        activeEffectSettingsMenuItems[i].asMappedValueItem.valueToModify = activeEffectSettingValues[i];
+    }
 
-    tremoloMenuItems[1].type = daisy::AbstractMenu::ItemType::valueItem;
-    tremoloMenuItems[1].text = "Waveform";
-    tremoloMenuItems[1].asMappedValueItem.valueToModify
-        = &tremWaveformListMappedValues;
+    activeEffectSettingsMenuItems[numActiveEffectSettingsItems].type = daisy::AbstractMenu::ItemType::closeMenuItem;
+    activeEffectSettingsMenuItems[numActiveEffectSettingsItems].text = "Back";
 
-    tremoloMenuItems[2].type = daisy::AbstractMenu::ItemType::valueItem;
-    tremoloMenuItems[2].text = "Osc Wave";
-    tremoloMenuItems[2].asMappedValueItem.valueToModify
-        = &tremOscWaveformListMappedValues;
-
-    tremoloMenuItems[3].type = daisy::AbstractMenu::ItemType::closeMenuItem;
-    tremoloMenuItems[3].text = "Back";
-
-    tremoloMenu.Init(tremoloMenuItems, kNumTremoloMenuItems);
+    activeEffectSettingsMenu.Init(activeEffectSettingsMenuItems, numActiveEffectSettingsItems + 1);
 
     // ====================================================================
     // The "Global Settings" menu
@@ -203,13 +201,19 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
     hardware.ProcessDigitalControls();
 
     GenerateUiEvents();
+    
+    // Process the Pots
+    float knobValueRaw;
 
-    // Handle knobs for active effect
-    if (activeEffect != NULL)
+    for (int i = 0; i < hardware.KNOB_LAST; i++)
     {
-        activeEffect->SetParameterAsMagnitude(2, hardware.knobs[0].Process());
-        activeEffect->SetParameterAsMagnitude(1, hardware.knobs[1].Process());
-        activeEffect->SetParameterAsMagnitude(4, osc_freq_knob.Process());
+        knobValueRaw = hardware.GetKnobValue((GuitarPedal125B::KnobIndex)i);
+
+        if (knobValueRaw > (knobValueCache[i] + knobValueChangeTolerance) || knobValueRaw < (knobValueCache[i] - knobValueChangeTolerance))
+        {
+            knobValueCache[i] = knobValueRaw;
+            knobValueCacheChanged[i] = true;
+        }
     }
 
     //If the First Footswitch button is pressed, toggle the effect enabled
@@ -394,15 +398,16 @@ int main(void)
     bypassToggleTransitionTimeInSamples = GetNumberOfSamplesForTime(bypassToggleTransitionTimeInSeconds);
     crossFaderTransitionTimeInSamples = GetNumberOfSamplesForTime(crossFaderTransitionTimeInSeconds);
 
+    // Init the Effects Modules
+    tremoloEffectModule.Init(sample_rate);
+    overdriveEffectModule.Init(sample_rate);
+    activeEffect = &tremoloEffectModule;
+
+    // Init the Menu UI System
     InitUi();
     InitUiPages();
     ui.OpenPage(mainMenu);
     UI::SpecialControlIds ids;
-
-    activeEffect = new ModulatedTremoloModule();
-    activeEffect->Init(sample_rate);
-
-    osc_freq_knob.Init(hardware.knobs[2], 0.0, 1.0f, Parameter::Curve::EXPONENTIAL);
     
     // Setup the cross fader
     crossFaderLeft.Init();
@@ -434,6 +439,29 @@ int main(void)
 
     while(1)
     {
+        // Handle Knob Changes
+        for (int i = 0; i < hardware.KNOB_LAST; i++)
+        {
+            if (knobValueCacheChanged[i])
+            {
+                int parameterID = activeEffect->GetMappedParameterIDForKnob(i);
+
+                if (parameterID != -1)
+                {
+                    activeEffect->SetParameterAsMagnitude(parameterID, knobValueCache[i]);
+                    activeEffectSettingValues[parameterID]->Set(activeEffect->GetParameter(parameterID));
+                }
+                
+                knobValueCacheChanged[i] = false;
+            }
+        }
+        
+        // Update all Active Effect Settings
+        for (int i = 0; i < numActiveEffectSettingsItems; i++)
+        {
+            activeEffect->SetParameter(i, activeEffectSettingValues[i]->Get());
+        }
+
         // Handle Display
         if (useDebugDisplay)
         {
@@ -456,13 +484,6 @@ int main(void)
         {
             // Default behavior is to use the menu system.
             ui.Process();
-        }
-
-        // Handle Updating Activre Effect Settings From Menus
-        if (activeEffect != NULL)
-        {
-            activeEffect->SetParameter(0, tremWaveformListMappedValues.GetIndex());
-            activeEffect->SetParameter(3, tremOscWaveformListMappedValues.GetIndex());
         }
 
         // Handle MIDI Events

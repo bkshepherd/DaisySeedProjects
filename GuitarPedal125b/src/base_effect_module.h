@@ -22,6 +22,16 @@ class BaseEffectModule
     virtual void Init(float sample_rate);
 
     /**
+     \return the number of parameters for this effect.
+    */
+    uint8_t GetParameterCount();
+
+    /**
+     \return Value Name of the Effect Parameter
+    */
+    const char *GetParameterName(int parameter_id);
+
+    /**
      \param parameter_id Id of the parameter to retrieve.
      \return the Value of the specified parameter.
     */
@@ -32,6 +42,12 @@ class BaseEffectModule
      \return the Value of the specified parameter as a float 0..1
     */
     float GetParameterAsMagnitude(int parameter_id);
+
+    /**
+     \param knob_id Id of the Knob to retrieve.
+     \return the Parameter ID mapped to the specified knob.
+    */
+    int GetMappedParameterIDForKnob(int knob_id);
 
     /**
         \param parameter_id Id of the parameter to set.
@@ -68,9 +84,22 @@ class BaseEffectModule
     */
     virtual float GetOutputLEDBrightness();
 
+    /**
+     \return Value Name of the Effect
+    */
+    const char *GetName();
+
   protected:
+    /** Initializes the Parameter Storage
+        \param count  The number of stored parameters
+    */
+    virtual void InitParams(int count);
+
     int m_paramCount;
     uint8_t *m_params;
+    const char *m_name;
+    const char **m_paramNames;
+    const int *m_knobMappings;
 
   private:
     float   m_sampleRate;

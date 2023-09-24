@@ -10,7 +10,32 @@ ModulatedTremoloModule::ModulatedTremoloModule() : BaseEffectModule(),
                                                         m_freqOscFreqMax(1.0f),
                                                         m_cachedEffectMagnitudeValue(1.0f)
 {
-    // No Code Needed
+    // Set the name of the effect
+    m_name = "Tremolo";
+
+    // Initialize Parameters for this Effect
+    this->InitParams(5);
+    static const char* paramNames[] = {"Wave", "Depth", "Freq", "Osc Wave", "Osc Freq"};
+    m_paramNames = paramNames;
+    
+    // Initialize the desired list of knobs mapped to parameters
+    static const int knobMappings[] = {-1, 1, 0, -1, 2};  // -1 no knob mapped
+    m_knobMappings = knobMappings;
+
+    // m_params[0] - Tremolo Waveform Parameter
+    // values: 0 is Sine, 1 is Triangle, 2 is Saw, 3 is Ramp, 4 is Square
+
+    // m_params[1] - Tremolo Depth Parameter
+    // values: 0 .. 127, Min to Max Depth
+
+    // m_params[2] - Tremolo Frequency Parameter
+    // values: 0 .. 127, Min to Max Frequency
+
+    // m_params[3] - Tremolo Oscilator Waveform Parameter
+    // values: 0 is Sine, 1 is Triangle, 2 is Saw, 3 is Ramp, 4 is Square
+
+    // m_params[4] - Tremolo Oscilator Frequency Parameter
+    // values 0 .. 127, Min to Max Frequency
 }
 
 // Destructor
@@ -23,27 +48,7 @@ void ModulatedTremoloModule::Init(float sample_rate)
 {
     BaseEffectModule::Init(sample_rate);
 
-    // Initialize Default Parameters for this Effect
-    m_paramCount = 6;
-    m_params = new uint8_t[m_paramCount];
-
-    // Tremolo Waveform Parameter
-    m_params[0] = 0; // 0 is Sine, 1 is Triangle, 2 is Saw, 3 is Ramp, 4 is Square
-
-    // Tremolo Depth Parameter
-    m_params[1] = 127; // 0 .. 255, Min to Max Depth
-
-    // Tremolo Frequency Parameter
-    m_params[2] = 127; // 0 .. 255, Min to Max Frequency
-
-    // Tremolo Oscilator Waveform Parameter
-    m_params[3] = 0; // 0 is Sine, 1 is Triangle, 2 is Saw, 3 is Ramp, 4 is Square
-
-    // Tremolo Oscilator Frequency Parameter
-    m_params[4] = 0; // 0 .. 255, Min to Max Frequency
-
     m_tremolo.Init(sample_rate);
-
     m_freqOsc.Init(sample_rate);
 }
 
