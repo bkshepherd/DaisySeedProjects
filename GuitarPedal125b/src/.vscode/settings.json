@@ -17,6 +17,7 @@
         "variant": "cpp",
         "*.tcc": "cpp",
         "regex": "cpp",
-        "any": "cpp"
+        "any": "cpp",
+        "new": "cpp"
     }
 }

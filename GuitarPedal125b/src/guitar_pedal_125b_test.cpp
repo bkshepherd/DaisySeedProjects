@@ -131,6 +131,22 @@ void InitUiPages()
     // The "Settings" menu for the Active Effect (depends on what effect is active)
     // ====================================================================
 
+    // Clean up any dynamically allocated memory
+    if (activeEffectSettingValues != NULL)
+    {
+        for(int i = 0; i < numActiveEffectSettingsItems; ++i)
+            delete [] activeEffectSettingValues[i];
+
+        delete [] activeEffectSettingValues;
+        activeEffectSettingValues = NULL;
+        numActiveEffectSettingsItems = 0;
+    }
+
+    if (activeEffectSettingsMenuItems != NULL)
+    {
+        delete [] activeEffectSettingsMenuItems;
+    }
+
     numActiveEffectSettingsItems = activeEffect->GetParameterCount();
     activeEffectSettingValues = new MappedIntValue*[numActiveEffectSettingsItems];
     activeEffectSettingsMenuItems = new AbstractMenu::ItemConfig[numActiveEffectSettingsItems + 1];
