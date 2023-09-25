@@ -7,8 +7,7 @@ BaseEffectModule::BaseEffectModule() : m_paramCount(0),
                                         m_params(NULL)
 {
     m_name = "Base";
-    m_paramNames = NULL;
-    m_knobMappings = NULL;
+    m_paramMetaData = NULL;
 }
 
 // Destructor
@@ -56,12 +55,12 @@ uint8_t BaseEffectModule::GetParameterCount()
 const char *BaseEffectModule::GetParameterName(int parameter_id)
 {
     // Make sure parameter_id is valid.
-    if (m_params == NULL || parameter_id < 0 || parameter_id >= m_paramCount || m_paramNames == NULL)
+    if (m_params == NULL || parameter_id < 0 || parameter_id >= m_paramCount || m_paramMetaData == NULL)
     {
         return "Unknown";
     }
     
-    return m_paramNames[parameter_id];
+    return m_paramMetaData[parameter_id].name;
 }
 
 uint8_t BaseEffectModule::GetParameter(int parameter_id)
@@ -82,11 +81,14 @@ float BaseEffectModule::GetParameterAsMagnitude(int parameter_id)
 
 int BaseEffectModule::GetMappedParameterIDForKnob(int knob_id)
 {
-    for (int i = 0; i < m_paramCount; i++)
+    if (m_paramMetaData != NULL)
     {
-        if (m_knobMappings[i] == knob_id)
+        for (int i = 0; i < m_paramCount; i++)
         {
-            return i;
+            if (m_paramMetaData[i].knobMapping == knob_id)
+            {
+                return i;
+            }
         }
     }
 
@@ -124,7 +126,7 @@ void BaseEffectModule::SetParameterAsMagnitude(int parameter_id, float floatValu
         return;
     }
 
-    SetParameter(parameter_id, (uint8_t)(127.0f * floatValue)); 
+    SetParameter(parameter_id, (uint8_t)((127.0f * floatValue) + 0.35f)); 
 }
 
 float BaseEffectModule::ProcessMono(float in)

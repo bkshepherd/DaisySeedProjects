@@ -53,9 +53,9 @@ AbstractMenu::ItemConfig *activeEffectSettingsMenuItems = NULL;
 MappedIntValue **activeEffectSettingValues = NULL;
 
 // Effect Related Variables
-BaseEffectModule *activeEffect = NULL;
 ModulatedTremoloModule tremoloEffectModule;
 OverdriveModule overdriveEffectModule;
+BaseEffectModule *activeEffect = NULL;
 
 bool isCrossFading = false;
 bool isCrossFadingForward = true;   // True goes Source->Target, False goes Target->Source

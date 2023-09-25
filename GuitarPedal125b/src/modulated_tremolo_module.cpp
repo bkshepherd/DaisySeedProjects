@@ -2,6 +2,13 @@
 
 using namespace bkshepherd;
 
+static const int s_paramCount = 5;
+static const ParameterMetaData s_metaData[s_paramCount] = {{"Wave", -1, 0},
+                                                           {"Depth", 1, 63},
+                                                           {"Freq", 0, 63},
+                                                           {"Osc Wave", -1, 0},
+                                                           {"Osc Freq", 2, 0}};
+
 // Default Constructor
 ModulatedTremoloModule::ModulatedTremoloModule() : BaseEffectModule(),
                                                         m_tremoloFreqMin(1.0f),
@@ -14,28 +21,8 @@ ModulatedTremoloModule::ModulatedTremoloModule() : BaseEffectModule(),
     m_name = "Tremolo";
 
     // Initialize Parameters for this Effect
-    this->InitParams(5);
-    static const char* paramNames[] = {"Wave", "Depth", "Freq", "Osc Wave", "Osc Freq"};
-    m_paramNames = paramNames;
-    
-    // Initialize the desired list of knobs mapped to parameters
-    static const int knobMappings[] = {-1, 1, 0, -1, 2};  // -1 no knob mapped
-    m_knobMappings = knobMappings;
-
-    // m_params[0] - Tremolo Waveform Parameter
-    // values: 0 is Sine, 1 is Triangle, 2 is Saw, 3 is Ramp, 4 is Square
-
-    // m_params[1] - Tremolo Depth Parameter
-    // values: 0 .. 127, Min to Max Depth
-
-    // m_params[2] - Tremolo Frequency Parameter
-    // values: 0 .. 127, Min to Max Frequency
-
-    // m_params[3] - Tremolo Oscilator Waveform Parameter
-    // values: 0 is Sine, 1 is Triangle, 2 is Saw, 3 is Ramp, 4 is Square
-
-    // m_params[4] - Tremolo Oscilator Frequency Parameter
-    // values 0 .. 127, Min to Max Frequency
+    this->InitParams(s_paramCount);
+    m_paramMetaData = s_metaData;
 }
 
 // Destructor

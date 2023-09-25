@@ -2,6 +2,10 @@
 
 using namespace bkshepherd;
 
+static const int s_paramCount = 2;
+static const ParameterMetaData s_metaData[s_paramCount] = {{"Drive", 1, 63},
+                                                           {"Level", 0, 63}};
+
 // Default Constructor
 OverdriveModule::OverdriveModule() : BaseEffectModule(),
                                         m_driveMin(0.4f),
@@ -14,19 +18,8 @@ OverdriveModule::OverdriveModule() : BaseEffectModule(),
     m_name = "Overdrive";
 
     // Initialize Parameters for this Effect
-    this->InitParams(2);
-    static const char* paramNames[] = {"Drive", "Level"};
-    m_paramNames = paramNames;
-
-    // Initialize the desired list of knobs mapped to parameters
-    static const int knobMappings[] = {1, 0};  // -1 no knob mapped
-    m_knobMappings = knobMappings;
-
-    // m_params[0] - Overdrive Drive Parameter
-    // values: 0 .. 127, Min to Max Drive
-
-    // m_params[1] - Overdrive Level Parameter
-    // values: 0 .. 127, Min to Max Level
+    this->InitParams(s_paramCount);
+    m_paramMetaData = s_metaData;
 }
 
 // Destructor

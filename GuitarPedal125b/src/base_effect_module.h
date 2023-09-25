@@ -10,6 +10,13 @@
 namespace bkshepherd
 {
 
+struct ParameterMetaData
+{
+  const char* name;
+  int knobMapping;
+  uint8_t defaultValue;
+};
+
 class BaseEffectModule
 {
   public:
@@ -95,11 +102,10 @@ class BaseEffectModule
     */
     virtual void InitParams(int count);
 
+    const char *m_name;
     int m_paramCount;
     uint8_t *m_params;
-    const char *m_name;
-    const char **m_paramNames;
-    const int *m_knobMappings;
+    const ParameterMetaData *m_paramMetaData;
 
   private:
     float   m_sampleRate;
