@@ -44,17 +44,19 @@ float knobValueCache[hardware.KNOB_LAST];
 
 const int                kNumMainMenuItems =  2;
 AbstractMenu::ItemConfig mainMenuItems[kNumMainMenuItems];
-const int                kNumGlobalSettingsMenuItems = 4;
+const int                kNumGlobalSettingsMenuItems = 5;
 AbstractMenu::ItemConfig globalSettingsMenuItems[kNumGlobalSettingsMenuItems];
 int                      numActiveEffectSettingsItems = 0;
 AbstractMenu::ItemConfig *activeEffectSettingsMenuItems = NULL;
 
 // Effect Settings Value Items
+const char** availableEffectNames = NULL;
+MappedStringListValue *availableEffectListMappedValues = NULL;
 MappedIntValue **activeEffectSettingValues = NULL;
 
 // Effect Related Variables
-ModulatedTremoloModule tremoloEffectModule;
-OverdriveModule overdriveEffectModule;
+int availableEffectsCount = 0;
+BaseEffectModule **availableEffects = NULL;
 BaseEffectModule *activeEffect = NULL;
 
 bool isCrossFading = false;
@@ -111,7 +113,7 @@ void InitUi()
             0);
 }
 
-void InitUiPages()
+void InitEffectUiPages()
 {
     // ====================================================================
     // The Main Menu
@@ -135,7 +137,7 @@ void InitUiPages()
     if (activeEffectSettingValues != NULL)
     {
         for(int i = 0; i < numActiveEffectSettingsItems; ++i)
-            delete [] activeEffectSettingValues[i];
+            delete activeEffectSettingValues[i];
 
         delete [] activeEffectSettingValues;
         activeEffectSettingValues = NULL;
@@ -163,24 +165,56 @@ void InitUiPages()
     activeEffectSettingsMenuItems[numActiveEffectSettingsItems].text = "Back";
 
     activeEffectSettingsMenu.Init(activeEffectSettingsMenuItems, numActiveEffectSettingsItems + 1);
+}
 
+void InitGlobalSettingsUIPages()
+{
     // ====================================================================
     // The "Global Settings" menu
     // ====================================================================
-    globalSettingsMenuItems[0].type = daisy::AbstractMenu::ItemType::checkboxItem;
-    globalSettingsMenuItems[0].text = "True Bypass";
-    globalSettingsMenuItems[0].asCheckboxItem.valueToModify = &relayBypassEnabled;
+    if (availableEffectListMappedValues != NULL)
+    {
+        delete availableEffectListMappedValues;
+    }
+
+    if (availableEffectNames != NULL)
+    {
+        delete [] availableEffectNames;
+    }
+
+    availableEffectNames = new const char*[availableEffectsCount];
+    int activeEffectIndex = -1;
+
+    for (int i = 0; i < availableEffectsCount; i++)
+    {
+        availableEffectNames[i] = availableEffects[i]->GetName();
+
+        if (availableEffects[i] == activeEffect)
+        {
+            activeEffectIndex = i;
+        }
+    }
+
+    availableEffectListMappedValues = new MappedStringListValue(availableEffectNames, availableEffectsCount, activeEffectIndex);
+
+    globalSettingsMenuItems[0].type = daisy::AbstractMenu::ItemType::valueItem;
+    globalSettingsMenuItems[0].text = "Effect";
+    globalSettingsMenuItems[0].asMappedValueItem.valueToModify = availableEffectListMappedValues;
 
     globalSettingsMenuItems[1].type = daisy::AbstractMenu::ItemType::checkboxItem;
-    globalSettingsMenuItems[1].text = "Split Mono";
-    globalSettingsMenuItems[1].asCheckboxItem.valueToModify = &splitMonoInputToStereo;
+    globalSettingsMenuItems[1].text = "True Bypass";
+    globalSettingsMenuItems[1].asCheckboxItem.valueToModify = &relayBypassEnabled;
 
     globalSettingsMenuItems[2].type = daisy::AbstractMenu::ItemType::checkboxItem;
-    globalSettingsMenuItems[2].text = "Midi";
-    globalSettingsMenuItems[2].asCheckboxItem.valueToModify = &midiEnabled;
+    globalSettingsMenuItems[2].text = "Split Mono";
+    globalSettingsMenuItems[2].asCheckboxItem.valueToModify = &splitMonoInputToStereo;
 
-    globalSettingsMenuItems[3].type = daisy::AbstractMenu::ItemType::closeMenuItem;
-    globalSettingsMenuItems[3].text = "Back";
+    globalSettingsMenuItems[3].type = daisy::AbstractMenu::ItemType::checkboxItem;
+    globalSettingsMenuItems[3].text = "Midi";
+    globalSettingsMenuItems[3].asCheckboxItem.valueToModify = &midiEnabled;
+
+    globalSettingsMenuItems[4].type = daisy::AbstractMenu::ItemType::closeMenuItem;
+    globalSettingsMenuItems[4].text = "Back";
 
     globalSettingsMenu.Init(globalSettingsMenuItems, kNumGlobalSettingsMenuItems);
 }
@@ -415,13 +449,23 @@ int main(void)
     crossFaderTransitionTimeInSamples = GetNumberOfSamplesForTime(crossFaderTransitionTimeInSeconds);
 
     // Init the Effects Modules
-    tremoloEffectModule.Init(sample_rate);
-    overdriveEffectModule.Init(sample_rate);
-    activeEffect = &tremoloEffectModule;
+    availableEffectsCount = 2;
+    availableEffects = new BaseEffectModule*[availableEffectsCount];
+
+    availableEffects[0] = new ModulatedTremoloModule();
+    availableEffects[1] = new OverdriveModule();
+
+    for (int i = 0; i < availableEffectsCount; i++)
+    {
+        availableEffects[i]->Init(sample_rate);
+    }
+
+    activeEffect = availableEffects[0];
 
     // Init the Menu UI System
     InitUi();
-    InitUiPages();
+    InitEffectUiPages();
+    InitGlobalSettingsUIPages();
     ui.OpenPage(mainMenu);
     UI::SpecialControlIds ids;
     
@@ -476,6 +520,16 @@ int main(void)
         for (int i = 0; i < numActiveEffectSettingsItems; i++)
         {
             activeEffect->SetParameter(i, activeEffectSettingValues[i]->Get());
+        }
+
+        // Handle a Change in the Active Effect
+        BaseEffectModule *selectedEffect = availableEffects[availableEffectListMappedValues->GetIndex()];
+
+        if (activeEffect != selectedEffect)
+        {
+            // Update the active effect and reset the Effects Menu and Settings for that Effect
+            activeEffect = selectedEffect;
+            InitEffectUiPages();
         }
 
         // Handle Display
