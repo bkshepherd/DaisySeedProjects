@@ -30,6 +30,9 @@ float bypassToggleTransitionTimeInSeconds = 0.01f;
 int bypassToggleTransitionTimeInSamples;
 int samplesTilBypassToggle;
 
+uint32_t lastTimeStampUS;
+float secondsSinceStartup = 0.0f;
+
 // Menu System Variables
 daisy::UI ui;
 FullScreenItemMenu mainMenu;
@@ -38,9 +41,13 @@ FullScreenItemMenu globalSettingsMenu;
 UiEventQueue       eventQueue;
 
 // Pot Monitoring Variables
+bool knobValuesInitialized = false;
 float knobValueChangeTolerance = 1.0f / 256.0f;
+float knobValueIdleTimeInSeconds = 1.0f;
+int knobValueIdleTimeInSamples;
 bool knobValueCacheChanged[hardware.KNOB_LAST];
 float knobValueCache[hardware.KNOB_LAST];
+int knobValueSamplesTilIdle[hardware.KNOB_LAST];
 
 const int                kNumMainMenuItems =  2;
 AbstractMenu::ItemConfig mainMenuItems[kNumMainMenuItems];
@@ -259,10 +266,41 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
     {
         knobValueRaw = hardware.GetKnobValue((GuitarPedal125B::KnobIndex)i);
 
-        if (knobValueRaw > (knobValueCache[i] + knobValueChangeTolerance) || knobValueRaw < (knobValueCache[i] - knobValueChangeTolerance))
+        if (!knobValuesInitialized)
         {
+            // Initialize the knobs for the first time to whatever the current knob placements are
+            knobValueCacheChanged[i] = false;
+            knobValueSamplesTilIdle[i] = 0;
             knobValueCache[i] = knobValueRaw;
-            knobValueCacheChanged[i] = true;
+        }
+        else
+        {
+            // If the knobs are initialized handle monitor them for changes.
+            if (knobValueSamplesTilIdle[i] > 0)
+            {
+                knobValueSamplesTilIdle[i] -= size;
+
+                if (knobValueSamplesTilIdle[i] <= 0)
+                {
+                    knobValueSamplesTilIdle[i] = 0;
+                    knobValueCacheChanged[i] = false;
+                }
+            }
+
+            bool knobValueChangedToleranceMet = false;
+
+            if (knobValueRaw > (knobValueCache[i] + knobValueChangeTolerance) || knobValueRaw < (knobValueCache[i] - knobValueChangeTolerance))
+            {
+                knobValueChangedToleranceMet = true;
+                knobValueCacheChanged[i] = true;
+                knobValueSamplesTilIdle[i] = knobValueIdleTimeInSamples;
+            }
+
+            if (knobValueChangedToleranceMet || knobValueCacheChanged[i])
+            {
+                knobValueCache[i] = knobValueRaw;
+            }
+        
         }
     }
 
@@ -443,6 +481,9 @@ int main(void)
 
     float sample_rate = hardware.AudioSampleRate();
 
+    // Set initial time stamp
+    lastTimeStampUS = System::GetUs();
+
     // Set the number of samples to use for the crossfade based on the hardware sample rate
     muteOffTransitionTimeInSamples = GetNumberOfSamplesForTime(muteOffTransitionTimeInSeconds);
     bypassToggleTransitionTimeInSamples = GetNumberOfSamplesForTime(bypassToggleTransitionTimeInSeconds);
@@ -469,6 +510,9 @@ int main(void)
     ui.OpenPage(mainMenu);
     UI::SpecialControlIds ids;
     
+    // Init the Knob Monitoring System
+    knobValueIdleTimeInSamples = GetNumberOfSamplesForTime(knobValueIdleTimeInSeconds);
+
     // Setup the cross fader
     crossFaderLeft.Init();
     crossFaderRight.Init();
@@ -499,7 +543,21 @@ int main(void)
 
     while(1)
     {
+        // Handle Clock Time
+        uint32_t currentTimeStampUS = System::GetUs();
+        uint32_t elapsedTimeStampUS = currentTimeStampUS - lastTimeStampUS;
+        lastTimeStampUS = currentTimeStampUS;
+        secondsSinceStartup = secondsSinceStartup + (elapsedTimeStampUS / 1000000.0f);
+
         // Handle Knob Changes
+        if (!knobValuesInitialized && secondsSinceStartup > 1.0f)
+        {
+            // Let the initial readings of the knob values settle before trying to use them.
+            knobValuesInitialized = true;
+        }
+
+        bool isKnobValueChanging = false;
+
         for (int i = 0; i < hardware.KNOB_LAST; i++)
         {
             if (knobValueCacheChanged[i])
@@ -510,12 +568,21 @@ int main(void)
                 {
                     activeEffect->SetParameterAsMagnitude(parameterID, knobValueCache[i]);
                     activeEffectSettingValues[parameterID]->Set(activeEffect->GetParameter(parameterID));
+                    isKnobValueChanging = true;
+
+                    // Change the main menu to be the name of the value the Knob is changing
+                    mainMenuItems[0].text = activeEffect->GetParameterName(parameterID);
                 }
                 
-                knobValueCacheChanged[i] = false;
             }
         }
         
+        // If no knobs are moving make sure the main menu is set to the Effect Name.
+        if (!isKnobValueChanging)
+        {
+            mainMenuItems[0].text = activeEffect->GetName();
+        }
+
         // Update all Active Effect Settings
         for (int i = 0; i < numActiveEffectSettingsItems; i++)
         {
