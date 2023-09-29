@@ -17,9 +17,11 @@ OverdriveModule::OverdriveModule() : BaseEffectModule(),
     // Set the name of the effect
     m_name = "Overdrive";
 
+    // Setup the meta data reference for this Effect
+    m_paramMetaData = s_metaData;
+
     // Initialize Parameters for this Effect
     this->InitParams(s_paramCount);
-    m_paramMetaData = s_metaData;
 }
 
 // Destructor

@@ -39,10 +39,17 @@ void BaseEffectModule::InitParams(int count)
         m_paramCount = count;
         m_params = new uint8_t[m_paramCount];
 
-        // Init all parameters to zero
+        // Init all parameters to their default value or zero if there is no meta data
         for (int i = 0; i < m_paramCount; i++)
         {
-            m_params[i] = 0;
+            if (m_paramMetaData != NULL)
+            {
+                m_params[i] = m_paramMetaData[i].defaultValue;
+            }
+            else
+            {
+                m_params[i] = 0;
+            }
         }
 	}
 }
