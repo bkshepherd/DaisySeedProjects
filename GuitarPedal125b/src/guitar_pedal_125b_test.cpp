@@ -4,6 +4,10 @@
 #include "overdrive_module.h"
 #include "daisysp.h"
 
+// Peristant Storage Settings
+#define SETTINGS_MAX_EFFECT_COUNT 4
+#define SETTINGS_MAX_EFFECT_PARAM_COUNT 16
+
 using namespace daisy;
 using namespace daisysp;
 using namespace bkshepherd;
@@ -16,9 +20,6 @@ bool useDebugDisplay = false;
 bool  effectOn = false;
 float led1Brightness = 0.0f;
 float led2Brightness = 0.0f;
-bool midiEnabled = true;
-bool relayBypassEnabled = false;
-bool splitMonoInputToStereo = true; // Only available when not using true bypass
 
 bool muteOn = false;
 float muteOffTransitionTimeInSeconds = 0.02f;
@@ -32,6 +33,52 @@ int samplesTilBypassToggle;
 
 uint32_t lastTimeStampUS;
 float secondsSinceStartup = 0.0f;
+
+// Save System Variables
+struct Settings
+{
+    int globalAvailableEffectsCount;
+    int globalActiveEffectID;
+    bool globalMidiEnabled;
+    int globalMidiChannel;
+    bool globalRelayBypassEnabled;
+    bool globalSplitMonoInputToStereo;
+    uint8_t globalEffectsSettings[SETTINGS_MAX_EFFECT_COUNT * SETTINGS_MAX_EFFECT_PARAM_COUNT];     // Set aside a block of memory for individual effect params
+
+    bool operator==(const Settings &rhs)
+    {
+        if (globalAvailableEffectsCount != rhs.globalAvailableEffectsCount
+            || globalActiveEffectID != rhs.globalActiveEffectID
+            || globalMidiEnabled != rhs.globalMidiEnabled
+            || globalMidiChannel != rhs.globalMidiChannel
+            || globalRelayBypassEnabled != rhs.globalRelayBypassEnabled
+            || globalSplitMonoInputToStereo != rhs.globalSplitMonoInputToStereo)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < SETTINGS_MAX_EFFECT_COUNT * SETTINGS_MAX_EFFECT_PARAM_COUNT; i++)
+        {
+            if (globalEffectsSettings[i] != rhs.globalEffectsSettings[i])
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+    
+    bool operator!=(const Settings &rhs)
+    {
+        return !operator==(rhs);
+    }
+};
+
+PersistentStorage<Settings> storage(hardware.seed.qspi);
+uint32_t last_save_time;        // Time we last set it
+bool needToSaveSettingsForActiveEffect = false;
+bool displayingSaveSettingsNotification = false;
+float secondsSinceLastActiveEffectSettingsSave = 0;
 
 // Menu System Variables
 daisy::UI ui;
@@ -176,6 +223,9 @@ void InitEffectUiPages()
 
 void InitGlobalSettingsUIPages()
 {
+    // Get a handle to the persitance storage settings
+    Settings &settings = storage.GetSettings();
+
     // ====================================================================
     // The "Global Settings" menu
     // ====================================================================
@@ -210,15 +260,15 @@ void InitGlobalSettingsUIPages()
 
     globalSettingsMenuItems[1].type = daisy::AbstractMenu::ItemType::checkboxItem;
     globalSettingsMenuItems[1].text = "True Bypass";
-    globalSettingsMenuItems[1].asCheckboxItem.valueToModify = &relayBypassEnabled;
+    globalSettingsMenuItems[1].asCheckboxItem.valueToModify = &settings.globalRelayBypassEnabled;
 
     globalSettingsMenuItems[2].type = daisy::AbstractMenu::ItemType::checkboxItem;
     globalSettingsMenuItems[2].text = "Split Mono";
-    globalSettingsMenuItems[2].asCheckboxItem.valueToModify = &splitMonoInputToStereo;
+    globalSettingsMenuItems[2].asCheckboxItem.valueToModify = &settings.globalSplitMonoInputToStereo;
 
     globalSettingsMenuItems[3].type = daisy::AbstractMenu::ItemType::checkboxItem;
     globalSettingsMenuItems[3].text = "Midi";
-    globalSettingsMenuItems[3].asCheckboxItem.valueToModify = &midiEnabled;
+    globalSettingsMenuItems[3].asCheckboxItem.valueToModify = &settings.globalMidiEnabled;
 
     globalSettingsMenuItems[4].type = daisy::AbstractMenu::ItemType::closeMenuItem;
     globalSettingsMenuItems[4].text = "Back";
@@ -245,6 +295,92 @@ int GetNumberOfSamplesForTime(float time)
     return (int)(hardware.AudioSampleRate() * time);
 }
 
+// Helpful Function for getting a parameter value for an effect from the Persistant Storage
+uint8_t GetSettingsParameterValueForEffect(int effectID, int paramID)
+{
+    // Make sure the effect and param id are within valid ranges for the settings.
+    if (effectID < 0 || effectID > SETTINGS_MAX_EFFECT_COUNT - 1 || paramID < 0 || paramID > SETTINGS_MAX_EFFECT_PARAM_COUNT - 1)
+    {
+        return 0;
+    }
+
+    // Get a handle to the persitance storage settings
+    Settings &settings = storage.GetSettings();
+    return settings.globalEffectsSettings[(effectID * SETTINGS_MAX_EFFECT_PARAM_COUNT) + paramID];
+}
+
+// Helpful Function for setting a parameter value for an effect from the Persistant Storage
+void SetSettingsParameterValueForEffect(int effectID, int paramID, uint8_t paramValue)
+{
+    // Make sure the effect and param id are within valid ranges for the settings.
+    if (effectID < 0 || effectID > SETTINGS_MAX_EFFECT_COUNT - 1 || paramID < 0 || paramID > SETTINGS_MAX_EFFECT_PARAM_COUNT - 1)
+    {
+        return;
+    }
+
+    // Get a handle to the persitance storage settings
+    Settings &settings = storage.GetSettings();
+    settings.globalEffectsSettings[(effectID * SETTINGS_MAX_EFFECT_PARAM_COUNT) + paramID] = paramValue;
+}
+
+void InitPersistantStorage()
+{
+    Settings defaultSettings;
+    defaultSettings.globalAvailableEffectsCount = availableEffectsCount;
+    defaultSettings.globalActiveEffectID = 0;
+    defaultSettings.globalMidiEnabled = true;
+    defaultSettings.globalMidiChannel = 0;
+    defaultSettings.globalRelayBypassEnabled = false;
+    defaultSettings.globalSplitMonoInputToStereo = true;
+
+    // All Effect Params in the settings sound be zero'd
+    for (int i = 0; i < SETTINGS_MAX_EFFECT_COUNT * SETTINGS_MAX_EFFECT_PARAM_COUNT; i++)
+    {
+        defaultSettings.globalEffectsSettings[i] = 0;
+    }
+
+    // Override any defaults with effect specific default settings
+    for (int effectID = 0; effectID < availableEffectsCount; effectID++)
+    {
+        int paramCount = availableEffects[effectID]->GetParameterCount();
+
+        for (int paramID = 0;  paramID < paramCount; paramID++)
+        {
+            defaultSettings.globalEffectsSettings[(effectID * SETTINGS_MAX_EFFECT_COUNT) + paramID] = availableEffects[effectID]->GetParameter(paramID);
+        }
+    } 
+    
+    storage.Init(defaultSettings);
+}
+
+void LoadEffectSettingsFromPersistantStorage()
+{
+    // Load Effect Parameters based on values from Persistant Storage
+    for (int effectID = 0; effectID < availableEffectsCount; effectID++)
+    {
+        int paramCount = availableEffects[effectID]->GetParameterCount();
+
+        for (int paramID = 0; paramID < paramCount; paramID++)
+        {
+            availableEffects[effectID]->SetParameter(paramID, GetSettingsParameterValueForEffect(effectID, paramID));
+        }
+    }
+}
+
+void SaveEffectSettingsToPersitantStorageForEffectID(int effectID)
+{
+    // Save Effect Parameters to Persistant Storage based on values from the specified active effect
+    if (effectID >= 0 && effectID < availableEffectsCount)
+    {
+        int paramCount = availableEffects[effectID]->GetParameterCount();
+
+        for (int paramID = 0; paramID < paramCount; paramID++)
+        {
+            SetSettingsParameterValueForEffect(effectID, paramID, availableEffects[effectID]->GetParameter(paramID));
+        }
+    }
+}
+
 static void AudioCallback(AudioHandle::InputBuffer  in,
                      AudioHandle::OutputBuffer out,
                      size_t                    size)
@@ -258,6 +394,9 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
     hardware.ProcessDigitalControls();
 
     GenerateUiEvents();
+
+    // Get a handle to the persitance storage settings
+    Settings &settings = storage.GetSettings();
     
     // Process the Pots
     float knobValueRaw;
@@ -304,12 +443,18 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
         }
     }
 
+    //If both footswitches are down, save the parameters for this effect to persistant storage
+    if (hardware.switches[1].TimeHeldMs() > 2000 && !displayingSaveSettingsNotification)
+    {
+        needToSaveSettingsForActiveEffect = true;
+    }
+
     //If the First Footswitch button is pressed, toggle the effect enabled
     bool oldEffectOn = effectOn;
     effectOn ^= hardware.switches[0].RisingEdge();
 
     // Handle updating the Hardware Bypass & Muting signals
-    if (relayBypassEnabled)
+    if (settings.globalRelayBypassEnabled)
     {
         hardware.SetAudioBypass(bypassOn);
         hardware.SetAudioMute(muteOn);
@@ -329,7 +474,7 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
         isCrossFadingForward = effectOn;
 
         // Start the timing sequence for the Hardware Mute and Relay Bypass.
-        if (relayBypassEnabled)
+        if (settings.globalRelayBypassEnabled)
         {
             // Immediately Mute the Output using the Hardware Mute.
             muteOn = true;
@@ -383,7 +528,7 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
         inputRight = in[1][i];
 
         // Split the Mono Input to Stereo (Only allowed if relay bypass non enabled)
-        if (splitMonoInputToStereo && !relayBypassEnabled)
+        if (settings.globalSplitMonoInputToStereo && !settings.globalRelayBypassEnabled)
         {
             inputRight = inputLeft;
         }
@@ -418,6 +563,13 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
 
         out[0][i] = crossFaderLeft.Process(crossFadeSourceLeft, crossFadeTargetLeft);
         out[1][i] = crossFaderRight.Process(crossFadeSourceRight, crossFadeTargetRight);
+    }
+
+    // Override LEDs if we are saving the current settings
+    if (displayingSaveSettingsNotification)
+    {
+        led1Brightness = 1.0f;
+        led2Brightness = 1.0f;
     }
 
     // Handle LEDs
@@ -501,7 +653,15 @@ int main(void)
         availableEffects[i]->Init(sample_rate);
     }
 
-    activeEffect = availableEffects[0];
+    // Initalize Persistance Storage
+    InitPersistantStorage();
+    //storage.RestoreDefaults();
+    LoadEffectSettingsFromPersistantStorage();
+
+    Settings &settings = storage.GetSettings();
+    
+    // Set the active effect
+    activeEffect = availableEffects[settings.globalActiveEffectID];
 
     // Init the Menu UI System
     InitUi();
@@ -532,7 +692,7 @@ int main(void)
     hardware.midi.SendMessage(midiData, sizeof(uint8_t) * 3);
 
     // Setup Relay Bypass State
-    if (relayBypassEnabled)
+    if (settings.globalRelayBypassEnabled)
     {
         bypassOn = true;
     }
@@ -597,8 +757,25 @@ int main(void)
             // Update the active effect and reset the Effects Menu and Settings for that Effect
             activeEffect = selectedEffect;
             InitEffectUiPages();
+
+            // Update the persistant storage setting
+            settings.globalActiveEffectID = availableEffectListMappedValues->GetIndex();
         }
 
+        // Handle Displaying the Saving notication
+        if (displayingSaveSettingsNotification)
+        {
+            secondsSinceLastActiveEffectSettingsSave += (elapsedTimeStampUS / 1000000.0f);
+
+            // Change the main menu text to say saved
+            mainMenuItems[0].text = "Saved.";
+
+            if (secondsSinceLastActiveEffectSettingsSave > 2.0f)
+            {
+                displayingSaveSettingsNotification = false;
+            }
+        }
+        
         // Handle Display
         if (useDebugDisplay)
         {
@@ -624,7 +801,7 @@ int main(void)
         }
 
         // Handle MIDI Events
-        if (midiEnabled)
+        if (settings.globalMidiEnabled)
         {
             hardware.midi.Listen();
 
@@ -632,6 +809,21 @@ int main(void)
             {
                 HandleMidiMessage(hardware.midi.PopEvent());
             }
+        }
+
+        // Throttle persitant storage saves to once every 2 seconds:
+        if (System::GetNow() - last_save_time >= 2000)
+        {
+            if (needToSaveSettingsForActiveEffect)
+            {
+                SaveEffectSettingsToPersitantStorageForEffectID(availableEffectListMappedValues->GetIndex());
+                displayingSaveSettingsNotification = true;
+                secondsSinceLastActiveEffectSettingsSave = 0.0f;
+            }
+
+            storage.Save();
+            last_save_time = System::GetNow();
+            needToSaveSettingsForActiveEffect = false;
         }
     }
 }
