@@ -2,11 +2,13 @@
 #include "guitar_pedal_125b.h"
 #include "modulated_tremolo_module.h"
 #include "overdrive_module.h"
+#include "autopan_module.h"
+#include "chorus_module.h"
 #include "daisysp.h"
 
 // Peristant Storage Settings
 #define SETTINGS_FILE_FORMAT_VERSION 1
-#define SETTINGS_MAX_EFFECT_COUNT 4
+#define SETTINGS_MAX_EFFECT_COUNT 8
 #define SETTINGS_MAX_EFFECT_PARAM_COUNT 16
 
 using namespace daisy;
@@ -563,8 +565,9 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
         if(activeEffect != NULL && (effectOn || isCrossFading))
         {
             // Apply the Active Effect
-            effectOutputLeft = activeEffect->ProcessStereoLeft(inputLeft);
-            effectOutputRight = activeEffect->ProcessStereoRight(inputRight);
+            activeEffect->ProcessStereo(inputLeft, inputRight);
+            effectOutputLeft = activeEffect->GetAudioLeft();
+            effectOutputRight = activeEffect->GetAudioRight();
 
             // Update state of the LEDs
             led1Brightness = 1.0f;
@@ -718,11 +721,13 @@ int main(void)
     crossFaderTransitionTimeInSamples = GetNumberOfSamplesForTime(crossFaderTransitionTimeInSeconds);
 
     // Init the Effects Modules
-    availableEffectsCount = 2;
+    availableEffectsCount = 4;
     availableEffects = new BaseEffectModule*[availableEffectsCount];
 
     availableEffects[0] = new ModulatedTremoloModule();
     availableEffects[1] = new OverdriveModule();
+    availableEffects[2] = new AutoPanModule();
+    availableEffects[3] = new ChorusModule();
 
     for (int i = 0; i < availableEffectsCount; i++)
     {
@@ -854,7 +859,7 @@ int main(void)
         // Handle Display
         if (useDebugDisplay)
         {
-            /* Debug Display hijacks the display to simply output text
+            // Debug Display hijacks the display to simply output text
             char strbuff[128];
             hardware.display.Fill(false);
             hardware.display.SetCursor(0, 0);
@@ -866,10 +871,9 @@ int main(void)
             sprintf(strbuff, "BypassOn: %d", bypassOn);
             hardware.display.WriteString(strbuff, Font_7x10, true);
             hardware.display.SetCursor(0, 45);
-            sprintf(strbuff, "CrossFader: %d", (int)(crossFaderLeft.GetPos(0) * 100.0f));
+            sprintf(strbuff, "LED: %d", (int)(activeEffect->GetOutputLEDBrightness() * 100.0f));
             hardware.display.WriteString(strbuff, Font_7x10, true);
             hardware.display.Update();
-            */
         }
         else
         {

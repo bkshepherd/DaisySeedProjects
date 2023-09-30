@@ -38,35 +38,31 @@ void OverdriveModule::Init(float sample_rate)
     m_overdriveRight.Init();
 }
 
-float OverdriveModule::ProcessMono(float in)
+void OverdriveModule::ProcessMono(float in)
 {
-    float value = BaseEffectModule::ProcessMono(in);
+    BaseEffectModule::ProcessMono(in);
 
     // Calculate the effect
     m_overdriveLeft.SetDrive(m_driveMin + (GetParameterAsMagnitude(0) * (m_driveMax - m_driveMin)));
-    value = m_overdriveLeft.Process(value);
+    m_audioLeft = m_overdriveLeft.Process(m_audioLeft);
 
     // Adjust the level
-    value = value * (m_levelMin + (GetParameterAsMagnitude(1) * (m_levelMax - m_levelMin)));
-
-    return value;
+    m_audioLeft = m_audioLeft * (m_levelMin + (GetParameterAsMagnitude(1) * (m_levelMax - m_levelMin)));
+    m_audioRight = m_audioLeft;
 }
 
-float OverdriveModule::ProcessStereoLeft(float in)
+void OverdriveModule::ProcessStereo(float inL, float inR)
 {    
-    return ProcessMono(in);
-}
+    // Calculate the mono effect
+    ProcessMono(inL);
 
-float OverdriveModule::ProcessStereoRight(float in)
-{
-    float value = BaseEffectModule::ProcessStereoRight(in);
+    // Do the base stereo calculation (which resets the right signal to be the inputR instead of combined mono)
+    BaseEffectModule::ProcessStereo(m_audioLeft, inR);
 
     // Calculate the effect
     m_overdriveRight.SetDrive(m_driveMin + (GetParameterAsMagnitude(0) * (m_driveMax - m_driveMin)));
-    value = m_overdriveRight.Process(value);
+    m_audioRight = m_overdriveRight.Process(m_audioRight);
 
     // Adjust the level
-    value = value * (m_levelMin + (GetParameterAsMagnitude(1) * (m_levelMax - m_levelMin)));
-
-    return value;
+    m_audioRight = m_audioRight * (m_levelMin + (GetParameterAsMagnitude(1) * (m_levelMax - m_levelMin)));
 }

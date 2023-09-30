@@ -1,24 +1,24 @@
 #pragma once
-#ifndef MODULATED_TREMOLO_MODULE_H
-#define MODULATED_TREMOLO_MODULE_H
+#ifndef AUTOPAN_MODULE_H
+#define AUTOPAN_MODULE_H
 
 #include <stdint.h>
 #include "daisysp.h"
 #include "base_effect_module.h"
 #ifdef __cplusplus
 
-/** @file modulated_tremolo_module.h */
+/** @file autopan_module.h */
 
 using namespace daisysp;
 
 namespace bkshepherd
 {
 
-class ModulatedTremoloModule : public BaseEffectModule
+class AutoPanModule : public BaseEffectModule
 {
   public:
-    ModulatedTremoloModule();
-    ~ModulatedTremoloModule();
+    AutoPanModule();
+    ~AutoPanModule();
 
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;
@@ -26,15 +26,10 @@ class ModulatedTremoloModule : public BaseEffectModule
     float GetOutputLEDBrightness() override;
 
   private:
-    Tremolo m_tremolo;
-    float m_tremoloFreqMin;
-    float m_tremoloFreqMax;
-
+    float m_pan; // 0 to 1 value 0 is full left, 1 is full right.
     Oscillator m_freqOsc;
     float m_freqOscFreqMin;
     float m_freqOscFreqMax;
-
-    float m_cachedEffectMagnitudeValue;
 };
 } // namespace bkshepherd
 #endif

@@ -41,15 +41,15 @@ void ModulatedTremoloModule::Init(float sample_rate)
     m_freqOsc.Init(sample_rate);
 }
 
-float ModulatedTremoloModule::ProcessMono(float in)
+void ModulatedTremoloModule::ProcessMono(float in)
 {
-    float value = BaseEffectModule::ProcessMono(in);
+    BaseEffectModule::ProcessMono(in);
 
     // Calculate Tremolo Frequency Oscillation
     m_freqOsc.SetWaveform(GetParameter(3));
-    m_freqOsc.SetAmp(1.0f);
+    m_freqOsc.SetAmp(0.5f);
     m_freqOsc.SetFreq(m_freqOscFreqMin + (GetParameterAsMagnitude(4) * m_freqOscFreqMax));
-    float mod = m_freqOsc.Process();
+    float mod = 0.5f + m_freqOsc.Process();
 
     if (GetParameter(4) == 0) {
         mod = 1.0f;
@@ -61,20 +61,20 @@ float ModulatedTremoloModule::ProcessMono(float in)
     m_tremolo.SetFreq(m_tremoloFreqMin + ((GetParameterAsMagnitude(2) * m_tremoloFreqMax) * mod));
     m_cachedEffectMagnitudeValue = m_tremolo.Process(1.0f);
 
-    return value * m_cachedEffectMagnitudeValue;
+    m_audioLeft = m_audioLeft * m_cachedEffectMagnitudeValue;
+    m_audioRight = m_audioLeft;
 }
 
-float ModulatedTremoloModule::ProcessStereoLeft(float in)
+void ModulatedTremoloModule::ProcessStereo(float inL, float inR)
 {    
-    return ProcessMono(in);
-}
+    // Calculate the mono effect
+    ProcessMono(inL);
 
-float ModulatedTremoloModule::ProcessStereoRight(float in)
-{
-    float value = BaseEffectModule::ProcessStereoRight(in);
+    // Do the base stereo calculation (which resets the right signal to be the inputR instead of combined mono)
+    BaseEffectModule::ProcessStereo(m_audioLeft, inR);
 
-    // Use the same magnitude as already calculated for the Left channel
-    return value * m_cachedEffectMagnitudeValue;
+    // Use the same magnitude as already calculated for the Left Audio
+    m_audioRight = m_audioRight * m_cachedEffectMagnitudeValue;
 }
 
 float ModulatedTremoloModule::GetOutputLEDBrightness()

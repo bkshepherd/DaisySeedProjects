@@ -77,21 +77,23 @@ class BaseEffectModule
 
     /** 
      \param in Input sample.
-     \return Next floating point sample for a mono effect.
     */
-    virtual float ProcessMono(float in);
+    virtual void ProcessMono(float in);
 
     /** 
-     \param in Input sample.
-     \return Next floating point sample for the left channel of a stereo effect.
+     \param inL, inR Input sample Left and Right.
     */
-    virtual float ProcessStereoLeft(float in);
+    virtual void ProcessStereo(float inL, float inR);
 
     /** 
-     \param in Input sample.
-     \return Next floating point sample for the right channel of a stereo effect.
+     \return Last floating point sample for the left channel.
     */
-    virtual float ProcessStereoRight(float in);
+    float GetAudioLeft();
+
+    /** 
+     \return Last floating point sample for the right channel.
+    */
+    float GetAudioRight();
 
     /**
      \return Value 0..1 for the intended LED brightness.
@@ -113,6 +115,8 @@ class BaseEffectModule
     int m_paramCount;
     uint8_t *m_params;
     const ParameterMetaData *m_paramMetaData;
+    float m_audioLeft;
+    float m_audioRight;
 
   private:
     float   m_sampleRate;

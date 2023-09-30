@@ -4,7 +4,9 @@ using namespace bkshepherd;
 
 // Default Constructor
 BaseEffectModule::BaseEffectModule() : m_paramCount(0),
-                                        m_params(NULL)
+                                        m_params(NULL),
+                                        m_audioLeft(0.0f),
+                                        m_audioRight(0.0f)
 {
     m_name = "Base";
     m_paramMetaData = NULL;
@@ -152,19 +154,26 @@ void BaseEffectModule::SetParameterAsMagnitude(int parameter_id, float floatValu
     SetParameter(parameter_id, (uint8_t)((127.0f * floatValue) + 0.35f)); 
 }
 
-float BaseEffectModule::ProcessMono(float in)
+void BaseEffectModule::ProcessMono(float in)
 {
-    return in;
+    m_audioLeft = in;
+    m_audioRight = in;
 }
 
-float BaseEffectModule::ProcessStereoLeft(float in)
+void BaseEffectModule::ProcessStereo(float inL, float inR)
 {
-    return in;
+    m_audioLeft = inL;
+    m_audioRight = inR;
 }
 
-float BaseEffectModule::ProcessStereoRight(float in)
+float BaseEffectModule::GetAudioLeft()
 {
-    return in;
+    return m_audioLeft;
+}
+
+float BaseEffectModule::GetAudioRight()
+{
+    return m_audioRight;
 }
 
 float BaseEffectModule::GetOutputLEDBrightness()

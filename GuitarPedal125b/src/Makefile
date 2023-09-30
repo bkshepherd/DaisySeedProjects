@@ -2,7 +2,7 @@
 TARGET =  guitarpedal125btest
 
 # Sources
-CPP_SOURCES = guitar_pedal_125b_test.cpp guitar_pedal_125b.cpp base_effect_module.cpp modulated_tremolo_module.cpp overdrive_module.cpp
+CPP_SOURCES = guitar_pedal_125b_test.cpp guitar_pedal_125b.cpp base_effect_module.cpp modulated_tremolo_module.cpp overdrive_module.cpp autopan_module.cpp chorus_module.cpp
 
 # Library Locations
 DAISYSP_DIR ?= /Users/kshep/Dev/DaisyExamples/DaisySP
