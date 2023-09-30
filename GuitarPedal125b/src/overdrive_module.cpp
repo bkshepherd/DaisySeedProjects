@@ -3,8 +3,8 @@
 using namespace bkshepherd;
 
 static const int s_paramCount = 2;
-static const ParameterMetaData s_metaData[s_paramCount] = {{"Drive", 1, 57},
-                                                           {"Level", 0, 40}};
+static const ParameterMetaData s_metaData[s_paramCount] = {{"Drive", 57, 1, 1},
+                                                           {"Level", 40, 0, 21}};
 
 // Default Constructor
 OverdriveModule::OverdriveModule() : BaseEffectModule(),

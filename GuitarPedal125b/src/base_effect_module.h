@@ -13,8 +13,9 @@ namespace bkshepherd
 struct ParameterMetaData
 {
   const char* name;
-  int knobMapping;
   uint8_t defaultValue;
+  int knobMapping;
+  int midiCCMapping;
 };
 
 class BaseEffectModule
@@ -55,6 +56,12 @@ class BaseEffectModule
      \return the Parameter ID mapped to the specified knob.
     */
     int GetMappedParameterIDForKnob(int knob_id);
+
+    /**
+     \param midiCC_id Id of the MidiCC to retrieve.
+     \return the Parameter ID mapped to the specified MidiCC.
+    */
+    int GetMappedParameterIDForMidiCC(int midiCC_id);
 
     /**
         \param parameter_id Id of the parameter to set.

@@ -102,6 +102,22 @@ int BaseEffectModule::GetMappedParameterIDForKnob(int knob_id)
     return -1;
 }
 
+int BaseEffectModule::GetMappedParameterIDForMidiCC(int midiCC_id)
+{
+    if (m_paramMetaData != NULL)
+    {
+        for (int i = 0; i < m_paramCount; i++)
+        {
+            if (m_paramMetaData[i].midiCCMapping == midiCC_id)
+            {
+                return i;
+            }
+        }
+    }
+
+    return -1;
+}
+
 void BaseEffectModule::SetParameter(int parameter_id, uint8_t value)
 {
     // Make sure parameter_id is valid.

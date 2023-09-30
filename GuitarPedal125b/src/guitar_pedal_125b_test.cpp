@@ -5,6 +5,7 @@
 #include "daisysp.h"
 
 // Peristant Storage Settings
+#define SETTINGS_FILE_FORMAT_VERSION 1
 #define SETTINGS_MAX_EFFECT_COUNT 4
 #define SETTINGS_MAX_EFFECT_PARAM_COUNT 16
 
@@ -37,9 +38,10 @@ float secondsSinceStartup = 0.0f;
 // Save System Variables
 struct Settings
 {
-    int globalAvailableEffectsCount;
+    int fileFormatVersion;
     int globalActiveEffectID;
     bool globalMidiEnabled;
+    bool globalMidiThrough;
     int globalMidiChannel;
     bool globalRelayBypassEnabled;
     bool globalSplitMonoInputToStereo;
@@ -47,9 +49,10 @@ struct Settings
 
     bool operator==(const Settings &rhs)
     {
-        if (globalAvailableEffectsCount != rhs.globalAvailableEffectsCount
+        if (fileFormatVersion != rhs.fileFormatVersion
             || globalActiveEffectID != rhs.globalActiveEffectID
             || globalMidiEnabled != rhs.globalMidiEnabled
+            || globalMidiThrough != rhs.globalMidiThrough
             || globalMidiChannel != rhs.globalMidiChannel
             || globalRelayBypassEnabled != rhs.globalRelayBypassEnabled
             || globalSplitMonoInputToStereo != rhs.globalSplitMonoInputToStereo)
@@ -98,7 +101,7 @@ int knobValueSamplesTilIdle[hardware.KNOB_LAST];
 
 const int                kNumMainMenuItems =  2;
 AbstractMenu::ItemConfig mainMenuItems[kNumMainMenuItems];
-const int                kNumGlobalSettingsMenuItems = 5;
+const int                kNumGlobalSettingsMenuItems = 7;
 AbstractMenu::ItemConfig globalSettingsMenuItems[kNumGlobalSettingsMenuItems];
 int                      numActiveEffectSettingsItems = 0;
 AbstractMenu::ItemConfig *activeEffectSettingsMenuItems = NULL;
@@ -107,6 +110,7 @@ AbstractMenu::ItemConfig *activeEffectSettingsMenuItems = NULL;
 const char** availableEffectNames = NULL;
 MappedStringListValue *availableEffectListMappedValues = NULL;
 MappedIntValue **activeEffectSettingValues = NULL;
+MappedIntValue midiChannelSettingValue(1,16,1,1,5);
 
 // Effect Related Variables
 int availableEffectsCount = 0;
@@ -251,7 +255,7 @@ void InitGlobalSettingsUIPages()
             activeEffectIndex = i;
         }
     }
-
+    
     availableEffectListMappedValues = new MappedStringListValue(availableEffectNames, availableEffectsCount, activeEffectIndex);
 
     globalSettingsMenuItems[0].type = daisy::AbstractMenu::ItemType::valueItem;
@@ -267,11 +271,20 @@ void InitGlobalSettingsUIPages()
     globalSettingsMenuItems[2].asCheckboxItem.valueToModify = &settings.globalSplitMonoInputToStereo;
 
     globalSettingsMenuItems[3].type = daisy::AbstractMenu::ItemType::checkboxItem;
-    globalSettingsMenuItems[3].text = "Midi";
+    globalSettingsMenuItems[3].text = "Midi On";
     globalSettingsMenuItems[3].asCheckboxItem.valueToModify = &settings.globalMidiEnabled;
 
-    globalSettingsMenuItems[4].type = daisy::AbstractMenu::ItemType::closeMenuItem;
-    globalSettingsMenuItems[4].text = "Back";
+    globalSettingsMenuItems[4].type = daisy::AbstractMenu::ItemType::checkboxItem;
+    globalSettingsMenuItems[4].text = "Midi Thru";
+    globalSettingsMenuItems[4].asCheckboxItem.valueToModify = &settings.globalMidiThrough;
+
+    globalSettingsMenuItems[5].type = daisy::AbstractMenu::ItemType::valueItem;
+    globalSettingsMenuItems[5].text = "Midi Ch";
+    midiChannelSettingValue.Set(settings.globalMidiChannel);
+    globalSettingsMenuItems[5].asMappedValueItem.valueToModify = &midiChannelSettingValue;
+
+    globalSettingsMenuItems[6].type = daisy::AbstractMenu::ItemType::closeMenuItem;
+    globalSettingsMenuItems[6].text = "Back";
 
     globalSettingsMenu.Init(globalSettingsMenuItems, kNumGlobalSettingsMenuItems);
 }
@@ -326,10 +339,11 @@ void SetSettingsParameterValueForEffect(int effectID, int paramID, uint8_t param
 void InitPersistantStorage()
 {
     Settings defaultSettings;
-    defaultSettings.globalAvailableEffectsCount = availableEffectsCount;
+    defaultSettings.fileFormatVersion = SETTINGS_FILE_FORMAT_VERSION;
     defaultSettings.globalActiveEffectID = 0;
     defaultSettings.globalMidiEnabled = true;
-    defaultSettings.globalMidiChannel = 0;
+    defaultSettings.globalMidiChannel = 1;
+    defaultSettings.globalMidiThrough = true;
     defaultSettings.globalRelayBypassEnabled = false;
     defaultSettings.globalSplitMonoInputToStereo = true;
 
@@ -346,7 +360,7 @@ void InitPersistantStorage()
 
         for (int paramID = 0;  paramID < paramCount; paramID++)
         {
-            defaultSettings.globalEffectsSettings[(effectID * SETTINGS_MAX_EFFECT_COUNT) + paramID] = availableEffects[effectID]->GetParameter(paramID);
+            defaultSettings.globalEffectsSettings[(effectID * SETTINGS_MAX_EFFECT_PARAM_COUNT) + paramID] = availableEffects[effectID]->GetParameter(paramID);
         }
     } 
     
@@ -581,6 +595,65 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
 // Typical Switch case for Message Type.
 void HandleMidiMessage(MidiEvent m)
 {
+    /* Debug info
+    uint8_t midiData[3];
+    midiData[0] = 0b10000000 | ((uint8_t) m.type << 4) | ((uint8_t) m.channel);
+    midiData[1] = m.data[0];
+    midiData[2] = m.data[1];
+    char strbuff[256];
+    hardware.display.Fill(false);
+    hardware.display.SetCursor(0, 0);
+    hardware.display.WriteString("Midi:", Font_7x10, true);
+    hardware.display.SetCursor(0, 15);
+    sprintf(strbuff, "data[0]: %d", midiData[0]);
+    hardware.display.WriteString(strbuff, Font_7x10, true);
+    hardware.display.SetCursor(0, 30);
+    sprintf(strbuff, "data[1]: %d", midiData[1]);
+    hardware.display.WriteString(strbuff, Font_7x10, true);
+    hardware.display.SetCursor(0, 45);
+    sprintf(strbuff, "data[2]: %d", midiData[2]);
+    hardware.display.WriteString(strbuff, Font_7x10, true);
+    hardware.display.Update();
+    */
+
+    // Get a handle to the persitance storage settings
+    Settings &settings = storage.GetSettings();
+
+    int channel = 0;
+
+    // Make sure the settings midi channel is within the proper range 
+    // and convert the channel to be zero indexed instead of 1 like the setting.
+    if (settings.globalMidiChannel >= 1 && settings.globalMidiChannel <= 16)
+    {
+        channel = settings.globalMidiChannel - 1;
+    }
+
+    // Pass the midi message through to midi out if so desired (only handles non system event types)
+    if (settings.globalMidiThrough && m.type < SystemCommon)
+    {
+        // Re-pack the Midi Message
+        uint8_t midiData[3];
+        
+        midiData[0] = 0b10000000 | ((uint8_t) m.type << 4) | ((uint8_t) m.channel);
+        midiData[1] = m.data[0];
+        midiData[2] = m.data[1];
+
+        int bytesToSend = 3;
+
+        if (m.type == ChannelPressure || m.type == ProgramChange)
+        {
+            bytesToSend = 2;
+        }
+
+        hardware.midi.SendMessage(midiData, sizeof(uint8_t) * bytesToSend);
+    }
+
+    // Only listen to messages for the devices set channel.
+    if (m.channel != channel)
+    {
+        return;
+    }
+
     switch(m.type)
     {
         case NoteOn:
@@ -597,28 +670,31 @@ void HandleMidiMessage(MidiEvent m)
             if(m.data[1] != 0)
             {
                 p = m.AsNoteOn();
-                //led2Brightness = ((float)p.velocity / 127.0f);
-                //osc.SetFreq(mtof(p.note));
-                //osc.SetAmp((p.velocity / 127.0f));
             }
         }
         break;
         case ControlChange:
-        {
-            ControlChangeEvent p = m.AsControlChange();
-            switch(p.control_number)
+        {   
+            if (activeEffect != NULL)
             {
-                case 1:
-                    // CC 1 for cutoff.
-                    //filt.SetFreq(mtof((float)p.value));
-                    break;
-                case 2:
-                    // CC 2 for res.
-                    //filt.SetRes(((float)p.value / 127.0f));
-                    break;
-                default: 
-                    //led2Brightness = ((float)p.value / 127.0f);
-                break;
+                ControlChangeEvent p = m.AsControlChange();
+                int effectParamID =  activeEffect->GetMappedParameterIDForMidiCC(p.control_number);
+
+                if (effectParamID != -1)
+                {
+                    activeEffect->SetParameter(effectParamID, p.value);
+                    activeEffectSettingValues[effectParamID]->Set(activeEffect->GetParameter(effectParamID));
+                }
+            }
+            break;
+        }
+        case ProgramChange:
+        {
+            ProgramChangeEvent p = m.AsProgramChange();
+
+            if (p.program >= 0 && p.program < availableEffectsCount)
+            {
+                availableEffectListMappedValues->SetIndex(p.program);
             }
             break;
         }
@@ -655,10 +731,17 @@ int main(void)
 
     // Initalize Persistance Storage
     InitPersistantStorage();
-    //storage.RestoreDefaults();
-    LoadEffectSettingsFromPersistantStorage();
 
     Settings &settings = storage.GetSettings();
+
+    // If the stored data is not the current version do a factory reset
+    if (settings.fileFormatVersion != SETTINGS_FILE_FORMAT_VERSION)
+    {
+        storage.RestoreDefaults();
+    }
+    
+    // Load all the effect specific settings
+    LoadEffectSettingsFromPersistantStorage();
     
     // Set the active effect
     activeEffect = availableEffects[settings.globalActiveEffectID];
@@ -684,13 +767,6 @@ int main(void)
     hardware.StartAudio(AudioCallback);
     hardware.midi.StartReceive();
 
-    // Send Test Midi Message
-    uint8_t midiData[3];
-    midiData[0] = 0b10110000;
-    midiData[1] = 0b00001010;
-    midiData[2] = 0b01111111;
-    hardware.midi.SendMessage(midiData, sizeof(uint8_t) * 3);
-
     // Setup Relay Bypass State
     if (settings.globalRelayBypassEnabled)
     {
@@ -699,7 +775,6 @@ int main(void)
 
     // Setup Debug Logging
     //hardware.seed.StartLog();
-    char strbuff[128];
 
     while(1)
     {
@@ -779,7 +854,8 @@ int main(void)
         // Handle Display
         if (useDebugDisplay)
         {
-            // Debug Display hijacks the display to simply output text
+            /* Debug Display hijacks the display to simply output text
+            char strbuff[128];
             hardware.display.Fill(false);
             hardware.display.SetCursor(0, 0);
             hardware.display.WriteString("Debug:", Font_7x10, true);
@@ -793,6 +869,7 @@ int main(void)
             sprintf(strbuff, "CrossFader: %d", (int)(crossFaderLeft.GetPos(0) * 100.0f));
             hardware.display.WriteString(strbuff, Font_7x10, true);
             hardware.display.Update();
+            */
         }
         else
         {
@@ -801,6 +878,8 @@ int main(void)
         }
 
         // Handle MIDI Events
+        settings.globalMidiChannel = midiChannelSettingValue.Get();
+
         if (settings.globalMidiEnabled)
         {
             hardware.midi.Listen();

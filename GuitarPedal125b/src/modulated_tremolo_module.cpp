@@ -3,11 +3,11 @@
 using namespace bkshepherd;
 
 static const int s_paramCount = 5;
-static const ParameterMetaData s_metaData[s_paramCount] = {{"Wave", -1, 0},
-                                                           {"Depth", 1, 74},
-                                                           {"Freq", 0, 67},
-                                                           {"Osc Wave", -1, 0},
-                                                           {"Osc Freq", 2, 12}};
+static const ParameterMetaData s_metaData[s_paramCount] = {{"Wave", 0, -1, 20},
+                                                           {"Depth", 74, 1, 21},
+                                                           {"Freq", 67, 0, 1},
+                                                           {"Osc Wave", 0, -1, 23},
+                                                           {"Osc Freq", 12, 2, 24}};
 
 // Default Constructor
 ModulatedTremoloModule::ModulatedTremoloModule() : BaseEffectModule(),
