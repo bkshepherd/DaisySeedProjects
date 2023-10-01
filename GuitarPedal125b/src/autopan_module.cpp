@@ -5,7 +5,7 @@ using namespace bkshepherd;
 static const int s_paramCount = 4;
 static const ParameterMetaData s_metaData[s_paramCount] = {{"Wet", 127, 0, 20},
                                                            {"Osc Wave", 0, -1, 21},
-                                                           {"Osc Freq", 12, 1, 22},
+                                                           {"Osc Freq", 12, 1, 1},
                                                            {"Algorithm", 0, -1, 23}};       // 0 is Mono (even if fed stereo) 1 is Stereo
 
 // Default Constructor

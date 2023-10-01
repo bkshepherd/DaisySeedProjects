@@ -25,6 +25,11 @@ void BaseEffectModule::Init(float sample_rate)
     m_sampleRate = sample_rate;
 }
 
+const char *BaseEffectModule::GetName()
+{
+    return m_name;
+}
+
 void BaseEffectModule::InitParams(int count)
 {
     // Remove any existing parameter storage
@@ -181,7 +186,3 @@ float BaseEffectModule::GetOutputLEDBrightness()
     return 1.0f;
 }
 
-const char *BaseEffectModule::GetName()
-{
-    return m_name;
-}
