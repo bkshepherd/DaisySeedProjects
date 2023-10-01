@@ -17,7 +17,9 @@ Hardware Updates include:
 
 ### Overview
 
-A project to create a digital effect pedal based on the Electro-Smith Daisy Seed that fits into a standard 125B sized Guitar Pedal enclosure.
+A project to create a digital effect pedal based on the Electro-Smith Daisy Seed that fits into a standard 125B sized Guitar Pedal enclosure. The video below shows a pedal board I made using 2 of these 125b sided pedals and demo the capabilities.
+
+[![Demo Video](https://img.youtube.com/vi/ZkLnS43acQo/0.jpg)](https://www.youtube.com/watch?v=ZkLnS43acQo)
 
 This project is still work in progress and is an evolution of my [1590B sized Pedal](https://github.com/bkshepherd/DaisySeedProjects/tree/main/GuitarPedal1590b).
 
@@ -43,7 +45,7 @@ This project is still work in progress and is an evolution of my [1590B sized Pe
 
 This project includes a KiCad project with the necessary schematics and PCB layout files to create everything you need to build the hardware. The included exported Gerber and Assembly files make it easy to order PCBs from JCLPCB. Detailed instructions can be found on the [Build the Hardware](docs/README.md) page. This requires no knowledge of KiCad to get the PCBs made.
 
-Sample Code is also provided with a hardware abstraction layer as well as a custom Tremolo effect that uses the hardware.
+Software Code is also provided with a hardware abstraction layer as well as a few custom FX including Tremolo, Chorus, Overdrive, and Stereo Auto-Pan.
 
 Information about the Daisy Seed can be found at:
 
