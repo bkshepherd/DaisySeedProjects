@@ -1,9 +1,7 @@
 # Daisy Seed Projects
-A collection of hardware and software projects based around the Electro-Smith Daisy Seed.
+This is a demo of a pedal board I put together using 3 of my custom Daisy Seed based guitar pedals. I designed and built the hardware and programmed the software. Everything shown here is open source and all the code, pcb files, and basic instructions on how to build the pedals, can be found on these pages.
 
-Information about the Daisy Seed can be found at:
-
-http://electro-smith.com
+[![Demo Video](https://img.youtube.com/vi/ZkLnS43acQo/0.jpg)](https://www.youtube.com/watch?v=ZkLnS43acQo)
 
 ## Projects:
 ### 1. [Guitar Effect Pedal in 1590b Enclosure](GuitarPedal1590b/README.md) (Through-hole parts)
@@ -16,3 +14,7 @@ A robust and tiny platform for making DSP based guitar FX pedals. Stereo Audio, 
 A feature rich and flexible platform for making DSP based guitar FX pedals. Stereo Audio, Midi in/out, OLED Display, Rotary Encoder for Menu Navigation, 6 Knobs, 2 LEDs, 2 Foot Switches, Relay based "True Bypass" switching, all based on the Daisy Seed microcontroller.
 
 ![FinalProduct125b](GuitarPedal125b/docs/images/FinalProduct.png) ![CircuitBoard125b](GuitarPedal125b/docs/images/CircuitBoard-Back.png)
+
+More Information about the Daisy Seed can be found at:
+
+http://electro-smith.com
