@@ -6,6 +6,7 @@ Software updates include:
 1. Added support for multiple effects.  Included are a simple tremolo and overdrive.
 2. Updated the menu system to support multiple effects each with their own settings and global hardware settings. Parameters can be updated directly through the menu UI or using the pots on the device.
 3. All settings / parameters are now saved to the device memory and restored when the device powers up.
+4. Added Midi support to make it simply to map effect parameters to Midi CC commands for controlling presets via midi.
 
 ### HW Rev 5 - 6/30/2023
 
