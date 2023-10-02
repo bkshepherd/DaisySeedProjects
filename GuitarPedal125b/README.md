@@ -2,7 +2,7 @@
 
 ### Rev 5 - 6/30/2023
 
-Hardware Updates include:
+Updates include:
 1. Updated placement of screen slightly to ease installation.
 2. Updated POT footprint mounting holes to be slightly larger.
 3. Properly grounded Audio TRS jacks when no cable is inserted.
