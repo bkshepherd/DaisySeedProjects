@@ -150,7 +150,7 @@ It will roughly look like this when finished with this step:
 
 Before you attempt to get everything fitted into the enclosure, it's best to make sure all the hardware works.
 
-You'll need to compile the code and flash it into the Daisy Seed on the hardware. Instructions can be found [here](../src/README.md).
+You'll need to compile the code and flash it into the Daisy Seed on the hardware. Instructions can be found [here](../../../Software/GuitarPedal/README.md).
 
 ## 7. Order the Enclosure
 
