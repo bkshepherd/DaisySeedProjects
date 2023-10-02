@@ -1,7 +1,13 @@
-#Getting Started
-This directory includes all the Sample Code that uses the custom guitar_pedal_125b hardware. 
+# Getting Started
+This directory includes all the source code for my Multi-Effect Guitar Pedal that runs on various hardware platforms. 
 
-Currently, the sample code implements a Tremolo effect on the Audio input and routes it to the Audio Output on the hardware.  The various hardware knobs and switches are also mapped to parameters on the effect. There is also some limited Midi In/Out, OLED display screen, and True Bypass test code.
+### SW Updates - 9/29/2023
+
+Software updates include:
+1. Added support for multiple effects.  Included are a simple tremolo and overdrive.
+2. Updated the menu system to support multiple effects each with their own settings and global hardware settings. Parameters can be updated directly through the menu UI or using the pots on the device.
+3. All settings / parameters are now saved to the device memory and restored when the device powers up.
+4. Added Midi support to make it simply to map effect parameters to Midi CC commands for controlling presets via midi.
 
 Before you can use the software you'll need to do the following:
 
@@ -21,12 +27,10 @@ You'll also need to update the paths in the **task.json** file in the **.vscode/
 
 ## 3. Build and Deploy the Code
 
-Next you have to get the code onto the GuitarPedal125B hardware you've built using **task build_and_program_dfu**
+Next you have to get the code onto your daisy seed based Guitar Pedal hardware using **task build_and_program_dfu**
 
 ## 4. Connect your Guitar and Amp
 
 Plug your guitar into the Input and connect the Output to your amp.
 
 ## 5. Enjoy!!!
-
-The foot switch toggles the Chorus effect on / off and the 4 dials control different aspects of the chorus effect.
