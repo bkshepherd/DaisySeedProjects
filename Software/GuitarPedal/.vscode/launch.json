@@ -10,7 +10,7 @@
         "-d",
         "${workspaceRoot}"
       ],
-      "executable": "${workspaceRoot}/build/guitarpedal125btest.elf",
+      "executable": "${workspaceRoot}/build/guitarpedal.elf",
       "interface": "swd",
       "name": "Cortex Debug",
       "openOCDLaunchCommands": [

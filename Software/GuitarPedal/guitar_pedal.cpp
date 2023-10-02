@@ -1,10 +1,10 @@
 #include <string.h>
-#include "guitar_pedal_125b.h"
-#include "modulated_tremolo_module.h"
-#include "overdrive_module.h"
-#include "autopan_module.h"
-#include "chorus_module.h"
 #include "daisysp.h"
+#include "Hardware-Modules/guitar_pedal_125b.h"
+#include "Effect-Modules/modulated_tremolo_module.h"
+#include "Effect-Modules/overdrive_module.h"
+#include "Effect-Modules/autopan_module.h"
+#include "Effect-Modules/chorus_module.h"
 
 // Peristant Storage Settings
 #define SETTINGS_FILE_FORMAT_VERSION 1
