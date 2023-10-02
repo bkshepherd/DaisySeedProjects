@@ -27,7 +27,7 @@ A project to create a digital effect pedal based on the Electro-Smith Daisy Seed
 8. Easily Assembled from easily sourced through-hole parts, no SMD soldering required!
 9. Easily order a custom drilled enclosure from Tayda!
 
-This project includes a KiCad project with the necessary schematics and PCB layout files to create everything you need to build the hardware and code the provides a hardware attraction layer as well as sample code with a custom Tremolo effect that uses the hardware.
+This project includes a KiCad project with the necessary schematics and PCB layout files to create everything you need to build the hardware.
 
 Click on this image for a Demo Video (this pedal is on the left in the pedal board):
 
@@ -44,7 +44,7 @@ https://www.kicad.org
 Getting Started:
 
 1. [Build the Hardware](docs/README.md)
-2. [Deploy the Software to the Hardware](src/README.md)
+2. [Deploy the Software to the Hardware](../Software/GuitarPedal/README.md)
 
 ## Past Revisions
 ### Rev 4 - 4/12/2023
