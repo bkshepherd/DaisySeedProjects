@@ -33,18 +33,10 @@ Click on this image for a Demo Video (this pedal is on the left in the pedal boa
 
 [![Demo Video](https://img.youtube.com/vi/ZkLnS43acQo/0.jpg)](https://www.youtube.com/watch?v=ZkLnS43acQo)
 
-Information about the Daisy Seed can be found at:
-
-http://electro-smith.com
-
-Information about KiCad can be found at:
-
-https://www.kicad.org
-
 Getting Started:
 
 1. [Build the Hardware](docs/README.md)
-2. [Deploy the Software to the Hardware](../Software/GuitarPedal/README.md)
+2. [Deploy the Software to the Hardware](../../Software/GuitarPedal/README.md)
 
 ## Past Revisions
 ### Rev 4 - 4/12/2023
@@ -60,3 +52,11 @@ Updates include:
 1. Improved 4 Layer PCB Layout, much easier to assemble!
 2. Replaced all SMD parts with through-hole alternative
 3. Tayda Custom Drill Template for easily ordering a pre-drilled enclosure
+
+More Information about the Daisy Seed can be found at:
+
+http://electro-smith.com
+
+More Information about KiCad can be found at:
+
+https://www.kicad.org
