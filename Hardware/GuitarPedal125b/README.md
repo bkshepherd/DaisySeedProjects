@@ -14,7 +14,7 @@ A project to create a digital effect pedal based on the Electro-Smith Daisy Seed
 
 [![Demo Video](https://img.youtube.com/vi/ZkLnS43acQo/0.jpg)](https://www.youtube.com/watch?v=ZkLnS43acQo)
 
-This project is still work in progress and is an evolution of my [1590B sized Pedal](https://github.com/bkshepherd/DaisySeedProjects/tree/main/GuitarPedal1590b).
+This project is an evolution of my [1590B sized Pedal](https://github.com/bkshepherd/DaisySeedProjects/tree/main/Hardware/GuitarPedal1590b).
 
 ![FinalProduct](docs/images/FinalProduct.png) ![FinalProductBack](docs/images/FinalProduct-Back.png)
 ![CircuitBoard](docs/images/CircuitBoard-Front.png) ![CircuitBoard](docs/images/CircuitBoard-Back.png)
@@ -38,15 +38,9 @@ This project is still work in progress and is an evolution of my [1590B sized Pe
 
 This project includes a KiCad project with the necessary schematics and PCB layout files to create everything you need to build the hardware. The included exported Gerber and Assembly files make it easy to order PCBs from JCLPCB. Detailed instructions can be found on the [Build the Hardware](docs/README.md) page. This requires no knowledge of KiCad to get the PCBs made.
 
-Software Code is also provided with a hardware abstraction layer as well as a few custom FX including Tremolo, Chorus, Overdrive, and Stereo Auto-Pan.
+Once you've built the hardware you can deploy the software from my Multi-Effect Guitar Pedal software project by following these directions: [Deploy the Software to the Hardware](../../Software/GuitarPedal/README.md)
 
-Information about the Daisy Seed can be found at:
-
-http://electro-smith.com
-
-Information about KiCad can be found at:
-
-https://www.kicad.org
+This software provides a hardware abstraction layer as well as a few custom FX including Tremolo, Chorus, Overdrive, and Stereo Auto-Pan.
 
 ## Past Updates
 ### Rev 4 - 5/16/2023
@@ -71,3 +65,11 @@ Updates include:
 2. Improved OLED Screen Placement
 3. Removed an Encoder (now just 1)
 4. Tayda Custom Drill Template for easily ordering a pre-drilled enclosure
+
+More Information about the Daisy Seed can be found at:
+
+http://electro-smith.com
+
+More Information about KiCad can be found at:
+
+https://www.kicad.org
