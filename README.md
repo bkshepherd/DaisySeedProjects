@@ -3,7 +3,11 @@ This is a demo of a pedal board I put together using 3 of my custom Daisy Seed b
 
 [![Demo Video](https://img.youtube.com/vi/ZkLnS43acQo/0.jpg)](https://www.youtube.com/watch?v=ZkLnS43acQo)
 
-## Projects:
+## Software Projects:
+### 1. [Guitar Multi-Effect Pedal](Software/GuitarPedal/README.md)
+The software that can run on any of the custom Guitar Pedal hardware projects listed below.  This software is a flexible platform that abstracts the underlying Guitar Pedal hardware and allows a collection of Effects Modules to run on any of those hardware platforms.
+
+## Hardware Projects:
 ### 1. [Guitar Effect Pedal in 1590b Enclosure](GuitarPedal1590b/README.md) (Through-hole parts)
 A robust and tiny platform for making DSP based guitar FX pedals. Stereo Audio, Midi in/out, 4 Knobs, 2 LEDs, 1 or 2 Foot Switches, all based on the Daisy Seed microcontroller.
 
