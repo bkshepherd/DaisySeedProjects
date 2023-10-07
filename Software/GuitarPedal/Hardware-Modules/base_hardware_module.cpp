@@ -49,12 +49,12 @@ void BaseHardwareModule::Init(bool boost)
     // Initialize the hardware.
     seed.Configure();
     seed.Init(boost);
+
+    InitKnobs();
     InitSwitches();
     InitEncoders();
     InitLeds();
-    InitAnalogControls();
     InitMidi();
-    SetAudioBlockSize(48);
 
     // Init the HW Audio Bypass
     audioBypassTrigger.Init(daisy::seed::D1, GPIO::Mode::OUTPUT);
@@ -69,6 +69,8 @@ void BaseHardwareModule::Init(bool boost)
     disp_cfg.driver_config.transport_config.pin_config.dc    = seed.GetPin(DISPLAY_DC_PIN);
     disp_cfg.driver_config.transport_config.pin_config.reset = seed.GetPin(DISPLAY_RESET_PIN);
     display.Init(disp_cfg);
+
+    SetAudioBlockSize(48);
 }
 
 void BaseHardwareModule::DelayMs(size_t del)
@@ -177,16 +179,6 @@ int BaseHardwareModule::GetNumberOfSamplesForTime(float time)
     return (int)(AudioSampleRate() * time);
 }
 
-int BaseHardwareModule::GetSwitchCount()
-{
-    return SWITCH_LAST;
-}
-
-int BaseHardwareModule::GetEncoderCount()
-{
-    return ENCODER_LAST;
-}
-
 int BaseHardwareModule::GetKnobCount()
 {
     return KNOB_LAST;
@@ -197,6 +189,16 @@ float BaseHardwareModule::GetKnobValue(int knobID)
     size_t idx;
     idx = knobID < KNOB_LAST ? knobID : KNOB_1;
     return knobs[idx].Value();
+}
+
+int BaseHardwareModule::GetSwitchCount()
+{
+    return SWITCH_LAST;
+}
+
+int BaseHardwareModule::GetEncoderCount()
+{
+    return ENCODER_LAST;
 }
 
 int BaseHardwareModule::GetLedCount()
@@ -246,6 +248,26 @@ bool BaseHardwareModule::SupportsTrueBypass()
     return true;
 }
 
+void BaseHardwareModule::InitKnobs()
+{
+    // Set order of ADCs based on CHANNEL NUMBER
+    AdcChannelConfig cfg[KNOB_LAST];
+    // Init with Single Pins
+    cfg[KNOB_1].InitSingle(seed.GetPin(KNOB_PIN_1));
+    cfg[KNOB_2].InitSingle(seed.GetPin(KNOB_PIN_2));
+    cfg[KNOB_3].InitSingle(seed.GetPin(KNOB_PIN_3));
+    cfg[KNOB_4].InitSingle(seed.GetPin(KNOB_PIN_4));
+    cfg[KNOB_5].InitSingle(seed.GetPin(KNOB_PIN_5));
+    cfg[KNOB_6].InitSingle(seed.GetPin(KNOB_PIN_6));
+
+    seed.adc.Init(cfg, KNOB_LAST);
+    // Make an array of pointers to the knob.
+    for(int i = 0; i < KNOB_LAST; i++)
+    {
+        knobs[i].Init(seed.adc.GetPtr(i), AudioCallbackRate());
+    }
+}
+
 void BaseHardwareModule::InitSwitches()
 {
     uint8_t pin_numbers[SWITCH_LAST] = {
@@ -277,26 +299,6 @@ void BaseHardwareModule::InitLeds()
     for(size_t i = 0; i < LED_LAST; i++)
     {
         leds[i].Init(seed.GetPin(pin_numbers[i]), false);
-    }
-}
-
-void BaseHardwareModule::InitAnalogControls()
-{
-    // Set order of ADCs based on CHANNEL NUMBER
-    AdcChannelConfig cfg[KNOB_LAST];
-    // Init with Single Pins
-    cfg[KNOB_1].InitSingle(seed.GetPin(KNOB_PIN_1));
-    cfg[KNOB_2].InitSingle(seed.GetPin(KNOB_PIN_2));
-    cfg[KNOB_3].InitSingle(seed.GetPin(KNOB_PIN_3));
-    cfg[KNOB_4].InitSingle(seed.GetPin(KNOB_PIN_4));
-    cfg[KNOB_5].InitSingle(seed.GetPin(KNOB_PIN_5));
-    cfg[KNOB_6].InitSingle(seed.GetPin(KNOB_PIN_6));
-
-    seed.adc.Init(cfg, KNOB_LAST);
-    // Make an array of pointers to the knob.
-    for(int i = 0; i < KNOB_LAST; i++)
-    {
-        knobs[i].Init(seed.adc.GetPtr(i), AudioCallbackRate());
     }
 }
 

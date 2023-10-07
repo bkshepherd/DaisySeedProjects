@@ -142,16 +142,6 @@ class BaseHardwareModule
     */
     int GetNumberOfSamplesForTime(float time);
 
-    /** Get number of Switches.
-    \return Number of Switches.
-    */
-    int GetSwitchCount();
-
-    /** Get number of Encoders.
-    \return Number of Encoders.
-    */
-    int GetEncoderCount();
-
     /** Get number of knobs.
     \return Number of Knobs.
     */
@@ -162,6 +152,16 @@ class BaseHardwareModule
     \return Floating point knob position.
     */
     float GetKnobValue(int knobID);
+
+    /** Get number of Switches.
+    \return Number of Switches.
+    */
+    int GetSwitchCount();
+
+    /** Get number of Encoders.
+    \return Number of Encoders.
+    */
+    int GetEncoderCount();
 
     /** Get number of LEDs.
     \return Number of LEDs.
@@ -193,13 +193,15 @@ class BaseHardwareModule
     /** Checks to see if device hardware supports True Bypass*/
     bool SupportsTrueBypass();
 
-    DaisySeed seed;    /**< & */
-    MyOledDisplay display;
-    AnalogControl knobs[KNOB_LAST]; /**< & */
-    Encoder encoders[ENCODER_LAST]; /**< & */
-    Switch        switches[SWITCH_LAST] /**< & */;
-    Led           leds[LED_LAST]; /**< & */
+    DaisySeed seed;
+
+    AnalogControl knobs[KNOB_LAST];
+    Switch        switches[SWITCH_LAST];
+    Encoder       encoders[ENCODER_LAST];
+    Led           leds[LED_LAST];
+
     MidiUartHandler midi;
+    MyOledDisplay display;
     GPIO audioBypassTrigger;
     bool audioBypass;
     GPIO audioMuteTrigger;
@@ -207,10 +209,11 @@ class BaseHardwareModule
 
   private:
     void SetHidUpdateRates();
+
+    void InitKnobs();
     void InitSwitches();
     void InitEncoders();
     void InitLeds();
-    void InitAnalogControls();
     void InitMidi();
 
     inline uint16_t* adc_ptr(const uint8_t chn) { return seed.adc.GetPtr(chn); }
