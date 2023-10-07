@@ -126,17 +126,12 @@ float crossFaderTransitionTimeInSeconds = 0.1f;
 int crossFaderTransitionTimeInSamples;
 int samplesTilCrossFadingComplete;
 
-/** This is the type of display we use on the patch. This is provided here for better readability. */
-using OledDisplayType = decltype(GuitarPedal125B::display);
-
 // These will be called from the UI system. @see InitUi() in UiSystemDemo.cpp
 void FlushCanvas(const daisy::UiCanvasDescriptor& canvasDescriptor)
 {
     if(canvasDescriptor.id_ == 0)
     {
-        OledDisplayType& display
-            = *((OledDisplayType*)(canvasDescriptor.handle_));
-        display.Update();
+        hardware.display.Update();
     }
 }
 
@@ -144,9 +139,7 @@ void ClearCanvas(const daisy::UiCanvasDescriptor& canvasDescriptor)
 {
     if(canvasDescriptor.id_ == 0)
     {
-        OledDisplayType& display
-            = *((OledDisplayType*)(canvasDescriptor.handle_));
-        display.Fill(false);
+        hardware.display.Fill(false);
     }
 }
 
@@ -756,7 +749,6 @@ int main(void)
     InitEffectUiPages();
     InitGlobalSettingsUIPages();
     ui.OpenPage(mainMenu);
-    UI::SpecialControlIds ids;
     
     // Init the Knob Monitoring System
     knobValueIdleTimeInSamples = GetNumberOfSamplesForTime(knobValueIdleTimeInSeconds);

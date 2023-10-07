@@ -83,7 +83,7 @@
       "command": "make",
       "label": "build_libdaisy",
       "options": {
-        "cwd": "/Users/kshep/Dev/DaisyExamples/libDaisy"
+        "cwd": "/Users/kshep/Dev/libDaisy"
       },
       "problemMatcher": [
         "$gcc"
@@ -94,7 +94,7 @@
       "command": "make",
       "label": "build_daisysp",
       "options": {
-        "cwd": "/Users/kshep/Dev/DaisyExamples/DaisySP"
+        "cwd": "/Users/kshep/Dev/DaisySP"
       },
       "problemMatcher": [
         "$gcc"
