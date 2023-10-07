@@ -5,47 +5,67 @@ using namespace bkshepherd;
 
 // Hardware related defines.
 // Switches
-#define SWITCH_1_PIN 6         // Foot Switch 1
-#define SWITCH_2_PIN 5         // Foot Switch 2
+static const int s_switchPins[] = {6, 5};
 
 // Knobs
-#define KNOB_PIN_1 15
-#define KNOB_PIN_2 16
-#define KNOB_PIN_3 17
-#define KNOB_PIN_4 18
-#define KNOB_PIN_5 19
-#define KNOB_PIN_6 20
+static const int s_knobPins[] = {15, 16, 17, 18, 19, 20};
 
 // Encoders
-#define ENCODER_1_BUTTON_PIN 4
-#define ENCODER_1_A_PIN 3
-#define ENCODER_1_B_PIN 2
+static const int s_encoderPins[][3] = {{3, 2, 4}};
 
 // LEDS
-#define LED_1_PIN 22
-#define LED_2_PIN 23
+static const int s_ledPins[] = {22, 23};
 
 // Midi
-#define MIDI_RX_PIN 30
-#define MIDI_TX_PIN 29
+static const int s_midiPins[] = {30, 29};
 
 // Display (Other display pins are default SPI pins)
-#define DISPLAY_DC_PIN 9
-#define DISPLAY_RESET_PIN 11
+static const int s_displayPins[] = {9, 11};
 
-BaseHardwareModule::BaseHardwareModule()
+BaseHardwareModule::BaseHardwareModule() : m_knobCount(0),
+                                            knobs(NULL),
+                                            m_switchCount(0),
+                                            switches(NULL),
+                                            m_encoderCount(0),
+                                            encoders(NULL),
+                                            m_ledCount(0),
+                                            leds(NULL),
+                                            m_supportsMidi(false),
+                                            midi(NULL)
 {
 
 }
 
 BaseHardwareModule::~BaseHardwareModule()
 {
+    if (knobs != NULL)
+    {
+        delete [] knobs;
+    }
 
+    if (switches != NULL)
+    {
+        delete [] switches;
+    }
+
+    if (encoders != NULL)
+    {
+        delete [] encoders;
+    }
+
+    if (leds != NULL)
+    {
+        delete [] leds;
+    }
+
+    if (midi != NULL)
+    {
+        delete midi;
+    }
 }
 
 void BaseHardwareModule::Init(bool boost)
 {
-    // Set Some numbers up for accessors.
     // Initialize the hardware.
     seed.Configure();
     seed.Init(boost);
@@ -66,8 +86,8 @@ void BaseHardwareModule::Init(bool boost)
 
     // Configure the Display
     MyOledDisplay::Config disp_cfg;
-    disp_cfg.driver_config.transport_config.pin_config.dc    = seed.GetPin(DISPLAY_DC_PIN);
-    disp_cfg.driver_config.transport_config.pin_config.reset = seed.GetPin(DISPLAY_RESET_PIN);
+    disp_cfg.driver_config.transport_config.pin_config.dc    = seed.GetPin(s_displayPins[0]);
+    disp_cfg.driver_config.transport_config.pin_config.reset = seed.GetPin(s_displayPins[1]);
     display.Init(disp_cfg);
 
     SetAudioBlockSize(48);
@@ -80,13 +100,20 @@ void BaseHardwareModule::DelayMs(size_t del)
 
 void BaseHardwareModule::SetHidUpdateRates()
 {
-    for(size_t i = 0; i < KNOB_LAST; i++)
+    if (knobs != NULL)
     {
-        knobs[i].SetSampleRate(AudioCallbackRate());
+        for(int i = 0; i < m_knobCount; i++)
+        {
+            knobs[i].SetSampleRate(AudioCallbackRate());
+        }
     }
-    for(size_t i = 0; i < LED_LAST; i++)
+
+    if (leds != NULL)
     {
-        leds[i].SetSampleRate(AudioCallbackRate());
+        for(int i = 0; i < m_ledCount; i++)
+        {
+            leds[i].SetSampleRate(AudioCallbackRate());
+        }
     }
 }
 
@@ -155,22 +182,31 @@ void BaseHardwareModule::StopAdc()
 
 void BaseHardwareModule::ProcessAnalogControls()
 {
-    for(size_t i = 0; i < KNOB_LAST; i++)
+    if (knobs != NULL)
     {
-        knobs[i].Process();
+        for(int i = 0; i < m_knobCount; i++)
+        {
+            knobs[i].Process();
+        }
     }
 }
 
 void BaseHardwareModule::ProcessDigitalControls()
 {
-    for(size_t i = 0; i < SWITCH_LAST; i++)
+    if (switches != NULL)
     {
-        switches[i].Debounce();
+        for(int i = 0; i < m_switchCount; i++)
+        {
+            switches[i].Debounce();
+        }
     }
 
-    for(size_t i = 0; i < ENCODER_LAST; i++)
+    if (encoders != NULL)
     {
-        encoders[i].Debounce();
+        for(int i = 0; i < m_encoderCount; i++)
+        {
+            encoders[i].Debounce();
+        }
     }
 }
 
@@ -181,43 +217,50 @@ int BaseHardwareModule::GetNumberOfSamplesForTime(float time)
 
 int BaseHardwareModule::GetKnobCount()
 {
-    return KNOB_LAST;
+    return m_knobCount;
 }
 
 float BaseHardwareModule::GetKnobValue(int knobID)
 {
-    size_t idx;
-    idx = knobID < KNOB_LAST ? knobID : KNOB_1;
-    return knobs[idx].Value();
+    if (knobs != NULL && knobID >= 0 && knobID < m_knobCount)
+    {
+        return knobs[knobID].Value();
+    }
+
+    return 0.0f;
 }
 
 int BaseHardwareModule::GetSwitchCount()
 {
-    return SWITCH_LAST;
+    return m_switchCount;
 }
 
 int BaseHardwareModule::GetEncoderCount()
 {
-    return ENCODER_LAST;
+    return m_encoderCount;
 }
 
 int BaseHardwareModule::GetLedCount()
 {
-    return LED_LAST;
+    return m_ledCount;
 }
 
 void BaseHardwareModule::SetLed(int ledID, float bright)
 {
-    size_t idx;
-    idx = ledID < LED_LAST ? ledID : LED_1;
-    leds[idx].Set(bright);
+    if (leds != NULL && ledID >= 0 && ledID < m_ledCount)
+    {
+        leds[ledID].Set(bright);
+    }
 }
 
 void BaseHardwareModule::UpdateLeds()
 {
-    for(size_t i = 0; i < LED_LAST; i++)
+    if (leds != NULL)
     {
-        leds[i].Update();
+        for(int i = 0; i < m_ledCount; i++)
+        {
+            leds[i].Update();
+        }
     }
 }
 
@@ -235,7 +278,7 @@ void BaseHardwareModule::SetAudioMute(bool enabled)
 
 bool BaseHardwareModule::SupportsMidi()
 {
-    return true;
+    return m_supportsMidi;
 }
 
 bool BaseHardwareModule::SupportsDisplay()
@@ -250,19 +293,26 @@ bool BaseHardwareModule::SupportsTrueBypass()
 
 void BaseHardwareModule::InitKnobs()
 {
-    // Set order of ADCs based on CHANNEL NUMBER
-    AdcChannelConfig cfg[KNOB_LAST];
-    // Init with Single Pins
-    cfg[KNOB_1].InitSingle(seed.GetPin(KNOB_PIN_1));
-    cfg[KNOB_2].InitSingle(seed.GetPin(KNOB_PIN_2));
-    cfg[KNOB_3].InitSingle(seed.GetPin(KNOB_PIN_3));
-    cfg[KNOB_4].InitSingle(seed.GetPin(KNOB_PIN_4));
-    cfg[KNOB_5].InitSingle(seed.GetPin(KNOB_PIN_5));
-    cfg[KNOB_6].InitSingle(seed.GetPin(KNOB_PIN_6));
+    if (knobs != NULL)
+    {
+        delete [] knobs;
+    }
 
-    seed.adc.Init(cfg, KNOB_LAST);
+    knobs = new AnalogControl[m_knobCount];
+
+    // Set order of ADCs based on CHANNEL NUMBER
+    AdcChannelConfig cfg[m_knobCount];
+
+    // Init with Single Pins
+    for (int i = 0; i < m_knobCount; i++)
+    {
+        cfg[i].InitSingle(seed.GetPin(s_knobPins[i]));
+    }
+
+    seed.adc.Init(cfg, m_knobCount);
+
     // Make an array of pointers to the knob.
-    for(int i = 0; i < KNOB_LAST; i++)
+    for(int i = 0; i < m_knobCount; i++)
     {
         knobs[i].Init(seed.adc.GetPtr(i), AudioCallbackRate());
     }
@@ -270,42 +320,65 @@ void BaseHardwareModule::InitKnobs()
 
 void BaseHardwareModule::InitSwitches()
 {
-    uint8_t pin_numbers[SWITCH_LAST] = {
-        SWITCH_1_PIN,
-        SWITCH_2_PIN,
-    };
-
-    for(size_t i = 0; i < SWITCH_LAST; i++)
+    if (switches != NULL)
     {
-        switches[i].Init(seed.GetPin(pin_numbers[i]));
+        delete [] switches;
+    }
+
+    switches = new Switch[m_switchCount];
+
+    for(int i = 0; i < m_switchCount; i++)
+    {
+        switches[i].Init(seed.GetPin(s_switchPins[i]));
     }
 }
 
 void BaseHardwareModule::InitEncoders()
 {
-    encoders[ENCODER_1].Init(seed.GetPin(ENCODER_1_A_PIN),
-                            seed.GetPin(ENCODER_1_B_PIN),
-                            seed.GetPin(ENCODER_1_BUTTON_PIN));
+    if (encoders != NULL)
+    {
+        delete [] encoders;
+    }
 
+    encoders = new Encoder[m_encoderCount];
+
+    for (int i = 0; i < m_encoderCount; i++)
+    {
+        encoders[i].Init(seed.GetPin(s_encoderPins[i][0]),
+                            seed.GetPin(s_encoderPins[i][1]),
+                            seed.GetPin(s_encoderPins[i][2]));
+    }
 }
 
 void BaseHardwareModule::InitLeds()
 {
-    uint8_t pin_numbers[LED_LAST] = {
-        LED_1_PIN,
-        LED_2_PIN,
-    };
-
-    for(size_t i = 0; i < LED_LAST; i++)
+    if (leds != NULL)
     {
-        leds[i].Init(seed.GetPin(pin_numbers[i]), false);
+        delete [] leds;
+    }
+
+    leds = new Led[m_ledCount];
+
+    for(int i = 0; i < m_ledCount; i++)
+    {
+        leds[i].Init(seed.GetPin(s_ledPins[i]), false);
     }
 }
 
 void BaseHardwareModule::InitMidi()
 {
-    MidiUartHandler::Config midi_config;
-    midi_config.transport_config.rx = seed.GetPin(MIDI_RX_PIN);
-    midi_config.transport_config.tx = seed.GetPin(MIDI_TX_PIN);
-    midi.Init(midi_config);
+    if (midi != NULL)
+    {
+        delete midi;
+    }
+
+    if (m_supportsMidi)
+    {
+        midi = new MidiUartHandler();
+
+        MidiUartHandler::Config midi_config;
+        midi_config.transport_config.rx = seed.GetPin(s_midiPins[0]);
+        midi_config.transport_config.tx = seed.GetPin(s_midiPins[1]);
+        midi->Init(midi_config);
+    }
 }

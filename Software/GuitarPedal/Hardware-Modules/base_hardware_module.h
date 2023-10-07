@@ -22,41 +22,6 @@ namespace bkshepherd {
 class BaseHardwareModule
 {
   public:
-    /** Switches */
-    enum SwitchIndex
-    {
-        SWITCH_1,    /**< Footswitch */
-        SWITCH_2,    /**< Footswitch */
-        SWITCH_LAST, /**< Last enum item */
-    };
-
-    /** Knobs */
-    enum KnobIndex
-    {
-        KNOB_1,    /**< & */
-        KNOB_2,    /**< & */
-        KNOB_3,    /**< & */
-        KNOB_4,    /**< & */
-        KNOB_5,    /**< & */
-        KNOB_6,    /**< & */
-        KNOB_LAST, /**< & */
-    };
-
-    /** Knobs */
-    enum EncoderIndex
-    {
-        ENCODER_1,    /**< & */
-        ENCODER_LAST, /**< & */
-    };
-
-    /**  Status LEDs */
-    enum LedIndex
-    {
-        LED_1,    /**< & */
-        LED_2,    /**< & */
-        LED_LAST, /**< & */
-    };
-
     /** Constructor */
     BaseHardwareModule();
     /** Destructor */
@@ -162,7 +127,7 @@ class BaseHardwareModule
     \return Number of Encoders.
     */
     int GetEncoderCount();
-
+    
     /** Get number of LEDs.
     \return Number of LEDs.
     */
@@ -195,12 +160,17 @@ class BaseHardwareModule
 
     DaisySeed seed;
 
-    AnalogControl knobs[KNOB_LAST];
-    Switch        switches[SWITCH_LAST];
-    Encoder       encoders[ENCODER_LAST];
-    Led           leds[LED_LAST];
+    int m_knobCount;
+    AnalogControl *knobs;
+    int m_switchCount;
+    Switch *switches;
+    int m_encoderCount;
+    Encoder *encoders;
+    int m_ledCount;
+    Led *leds;
 
-    MidiUartHandler midi;
+    bool m_supportsMidi;
+    MidiUartHandler *midi;
     MyOledDisplay display;
     GPIO audioBypassTrigger;
     bool audioBypass;
@@ -217,7 +187,6 @@ class BaseHardwareModule
     void InitMidi();
 
     inline uint16_t* adc_ptr(const uint8_t chn) { return seed.adc.GetPtr(chn); }
-
 };
 } // namespace bkshepherd
 #endif

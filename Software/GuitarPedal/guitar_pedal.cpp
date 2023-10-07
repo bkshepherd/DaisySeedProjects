@@ -590,26 +590,10 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
 // Typical Switch case for Message Type.
 void HandleMidiMessage(MidiEvent m)
 {
-    /* Debug info
-    uint8_t midiData[3];
-    midiData[0] = 0b10000000 | ((uint8_t) m.type << 4) | ((uint8_t) m.channel);
-    midiData[1] = m.data[0];
-    midiData[2] = m.data[1];
-    char strbuff[256];
-    hardware.display.Fill(false);
-    hardware.display.SetCursor(0, 0);
-    hardware.display.WriteString("Midi:", Font_7x10, true);
-    hardware.display.SetCursor(0, 15);
-    sprintf(strbuff, "data[0]: %d", midiData[0]);
-    hardware.display.WriteString(strbuff, Font_7x10, true);
-    hardware.display.SetCursor(0, 30);
-    sprintf(strbuff, "data[1]: %d", midiData[1]);
-    hardware.display.WriteString(strbuff, Font_7x10, true);
-    hardware.display.SetCursor(0, 45);
-    sprintf(strbuff, "data[2]: %d", midiData[2]);
-    hardware.display.WriteString(strbuff, Font_7x10, true);
-    hardware.display.Update();
-    */
+    if (!hardware.SupportsMidi() || hardware.midi == NULL)
+    {
+        return;
+    }
 
     // Get a handle to the persitance storage settings
     Settings &settings = storage.GetSettings();
@@ -640,7 +624,7 @@ void HandleMidiMessage(MidiEvent m)
             bytesToSend = 2;
         }
 
-        hardware.midi.SendMessage(midiData, sizeof(uint8_t) * bytesToSend);
+        hardware.midi->SendMessage(midiData, sizeof(uint8_t) * bytesToSend);
     }
 
     // Only listen to messages for the devices set channel.
@@ -761,7 +745,12 @@ int main(void)
     // start callback
     hardware.StartAdc();
     hardware.StartAudio(AudioCallback);
-    hardware.midi.StartReceive();
+
+    // Set up midi if supported.
+    if (hardware.SupportsMidi() && hardware.midi != NULL)
+    {
+        hardware.midi->StartReceive();
+    }
 
     // Setup Relay Bypass State
     if (settings.globalRelayBypassEnabled)
@@ -875,13 +864,13 @@ int main(void)
         // Handle MIDI Events
         settings.globalMidiChannel = midiChannelSettingValue.Get();
 
-        if (settings.globalMidiEnabled)
+        if (hardware.SupportsMidi() && hardware.midi != NULL && settings.globalMidiEnabled)
         {
-            hardware.midi.Listen();
+            hardware.midi->Listen();
 
-            while(hardware.midi.HasEvents())
+            while(hardware.midi->HasEvents())
             {
-                HandleMidiMessage(hardware.midi.PopEvent());
+                HandleMidiMessage(hardware.midi->PopEvent());
             }
         }
 
