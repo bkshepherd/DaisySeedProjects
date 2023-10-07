@@ -97,9 +97,9 @@ bool knobValuesInitialized = false;
 float knobValueChangeTolerance = 1.0f / 256.0f;
 float knobValueIdleTimeInSeconds = 1.0f;
 int knobValueIdleTimeInSamples;
-bool knobValueCacheChanged[hardware.KNOB_LAST];
-float knobValueCache[hardware.KNOB_LAST];
-int knobValueSamplesTilIdle[hardware.KNOB_LAST];
+bool knobValueCacheChanged[6];
+float knobValueCache[6];
+int knobValueSamplesTilIdle[6];
 
 const int                kNumMainMenuItems =  2;
 AbstractMenu::ItemConfig mainMenuItems[kNumMainMenuItems];
@@ -146,10 +146,8 @@ void ClearCanvas(const daisy::UiCanvasDescriptor& canvasDescriptor)
 void InitUi()
 {
     UI::SpecialControlIds specialControlIds;
-    specialControlIds.okBttnId
-        = hardware.ENCODER_1; // Encoder button is our okay button
-    specialControlIds.menuEncoderId
-        = hardware.ENCODER_1; // Encoder is used as the main menu navigation encoder
+    specialControlIds.okBttnId = 0; // Encoder button is our okay button
+    specialControlIds.menuEncoderId = 0; // Encoder is used as the main menu navigation encoder
 
     // This is the canvas for the OLED display.
     UiCanvasDescriptor oledDisplayDescriptor;
@@ -287,20 +285,21 @@ void InitGlobalSettingsUIPages()
 void GenerateUiEvents()
 {
     if(hardware.encoders[0].RisingEdge())
-        eventQueue.AddButtonPressed(hardware.ENCODER_1, 1);
+    {
+        eventQueue.AddButtonPressed(0, 1);
+    }
 
     if(hardware.encoders[0].FallingEdge())
-        eventQueue.AddButtonReleased(hardware.ENCODER_1);
+    {
+        eventQueue.AddButtonReleased(0);
+    }
 
     const auto increments = hardware.encoders[0].Increment();
-    if(increments != 0)
-        eventQueue.AddEncoderTurned(hardware.ENCODER_1, increments, 12);
-}
 
-// Calculate the number of samples for a specified amount of time in seconds.
-int GetNumberOfSamplesForTime(float time)
-{
-    return (int)(hardware.AudioSampleRate() * time);
+    if(increments != 0)
+    {
+        eventQueue.AddEncoderTurned(0, increments, 12);
+    }
 }
 
 // Helpful Function for getting a parameter value for an effect from the Persistant Storage
@@ -410,9 +409,9 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
     // Process the Pots
     float knobValueRaw;
 
-    for (int i = 0; i < hardware.KNOB_LAST; i++)
+    for (int i = 0; i < hardware.GetKnobCount(); i++)
     {
-        knobValueRaw = hardware.GetKnobValue((GuitarPedal125B::KnobIndex)i);
+        knobValueRaw = hardware.GetKnobValue(i);
 
         if (!knobValuesInitialized)
         {
@@ -583,8 +582,8 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
     }
 
     // Handle LEDs
-    hardware.SetLed((GuitarPedal125B::LedIndex)0, led1Brightness);
-    hardware.SetLed((GuitarPedal125B::LedIndex)1, led2Brightness);
+    hardware.SetLed(0, led1Brightness);
+    hardware.SetLed(1, led2Brightness);
     hardware.UpdateLeds();
 }
 
@@ -709,9 +708,9 @@ int main(void)
     lastTimeStampUS = System::GetUs();
 
     // Set the number of samples to use for the crossfade based on the hardware sample rate
-    muteOffTransitionTimeInSamples = GetNumberOfSamplesForTime(muteOffTransitionTimeInSeconds);
-    bypassToggleTransitionTimeInSamples = GetNumberOfSamplesForTime(bypassToggleTransitionTimeInSeconds);
-    crossFaderTransitionTimeInSamples = GetNumberOfSamplesForTime(crossFaderTransitionTimeInSeconds);
+    muteOffTransitionTimeInSamples = hardware.GetNumberOfSamplesForTime(muteOffTransitionTimeInSeconds);
+    bypassToggleTransitionTimeInSamples = hardware.GetNumberOfSamplesForTime(bypassToggleTransitionTimeInSeconds);
+    crossFaderTransitionTimeInSamples = hardware.GetNumberOfSamplesForTime(crossFaderTransitionTimeInSeconds);
 
     // Init the Effects Modules
     availableEffectsCount = 4;
@@ -751,7 +750,7 @@ int main(void)
     ui.OpenPage(mainMenu);
     
     // Init the Knob Monitoring System
-    knobValueIdleTimeInSamples = GetNumberOfSamplesForTime(knobValueIdleTimeInSeconds);
+    knobValueIdleTimeInSamples = hardware.GetNumberOfSamplesForTime(knobValueIdleTimeInSeconds);
 
     // Setup the cross fader
     crossFaderLeft.Init();
@@ -790,7 +789,7 @@ int main(void)
 
         bool isKnobValueChanging = false;
 
-        for (int i = 0; i < hardware.KNOB_LAST; i++)
+        for (int i = 0; i < hardware.GetKnobCount(); i++)
         {
             if (knobValueCacheChanged[i])
             {
