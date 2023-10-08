@@ -2,6 +2,7 @@
 #ifndef BASE_HARDWARE_MODULE_H
 #define BASE_HARDWARE_MODULE_H /**< & */
 
+#include <vector>
 #include "daisy_seed.h"
 #include "dev/oled_ssd130x.h"
 
@@ -25,10 +26,10 @@ class BaseHardwareModule
     /** Constructor */
     BaseHardwareModule();
     /** Destructor */
-    ~BaseHardwareModule();
+    virtual ~BaseHardwareModule();
 
     /** Initialize the pedal */
-    void Init(bool boost = false);
+    virtual void Init(bool boost = false);
 
     /**
        Wait before moving on.
@@ -160,31 +161,31 @@ class BaseHardwareModule
 
     DaisySeed seed;
 
-    int m_knobCount;
-    AnalogControl *knobs;
-    int m_switchCount;
-    Switch *switches;
-    int m_encoderCount;
-    Encoder *encoders;
-    int m_ledCount;
-    Led *leds;
+    std::vector<AnalogControl> knobs;
+    std::vector<Switch> switches;
+    std::vector<Encoder> encoders;
+    std::vector<Led> leds;
 
     bool m_supportsMidi;
-    MidiUartHandler *midi;
+    MidiUartHandler midi;
+    bool m_supportsDisplay;
     MyOledDisplay display;
+    bool m_supportsTrueBypass;
     GPIO audioBypassTrigger;
     bool audioBypass;
     GPIO audioMuteTrigger;
     bool audioMute;
 
-  private:
+  protected:
     void SetHidUpdateRates();
 
-    void InitKnobs();
-    void InitSwitches();
-    void InitEncoders();
-    void InitLeds();
-    void InitMidi();
+    void InitKnobs(int count, Pin pins[]);
+    void InitSwitches(int count, Pin pins[]);
+    void InitEncoders(int count, Pin pins[][3]);
+    void InitLeds(int count, Pin pins[]);
+    void InitMidi(Pin rxPin, Pin txPin);
+    void InitDisplay(Pin dcPin, Pin resetPin);
+    void InitTrueBypass(Pin relayPin, Pin mutePin);
 
     inline uint16_t* adc_ptr(const uint8_t chn) { return seed.adc.GetPtr(chn); }
 };

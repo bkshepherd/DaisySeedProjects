@@ -462,7 +462,7 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
     effectOn ^= hardware.switches[0].RisingEdge();
 
     // Handle updating the Hardware Bypass & Muting signals
-    if (settings.globalRelayBypassEnabled)
+    if (hardware.SupportsTrueBypass() && settings.globalRelayBypassEnabled)
     {
         hardware.SetAudioBypass(bypassOn);
         hardware.SetAudioMute(muteOn);
@@ -482,7 +482,7 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
         isCrossFadingForward = effectOn;
 
         // Start the timing sequence for the Hardware Mute and Relay Bypass.
-        if (settings.globalRelayBypassEnabled)
+        if (hardware.SupportsTrueBypass() && settings.globalRelayBypassEnabled)
         {
             // Immediately Mute the Output using the Hardware Mute.
             muteOn = true;
@@ -590,7 +590,7 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
 // Typical Switch case for Message Type.
 void HandleMidiMessage(MidiEvent m)
 {
-    if (!hardware.SupportsMidi() || hardware.midi == NULL)
+    if (!hardware.SupportsMidi())
     {
         return;
     }
@@ -624,7 +624,7 @@ void HandleMidiMessage(MidiEvent m)
             bytesToSend = 2;
         }
 
-        hardware.midi->SendMessage(midiData, sizeof(uint8_t) * bytesToSend);
+        hardware.midi.SendMessage(midiData, sizeof(uint8_t) * bytesToSend);
     }
 
     // Only listen to messages for the devices set channel.
@@ -747,13 +747,13 @@ int main(void)
     hardware.StartAudio(AudioCallback);
 
     // Set up midi if supported.
-    if (hardware.SupportsMidi() && hardware.midi != NULL)
+    if (hardware.SupportsMidi())
     {
-        hardware.midi->StartReceive();
+        hardware.midi.StartReceive();
     }
 
     // Setup Relay Bypass State
-    if (settings.globalRelayBypassEnabled)
+    if (hardware.SupportsTrueBypass() && settings.globalRelayBypassEnabled)
     {
         bypassOn = true;
     }
@@ -864,13 +864,13 @@ int main(void)
         // Handle MIDI Events
         settings.globalMidiChannel = midiChannelSettingValue.Get();
 
-        if (hardware.SupportsMidi() && hardware.midi != NULL && settings.globalMidiEnabled)
+        if (hardware.SupportsMidi() && settings.globalMidiEnabled)
         {
-            hardware.midi->Listen();
+            hardware.midi.Listen();
 
-            while(hardware.midi->HasEvents())
+            while(hardware.midi.HasEvents())
             {
-                HandleMidiMessage(hardware.midi->PopEvent());
+                HandleMidiMessage(hardware.midi.PopEvent());
             }
         }
 

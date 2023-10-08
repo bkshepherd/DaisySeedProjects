@@ -3,65 +3,16 @@
 using namespace daisy;
 using namespace bkshepherd;
 
-// Hardware related defines.
-// Switches
-static const int s_switchPins[] = {6, 5};
-
-// Knobs
-static const int s_knobPins[] = {15, 16, 17, 18, 19, 20};
-
-// Encoders
-static const int s_encoderPins[][3] = {{3, 2, 4}};
-
-// LEDS
-static const int s_ledPins[] = {22, 23};
-
-// Midi
-static const int s_midiPins[] = {30, 29};
-
-// Display (Other display pins are default SPI pins)
-static const int s_displayPins[] = {9, 11};
-
-BaseHardwareModule::BaseHardwareModule() : m_knobCount(0),
-                                            knobs(NULL),
-                                            m_switchCount(0),
-                                            switches(NULL),
-                                            m_encoderCount(0),
-                                            encoders(NULL),
-                                            m_ledCount(0),
-                                            leds(NULL),
-                                            m_supportsMidi(false),
-                                            midi(NULL)
+BaseHardwareModule::BaseHardwareModule() : m_supportsMidi(false),
+                                           m_supportsDisplay(false),
+                                           m_supportsTrueBypass(false)
 {
 
 }
 
 BaseHardwareModule::~BaseHardwareModule()
 {
-    if (knobs != NULL)
-    {
-        delete [] knobs;
-    }
 
-    if (switches != NULL)
-    {
-        delete [] switches;
-    }
-
-    if (encoders != NULL)
-    {
-        delete [] encoders;
-    }
-
-    if (leds != NULL)
-    {
-        delete [] leds;
-    }
-
-    if (midi != NULL)
-    {
-        delete midi;
-    }
 }
 
 void BaseHardwareModule::Init(bool boost)
@@ -69,26 +20,6 @@ void BaseHardwareModule::Init(bool boost)
     // Initialize the hardware.
     seed.Configure();
     seed.Init(boost);
-
-    InitKnobs();
-    InitSwitches();
-    InitEncoders();
-    InitLeds();
-    InitMidi();
-
-    // Init the HW Audio Bypass
-    audioBypassTrigger.Init(daisy::seed::D1, GPIO::Mode::OUTPUT);
-    SetAudioBypass(true);
-
-    // Init the HW Audio Mute
-    audioMuteTrigger.Init(daisy::seed::D12, GPIO::Mode::OUTPUT);
-    SetAudioMute(false);
-
-    // Configure the Display
-    MyOledDisplay::Config disp_cfg;
-    disp_cfg.driver_config.transport_config.pin_config.dc    = seed.GetPin(s_displayPins[0]);
-    disp_cfg.driver_config.transport_config.pin_config.reset = seed.GetPin(s_displayPins[1]);
-    display.Init(disp_cfg);
 
     SetAudioBlockSize(48);
 }
@@ -100,17 +31,17 @@ void BaseHardwareModule::DelayMs(size_t del)
 
 void BaseHardwareModule::SetHidUpdateRates()
 {
-    if (knobs != NULL)
+    if (!knobs.empty())
     {
-        for(int i = 0; i < m_knobCount; i++)
+        for(int i = 0; i < GetKnobCount(); i++)
         {
             knobs[i].SetSampleRate(AudioCallbackRate());
         }
     }
 
-    if (leds != NULL)
+    if (!leds.empty())
     {
-        for(int i = 0; i < m_ledCount; i++)
+        for(int i = 0; i < GetLedCount(); i++)
         {
             leds[i].SetSampleRate(AudioCallbackRate());
         }
@@ -182,9 +113,9 @@ void BaseHardwareModule::StopAdc()
 
 void BaseHardwareModule::ProcessAnalogControls()
 {
-    if (knobs != NULL)
+    if (!knobs.empty())
     {
-        for(int i = 0; i < m_knobCount; i++)
+        for(int i = 0; i < GetKnobCount(); i++)
         {
             knobs[i].Process();
         }
@@ -193,17 +124,17 @@ void BaseHardwareModule::ProcessAnalogControls()
 
 void BaseHardwareModule::ProcessDigitalControls()
 {
-    if (switches != NULL)
+    if (!switches.empty())
     {
-        for(int i = 0; i < m_switchCount; i++)
+        for(int i = 0; i < GetSwitchCount(); i++)
         {
             switches[i].Debounce();
         }
     }
 
-    if (encoders != NULL)
+    if (!encoders.empty())
     {
-        for(int i = 0; i < m_encoderCount; i++)
+        for(int i = 0; i < GetEncoderCount(); i++)
         {
             encoders[i].Debounce();
         }
@@ -217,12 +148,12 @@ int BaseHardwareModule::GetNumberOfSamplesForTime(float time)
 
 int BaseHardwareModule::GetKnobCount()
 {
-    return m_knobCount;
+    return knobs.size();
 }
 
 float BaseHardwareModule::GetKnobValue(int knobID)
 {
-    if (knobs != NULL && knobID >= 0 && knobID < m_knobCount)
+    if (!knobs.empty() && knobID >= 0 && knobID < GetKnobCount())
     {
         return knobs[knobID].Value();
     }
@@ -232,22 +163,22 @@ float BaseHardwareModule::GetKnobValue(int knobID)
 
 int BaseHardwareModule::GetSwitchCount()
 {
-    return m_switchCount;
+    return switches.size();
 }
 
 int BaseHardwareModule::GetEncoderCount()
 {
-    return m_encoderCount;
+    return encoders.size();
 }
 
 int BaseHardwareModule::GetLedCount()
 {
-    return m_ledCount;
+    return leds.size();
 }
 
 void BaseHardwareModule::SetLed(int ledID, float bright)
 {
-    if (leds != NULL && ledID >= 0 && ledID < m_ledCount)
+    if (!leds.empty() && ledID >= 0 && ledID < GetLedCount())
     {
         leds[ledID].Set(bright);
     }
@@ -255,9 +186,9 @@ void BaseHardwareModule::SetLed(int ledID, float bright)
 
 void BaseHardwareModule::UpdateLeds()
 {
-    if (leds != NULL)
+    if (!leds.empty())
     {
-        for(int i = 0; i < m_ledCount; i++)
+        for(int i = 0; i < GetLedCount(); i++)
         {
             leds[i].Update();
         }
@@ -283,102 +214,98 @@ bool BaseHardwareModule::SupportsMidi()
 
 bool BaseHardwareModule::SupportsDisplay()
 {
-    return true;
+    return m_supportsDisplay;
 }
 
 bool BaseHardwareModule::SupportsTrueBypass()
 {
-    return true;
+    return m_supportsTrueBypass;
 }
 
-void BaseHardwareModule::InitKnobs()
+void BaseHardwareModule::InitKnobs(int count, Pin pins[])
 {
-    if (knobs != NULL)
-    {
-        delete [] knobs;
-    }
-
-    knobs = new AnalogControl[m_knobCount];
-
     // Set order of ADCs based on CHANNEL NUMBER
-    AdcChannelConfig cfg[m_knobCount];
+    AdcChannelConfig cfg[count];
 
     // Init with Single Pins
-    for (int i = 0; i < m_knobCount; i++)
+    for (int i = 0; i < count; i++)
     {
-        cfg[i].InitSingle(seed.GetPin(s_knobPins[i]));
+        cfg[i].InitSingle(pins[i]);
     }
 
-    seed.adc.Init(cfg, m_knobCount);
+    seed.adc.Init(cfg, count);
 
-    // Make an array of pointers to the knob.
-    for(int i = 0; i < m_knobCount; i++)
+    // Setup the Knobs
+    for(int i = 0; i < count; i++)
     {
-        knobs[i].Init(seed.adc.GetPtr(i), AudioCallbackRate());
-    }
-}
-
-void BaseHardwareModule::InitSwitches()
-{
-    if (switches != NULL)
-    {
-        delete [] switches;
-    }
-
-    switches = new Switch[m_switchCount];
-
-    for(int i = 0; i < m_switchCount; i++)
-    {
-        switches[i].Init(seed.GetPin(s_switchPins[i]));
+        AnalogControl myKnob;
+        myKnob.Init(seed.adc.GetPtr(i), AudioCallbackRate());
+        knobs.push_back(myKnob);
     }
 }
 
-void BaseHardwareModule::InitEncoders()
+void BaseHardwareModule::InitSwitches(int count, Pin pins[])
 {
-    if (encoders != NULL)
+    for(int i = 0; i < count; i++)
     {
-        delete [] encoders;
-    }
-
-    encoders = new Encoder[m_encoderCount];
-
-    for (int i = 0; i < m_encoderCount; i++)
-    {
-        encoders[i].Init(seed.GetPin(s_encoderPins[i][0]),
-                            seed.GetPin(s_encoderPins[i][1]),
-                            seed.GetPin(s_encoderPins[i][2]));
+        Switch mySwitch;
+        mySwitch.Init(pins[i]);
+        switches.push_back(mySwitch);
     }
 }
 
-void BaseHardwareModule::InitLeds()
+void BaseHardwareModule::InitEncoders(int count, Pin pins[][3])
 {
-    if (leds != NULL)
+    for (int i = 0; i < count; i++)
     {
-        delete [] leds;
-    }
-
-    leds = new Led[m_ledCount];
-
-    for(int i = 0; i < m_ledCount; i++)
-    {
-        leds[i].Init(seed.GetPin(s_ledPins[i]), false);
+        Encoder myEncoder;
+        myEncoder.Init(pins[i][0],
+                       pins[i][1],
+                       pins[i][2]);
+        encoders.push_back(myEncoder);
     }
 }
 
-void BaseHardwareModule::InitMidi()
+void BaseHardwareModule::InitLeds(int count, Pin pins[])
 {
-    if (midi != NULL)
+    for(int i = 0; i < count; i++)
     {
-        delete midi;
+        Led newLed;
+        newLed.Init(pins[i], false, AudioCallbackRate());
+        leds.push_back(newLed);
     }
+}
 
-    if (m_supportsMidi)
-    {
-        midi = new MidiUartHandler();
+void BaseHardwareModule::InitMidi(Pin rxPin, Pin txPin)
+{   
+    MidiUartHandler::Config midi_config;
+    midi_config.transport_config.rx = rxPin;
+    midi_config.transport_config.tx = txPin;
+    midi.Init(midi_config);
 
-        MidiUartHandler::Config midi_config;
-        midi_config.transport_config.rx = seed.GetPin(s_midiPins[0]);
-        midi_config.transport_config.tx = seed.GetPin(s_midiPins[1]);
-        midi->Init(midi_config);
-    }
+    m_supportsMidi = true;
+}
+
+void BaseHardwareModule::InitDisplay(Pin dcPin, Pin resetPin)
+{
+    // Configure the Display
+    MyOledDisplay::Config disp_cfg;
+    disp_cfg.driver_config.transport_config.pin_config.dc    = dcPin;
+    disp_cfg.driver_config.transport_config.pin_config.reset = resetPin;
+    display.Init(disp_cfg);
+
+    m_supportsDisplay = true;   
+}
+
+void BaseHardwareModule::InitTrueBypass(Pin relayPin, Pin mutePin)
+{
+    // Init the HW Audio Bypass
+    audioBypassTrigger.Init(relayPin, GPIO::Mode::OUTPUT);
+    SetAudioBypass(true);
+
+    // Init the HW Audio Mute
+    audioMuteTrigger.Init(mutePin, GPIO::Mode::OUTPUT);
+    SetAudioMute(false);
+    
+    m_supportsTrueBypass = true;
 }

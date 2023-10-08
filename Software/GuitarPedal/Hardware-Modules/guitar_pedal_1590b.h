@@ -20,6 +20,7 @@ class GuitarPedal1590B : public BaseHardwareModule
   public:
     GuitarPedal1590B();
     ~GuitarPedal1590B();
+    void Init(bool boost = false) override;
 };
 } // namespace bkshepherd
 #endif
