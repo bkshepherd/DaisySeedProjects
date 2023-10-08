@@ -21,8 +21,6 @@ GuitarPedal125B hardware;
 // Hardware Related Variables
 bool useDebugDisplay = false;
 bool  effectOn = false;
-float led1Brightness = 0.0f;
-float led2Brightness = 0.0f;
 
 bool muteOn = false;
 float muteOffTransitionTimeInSeconds = 0.02f;
@@ -97,9 +95,9 @@ bool knobValuesInitialized = false;
 float knobValueChangeTolerance = 1.0f / 256.0f;
 float knobValueIdleTimeInSeconds = 1.0f;
 int knobValueIdleTimeInSamples;
-bool knobValueCacheChanged[6];
-float knobValueCache[6];
-int knobValueSamplesTilIdle[6];
+bool *knobValueCacheChanged = NULL;
+float *knobValueCache = NULL;
+int *knobValueSamplesTilIdle = NULL;
 
 const int                kNumMainMenuItems =  2;
 AbstractMenu::ItemConfig mainMenuItems[kNumMainMenuItems];
@@ -389,6 +387,30 @@ void SaveEffectSettingsToPersitantStorageForEffectID(int effectID)
     }
 }
 
+void SetActiveEffect(int effectID)
+{
+    if (effectID >= 0 && effectID < availableEffectsCount)
+    {
+        // Update the Active Effect directly.
+        activeEffect = availableEffects[effectID];
+
+        if (hardware.SupportsDisplay())
+        {
+            // Update the Menu item for the active effect (important for active effect changes not coming from the menu)
+            availableEffectListMappedValues->SetIndex(effectID);
+
+            // Re-init the UI Pages for the Main Menu and Effect Parameters
+            InitEffectUiPages();
+        }
+
+        // Get a handle to the persitance storage settings
+        Settings &settings = storage.GetSettings();
+
+        // Update the persistant storage setting
+        settings.globalActiveEffectID = effectID;
+    }
+}
+
 static void AudioCallback(AudioHandle::InputBuffer  in,
                      AudioHandle::OutputBuffer out,
                      size_t                    size)
@@ -397,11 +419,18 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
     float inputLeft;
     float inputRight;
 
+    // Default LEDs are off
+    float led1Brightness = 0.0f;
+    float led2Brightness = 0.0f;
+
     // Handle Inputs
     hardware.ProcessAnalogControls();
     hardware.ProcessDigitalControls();
 
-    GenerateUiEvents();
+    if (hardware.SupportsDisplay())
+    {
+        GenerateUiEvents();
+    }
 
     // Get a handle to the persitance storage settings
     Settings &settings = storage.GetSettings();
@@ -548,10 +577,6 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
         float crossFadeTargetRight = inputRight;
         float effectOutputLeft = inputLeft;
         float effectOutputRight = inputRight;
-
-        // By default the leds are off
-        led1Brightness = 0.0f;
-        led2Brightness = 0.0f;
         
         // Only calculate the active effect when it's needed
         if(activeEffect != NULL && (effectOn || isCrossFading))
@@ -662,7 +687,11 @@ void HandleMidiMessage(MidiEvent m)
                 if (effectParamID != -1)
                 {
                     activeEffect->SetParameter(effectParamID, p.value);
-                    activeEffectSettingValues[effectParamID]->Set(activeEffect->GetParameter(effectParamID));
+
+                    if (hardware.SupportsDisplay())
+                    {
+                        activeEffectSettingValues[effectParamID]->Set(activeEffect->GetParameter(effectParamID));
+                    }
                 }
             }
             break;
@@ -673,7 +702,7 @@ void HandleMidiMessage(MidiEvent m)
 
             if (p.program >= 0 && p.program < availableEffectsCount)
             {
-                availableEffectListMappedValues->SetIndex(p.program);
+                SetActiveEffect(p.program);
             }
             break;
         }
@@ -728,24 +757,14 @@ int main(void)
     activeEffect = availableEffects[settings.globalActiveEffectID];
 
     // Init the Menu UI System
-    InitUi();
-    InitEffectUiPages();
-    InitGlobalSettingsUIPages();
-    ui.OpenPage(mainMenu);
+    if (hardware.SupportsDisplay())
+    {
+        InitUi();
+        InitEffectUiPages();
+        InitGlobalSettingsUIPages();
+        ui.OpenPage(mainMenu);
+    }
     
-    // Init the Knob Monitoring System
-    knobValueIdleTimeInSamples = hardware.GetNumberOfSamplesForTime(knobValueIdleTimeInSeconds);
-
-    // Setup the cross fader
-    crossFaderLeft.Init();
-    crossFaderRight.Init();
-    crossFaderLeft.SetPos(0.0f);
-    crossFaderRight.SetPos(0.0f);
-
-    // start callback
-    hardware.StartAdc();
-    hardware.StartAudio(AudioCallback);
-
     // Set up midi if supported.
     if (hardware.SupportsMidi())
     {
@@ -757,6 +776,22 @@ int main(void)
     {
         bypassOn = true;
     }
+
+    // Init the Knob Monitoring System
+    knobValueCacheChanged = new bool[hardware.GetKnobCount()];
+    knobValueCache = new float[hardware.GetKnobCount()];
+    knobValueSamplesTilIdle = new int[hardware.GetKnobCount()];
+    knobValueIdleTimeInSamples = hardware.GetNumberOfSamplesForTime(knobValueIdleTimeInSeconds);
+
+    // Setup the cross fader
+    crossFaderLeft.Init();
+    crossFaderRight.Init();
+    crossFaderLeft.SetPos(0.0f);
+    crossFaderRight.SetPos(0.0f);
+
+    // start callback
+    hardware.StartAdc();
+    hardware.StartAudio(AudioCallback);
 
     // Setup Debug Logging
     //hardware.seed.StartLog();
@@ -786,40 +821,47 @@ int main(void)
 
                 if (parameterID != -1)
                 {
+                    // Set the new value on the effect parameter directly
                     activeEffect->SetParameterAsMagnitude(parameterID, knobValueCache[i]);
-                    activeEffectSettingValues[parameterID]->Set(activeEffect->GetParameter(parameterID));
                     isKnobValueChanging = true;
 
-                    // Change the main menu to be the name of the value the Knob is changing
-                    mainMenuItems[0].text = activeEffect->GetParameterName(parameterID);
+                    if (hardware.SupportsDisplay())
+                    {
+                        // Update the effect parameter on the menu system
+                        activeEffectSettingValues[parameterID]->Set(activeEffect->GetParameter(parameterID));
+                        
+                        // Change the main menu to be the name of the value the Knob is changing
+                        mainMenuItems[0].text = activeEffect->GetParameterName(parameterID);
+                    }
                 }
-                
             }
         }
         
-        // If no knobs are moving make sure the main menu is set to the Effect Name.
-        if (!isKnobValueChanging)
+        if (hardware.SupportsDisplay())
         {
-            mainMenuItems[0].text = activeEffect->GetName();
-        }
+            // If no knobs are moving make sure the main menu is set to the Effect Name.
+            if (!isKnobValueChanging)
+            {
+                mainMenuItems[0].text = activeEffect->GetName();
+            }
 
-        // Update all Active Effect Settings
-        for (int i = 0; i < numActiveEffectSettingsItems; i++)
-        {
-            activeEffect->SetParameter(i, activeEffectSettingValues[i]->Get());
-        }
+            // Handle a Change in the Active Effect & Effect Parameters from the Menu System
 
-        // Handle a Change in the Active Effect
-        BaseEffectModule *selectedEffect = availableEffects[availableEffectListMappedValues->GetIndex()];
+            // Update all Active Effect Parameter Settings to values from the menu system
+            for (int i = 0; i < numActiveEffectSettingsItems; i++)
+            {
+                activeEffect->SetParameter(i, activeEffectSettingValues[i]->Get());
+            }
 
-        if (activeEffect != selectedEffect)
-        {
-            // Update the active effect and reset the Effects Menu and Settings for that Effect
-            activeEffect = selectedEffect;
-            InitEffectUiPages();
+            // Check which effect the Menu system things is active
+            int menuEffectID = availableEffectListMappedValues->GetIndex();
+            BaseEffectModule *selectedEffect = availableEffects[menuEffectID];
 
-            // Update the persistant storage setting
-            settings.globalActiveEffectID = availableEffectListMappedValues->GetIndex();
+            // If the effect differs from the active effect, change the active effect
+            if (activeEffect != selectedEffect)
+            {
+                SetActiveEffect(menuEffectID);
+            }
         }
 
         // Handle Displaying the Saving notication
@@ -828,7 +870,10 @@ int main(void)
             secondsSinceLastActiveEffectSettingsSave += (elapsedTimeStampUS / 1000000.0f);
 
             // Change the main menu text to say saved
-            mainMenuItems[0].text = "Saved.";
+            if (hardware.SupportsDisplay())
+            {
+                mainMenuItems[0].text = "Saved.";
+            }
 
             if (secondsSinceLastActiveEffectSettingsSave > 2.0f)
             {
@@ -837,32 +882,39 @@ int main(void)
         }
         
         // Handle Display
-        if (useDebugDisplay)
+        if (hardware.SupportsDisplay())
         {
-            // Debug Display hijacks the display to simply output text
-            char strbuff[128];
-            hardware.display.Fill(false);
-            hardware.display.SetCursor(0, 0);
-            hardware.display.WriteString("Debug:", Font_7x10, true);
-            hardware.display.SetCursor(0, 15);
-            sprintf(strbuff, "MuteOn: %d", muteOn);
-            hardware.display.WriteString(strbuff, Font_7x10, true);
-            hardware.display.SetCursor(0, 30);
-            sprintf(strbuff, "BypassOn: %d", bypassOn);
-            hardware.display.WriteString(strbuff, Font_7x10, true);
-            hardware.display.SetCursor(0, 45);
-            sprintf(strbuff, "LED: %d", (int)(activeEffect->GetOutputLEDBrightness() * 100.0f));
-            hardware.display.WriteString(strbuff, Font_7x10, true);
-            hardware.display.Update();
-        }
-        else
-        {
-            // Default behavior is to use the menu system.
-            ui.Process();
+            if (useDebugDisplay)
+            {
+                // Debug Display hijacks the display to simply output text
+                char strbuff[128];
+                hardware.display.Fill(false);
+                hardware.display.SetCursor(0, 0);
+                hardware.display.WriteString("Debug:", Font_7x10, true);
+                hardware.display.SetCursor(0, 15);
+                sprintf(strbuff, "MuteOn: %d", muteOn);
+                hardware.display.WriteString(strbuff, Font_7x10, true);
+                hardware.display.SetCursor(0, 30);
+                sprintf(strbuff, "BypassOn: %d", bypassOn);
+                hardware.display.WriteString(strbuff, Font_7x10, true);
+                hardware.display.SetCursor(0, 45);
+                sprintf(strbuff, "LED: %d", (int)(activeEffect->GetOutputLEDBrightness() * 100.0f));
+                hardware.display.WriteString(strbuff, Font_7x10, true);
+                hardware.display.Update();
+            }
+            else
+            {
+                // Default behavior is to use the menu system.
+                ui.Process();
+            }
         }
 
         // Handle MIDI Events
-        settings.globalMidiChannel = midiChannelSettingValue.Get();
+        if (hardware.SupportsDisplay())
+        {
+            // Update the Midi Channel if the value was changed in the Menu
+            settings.globalMidiChannel = midiChannelSettingValue.Get();
+        }
 
         if (hardware.SupportsMidi() && settings.globalMidiEnabled)
         {
