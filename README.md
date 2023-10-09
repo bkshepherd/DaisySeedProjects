@@ -5,7 +5,7 @@ This is a demo of a pedal board I put together using 3 of my custom Daisy Seed b
 
 ## Software Projects:
 ### 1. [Guitar Multi-Effect Pedal](Software/GuitarPedal/README.md)
-The software that can run on any of the custom Guitar Pedal hardware projects listed below.  This software is a flexible platform that abstracts the underlying Guitar Pedal hardware and allows a collection of Effects Modules to run on any of those hardware platforms.
+The software that can run on any of the custom Guitar Pedal hardware projects listed below as well at the PedalPCB Terrarium hardware.  This software is a flexible platform that abstracts the underlying Guitar Pedal hardware and allows a collection of Effects Modules to run on any of those hardware platforms.
 
 ## Hardware Projects:
 ### 1. [Guitar Effect Pedal in 1590b Enclosure](Hardware/GuitarPedal1590b/README.md) (Through-hole parts)
