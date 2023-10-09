@@ -16,6 +16,8 @@ void GuitarPedal125B::Init(bool boost)
 {
     BaseHardwareModule::Init(boost);
 
+    m_supportsStereo = true;
+    
     Pin knobPins[] = {seed::D15, seed::D16, seed::D17, seed::D18, seed::D19, seed::D20};
     InitKnobs(6, knobPins);
 

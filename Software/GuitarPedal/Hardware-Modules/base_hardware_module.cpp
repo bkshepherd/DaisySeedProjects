@@ -3,7 +3,8 @@
 using namespace daisy;
 using namespace bkshepherd;
 
-BaseHardwareModule::BaseHardwareModule() : m_supportsMidi(false),
+BaseHardwareModule::BaseHardwareModule() : m_supportsStereo(false),
+                                           m_supportsMidi(false),
                                            m_supportsDisplay(false),
                                            m_supportsTrueBypass(false)
 {
@@ -197,14 +198,19 @@ void BaseHardwareModule::UpdateLeds()
 
 void BaseHardwareModule::SetAudioBypass(bool enabled)
 {
-    audioBypass = enabled;
-    audioBypassTrigger.Write(!audioBypass);
+    m_audioBypass = enabled;
+    audioBypassTrigger.Write(!m_audioBypass);
 }
 
 void BaseHardwareModule::SetAudioMute(bool enabled)
 {
-    audioMute = enabled;
-    audioMuteTrigger.Write(audioMute);
+    m_audioMute = enabled;
+    audioMuteTrigger.Write(m_audioMute);
+}
+
+bool BaseHardwareModule::SupportsStereo()
+{
+    return m_supportsStereo;
 }
 
 bool BaseHardwareModule::SupportsMidi()

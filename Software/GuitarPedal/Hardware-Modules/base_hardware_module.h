@@ -150,7 +150,10 @@ class BaseHardwareModule
     /** Toggle the Hardware Audio Mute (if applicable) */
     void SetAudioMute(bool enabled);
 
-        /** Checks to see if device hardware supports MIDI*/
+    /** Checks to see if device hardware supports Stereo Audio*/
+    bool SupportsStereo();
+
+    /** Checks to see if device hardware supports MIDI*/
     bool SupportsMidi();
 
     /** Checks to see if device hardware supports the Display*/
@@ -166,17 +169,20 @@ class BaseHardwareModule
     std::vector<Encoder> encoders;
     std::vector<Led> leds;
 
-    bool m_supportsMidi;
+    
     MidiUartHandler midi;
-    bool m_supportsDisplay;
     MyOledDisplay display;
-    bool m_supportsTrueBypass;
     GPIO audioBypassTrigger;
-    bool audioBypass;
     GPIO audioMuteTrigger;
-    bool audioMute;
 
   protected:
+    bool m_supportsStereo;
+    bool m_supportsMidi;
+    bool m_supportsDisplay;
+    bool m_supportsTrueBypass;
+    bool m_audioBypass;
+    bool m_audioMute;
+
     void SetHidUpdateRates();
 
     void InitKnobs(int count, Pin pins[]);

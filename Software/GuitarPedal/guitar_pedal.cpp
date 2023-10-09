@@ -582,7 +582,15 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
         if(activeEffect != NULL && (effectOn || isCrossFading))
         {
             // Apply the Active Effect
-            activeEffect->ProcessStereo(inputLeft, inputRight);
+            if (hardware.SupportsStereo())
+            {
+                activeEffect->ProcessStereo(inputLeft, inputRight);
+            }
+            else
+            {
+                activeEffect->ProcessMono(inputLeft);
+            }
+            
             effectOutputLeft = activeEffect->GetAudioLeft();
             effectOutputRight = activeEffect->GetAudioRight();
 
