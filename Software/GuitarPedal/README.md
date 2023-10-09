@@ -28,7 +28,24 @@ You'll also need to update the paths in the **task.json** file in the **.vscode/
 
 ## 3. Configure your specific Target Hardware
 
-You'll need to open the guitar_pedal.cpp file and edit two lines to configure which hardware you are targetting. 
+You'll need to open the guitar_pedal.cpp file and edit two lines to configure which hardware you are targetting.
+
+![HardwareConfiguration](images/configure_hardware.png)
+
+If you want to target the GuitarPedal125B hardware change the lines to:
+
+* #include "Hardware-Modules/guitar_pedal_125b.h"
+* GuitarPedal125B hardware;
+
+If you want to target the GuitarPedal1590B hardware change the lines to:
+
+* #include "Hardware-Modules/guitar_pedal_1590b.h"
+* GuitarPedal1590B hardware;
+
+If you want to target the Pedal PCB hardware change the lines to:
+
+* #include "Hardware-Modules/guitar_pedal_terrarium.h"
+* GuitarPedalTerrarium hardware;
 
 ## 4. Build and Deploy the Code
 
