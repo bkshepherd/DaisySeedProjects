@@ -725,9 +725,6 @@ int main(void)
 
     float sample_rate = hardware.AudioSampleRate();
 
-    // Set initial time stamp
-    lastTimeStampUS = System::GetUs();
-
     // Set the number of samples to use for the crossfade based on the hardware sample rate
     muteOffTransitionTimeInSamples = hardware.GetNumberOfSamplesForTime(muteOffTransitionTimeInSeconds);
     bypassToggleTransitionTimeInSamples = hardware.GetNumberOfSamplesForTime(bypassToggleTransitionTimeInSeconds);
@@ -801,6 +798,9 @@ int main(void)
     hardware.StartAdc();
     hardware.StartAudio(AudioCallback);
 
+    // Set initial time stamp
+    lastTimeStampUS = System::GetUs();
+
     // Setup Debug Logging
     //hardware.seed.StartLog();
 
@@ -821,25 +821,28 @@ int main(void)
 
         bool isKnobValueChanging = false;
 
-        for (int i = 0; i < hardware.GetKnobCount(); i++)
+        if (knobValuesInitialized)
         {
-            if (knobValueCacheChanged[i])
+            for (int i = 0; i < hardware.GetKnobCount(); i++)
             {
-                int parameterID = activeEffect->GetMappedParameterIDForKnob(i);
-
-                if (parameterID != -1)
+                if (knobValueCacheChanged[i])
                 {
-                    // Set the new value on the effect parameter directly
-                    activeEffect->SetParameterAsMagnitude(parameterID, knobValueCache[i]);
-                    isKnobValueChanging = true;
+                    int parameterID = activeEffect->GetMappedParameterIDForKnob(i);
 
-                    if (hardware.SupportsDisplay())
+                    if (parameterID != -1)
                     {
-                        // Update the effect parameter on the menu system
-                        activeEffectSettingValues[parameterID]->Set(activeEffect->GetParameter(parameterID));
-                        
-                        // Change the main menu to be the name of the value the Knob is changing
-                        mainMenuItems[0].text = activeEffect->GetParameterName(parameterID);
+                        // Set the new value on the effect parameter directly
+                        activeEffect->SetParameterAsMagnitude(parameterID, knobValueCache[i]);
+                        isKnobValueChanging = true;
+
+                        if (hardware.SupportsDisplay())
+                        {
+                            // Update the effect parameter on the menu system
+                            activeEffectSettingValues[parameterID]->Set(activeEffect->GetParameter(parameterID));
+                            
+                            // Change the main menu to be the name of the value the Knob is changing
+                            mainMenuItems[0].text = activeEffect->GetParameterName(parameterID);
+                        }
                     }
                 }
             }
