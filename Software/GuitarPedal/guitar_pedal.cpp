@@ -89,6 +89,8 @@ FullScreenItemMenu mainMenu;
 FullScreenItemMenu activeEffectSettingsMenu;
 FullScreenItemMenu globalSettingsMenu;
 UiEventQueue       eventQueue;
+bool needToCloseActiveEffectSettingsMenu = false;
+int paramIdToReturnTo = -1;
 
 // Pot Monitoring Variables
 bool knobValuesInitialized = false;
@@ -841,7 +843,24 @@ int main(void)
                             activeEffectSettingValues[parameterID]->Set(activeEffect->GetParameter(parameterID));
                             
                             // Change the main menu to be the name of the value the Knob is changing
-                            mainMenuItems[0].text = activeEffect->GetParameterName(parameterID);
+                            if (!activeEffectSettingsMenu.IsActive())
+                            {
+                                // Open the page to the settings menu and proper parameter
+                                ui.OpenPage(activeEffectSettingsMenu);
+                                activeEffectSettingsMenu.SelectItem(parameterID);
+                                needToCloseActiveEffectSettingsMenu = true;
+                            }
+                            else
+                            {
+                                // If we were already on the param menu and we didn't open it, make sure we store the param index so we can return to it
+                                if (paramIdToReturnTo == -1 && !needToCloseActiveEffectSettingsMenu)
+                                {
+                                    paramIdToReturnTo = activeEffectSettingsMenu.GetSelectedItemIdx();
+                                }
+
+                                // Change the menu to the proper parameter we are changing
+                                activeEffectSettingsMenu.SelectItem(parameterID);
+                            }
                         }
                     }
                 }
@@ -850,10 +869,22 @@ int main(void)
         
         if (hardware.SupportsDisplay())
         {
-            // If no knobs are moving make sure the main menu is set to the Effect Name.
+            // If no knobs are moving retun to the prior menu if needed.
             if (!isKnobValueChanging)
             {
-                mainMenuItems[0].text = activeEffect->GetName();
+                // Close the menu if we opened it
+                if (needToCloseActiveEffectSettingsMenu)
+                {
+                    ui.ClosePage(activeEffectSettingsMenu);
+                    needToCloseActiveEffectSettingsMenu = false;
+                }
+
+                // If we were already on param menu return to the item we had selected before.
+                if (paramIdToReturnTo != -1)
+                {
+                    activeEffectSettingsMenu.SelectItem(paramIdToReturnTo);
+                    paramIdToReturnTo = -1;
+                }
             }
 
             // Handle a Change in the Active Effect & Effect Parameters from the Menu System
@@ -889,6 +920,7 @@ int main(void)
             if (secondsSinceLastActiveEffectSettingsSave > 2.0f)
             {
                 displayingSaveSettingsNotification = false;
+                mainMenuItems[0].text = activeEffect->GetName();
             }
         }
         
