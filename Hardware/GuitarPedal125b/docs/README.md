@@ -62,7 +62,10 @@ JLCPCB will order and assemble most of the parts for this project.  There are a 
 3. 1 Rotary Encoder. This is the one I used [PEC11R-4215K-S24](https://www.mouser.com/ProductDetail/652-PEC11R-4215K-S24)
 4. 1 OLED Screen. This is the one I used from [Amazon](https://www.amazon.com/dp/B01MQPQF24)
 5. 2 Leds (3mm Any Color). These are the one I used from [Amazon](https://www.amazon.com/dp/B07QXR5MZB)
-7. 2 Footswitches. These are the ones I used from [Amazon](https://www.amazon.com/dp/B08TBTWDYV)
+6. 2 Footswitches. These are the ones I used from [Amazon](https://www.amazon.com/dp/B08TBTWDYV)
+7. 6 Knobs for the POTS.  These are the ones I used from [LoveMySwitches](https://lovemyswitches.com/anodized-aluminum-knob-the-magpie-1-4-smooth-shaft-12-5mm-od/)
+8. 1 Knob for the Rotary Encoder. This is what I used from [Amazon](https://www.amazon.com/gp/product/B0829WGW42)
+9. 2 Led Holders (for the enclosure). These are the ones I used from [Amazon](https://www.amazon.com/gp/product/B083Q9QMN4)  
 
 ## 4. Order the Assembled PCBs from JLCPCB
 
@@ -128,14 +131,16 @@ They will give you a price for ordering 5 assembled pcbs (that's their minimum o
 
 ## 5. Solder Everything
 
-As mentioned above, JLCPCB will not have assembled all the parts.  Primarily the pots, encoders, LEDs, Foot Switches, and screen will still need to be assembled by hand.  
+As mentioned above, JLCPCB will not have assembled all the parts.  Primarily the pots, encoders, LEDs, Foot Switches, and screen will still need to be assembled by hand.
+
+Please note the Pots need to be electically isolated from some of the soldered pins that stick out on the PCB where some of them go.  My solution was to stick some of this double sided foam tape from [Amazon](https://www.amazon.com/gp/product/B0948VDFPY) under each Pot between the pot in the PCB to avoid anything from shorting out.  This is definitely needed!
 
 Make sure to solder them in the following order (everything goes on the side without the SMD parts, except the 20-pin headers):
 
-1. Pots 1 - 3
+1. Pots 1 - 3 (Please note these require special care as mentioned above)
 2. Rotary Encoder
 3. Both 20pin Headers (make sure this goes on the side with all the SMD parts!)
-4. Pots 4 - 6
+4. Pots 4 - 6 (Please note these require special care as mentioned above)
 5. OLED Screen
 6. 2 Leds
 7. 2 Footswitches
