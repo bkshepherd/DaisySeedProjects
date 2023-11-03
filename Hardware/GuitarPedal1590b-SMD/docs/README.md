@@ -1,5 +1,5 @@
 # Building the Hardware
-Some quick instructions for how to make the GuitarPedal125B Hardware.  This document assumes you know the basics about soldering and circuit board assembly.  You'll also need to be fairly handy with a drill to mount the various knobs and switches on the enclosure (or you can order one pre-made from Tayda).
+Some quick instructions for how to make the GuitarPedal1590B SMD Hardware.  This document assumes you know the basics about soldering and circuit board assembly.  You'll also need to be fairly handy with a drill to mount the various knobs and switches on the enclosure (or you can order one pre-made from Tayda).
 
 Quick note, I couldn't include some of the custom footprints for specific components due to licenses that wouldn't allow redistribution.  Here is a list of where you can find some of them:
 
@@ -22,14 +22,14 @@ Follow these steps to get the PCB made by JLCPCB:
 
 ## 1. Generate the Gerber & Drill Files
 
-The first step is to use KiCad to export the Gerber & Drill files for production like this: [JLCPCB Gerber and Drill File Generation](https://jlcpcb.com/help/article/16-How-to-generate-Gerber-and-Drill-files-in-KiCad-6). You can also skip this part and simply use the ready-made [JLCPCB Gerber Files](../pcb/JLCPCB-Gerbers/DaisySeedPedal125b-Rev5-gerbers.zip) for this project. (Keep the files zipped)
+The first step is to use KiCad to export the Gerber & Drill files for production like this: [JLCPCB Gerber and Drill File Generation](https://jlcpcb.com/help/article/16-How-to-generate-Gerber-and-Drill-files-in-KiCad-6). You can also skip this part and simply use the ready-made [JLCPCB Gerber Files](../pcb/JLCPCB-Gerbers/DaisySeedPedal1590b-SMD-Rev2-gerbers.zip) for this project. (Keep the files zipped)
 
 ## 2. Generate BOM and Centroid Files
 
 To use SMT Assemble service from JLCPCB, which you will want to do, the BOM and centroid files need to be generated as well. [Follow these instructions provided by JLCPCB](https://jlcpcb.com/help/article/81-How-to-generate-the-BOM-and-Centroid-file-from-KiCAD). You can also skip this part and simply use the ready-made files for this project:
 
-1. [JLCPCB BOM](../pcb/BOM_JLCSMT_DaisySeedGuitarPedal125b.xlsx)
-2. [JLCPCB Centroid](../pcb/JLCPCB-Gerbers/DaisySeedPedal125b-top-pos.csv)
+1. [JLCPCB BOM](../pcb/BOM_JLCSMT_DaisySeedGuitarPedal1590b-SMD.xlsx)
+2. [JLCPCB Centroid](../pcb/JLCPCB-Gerbers/DaisySeedPedal1590b-SMD-top-pos.csv)
 
 ## 3. Pre-Order Parts
 
@@ -58,14 +58,11 @@ Please note, that it typically takes a week or two to get the parts ordered and 
 JLCPCB will order and assemble most of the parts for this project.  There are a few parts that you will need to order yourself and solder at the end.  Here is a list of the additional parts to order:
 
 1. 2 Headers 20-Pin Single Row for the Daisy Seed. I used these from [Amazon](https://www.amazon.com/dp/B09MYBZZKZ)
-2. 6 Pots. These are the ones I used [PRS11R-415F-N103B1](https://www.newark.com/bourns/prs11r-415f-n103b1/rotary-potentiometer-10kohm-0/dp/65AH0672). Also make sure to use some non-conductive double sided tape under them to prevent any contact with the circuit board.
-3. 1 Rotary Encoder. This is the one I used [PEC11R-4215K-S24](https://www.mouser.com/ProductDetail/652-PEC11R-4215K-S24)
-4. 1 OLED Screen. This is the one I used from [Amazon](https://www.amazon.com/dp/B01MQPQF24)
-5. 2 Leds (3mm Any Color). These are the one I used from [Amazon](https://www.amazon.com/dp/B07QXR5MZB)
-6. 2 Footswitches. These are the ones I used from [Amazon](https://www.amazon.com/dp/B08TBTWDYV)
-7. 6 Knobs for the POTS.  These are the ones I used from [LoveMySwitches](https://lovemyswitches.com/anodized-aluminum-knob-the-magpie-1-4-smooth-shaft-12-5mm-od/)
-8. 1 Knob for the Rotary Encoder. This is what I used from [Amazon](https://www.amazon.com/gp/product/B0829WGW42)
-9. 2 Led Holders (for the enclosure). These are the ones I used from [Amazon](https://www.amazon.com/gp/product/B083Q9QMN4)  
+2. 4 Pots. These are the ones I used [Tayda B10k](https://www.taydaelectronics.com/tayda-10k-ohm-linear-taper-potentiometer-spline-shaft-pcb-mount-rv16196.html)
+3. 4 Knobs for the POTS.  These are the ones I used in various colors from [Tayda](https://www.taydaelectronics.com/knurled-aluminum-yellow-knob-2845.html)
+4. 2 Leds (3mm Any Color). These are the one I used from [Amazon](https://www.amazon.com/dp/B07QXR5MZB)
+5. 2 Led Holders (for the enclosure). These are the ones I used from [Amazon](https://www.amazon.com/gp/product/B083Q9QMN4)  
+6. 1 or 2 Footswitches. These are the ones I used from [Amazon](https://www.amazon.com/dp/B08TBTWDYV)
 
 ## 4. Order the Assembled PCBs from JLCPCB
 
@@ -96,13 +93,13 @@ Click Next.
 
 ![PCB Assembly Options](images/JLCPCB-AssemblyBOMCentroid.png)
 
-11. Click Add BOM and upload the BOM file. Either the one you generated or the one you downloaded above [JLCPCB BOM](../pcb/BOM_JLCSMT_DaisySeedGuitarPedal125b.xlsx).
-12. Click Add CPL and upload the Centroid file. Either the one you generated or the one you downloaded above [JLCPCB Centroid](../pcb/JLCPCB-Gerbers/DaisySeedPedal125b-top-pos.csv). 
+11. Click Add BOM and upload the BOM file. Either the one you generated or the one you downloaded above [JLCPCB BOM](../pcb/BOM_JLCSMT_DaisySeedGuitarPedal1590b-SMD.xlsx).
+12. Click Add CPL and upload the Centroid file. Either the one you generated or the one you downloaded above [JLCPCB Centroid](../pcb/JLCPCB-Gerbers/DaisySeedPedal1590b-SMD-top-pos.csv). 
 13. After the files are uploaded click Process BOM and CPL.
 
 ![PCB Assembly Options](images/JLCPCB-AssemblyProcessBOMCentroid.png)
 
-14. This page asks you to confirm the parts.  You should see at the top 28 Parts Detected and 28 Parts Confirmed.
+14. This page asks you to confirm the parts.  You should see at the top 26 Parts Detected and 26 Parts Confirmed.
 
 ![PCB Assembly Options](images/JLCPCB-AssemblyBOMCentroidConfirm.png)
 
@@ -131,19 +128,14 @@ They will give you a price for ordering 5 assembled pcbs (that's their minimum o
 
 ## 5. Solder Everything
 
-As mentioned above, JLCPCB will not have assembled all the parts.  Primarily the pots, encoders, LEDs, Foot Switches, and screen will still need to be assembled by hand.
+As mentioned above, JLCPCB will not have assembled all the parts.  Primarily the pots, LEDs, and Foot Switches, will still need to be assembled by hand.  
 
-Please note the Pots need to be electrically isolated from some of the soldered pins that stick out on the PCB where some of them go.  My solution was to stick some of this double sided foam tape from [Amazon](https://www.amazon.com/gp/product/B0948VDFPY) under each Pot between the pot in the PCB to avoid anything from shorting out.  This is definitely needed!
+Make sure to solder them in the following order (everything goes on the side with the SMD parts:
 
-Make sure to solder them in the following order (everything goes on the side without the SMD parts, except the 20-pin headers):
-
-1. Pots 1 - 3 (Please note these require special care as mentioned above)
-2. Rotary Encoder
-3. Both 20pin Headers (make sure this goes on the side with all the SMD parts!)
-4. Pots 4 - 6 (Please note these require special care as mentioned above)
-5. OLED Screen
-6. 2 Leds
-7. 2 Footswitches
+1. Both 20pin Headers (make sure this goes on the side with all the SMD parts!)
+2. Pots 1 - 4
+3. 2 Leds
+4. 1 or 2 Footswitches
    
 It will roughly look like this when finished with this step:
 
@@ -159,9 +151,9 @@ You'll need to compile the code and flash it into the Daisy Seed on the hardware
 
 ## 7. Order the Enclosure
 
-You'll also need to order the enclosure, which is 125B sized.
+You'll also need to order the enclosure, which is 1590B sized.
 
-You can either order a generic one like this from Amazon and drill your own holes (which is a pain in the butt), or you can order a custom drilled & powder coated enclosure from Tayda using this [Custom Drill Template](https://drill.taydakits.com/box-designs/new?public_key=ZXRnaU9PaWx0b1hNa3VxeTJua3d2dz09Cg==)
+You can either order a generic one from Amazon or Tayra and drill your own holes (which is a pain in the butt), or you can order a custom drilled & powder coated enclosure from Tayda using this [Custom Drill Template](https://drill.taydakits.com/box-designs/new?public_key=YWRhVFFGU0Z2c3RJR09VQ1U4S3EvUT09Cg==)
 
 ## 8. Jam everything into the enclosure, and ENJOY!
 
