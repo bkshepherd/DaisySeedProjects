@@ -144,6 +144,7 @@ Make sure to solder them in the following order (everything goes on the side wit
    
 It will roughly look like this when finished with this step:
 
+(PICs Coming Soon)
 ![CircuitBoard](images/CircuitBoard-Front.png)
 
 ![CircuitBoard](images/CircuitBoard-Back.png)
