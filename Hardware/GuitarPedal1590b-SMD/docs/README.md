@@ -1,4 +1,7 @@
 # Building the Hardware
+
+* Note - This document is being updated still, most of the images and instructions are from the 125B sized petal.  The process is basically the same.  Will hopefully update the instructions soon.
+
 Some quick instructions for how to make the GuitarPedal1590B SMD Hardware.  This document assumes you know the basics about soldering and circuit board assembly.  You'll also need to be fairly handy with a drill to mount the various knobs and switches on the enclosure (or you can order one pre-made from Tayda).
 
 Quick note, I couldn't include some of the custom footprints for specific components due to licenses that wouldn't allow redistribution.  Here is a list of where you can find some of them:
