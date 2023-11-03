@@ -10,7 +10,7 @@ Updates include:
 
 A project to create a digital effect pedal based on the Electro-Smith Daisy Seed that fits into a standard 1590B sized Guitar Pedal enclosure. Electro-Smith sells a guitar pedal, but it's a much larger format, and I wanted something as small as possible.  The PedalPCB Terrarium was another option, but it's mono only, so I decided to build my own. This one is a smaller form factor than both, operates in Mono or Stereo, and has Midi support, so it's capable little pedal platform.
 
-This project is the SMD parts version of my 1590b pedal. The majority of all parts can be pre-assembled on the PCB by a fab like JLCPCB.  If you'd prefer a design where all parts are through-hole components, please check out the through-hole version of this project [Guitar Pedal 1590 project](../GuitarPedal1590b/README.md).
+This project is the SMD parts version of my 1590b pedal. Features are the same as the Through-Hole version with the addition of "True Bypass". The majority of all parts can be pre-assembled on the PCB by a fab like JLCPCB. If you'd prefer a design where all parts are through-hole components, please check out the through-hole version of this project [Guitar Pedal 1590 project](../GuitarPedal1590b/README.md).
 
 ![FinalProduct](docs/images/FinalProduct.png) ![Backside](docs/images/Alive.png)
 
