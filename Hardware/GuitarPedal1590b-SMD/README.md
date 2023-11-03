@@ -12,7 +12,7 @@ A project to create a digital effect pedal based on the Electro-Smith Daisy Seed
 
 This project is the SMD parts version of my 1590b pedal. The majority of all parts can be pre-assembled on the PCB by a fab like JLCPCB.  If you'd prefer a design where all parts are through-hole components, please check out the through-hole version of this project [Guitar Pedal 1590 project](../GuitarPedal1590b/README.md).
 
-![FinalProduct](docs/images/FinalProduct.png) ![Backside](docs/images/Backside.png)
+![FinalProduct](docs/images/FinalProduct.png) ![Backside](docs/images/Alive.png)
 
 ![CircuitBoard](docs/images/CircuitBoard.png) ![PCBs](docs/images/PCBs.png)
 
