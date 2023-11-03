@@ -1,7 +1,5 @@
 # Building the Hardware
 
-* Note - This document is being updated still, most of the images and instructions are from the 125B sized petal.  The process is basically the same.  Will hopefully update the instructions soon.
-
 Some quick instructions for how to make the GuitarPedal1590B SMD Hardware.  This document assumes you know the basics about soldering and circuit board assembly.  You'll also need to be fairly handy with a drill to mount the various knobs and switches on the enclosure (or you can order one pre-made from Tayda).
 
 Quick note, I couldn't include some of the custom footprints for specific components due to licenses that wouldn't allow redistribution.  Here is a list of where you can find some of them:
@@ -102,17 +100,21 @@ Click Next.
 
 ![PCB Assembly Options](images/JLCPCB-AssemblyProcessBOMCentroid.png)
 
-14. This page asks you to confirm the parts.  You should see at the top 26 Parts Detected and 26 Parts Confirmed.
+14. There is a popup letting you know some parts are not in the BOM. That's ok. Press Continue.
+
+![PCB Assembly Options](images/JLCPCB-AssemblyProcessBOMCentroid-Error.png)
+
+15. This page asks you to confirm the parts.  You should see at the top 26 Parts Detected and 26 Parts Confirmed. (My screenshot shows 25 confirmed because I don't have enough of one of the parts in my library at the moment).
 
 ![PCB Assembly Options](images/JLCPCB-AssemblyBOMCentroidConfirm.png)
 
 If it tells you any parts are missing, you may need to substitute. For instance, the parts you ordered from global parts sourcing may have ended up with a different JLCPCB Part number than the ones in the supplied files.  If that is the case you can click on the part in the list and search for the proper part and replace it.  Repeat this process until all parts are accounted for.
-15. Click Next.
-16. This next page allows you to view the placement of the Components.  Notice that a few of the parts of not placed or rotated properly. (this is due to differences in KiCad's footprint library and JLCPCB's library).
+16. Click Next.
+17. This next page allows you to view the placement of the Components.  Notice that a few of the parts of not placed or rotated properly. (this is due to differences in KiCad's footprint library and JLCPCB's library).
 
 ![PCB Assembly Options](images/JLCPCB-AssemblyPlacement.png)
 
-17. You will have to manually fix them in this viewer.
+18. You will have to manually fix them in this viewer.
 
 Simply click each part that is not properly placed, and use the buttons to rotate and move them until they are in place. The parts that need fixing are J1,J4,J5,U1,U3,U4,U5,U7,U8,K1,K2,Q1.
 
@@ -120,8 +122,8 @@ It should look like this when fixed.
 
 ![PCB Assembly Options](images/JLCPCB-AssemblyPlacementFixed.png)
 
-18. Click Next.
-19. Add the item to your cart, and order the PCB.
+19. Click Next.
+20. Add the item to your cart, and order the PCB.
 
 ![PCB Assembly Options](images/JLCPCB-AssemblyAddToCart.png)
 
