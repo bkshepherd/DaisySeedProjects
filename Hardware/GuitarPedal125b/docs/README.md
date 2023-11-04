@@ -35,10 +35,10 @@ To use SMT Assemble service from JLCPCB, which you will want to do, the BOM and 
 
 There are a few parts that JLCPCB doesn't stock normally.  You can either pre-order these parts through JLCPCB through their Global Sourcing Service so they can be assembled for you (recommended) of you can order the parts yourself and solder them yourself (advanced).
 
-The main parts they don't stock are:
+The main parts they don't typically stock are:
 
 1. PDS1-S5-S5-M (JLCPCB Part #C5377809)
-2. CPC1018N (JLCPCB Part #C1558973), or as a substitute CPC1019N (JLCPCB Part #C2760117)
+2. CPC1018 This one is usually stocked these days. Probably good to double check though. (JLCPCB Part #C133069 or #C1558973), or as a substitute CPC1019 (JLCPCB Part #C1854946 or #C2760117) And of those work fine.
 
 To order these parts through JLCPCB follow these instructions:
 
