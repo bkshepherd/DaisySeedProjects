@@ -1,4 +1,4 @@
-# Ordering Hardware
+# Ordering Hardware from me
 I'm not really in the business of selling kits or finished pedals, however, sometimes I do end up with extra PCBs since the minimum order from JLCPCB is 5 that I'm willing to sell to folks at cost.  If you are interested, please message me through GitHub or you can find me on the Electro-Smith [Forums](https://forum.electro-smith.com/t/my-daisy-guitar-pedal-designs-on-github/3641) & [Discord](https://discord.gg/ByHBnMtQTR) as Kshep and can message me there.
 
 ## Option 1 - PCB Only
