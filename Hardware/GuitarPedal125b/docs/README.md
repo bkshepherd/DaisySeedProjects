@@ -139,13 +139,12 @@ Please note the Pots need to be electrically isolated from some of the soldered 
 
 Make sure to solder them in the following order (everything goes on the side without the SMD parts, except the 20-pin headers):
 
-1. Pots 1 - 3 (Please note these require special care as mentioned above)
-2. Rotary Encoder
-3. Both 20pin Headers (make sure this goes on the side with all the SMD parts!)
-4. Pots 4 - 6 (Please note these require special care as mentioned above)
-5. OLED Screen
-6. 2 Leds
-7. 2 Footswitches
+1. Both 20pin Headers (make sure this goes on the side with all the SMD parts!)
+2. Pots 1 - 6 (Please note these require special care as mentioned above)
+3. Rotary Encoder
+4. OLED Screen
+5. 2 Leds (Short pin goes to the square pad)
+6. 2 Footswitches
    
 It will roughly look like this when finished with this step:
 
