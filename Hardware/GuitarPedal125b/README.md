@@ -38,6 +38,8 @@ This project is an evolution of my [1590B sized Pedal](https://github.com/bkshep
 
 This project includes a KiCad project with the necessary schematics and PCB layout files to create everything you need to build the hardware. The included exported Gerber and Assembly files make it easy to order PCBs from JCLPCB. Detailed instructions can be found on the [Build the Hardware](docs/README.md) page. This requires no knowledge of KiCad to get the PCBs made.
 
+I do sometimes have extra parts lying around and might be willing to sell you a kit.  Check the [Ordering Hardware from me](docs/OrderingHardware.md) page for more details.
+
 Once you've built the hardware you can deploy the software from my Multi-Effect Guitar Pedal software project by following these directions: [Deploy the Software to the Hardware](../../Software/GuitarPedal/README.md)
 
 This software provides a hardware abstraction layer as well as a few custom FX including Tremolo, Chorus, Overdrive, and Stereo Auto-Pan.
