@@ -58,7 +58,7 @@ Please note, that it typically takes a week or two to get the parts ordered and 
 JLCPCB will order and assemble most of the parts for this project.  There are a few parts that you will need to order yourself and solder at the end.  Here is a list of the additional parts to order:
 
 1. 2 Headers 20-Pin Single Row for the Daisy Seed. I used these from [Amazon](https://www.amazon.com/dp/B09MYBZZKZ)
-2. 6 Pots. These are the ones I used [PRS11R-415F-N103B1](https://www.newark.com/bourns/prs11r-415f-n103b1/rotary-potentiometer-10kohm-0/dp/65AH0672). Also make sure to use some non-conductive double sided tape under them to prevent any contact with the circuit board.
+2. 6 Pots. These are the ones I used [PRS11R-415F-N103B1](https://www.newark.com/bourns/prs11r-415f-n103b1/rotary-potentiometer-10kohm-0/dp/65AH0672).
 3. 1 Rotary Encoder. This is the one I used [PEC11R-4215K-S24](https://www.mouser.com/ProductDetail/652-PEC11R-4215K-S24)
 4. 1 OLED Screen. This is the one I used from [Amazon](https://www.amazon.com/dp/B01MQPQF24)
 5. 2 Leds (3mm Any Color). These are the one I used from [Amazon](https://www.amazon.com/dp/B07QXR5MZB)
@@ -133,19 +133,19 @@ They will give you a price for ordering 5 assembled pcbs (that's their minimum o
 
 As mentioned above, JLCPCB will not have assembled all the parts.  Primarily the pots, encoders, LEDs, Foot Switches, and screen will still need to be assembled by hand.
 
-Please note the Pots need to be electrically isolated from some of the soldered pins that stick out on the PCB where some of them go.  My solution was to stick some of this double sided foam tape from [Amazon](https://www.amazon.com/gp/product/B0948VDFPY) under each Pot between the pot in the PCB to avoid anything from shorting out.  This is definitely needed!  As you can see in the following image, I just cut the tape, stick it on the bottom and then attach the Pot to the PCB. It creates a little separate from the soldered pins.
-
-![Pot Prep](images/PotPrep.png)
-
 Make sure to solder them in the following order (everything goes on the side without the SMD parts, except the 20-pin headers):
 
 1. Both 20pin Headers (make sure this goes on the side with all the SMD parts!)
-2. Pots 1 - 6 (Please note these require special care as mentioned above)
+2. Pots 1 - 6 (Please note these require special care as mentioned below)
 3. Rotary Encoder
 4. OLED Screen
 5. 2 Leds (Short pin goes to the square pad)
 6. 2 Footswitches
    
+* PLEASE NOTE - the Pots need to be electrically isolated from some of the soldered pins that stick out on the PCB where some of them go.  My solution was to stick some of this double sided foam tape from [Amazon](https://www.amazon.com/gp/product/B0948VDFPY) under each Pot between the pot in the PCB to avoid anything from shorting out.  This is definitely needed!  As you can see in the following image, I just cut the tape, stick it on the bottom and then attach the Pot to the PCB. It creates a little separate from the soldered pins.
+
+![Pot Prep](images/PotPrep.png)
+
 It will roughly look like this when finished with this step:
 
 ![CircuitBoard](images/CircuitBoard-Front.png)
