@@ -1,14 +1,12 @@
 # Getting Started
 This directory includes all the source code for my Multi-Effect Guitar Pedal that runs on various hardware platforms. 
 
-### SW Updates - 10/9/2023
+### Recent Updates:
 
-Software updates include:
-1. Added support for multiple effects.  Included are a simple tremolo, chorus, overdrive, and stereo auto-panning effects.
-2. Created a Hardware Abstraction Layer allowing this software to run on different Daisy seed based hardware targets including my custom hardware as well as the Pedal PCB Terrarium.
-3. Updated the menu system to support multiple effects each with their own settings and global hardware settings. Parameters can be updated directly through the menu UI or using the pots on the device.
-4. All settings / parameters are now saved to the device memory and restored when the device powers up.
-5. Added Midi support to make it simply to map effect parameters to Midi CC commands for controlling presets via midi.
+## 11/11/2023
+
+1. Refactored the code to move Display UI handling and Persistent Storage out of the main class file.
+2. Added functionality to make it easy for an Effect Module to provide custom UI for the Display while the Effect is Active.
 
 Before you can use the software you'll need to do the following:
 
@@ -56,3 +54,13 @@ Next you have to get the code onto your daisy seed based Guitar Pedal hardware u
 Plug your guitar into the Input and connect the Output to your amp.
 
 ## 6. Enjoy!!!
+
+### Past Updates:
+
+## 10/9/2023
+
+1. Added support for multiple effects.  Included are a simple tremolo, chorus, overdrive, and stereo auto-panning effects.
+2. Created a Hardware Abstraction Layer allowing this software to run on different Daisy seed based hardware targets including my custom hardware as well as the Pedal PCB Terrarium.
+3. Updated the menu system to support multiple effects each with their own settings and global hardware settings. Parameters can be updated directly through the menu UI or using the pots on the device.
+4. All settings / parameters are now saved to the device memory and restored when the device powers up.
+5. Added Midi support to make it simply to map effect parameters to Midi CC commands for controlling presets via midi.
