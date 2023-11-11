@@ -133,7 +133,9 @@ They will give you a price for ordering 5 assembled pcbs (that's their minimum o
 
 As mentioned above, JLCPCB will not have assembled all the parts.  Primarily the pots, encoders, LEDs, Foot Switches, and screen will still need to be assembled by hand.
 
-Please note the Pots need to be electrically isolated from some of the soldered pins that stick out on the PCB where some of them go.  My solution was to stick some of this double sided foam tape from [Amazon](https://www.amazon.com/gp/product/B0948VDFPY) under each Pot between the pot in the PCB to avoid anything from shorting out.  This is definitely needed!
+Please note the Pots need to be electrically isolated from some of the soldered pins that stick out on the PCB where some of them go.  My solution was to stick some of this double sided foam tape from [Amazon](https://www.amazon.com/gp/product/B0948VDFPY) under each Pot between the pot in the PCB to avoid anything from shorting out.  This is definitely needed!  As you can see in the following image, I just cut the tape, stick it on the bottom and then attach the Pot to the PCB. It creates a little separate from the soldered pins.
+
+![Pot Prep](images/PotPrep.png)
 
 Make sure to solder them in the following order (everything goes on the side without the SMD parts, except the 20-pin headers):
 
