@@ -4,9 +4,8 @@ I'm not really in the business of selling kits or finished pedals, however, some
 #Ordering Options:
 
 ## 1) PCB Only
+Price: $35 (USD) + Shipping & Handling
 
-* Price: $35 (USD) + shipping & handling
-
-About as bare bones as you can get.  It's the PCB with all the SMD components soldered on.  You'll need to source the additional parts, solder them on, get an enclosure and knobs, and assemble everything your self.  You'd basically be starting at [Step 5: Build the Hardware](README.md#5-order-the-additional-parts-jlcpcb-doesnt-assemble)
+About as bare bones as you can get. It's just the PCB with all the SMD components soldered on.  You'll need to source the additional parts, solder them on, get an enclosure and knobs, and assemble everything your self. You'll basically be starting at [Step 5: Build the Hardware](README.md#5-order-the-additional-parts-jlcpcb-doesnt-assemble)
 
 ![PCBs](images/PCBs.png)

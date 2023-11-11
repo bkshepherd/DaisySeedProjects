@@ -129,6 +129,7 @@ Here is a list of the additional parts to order for the PCB:
 4. 1 OLED Screen. This is the one I used from [Amazon](https://www.amazon.com/dp/B01MQPQF24)
 5. 2 Leds (3mm Any Color). These are the one I used from [Amazon](https://www.amazon.com/dp/B07QXR5MZB)
 6. 2 Footswitches. These are the ones I used from [Amazon](https://www.amazon.com/dp/B08TBTWDYV)
+7. Daisy Seed. You will need a Daisy Seed from [Electro-Smith](https://www.electro-smith.com/daisy/daisy)
 
 ## 6. Finish the PCB (Solder Everything!)
 
@@ -165,11 +166,13 @@ Additional External Hardware:
 2. 1 Knob for the Rotary Encoder. This is what I used from [Amazon](https://www.amazon.com/gp/product/B0829WGW42)
 3. 2 Led Holders (for the enclosure). These are the ones I used from [Amazon](https://www.amazon.com/gp/product/B083Q9QMN4)
 
-## 8. Flash the Software to the Hardware
+## 8. Flash the Software to the Daisy Seed on the Hardware
 
 Before you attempt to get everything fitted into the enclosure, it's best to make sure all the hardware works.
 
-You'll need to compile the code and flash it into the Daisy Seed on the hardware. Instructions can be found [here](../../../Software/GuitarPedal/README.md).
+Install the Daisy Seed into the headers on the PCB.
+
+You'll then need to compile the code and flash it into the Daisy Seed on the hardware. Instructions can be found [here](../../../Software/GuitarPedal/README.md).
 
 ## 9. Jam everything into the enclosure, and ENJOY!
 
