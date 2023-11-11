@@ -1,9 +1,8 @@
 # Getting Started
 This directory includes all the source code for my Multi-Effect Guitar Pedal that runs on various hardware platforms. 
 
-### Recent Updates:
-
-## 11/11/2023
+### Software Update - 11/11/2023
+Updates include:
 
 1. Refactored the code to move Display UI handling and Persistent Storage out of the main class file.
 2. Added functionality to make it easy for an Effect Module to provide custom UI for the Display while the Effect is Active.
@@ -57,7 +56,8 @@ Plug your guitar into the Input and connect the Output to your amp.
 
 ### Past Updates:
 
-## 10/9/2023
+## Software Update - 10/9/2023
+Updates Include:
 
 1. Added support for multiple effects.  Included are a simple tremolo, chorus, overdrive, and stereo auto-panning effects.
 2. Created a Hardware Abstraction Layer allowing this software to run on different Daisy seed based hardware targets including my custom hardware as well as the Pedal PCB Terrarium.
