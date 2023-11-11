@@ -31,7 +31,7 @@ To use SMT Assemble service from JLCPCB, which you will want to do, the BOM and 
 1. [JLCPCB BOM](../pcb/BOM_JLCSMT_DaisySeedGuitarPedal125b.xlsx)
 2. [JLCPCB Centroid](../pcb/JLCPCB-Gerbers/DaisySeedPedal125b-top-pos.csv)
 
-## 3. Pre-Order Parts
+## 3. Pre-Order Parts for JLCPCB
 
 There are a few parts that JLCPCB doesn't stock normally.  You can either pre-order these parts through JLCPCB through their Global Sourcing Service so they can be assembled for you (recommended) of you can order the parts yourself and solder them yourself (advanced).
 
@@ -54,18 +54,6 @@ To order these parts through JLCPCB follow these instructions:
 7. Repeat this process for both parts. 
 
 Please note, that it typically takes a week or two to get the parts ordered and into your parts library for use.  So I like to order these parts in batches enough to place a few orders. 
- 
-JLCPCB will order and assemble most of the parts for this project.  There are a few parts that you will need to order yourself and solder at the end.  Here is a list of the additional parts to order:
-
-1. 2 Headers 20-Pin Single Row for the Daisy Seed. I used these from [Amazon](https://www.amazon.com/dp/B09MYBZZKZ)
-2. 6 Pots. These are the ones I used [PRS11R-415F-N103B1](https://www.newark.com/bourns/prs11r-415f-n103b1/rotary-potentiometer-10kohm-0/dp/65AH0672).
-3. 1 Rotary Encoder. This is the one I used [PEC11R-4215K-S24](https://www.mouser.com/ProductDetail/652-PEC11R-4215K-S24)
-4. 1 OLED Screen. This is the one I used from [Amazon](https://www.amazon.com/dp/B01MQPQF24)
-5. 2 Leds (3mm Any Color). These are the one I used from [Amazon](https://www.amazon.com/dp/B07QXR5MZB)
-6. 2 Footswitches. These are the ones I used from [Amazon](https://www.amazon.com/dp/B08TBTWDYV)
-7. 6 Knobs for the POTS.  These are the ones I used from [LoveMySwitches](https://lovemyswitches.com/anodized-aluminum-knob-the-magpie-1-4-smooth-shaft-12-5mm-od/)
-8. 1 Knob for the Rotary Encoder. This is what I used from [Amazon](https://www.amazon.com/gp/product/B0829WGW42)
-9. 2 Led Holders (for the enclosure). These are the ones I used from [Amazon](https://www.amazon.com/gp/product/B083Q9QMN4)  
 
 ## 4. Order the Assembled PCBs from JLCPCB
 
@@ -125,13 +113,26 @@ It should look like this when fixed.
 
 ![PCB Assembly Options](images/JLCPCB-AssemblyAddToCart.png)
 
-They will give you a price for ordering 5 assembled pcbs (that's their minimum order).  I think I paid ~$150 to have the PCB manufactured, assembled, and shipped to my door. Keep an eye on your email to confirm the order at the various steps. It will take a week or two for it arrive and they look like this:
+They will give you a price for ordering 5 assembled pcbs (that's their minimum order).  I think I paid ~$175 to have the PCB manufactured, assembled with additional parts we ordered, and shipped to my door. Keep an eye on your email to confirm the order at the various steps. It will take a week or two for it arrive and they look like this:
 
 ![PCBs](images/PCBs.png)
 
-## 5. Solder Everything
+## 5. Order the Additional Parts JLCPCB doesn't Assemble
 
-As mentioned above, JLCPCB will not have assembled all the parts.  Primarily the pots, encoders, LEDs, Foot Switches, and screen will still need to be assembled by hand.
+There are a few parts that you will need to order yourself and solder on the PCBs after you recieve them from JLCPCB.
+
+Here is a list of the additional parts to order for the PCB:
+
+1. 2 Headers 20-Pin Single Row for the Daisy Seed. I used these from [Amazon](https://www.amazon.com/dp/B09MYBZZKZ)
+2. 6 Pots. These are the ones I used [PRS11R-415F-N103B1](https://www.newark.com/bourns/prs11r-415f-n103b1/rotary-potentiometer-10kohm-0/dp/65AH0672).
+3. 1 Rotary Encoder. This is the one I used [PEC11R-4215K-S24](https://www.mouser.com/ProductDetail/652-PEC11R-4215K-S24)
+4. 1 OLED Screen. This is the one I used from [Amazon](https://www.amazon.com/dp/B01MQPQF24)
+5. 2 Leds (3mm Any Color). These are the one I used from [Amazon](https://www.amazon.com/dp/B07QXR5MZB)
+6. 2 Footswitches. These are the ones I used from [Amazon](https://www.amazon.com/dp/B08TBTWDYV)
+
+## 6. Finish the PCB (Solder Everything!)
+
+Once you receive the PCB from JLCPCB and the extra parts you ordered separately (Headers, Pots, Encoder, Screen, LEDs, Foot Switches), you will need to solder everything to finish the PCB.
 
 Make sure to solder them in the following order (everything goes on the side without the SMD parts, except the 20-pin headers):
 
@@ -139,7 +140,7 @@ Make sure to solder them in the following order (everything goes on the side wit
 2. Pots 1 - 6 (Please note these require special care as mentioned below)
 3. Rotary Encoder
 4. OLED Screen
-5. 2 Leds (Short pin goes to the square pad)
+5. 2 Leds (You'll need to cut the legs short almost flush with the PCB, Short pin goes to the square pad)
 6. 2 Footswitches
    
 * PLEASE NOTE - the Pots need to be electrically isolated from some of the soldered pins that stick out on the PCB where some of them go.  My solution was to stick some of this double sided foam tape from [Amazon](https://www.amazon.com/gp/product/B0948VDFPY) under each Pot between the pot in the PCB to avoid anything from shorting out.  This is definitely needed!  As you can see in the following image, I just cut the tape, stick it on the bottom and then attach the Pot to the PCB. It creates a little separate from the soldered pins.
@@ -152,18 +153,26 @@ It will roughly look like this when finished with this step:
 
 ![CircuitBoard](images/CircuitBoard-Back.png)
 
-## 6. Flash the Software to the Hardware
+## 7. Order the Enclosure and External Hardware
+
+You'll also need to order an enclosure and the external hardware such as the knobs and the Led Holders.
+
+You can either order a generic 125B sized enclosure like these from [Tayda](https://www.taydaelectronics.com/hardware/enclosures/1590b-style-1.html) and drill your own holes (which is a pain in the butt), or you can order a custom drilled & powder coated enclosure from Tayda using this [Custom Drill Template](https://drill.taydakits.com/box-designs/new?public_key=ZXRnaU9PaWx0b1hNa3VxeTJua3d2dz09Cg==)
+
+Additional External Hardware:
+
+1 Knobs for the POTS.  These are the ones I used from [LoveMySwitches](https://lovemyswitches.com/anodized-aluminum-knob-the-magpie-1-4-smooth-shaft-12-5mm-od/)
+2. 1 Knob for the Rotary Encoder. This is what I used from [Amazon](https://www.amazon.com/gp/product/B0829WGW42)
+3. 2 Led Holders (for the enclosure). These are the ones I used from [Amazon](https://www.amazon.com/gp/product/B083Q9QMN4)
+
+## 8. Flash the Software to the Hardware
 
 Before you attempt to get everything fitted into the enclosure, it's best to make sure all the hardware works.
 
 You'll need to compile the code and flash it into the Daisy Seed on the hardware. Instructions can be found [here](../../../Software/GuitarPedal/README.md).
 
-## 7. Order the Enclosure
+## 9. Jam everything into the enclosure, and ENJOY!
 
-You'll also need to order the enclosure, which is 125B sized.
-
-You can either order a generic one like this from Amazon and drill your own holes (which is a pain in the butt), or you can order a custom drilled & powder coated enclosure from Tayda using this [Custom Drill Template](https://drill.taydakits.com/box-designs/new?public_key=ZXRnaU9PaWx0b1hNa3VxeTJua3d2dz09Cg==)
-
-## 8. Jam everything into the enclosure, and ENJOY!
+You'll want to use the LED Holders on on the enclosure and use the washers and nuts that came with the Pots and Encoder to secure them to the enclosure. 
 
 ![FinalProduct](images/FinalProduct.png)
