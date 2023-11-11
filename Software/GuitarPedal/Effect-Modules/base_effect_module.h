@@ -3,9 +3,12 @@
 #define BASE_EFFECT_MODULE_H
 
 #include <stdint.h>
+#include "daisy_seed.h"
 #ifdef __cplusplus
 
 /** @file base_effect_module.h */
+
+using namespace daisy;
 
 namespace bkshepherd
 {
@@ -106,6 +109,20 @@ class BaseEffectModule
      \return Value 0..1 for the intended LED brightness.
     */
     virtual float GetOutputLEDBrightness();
+
+    /** Handles updating the custom UI for this Effect.
+     * @param elapsedTime a float value of how much time (in seconds) has elapsed since the last update
+     */
+    virtual void UpdateUI(float elapsedTime);
+
+    /** Handles drawing the custom UI for this Effect.
+     * @param display           The display to draw to
+     * @param currentIndex      The index in the menu
+     * @param numItemsTotal     The total number of items in the menu
+     * @param boundsToDrawIn    The Rectangle to draw the item into
+     * @param isEditing         True if the enter button was pressed and the value is being edited directly.
+    */
+    virtual void DrawUI(OneBitGraphicsDisplay& display, int currentIndex, int numItemsTotal, Rectangle boundsToDrawIn, bool isEditing);
 
   protected:
     /** Initializes the Parameter Storage and creates space for the specified number of stored Effect Parameters

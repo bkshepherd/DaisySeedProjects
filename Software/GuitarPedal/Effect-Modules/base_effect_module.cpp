@@ -186,3 +186,54 @@ float BaseEffectModule::GetOutputLEDBrightness()
     return 1.0f;
 }
 
+void BaseEffectModule::UpdateUI(float elapsedTime)
+{
+
+}
+
+void BaseEffectModule::DrawUI(OneBitGraphicsDisplay& display, int currentIndex, int numItemsTotal, Rectangle boundsToDrawIn, bool isEditing)
+{
+    // By Default, the UI for an Effect Module is no different than it would be for the normal
+    // FullScreenItemMenu. A specific Effect Module is welcome to override this whole function
+    // to take over the full screen.
+
+    // Top Half of Screen is for the Effect Name and arrow indicators
+    int topRowHeight = boundsToDrawIn.GetHeight() / 2;
+    auto topRowRect = boundsToDrawIn.RemoveFromTop(topRowHeight);
+
+    // Determine if there a page before or after this page
+    const bool hasPrev = currentIndex > 0;
+    const bool hasNext = currentIndex < numItemsTotal - 1;
+
+    // Draw the Arrows before and after
+    auto leftArrowRect = topRowRect.RemoveFromLeft(9).WithSizeKeepingCenter(5, 9).Translated(0, -1);
+    auto rightArrowRect = topRowRect.RemoveFromRight(9).WithSizeKeepingCenter(5, 9).Translated(0, -1);
+
+    if(hasPrev)
+    {
+        for(int16_t x = leftArrowRect.GetRight() - 1; x >= leftArrowRect.GetX(); x--)
+        {
+            display.DrawLine(x, leftArrowRect.GetY(), x, leftArrowRect.GetBottom(), true);
+
+            leftArrowRect = leftArrowRect.Reduced(0, 1);
+            if(leftArrowRect.IsEmpty())
+                break;
+        }
+    }
+
+    if(hasNext)
+    {
+        for(int16_t x = rightArrowRect.GetX(); x < rightArrowRect.GetRight(); x++)
+        {
+            display.DrawLine(x, rightArrowRect.GetY(), x, rightArrowRect.GetBottom(), true);
+
+            rightArrowRect = rightArrowRect.Reduced(0, 1);
+            if(rightArrowRect.IsEmpty())
+                break;
+        }
+    }
+
+    display.WriteStringAligned(m_name, Font_11x18, topRowRect, Alignment::centered, true);
+    display.WriteStringAligned("...", Font_11x18, boundsToDrawIn, Alignment::centered, true);
+}
+

@@ -1,15 +1,12 @@
 #include <string.h>
 #include "daisysp.h"
 #include "Hardware-Modules/guitar_pedal_125b.h"
+#include "guitar_pedal_storage.h"
 #include "Effect-Modules/modulated_tremolo_module.h"
 #include "Effect-Modules/overdrive_module.h"
 #include "Effect-Modules/autopan_module.h"
 #include "Effect-Modules/chorus_module.h"
-
-// Peristant Storage Settings
-#define SETTINGS_FILE_FORMAT_VERSION 1
-#define SETTINGS_MAX_EFFECT_COUNT 8
-#define SETTINGS_MAX_EFFECT_PARAM_COUNT 16
+#include "UI/guitar_pedal_ui.h"
 
 using namespace daisy;
 using namespace daisysp;
@@ -17,6 +14,18 @@ using namespace bkshepherd;
 
 // Hardware Interface
 GuitarPedal125B hardware;
+
+// Persistant Storage
+PersistentStorage<Settings> storage(hardware.seed.qspi);
+
+// Effect Related Variables
+int availableEffectsCount = 0;
+BaseEffectModule **availableEffects = NULL;
+int activeEffectID = 0;
+BaseEffectModule *activeEffect = NULL;
+
+// UI Related Variables
+GuitarPedalUI guitarPedalUI;
 
 // Hardware Related Variables
 bool useDebugDisplay = false;
@@ -35,62 +44,8 @@ int samplesTilBypassToggle;
 uint32_t lastTimeStampUS;
 float secondsSinceStartup = 0.0f;
 
-// Save System Variables
-struct Settings
-{
-    int fileFormatVersion;
-    int globalActiveEffectID;
-    bool globalMidiEnabled;
-    bool globalMidiThrough;
-    int globalMidiChannel;
-    bool globalRelayBypassEnabled;
-    bool globalSplitMonoInputToStereo;
-    uint8_t globalEffectsSettings[SETTINGS_MAX_EFFECT_COUNT * SETTINGS_MAX_EFFECT_PARAM_COUNT];     // Set aside a block of memory for individual effect params
-
-    bool operator==(const Settings &rhs)
-    {
-        if (fileFormatVersion != rhs.fileFormatVersion
-            || globalActiveEffectID != rhs.globalActiveEffectID
-            || globalMidiEnabled != rhs.globalMidiEnabled
-            || globalMidiThrough != rhs.globalMidiThrough
-            || globalMidiChannel != rhs.globalMidiChannel
-            || globalRelayBypassEnabled != rhs.globalRelayBypassEnabled
-            || globalSplitMonoInputToStereo != rhs.globalSplitMonoInputToStereo)
-        {
-            return false;
-        }
-
-        for (int i = 0; i < SETTINGS_MAX_EFFECT_COUNT * SETTINGS_MAX_EFFECT_PARAM_COUNT; i++)
-        {
-            if (globalEffectsSettings[i] != rhs.globalEffectsSettings[i])
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-    
-    bool operator!=(const Settings &rhs)
-    {
-        return !operator==(rhs);
-    }
-};
-
-PersistentStorage<Settings> storage(hardware.seed.qspi);
-uint32_t last_save_time;        // Time we last set it
 bool needToSaveSettingsForActiveEffect = false;
-bool displayingSaveSettingsNotification = false;
-float secondsSinceLastActiveEffectSettingsSave = 0;
-
-// Menu System Variables
-daisy::UI ui;
-FullScreenItemMenu mainMenu;
-FullScreenItemMenu activeEffectSettingsMenu;
-FullScreenItemMenu globalSettingsMenu;
-UiEventQueue       eventQueue;
-bool needToCloseActiveEffectSettingsMenu = false;
-int paramIdToReturnTo = -1;
+uint32_t last_save_time;        // Time we last set it
 
 // Pot Monitoring Variables
 bool knobValuesInitialized = false;
@@ -101,317 +56,12 @@ bool *knobValueCacheChanged = NULL;
 float *knobValueCache = NULL;
 int *knobValueSamplesTilIdle = NULL;
 
-const int                kNumMainMenuItems =  2;
-AbstractMenu::ItemConfig mainMenuItems[kNumMainMenuItems];
-const int                kNumGlobalSettingsMenuItems = 7;
-AbstractMenu::ItemConfig globalSettingsMenuItems[kNumGlobalSettingsMenuItems];
-int                      numActiveEffectSettingsItems = 0;
-AbstractMenu::ItemConfig *activeEffectSettingsMenuItems = NULL;
-
-// Effect Settings Value Items
-const char** availableEffectNames = NULL;
-MappedStringListValue *availableEffectListMappedValues = NULL;
-MappedIntValue **activeEffectSettingValues = NULL;
-MappedIntValue midiChannelSettingValue(1,16,1,1,5);
-
-// Effect Related Variables
-int availableEffectsCount = 0;
-BaseEffectModule **availableEffects = NULL;
-BaseEffectModule *activeEffect = NULL;
-
 bool isCrossFading = false;
 bool isCrossFadingForward = true;   // True goes Source->Target, False goes Target->Source
 CrossFade crossFaderLeft, crossFaderRight;
 float crossFaderTransitionTimeInSeconds = 0.1f;
 int crossFaderTransitionTimeInSamples;
 int samplesTilCrossFadingComplete;
-
-// These will be called from the UI system. @see InitUi() in UiSystemDemo.cpp
-void FlushCanvas(const daisy::UiCanvasDescriptor& canvasDescriptor)
-{
-    if(canvasDescriptor.id_ == 0)
-    {
-        hardware.display.Update();
-    }
-}
-
-void ClearCanvas(const daisy::UiCanvasDescriptor& canvasDescriptor)
-{
-    if(canvasDescriptor.id_ == 0)
-    {
-        hardware.display.Fill(false);
-    }
-}
-
-void InitUi()
-{
-    UI::SpecialControlIds specialControlIds;
-    specialControlIds.okBttnId = 0; // Encoder button is our okay button
-    specialControlIds.menuEncoderId = 0; // Encoder is used as the main menu navigation encoder
-
-    // This is the canvas for the OLED display.
-    UiCanvasDescriptor oledDisplayDescriptor;
-    oledDisplayDescriptor.id_     = 0; // the unique ID
-    oledDisplayDescriptor.handle_ = &hardware.display;   // a pointer to the display
-    oledDisplayDescriptor.updateRateMs_      = 50; // 50ms == 20Hz
-    oledDisplayDescriptor.screenSaverTimeOut = 0;  // display always on
-    oledDisplayDescriptor.clearFunction_     = &ClearCanvas;
-    oledDisplayDescriptor.flushFunction_     = &FlushCanvas;
-
-    ui.Init(eventQueue,
-            specialControlIds,
-            {oledDisplayDescriptor},
-            0);
-}
-
-void InitEffectUiPages()
-{
-    // ====================================================================
-    // The Main Menu
-    // ====================================================================
-
-    mainMenuItems[0].type = daisy::AbstractMenu::ItemType::openUiPageItem;
-    mainMenuItems[0].text = activeEffect->GetName();
-    mainMenuItems[0].asOpenUiPageItem.pageToOpen = &activeEffectSettingsMenu;
-
-    mainMenuItems[1].type = daisy::AbstractMenu::ItemType::openUiPageItem;
-    mainMenuItems[1].text = "Settings";
-    mainMenuItems[1].asOpenUiPageItem.pageToOpen = &globalSettingsMenu;
-
-    mainMenu.Init(mainMenuItems, kNumMainMenuItems);
-
-    // ====================================================================
-    // The "Settings" menu for the Active Effect (depends on what effect is active)
-    // ====================================================================
-
-    // Clean up any dynamically allocated memory
-    if (activeEffectSettingValues != NULL)
-    {
-        for(int i = 0; i < numActiveEffectSettingsItems; ++i)
-            delete activeEffectSettingValues[i];
-
-        delete [] activeEffectSettingValues;
-        activeEffectSettingValues = NULL;
-        numActiveEffectSettingsItems = 0;
-    }
-
-    if (activeEffectSettingsMenuItems != NULL)
-    {
-        delete [] activeEffectSettingsMenuItems;
-    }
-
-    numActiveEffectSettingsItems = activeEffect->GetParameterCount();
-    activeEffectSettingValues = new MappedIntValue*[numActiveEffectSettingsItems];
-    activeEffectSettingsMenuItems = new AbstractMenu::ItemConfig[numActiveEffectSettingsItems + 1];
-    
-    for (int i = 0; i < numActiveEffectSettingsItems; i++)
-    {
-        activeEffectSettingsMenuItems[i].type = daisy::AbstractMenu::ItemType::valueItem;
-        activeEffectSettingsMenuItems[i].text = activeEffect->GetParameterName(i);
-        activeEffectSettingValues[i] = new MappedIntValue(0, 127, activeEffect->GetParameter(i), 1, 5);
-        activeEffectSettingsMenuItems[i].asMappedValueItem.valueToModify = activeEffectSettingValues[i];
-    }
-
-    activeEffectSettingsMenuItems[numActiveEffectSettingsItems].type = daisy::AbstractMenu::ItemType::closeMenuItem;
-    activeEffectSettingsMenuItems[numActiveEffectSettingsItems].text = "Back";
-
-    activeEffectSettingsMenu.Init(activeEffectSettingsMenuItems, numActiveEffectSettingsItems + 1);
-}
-
-void InitGlobalSettingsUIPages()
-{
-    // Get a handle to the persitance storage settings
-    Settings &settings = storage.GetSettings();
-
-    // ====================================================================
-    // The "Global Settings" menu
-    // ====================================================================
-    if (availableEffectListMappedValues != NULL)
-    {
-        delete availableEffectListMappedValues;
-    }
-
-    if (availableEffectNames != NULL)
-    {
-        delete [] availableEffectNames;
-    }
-
-    availableEffectNames = new const char*[availableEffectsCount];
-    int activeEffectIndex = -1;
-
-    for (int i = 0; i < availableEffectsCount; i++)
-    {
-        availableEffectNames[i] = availableEffects[i]->GetName();
-
-        if (availableEffects[i] == activeEffect)
-        {
-            activeEffectIndex = i;
-        }
-    }
-    
-    availableEffectListMappedValues = new MappedStringListValue(availableEffectNames, availableEffectsCount, activeEffectIndex);
-
-    globalSettingsMenuItems[0].type = daisy::AbstractMenu::ItemType::valueItem;
-    globalSettingsMenuItems[0].text = "Effect";
-    globalSettingsMenuItems[0].asMappedValueItem.valueToModify = availableEffectListMappedValues;
-
-    globalSettingsMenuItems[1].type = daisy::AbstractMenu::ItemType::checkboxItem;
-    globalSettingsMenuItems[1].text = "True Bypass";
-    globalSettingsMenuItems[1].asCheckboxItem.valueToModify = &settings.globalRelayBypassEnabled;
-
-    globalSettingsMenuItems[2].type = daisy::AbstractMenu::ItemType::checkboxItem;
-    globalSettingsMenuItems[2].text = "Split Mono";
-    globalSettingsMenuItems[2].asCheckboxItem.valueToModify = &settings.globalSplitMonoInputToStereo;
-
-    globalSettingsMenuItems[3].type = daisy::AbstractMenu::ItemType::checkboxItem;
-    globalSettingsMenuItems[3].text = "Midi On";
-    globalSettingsMenuItems[3].asCheckboxItem.valueToModify = &settings.globalMidiEnabled;
-
-    globalSettingsMenuItems[4].type = daisy::AbstractMenu::ItemType::checkboxItem;
-    globalSettingsMenuItems[4].text = "Midi Thru";
-    globalSettingsMenuItems[4].asCheckboxItem.valueToModify = &settings.globalMidiThrough;
-
-    globalSettingsMenuItems[5].type = daisy::AbstractMenu::ItemType::valueItem;
-    globalSettingsMenuItems[5].text = "Midi Ch";
-    midiChannelSettingValue.Set(settings.globalMidiChannel);
-    globalSettingsMenuItems[5].asMappedValueItem.valueToModify = &midiChannelSettingValue;
-
-    globalSettingsMenuItems[6].type = daisy::AbstractMenu::ItemType::closeMenuItem;
-    globalSettingsMenuItems[6].text = "Back";
-
-    globalSettingsMenu.Init(globalSettingsMenuItems, kNumGlobalSettingsMenuItems);
-}
-
-void GenerateUiEvents()
-{
-    if(hardware.encoders[0].RisingEdge())
-    {
-        eventQueue.AddButtonPressed(0, 1);
-    }
-
-    if(hardware.encoders[0].FallingEdge())
-    {
-        eventQueue.AddButtonReleased(0);
-    }
-
-    const auto increments = hardware.encoders[0].Increment();
-
-    if(increments != 0)
-    {
-        eventQueue.AddEncoderTurned(0, increments, 12);
-    }
-}
-
-// Helpful Function for getting a parameter value for an effect from the Persistant Storage
-uint8_t GetSettingsParameterValueForEffect(int effectID, int paramID)
-{
-    // Make sure the effect and param id are within valid ranges for the settings.
-    if (effectID < 0 || effectID > SETTINGS_MAX_EFFECT_COUNT - 1 || paramID < 0 || paramID > SETTINGS_MAX_EFFECT_PARAM_COUNT - 1)
-    {
-        return 0;
-    }
-
-    // Get a handle to the persitance storage settings
-    Settings &settings = storage.GetSettings();
-    return settings.globalEffectsSettings[(effectID * SETTINGS_MAX_EFFECT_PARAM_COUNT) + paramID];
-}
-
-// Helpful Function for setting a parameter value for an effect from the Persistant Storage
-void SetSettingsParameterValueForEffect(int effectID, int paramID, uint8_t paramValue)
-{
-    // Make sure the effect and param id are within valid ranges for the settings.
-    if (effectID < 0 || effectID > SETTINGS_MAX_EFFECT_COUNT - 1 || paramID < 0 || paramID > SETTINGS_MAX_EFFECT_PARAM_COUNT - 1)
-    {
-        return;
-    }
-
-    // Get a handle to the persitance storage settings
-    Settings &settings = storage.GetSettings();
-    settings.globalEffectsSettings[(effectID * SETTINGS_MAX_EFFECT_PARAM_COUNT) + paramID] = paramValue;
-}
-
-void InitPersistantStorage()
-{
-    Settings defaultSettings;
-    defaultSettings.fileFormatVersion = SETTINGS_FILE_FORMAT_VERSION;
-    defaultSettings.globalActiveEffectID = 0;
-    defaultSettings.globalMidiEnabled = true;
-    defaultSettings.globalMidiChannel = 1;
-    defaultSettings.globalMidiThrough = true;
-    defaultSettings.globalRelayBypassEnabled = false;
-    defaultSettings.globalSplitMonoInputToStereo = true;
-
-    // All Effect Params in the settings sound be zero'd
-    for (int i = 0; i < SETTINGS_MAX_EFFECT_COUNT * SETTINGS_MAX_EFFECT_PARAM_COUNT; i++)
-    {
-        defaultSettings.globalEffectsSettings[i] = 0;
-    }
-
-    // Override any defaults with effect specific default settings
-    for (int effectID = 0; effectID < availableEffectsCount; effectID++)
-    {
-        int paramCount = availableEffects[effectID]->GetParameterCount();
-
-        for (int paramID = 0;  paramID < paramCount; paramID++)
-        {
-            defaultSettings.globalEffectsSettings[(effectID * SETTINGS_MAX_EFFECT_PARAM_COUNT) + paramID] = availableEffects[effectID]->GetParameter(paramID);
-        }
-    } 
-    
-    storage.Init(defaultSettings);
-}
-
-void LoadEffectSettingsFromPersistantStorage()
-{
-    // Load Effect Parameters based on values from Persistant Storage
-    for (int effectID = 0; effectID < availableEffectsCount; effectID++)
-    {
-        int paramCount = availableEffects[effectID]->GetParameterCount();
-
-        for (int paramID = 0; paramID < paramCount; paramID++)
-        {
-            availableEffects[effectID]->SetParameter(paramID, GetSettingsParameterValueForEffect(effectID, paramID));
-        }
-    }
-}
-
-void SaveEffectSettingsToPersitantStorageForEffectID(int effectID)
-{
-    // Save Effect Parameters to Persistant Storage based on values from the specified active effect
-    if (effectID >= 0 && effectID < availableEffectsCount)
-    {
-        int paramCount = availableEffects[effectID]->GetParameterCount();
-
-        for (int paramID = 0; paramID < paramCount; paramID++)
-        {
-            SetSettingsParameterValueForEffect(effectID, paramID, availableEffects[effectID]->GetParameter(paramID));
-        }
-    }
-}
-
-void SetActiveEffect(int effectID)
-{
-    if (effectID >= 0 && effectID < availableEffectsCount)
-    {
-        // Update the Active Effect directly.
-        activeEffect = availableEffects[effectID];
-
-        if (hardware.SupportsDisplay())
-        {
-            // Update the Menu item for the active effect (important for active effect changes not coming from the menu)
-            availableEffectListMappedValues->SetIndex(effectID);
-
-            // Re-init the UI Pages for the Main Menu and Effect Parameters
-            InitEffectUiPages();
-        }
-
-        // Get a handle to the persitance storage settings
-        Settings &settings = storage.GetSettings();
-
-        // Update the persistant storage setting
-        settings.globalActiveEffectID = effectID;
-    }
-}
 
 static void AudioCallback(AudioHandle::InputBuffer  in,
                      AudioHandle::OutputBuffer out,
@@ -428,11 +78,7 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
     // Handle Inputs
     hardware.ProcessAnalogControls();
     hardware.ProcessDigitalControls();
-
-    if (hardware.SupportsDisplay())
-    {
-        GenerateUiEvents();
-    }
+    guitarPedalUI.GenerateUIEvents();
 
     // Get a handle to the persitance storage settings
     Settings &settings = storage.GetSettings();
@@ -483,7 +129,7 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
     }
 
     //If both footswitches are down, save the parameters for this effect to persistant storage
-    if (hardware.switches[1].TimeHeldMs() > 2000 && !displayingSaveSettingsNotification)
+    if (hardware.switches[1].TimeHeldMs() > 2000 && !guitarPedalUI.IsShowingSavingSettingsScreen())
     {
         needToSaveSettingsForActiveEffect = true;
     }
@@ -610,7 +256,7 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
     }
 
     // Override LEDs if we are saving the current settings
-    if (displayingSaveSettingsNotification)
+    if (guitarPedalUI.IsShowingSavingSettingsScreen())
     {
         led1Brightness = 1.0f;
         led2Brightness = 1.0f;
@@ -620,6 +266,26 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
     hardware.SetLed(0, led1Brightness);
     hardware.SetLed(1, led2Brightness);
     hardware.UpdateLeds();
+}
+
+void SetActiveEffect(int effectID)
+{
+    if (effectID >= 0 && effectID < availableEffectsCount)
+    {
+        // Update the ID cache
+        activeEffectID = effectID;
+
+        // Update the Active Effect directly.
+        activeEffect = availableEffects[effectID];
+
+        guitarPedalUI.UpdateActiveEffect(effectID);
+
+        // Get a handle to the persitance storage settings
+        Settings &settings = storage.GetSettings();
+
+        // Update the persistant storage setting
+        settings.globalActiveEffectID = effectID;
+    }
 }
 
 // Typical Switch case for Message Type.
@@ -697,11 +363,7 @@ void HandleMidiMessage(MidiEvent m)
                 if (effectParamID != -1)
                 {
                     activeEffect->SetParameter(effectParamID, p.value);
-
-                    if (hardware.SupportsDisplay())
-                    {
-                        activeEffectSettingValues[effectParamID]->Set(activeEffect->GetParameter(effectParamID));
-                    }
+                    guitarPedalUI.UpdateActiveEffectParameterValue(effectParamID, activeEffect->GetParameter(effectParamID));
                 }
             }
             break;
@@ -766,10 +428,7 @@ int main(void)
     // Init the Menu UI System
     if (hardware.SupportsDisplay())
     {
-        InitUi();
-        InitEffectUiPages();
-        InitGlobalSettingsUIPages();
-        ui.OpenPage(mainMenu);
+        guitarPedalUI.Init();
     }
     
     // Set up midi if supported.
@@ -812,7 +471,8 @@ int main(void)
         uint32_t currentTimeStampUS = System::GetUs();
         uint32_t elapsedTimeStampUS = currentTimeStampUS - lastTimeStampUS;
         lastTimeStampUS = currentTimeStampUS;
-        secondsSinceStartup = secondsSinceStartup + (elapsedTimeStampUS / 1000000.0f);
+        float elapsedTimeInSeconds = (elapsedTimeStampUS / 1000000.0f);
+        secondsSinceStartup = secondsSinceStartup + elapsedTimeInSeconds;
 
         // Handle Knob Changes
         if (!knobValuesInitialized && secondsSinceStartup > 1.0f)
@@ -820,8 +480,6 @@ int main(void)
             // Let the initial readings of the knob values settle before trying to use them.
             knobValuesInitialized = true;
         }
-
-        bool isKnobValueChanging = false;
 
         if (knobValuesInitialized)
         {
@@ -835,33 +493,9 @@ int main(void)
                     {
                         // Set the new value on the effect parameter directly
                         activeEffect->SetParameterAsMagnitude(parameterID, knobValueCache[i]);
-                        isKnobValueChanging = true;
 
-                        if (hardware.SupportsDisplay())
-                        {
-                            // Update the effect parameter on the menu system
-                            activeEffectSettingValues[parameterID]->Set(activeEffect->GetParameter(parameterID));
-                            
-                            // Change the main menu to be the name of the value the Knob is changing
-                            if (!activeEffectSettingsMenu.IsActive())
-                            {
-                                // Open the page to the settings menu and proper parameter
-                                ui.OpenPage(activeEffectSettingsMenu);
-                                activeEffectSettingsMenu.SelectItem(parameterID);
-                                needToCloseActiveEffectSettingsMenu = true;
-                            }
-                            else
-                            {
-                                // If we were already on the param menu and we didn't open it, make sure we store the param index so we can return to it
-                                if (paramIdToReturnTo == -1 && !needToCloseActiveEffectSettingsMenu)
-                                {
-                                    paramIdToReturnTo = activeEffectSettingsMenu.GetSelectedItemIdx();
-                                }
-
-                                // Change the menu to the proper parameter we are changing
-                                activeEffectSettingsMenu.SelectItem(parameterID);
-                            }
-                        }
+                        // Update the effect parameter on the menu system
+                        guitarPedalUI.UpdateActiveEffectParameterValue(parameterID, activeEffect->GetParameter(parameterID), true);
                     }
                 }
             }
@@ -869,34 +503,10 @@ int main(void)
         
         if (hardware.SupportsDisplay())
         {
-            // If no knobs are moving retun to the prior menu if needed.
-            if (!isKnobValueChanging)
-            {
-                // Close the menu if we opened it
-                if (needToCloseActiveEffectSettingsMenu)
-                {
-                    ui.ClosePage(activeEffectSettingsMenu);
-                    needToCloseActiveEffectSettingsMenu = false;
-                }
+            // Handle a Change in the Active Effect from the Menu System
 
-                // If we were already on param menu return to the item we had selected before.
-                if (paramIdToReturnTo != -1)
-                {
-                    activeEffectSettingsMenu.SelectItem(paramIdToReturnTo);
-                    paramIdToReturnTo = -1;
-                }
-            }
-
-            // Handle a Change in the Active Effect & Effect Parameters from the Menu System
-
-            // Update all Active Effect Parameter Settings to values from the menu system
-            for (int i = 0; i < numActiveEffectSettingsItems; i++)
-            {
-                activeEffect->SetParameter(i, activeEffectSettingValues[i]->Get());
-            }
-
-            // Check which effect the Menu system things is active
-            int menuEffectID = availableEffectListMappedValues->GetIndex();
+            // Check which effect the Menu system thinks is active
+            int menuEffectID = guitarPedalUI.GetActiveEffectIDFromSettingsMenu();
             BaseEffectModule *selectedEffect = availableEffects[menuEffectID];
 
             // If the effect differs from the active effect, change the active effect
@@ -906,24 +516,6 @@ int main(void)
             }
         }
 
-        // Handle Displaying the Saving notication
-        if (displayingSaveSettingsNotification)
-        {
-            secondsSinceLastActiveEffectSettingsSave += (elapsedTimeStampUS / 1000000.0f);
-
-            // Change the main menu text to say saved
-            if (hardware.SupportsDisplay())
-            {
-                mainMenuItems[0].text = "Saved.";
-            }
-
-            if (secondsSinceLastActiveEffectSettingsSave > 2.0f)
-            {
-                displayingSaveSettingsNotification = false;
-                mainMenuItems[0].text = activeEffect->GetName();
-            }
-        }
-        
         // Handle Display
         if (hardware.SupportsDisplay())
         {
@@ -947,18 +539,12 @@ int main(void)
             }
             else
             {
-                // Default behavior is to use the menu system.
-                ui.Process();
+                // Handle UI Updates for the UI System
+                guitarPedalUI.UpdateUI(elapsedTimeInSeconds);
             }
         }
 
         // Handle MIDI Events
-        if (hardware.SupportsDisplay())
-        {
-            // Update the Midi Channel if the value was changed in the Menu
-            settings.globalMidiChannel = midiChannelSettingValue.Get();
-        }
-
         if (hardware.SupportsMidi() && settings.globalMidiEnabled)
         {
             hardware.midi.Listen();
@@ -974,9 +560,8 @@ int main(void)
         {
             if (needToSaveSettingsForActiveEffect)
             {
-                SaveEffectSettingsToPersitantStorageForEffectID(availableEffectListMappedValues->GetIndex());
-                displayingSaveSettingsNotification = true;
-                secondsSinceLastActiveEffectSettingsSave = 0.0f;
+                SaveEffectSettingsToPersitantStorageForEffectID(activeEffectID);
+                guitarPedalUI.ShowSavingSettingsScreen();
             }
 
             storage.Save();
