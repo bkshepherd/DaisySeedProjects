@@ -162,7 +162,7 @@ You can either order a generic 125B sized enclosure like these from [Tayda](http
 
 Additional External Hardware:
 
-1 Knobs for the POTS.  These are the ones I used from [LoveMySwitches](https://lovemyswitches.com/anodized-aluminum-knob-the-magpie-1-4-smooth-shaft-12-5mm-od/)
+1. 6 Knobs for the POTS.  These are the ones I used from [LoveMySwitches](https://lovemyswitches.com/anodized-aluminum-knob-the-magpie-1-4-smooth-shaft-12-5mm-od/)
 2. 1 Knob for the Rotary Encoder. This is what I used from [Amazon](https://www.amazon.com/gp/product/B0829WGW42)
 3. 2 Led Holders (for the enclosure). These are the ones I used from [Amazon](https://www.amazon.com/gp/product/B083Q9QMN4)
 
