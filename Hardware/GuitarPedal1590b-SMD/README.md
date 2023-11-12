@@ -37,7 +37,7 @@ Once you've built the hardware you can deploy the software from my Multi-Effect 
 This software provides a hardware abstraction layer as well as a few custom FX including Tremolo, Chorus, Overdrive, and Stereo Auto-Pan.
 
 ## Past Updates
-### Rev 1 - ?
+### Rev 1 - Early 2023
 
 Updates include:
 1. Original Design Revision
