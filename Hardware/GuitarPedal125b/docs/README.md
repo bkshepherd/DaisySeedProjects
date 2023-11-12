@@ -131,6 +131,8 @@ Here is a list of the additional parts to order for the PCB:
 6. 2 Footswitches. These are the ones I used from [Amazon](https://www.amazon.com/dp/B08TBTWDYV)
 7. Daisy Seed. You will need a Daisy Seed from [Electro-Smith](https://www.electro-smith.com/daisy/daisy)
 
+![PCB Extra Parts](images/PCBExtraParts.png)
+
 ## 6. Finish the PCB (Solder Everything!)
 
 Once you receive the PCB from JLCPCB and the extra parts you ordered separately (Headers, Pots, Encoder, Screen, LEDs, Foot Switches), you will need to solder everything to finish the PCB.
@@ -165,6 +167,8 @@ Additional External Hardware:
 1. 6 Knobs for the POTS.  These are the ones I used from [LoveMySwitches](https://lovemyswitches.com/anodized-aluminum-knob-the-magpie-1-4-smooth-shaft-12-5mm-od/)
 2. 1 Knob for the Rotary Encoder. This is what I used from [Amazon](https://www.amazon.com/gp/product/B0829WGW42)
 3. 2 Led Holders (for the enclosure). These are the ones I used from [Amazon](https://www.amazon.com/gp/product/B083Q9QMN4)
+
+![Enclosure and Knobs](images/EnclosureAndKnobs.png)
 
 ## 8. Flash the Software to the Daisy Seed on the Hardware
 
