@@ -139,7 +139,7 @@ Make sure to solder them in the following order (everything goes on the side wit
 
 1. Both 20pin Headers (make sure this goes on the side with all the SMD parts!)
 2. Pots 1 - 4
-3. 2 Leds
+3. 2 Leds ((You'll want to keep the legs long possibly using a 10mm spacer from the PCB, Short pin goes to the square pad!)
 4. 1 or 2 Footswitches
    
 It will roughly look like this when finished with this step:
