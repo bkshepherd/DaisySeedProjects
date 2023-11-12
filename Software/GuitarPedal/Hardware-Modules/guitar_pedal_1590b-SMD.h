@@ -6,14 +6,14 @@
 
 #ifdef __cplusplus
 
-/** @file guitar_pedal_1590bSMD.h */
+/** @file guitar_pedal_1590b-SMD.h */
 
 using namespace daisy;
 
 namespace bkshepherd {
 
 /**
-   @brief Helpers and hardware definitions for a 1590B sized Guitar Pedal based on the Daisy Seed.
+   @brief Helpers and hardware definitions for the SMD version of my 1590B sized Guitar Pedal based on the Daisy Seed.
 */
 class GuitarPedal1590BSMD : public BaseHardwareModule
 {

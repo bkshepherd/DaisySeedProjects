@@ -1,4 +1,4 @@
-#include "guitar_pedal_1590bSMD.h"
+#include "guitar_pedal_1590b-SMD.h"
 
 using namespace bkshepherd;
   
