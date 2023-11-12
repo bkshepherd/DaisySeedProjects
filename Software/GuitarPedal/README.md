@@ -40,6 +40,11 @@ If you want to target the GuitarPedal1590B hardware change the lines to:
 * #include "Hardware-Modules/guitar_pedal_1590b.h"
 * GuitarPedal1590B hardware;
 
+If you want to target the GuitarPedal1590B-SMD hardware change the lines to:
+
+* #include "Hardware-Modules/guitar_pedal_1590b-SMD.h"
+* GuitarPedal1590B-SMD hardware;
+
 If you want to target the Pedal PCB hardware change the lines to:
 
 * #include "Hardware-Modules/guitar_pedal_terrarium.h"
