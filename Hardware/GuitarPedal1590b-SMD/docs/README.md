@@ -132,6 +132,7 @@ Here is a list of the additional parts to order for the PCB:
 2. 4 Pots. These are the ones I used [Tayda B10k](https://www.taydaelectronics.com/tayda-10k-ohm-linear-taper-potentiometer-spline-shaft-pcb-mount-rv16196.html)
 3. 2 Leds (3mm Any Color). These are the one I used from [Amazon](https://www.amazon.com/dp/B07QXR5MZB)
 4. 1 or 2 Footswitches. These are the ones I used from [Amazon](https://www.amazon.com/dp/B08TBTWDYV)
+5. Daisy Seed. You will need a Daisy Seed from [Electro-Smith](https://www.electro-smith.com/daisy/daisy)
 
 ![PCB Extra Parts](images/PCBExtraParts.png)
 
