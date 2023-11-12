@@ -8,9 +8,11 @@ Updates include:
 
 ### Overview
 
-A project to create a digital effect pedal based on the Electro-Smith Daisy Seed that fits into a standard 1590B sized Guitar Pedal enclosure. Electro-Smith sells a guitar pedal, but it's a much larger format, and I wanted something as small as possible.  The PedalPCB Terrarium was another option, but it's mono only, so I decided to build my own. This one is a smaller form factor than both, operates in Mono or Stereo, and has Midi support, so it's capable little pedal platform.
+A project to create a digital effect pedal based on the Electro-Smith Daisy Seed that fits into a standard 1590B sized Guitar Pedal enclosure. The video below shows a pedal board I made using this design, the smaller pedal on the far left, along with 2 of my [125B pedals](../GuitarPedal125b/README.md).
 
-This project is the SMD parts version of my 1590b pedal. Features are the same as the Through-Hole version with the addition of "True Bypass". The majority of all parts can be pre-assembled on the PCB by a fab like JLCPCB. If you'd prefer a design where all parts are through-hole components, please check out the through-hole version of this project [Guitar Pedal 1590 project](../GuitarPedal1590b/README.md).
+[![Demo Video](https://img.youtube.com/vi/ZkLnS43acQo/0.jpg)](https://www.youtube.com/watch?v=ZkLnS43acQo)
+
+This project is the SMD parts version of my [1590b pedal](../GuitarPedal1590b/README.md). Features are the same as the Through-Hole version with the addition of "True Bypass". The majority of all parts can be pre-assembled on the PCB by a fab like JLCPCB. If you'd prefer a design where all parts are through-hole components, please check out the through-hole version of this project [Guitar Pedal 1590 project](../GuitarPedal1590b/README.md).
 
 ![FinalProduct](docs/images/FinalProduct.png) ![Backside](docs/images/Alive.png)
 
@@ -26,15 +28,24 @@ This project is the SMD parts version of my 1590b pedal. Features are the same a
 6. Up to 2 Leds
 7. Standard 9v center pin negative power jack
 8. Setup for Easy Manufacturing with JLCPCB.  Minimal soldering required!
-9. Easily order a custom drilled enclosure from Tayda!
+9. Easily order a custom drilled enclosure from [Tayda](https://drill.taydakits.com/box-designs/new?public_key=YWRhVFFGU0Z2c3RJR09VQ1U4S3EvUT09Cg==)
 
-This project includes a KiCad project with the necessary schematics and PCB layout files to create everything you need to build the hardware.
+This project includes a KiCad project with the necessary schematics and PCB layout files to create everything you need to build the hardware. The included exported Gerber and Assembly files make it easy to order PCBs from JCLPCB. Detailed instructions can be found on the [Build the Hardware](docs/README.md) page. This requires no knowledge of KiCad to get the PCBs made.
 
-Click on this image for a Demo Video (this pedal is on the left in the pedal board):
+Once you've built the hardware you can deploy the software from my Multi-Effect Guitar Pedal software project by following these directions: [Deploy the Software to the Hardware](../../Software/GuitarPedal/README.md)
 
-[![Demo Video](https://img.youtube.com/vi/ZkLnS43acQo/0.jpg)](https://www.youtube.com/watch?v=ZkLnS43acQo)
+This software provides a hardware abstraction layer as well as a few custom FX including Tremolo, Chorus, Overdrive, and Stereo Auto-Pan.
 
-Getting Started:
+## Past Updates
+### Rev 1 - ?
 
-1. [Build the Hardware](docs/README.md)
-2. [Deploy the Software to the Hardware](../../Software/GuitarPedal/README.md)
+Updates include:
+1. Original Design Revision
+
+More Information about the Daisy Seed can be found at:
+
+http://electro-smith.com
+
+More Information about KiCad can be found at:
+
+https://www.kicad.org
