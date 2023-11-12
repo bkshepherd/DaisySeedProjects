@@ -133,6 +133,8 @@ Here is a list of the additional parts to order for the PCB:
 3. 2 Leds (3mm Any Color). These are the one I used from [Amazon](https://www.amazon.com/dp/B07QXR5MZB)
 4. 1 or 2 Footswitches. These are the ones I used from [Amazon](https://www.amazon.com/dp/B08TBTWDYV)
 
+![PCB Extra Parts](images/PCBExtraParts.png)
+
 ## 6. Finish the PCB (Solder Everything!)
 
 Once you receive the PCB from JLCPCB and the extra parts you ordered separately (Headers, Pots, LEDs, Foot Switches), you will need to solder everything to finish the PCB.
@@ -146,10 +148,7 @@ Make sure to solder them in the following order (everything goes on the side wit
    
 It will roughly look like this when finished with this step:
 
-(PICs Coming Soon)
-![CircuitBoard](images/CircuitBoard-Front.png)
-
-![CircuitBoard](images/CircuitBoard-Back.png)
+![CircuitBoard](images/CircuitBoard.png)
 
 ## 7. Order the Enclosure and External Hardware
 
@@ -160,7 +159,9 @@ You can either order a generic 1590B sized enclosure like these from [Tayda](htt
 Additional External Hardware:
 
 1. 4 Knobs for the POTS.  These are the ones I used in various colors from [Tayda](https://www.taydaelectronics.com/knurled-aluminum-yellow-knob-2845.html)
-2. 2 Led Holders (for the enclosure). These are the ones I used from [Amazon](https://www.amazon.com/gp/product/B083Q9QMN4)  
+2. 2 Led Holders (for the enclosure). These are the ones I used from [Amazon](https://www.amazon.com/gp/product/B083Q9QMN4)
+
+![Enclosure and Knobs](images/EnclosureAndKnobs.png)
 
 ## 8. Flash the Software to the Daisy Seed on the Hardware
 
