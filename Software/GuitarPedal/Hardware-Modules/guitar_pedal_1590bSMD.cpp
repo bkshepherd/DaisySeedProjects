@@ -1,18 +1,18 @@
-#include "guitar_pedal_1590b.h"
+#include "guitar_pedal_1590bSMD.h"
 
 using namespace bkshepherd;
   
-GuitarPedal1590B::GuitarPedal1590B() : BaseHardwareModule()
+GuitarPedal1590BSMD::GuitarPedal1590BSMD() : BaseHardwareModule()
 {
 
 }
 
-GuitarPedal1590B::~GuitarPedal1590B()
+GuitarPedal1590BSMD::~GuitarPedal1590BSMD()
 {
 
 }
 
-void GuitarPedal1590B::Init(bool boost)
+void GuitarPedal1590BSMD::Init(bool boost)
 {
     BaseHardwareModule::Init(boost);
 
@@ -28,4 +28,5 @@ void GuitarPedal1590B::Init(bool boost)
     InitLeds(2, ledPins);
 
     InitMidi(seed::D30, seed::D29);
+    InitTrueBypass(seed::D1, seed::D12);
 }
