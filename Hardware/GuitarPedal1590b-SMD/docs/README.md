@@ -32,7 +32,7 @@ To use SMT Assemble service from JLCPCB, which you will want to do, the BOM and 
 1. [JLCPCB BOM](../pcb/BOM_JLCSMT_DaisySeedGuitarPedal1590b-SMD.xlsx)
 2. [JLCPCB Centroid](../pcb/JLCPCB-Gerbers/DaisySeedPedal1590b-SMD-top-pos.csv)
 
-## 3. Pre-Order Parts
+## 3. Pre-Order Parts for JLCPCB
 
 There are a few parts that JLCPCB doesn't stock normally.  You can either pre-order these parts through JLCPCB through their Global Sourcing Service so they can be assembled for you (recommended) of you can order the parts yourself and solder them yourself (advanced).
 
@@ -55,15 +55,6 @@ To order these parts through JLCPCB follow these instructions:
 7. Repeat this process for both parts. 
 
 Please note, that it typically takes a week or two to get the parts ordered and into your parts library for use.  So I like to order these parts in batches enough to place a few orders. 
- 
-JLCPCB will order and assemble most of the parts for this project.  There are a few parts that you will need to order yourself and solder at the end.  Here is a list of the additional parts to order:
-
-1. 2 Headers 20-Pin Single Row for the Daisy Seed. I used these from [Amazon](https://www.amazon.com/dp/B09MYBZZKZ)
-2. 4 Pots. These are the ones I used [Tayda B10k](https://www.taydaelectronics.com/tayda-10k-ohm-linear-taper-potentiometer-spline-shaft-pcb-mount-rv16196.html)
-3. 4 Knobs for the POTS.  These are the ones I used in various colors from [Tayda](https://www.taydaelectronics.com/knurled-aluminum-yellow-knob-2845.html)
-4. 2 Leds (3mm Any Color). These are the one I used from [Amazon](https://www.amazon.com/dp/B07QXR5MZB)
-5. 2 Led Holders (for the enclosure). These are the ones I used from [Amazon](https://www.amazon.com/gp/product/B083Q9QMN4)  
-6. 1 or 2 Footswitches. These are the ones I used from [Amazon](https://www.amazon.com/dp/B08TBTWDYV)
 
 ## 4. Order the Assembled PCBs from JLCPCB
 
@@ -131,9 +122,20 @@ They will give you a price for ordering 5 assembled pcbs (that's their minimum o
 
 ![PCBs](images/PCBs.png)
 
-## 5. Solder Everything
+## 5. Order the Additional Parts JLCPCB doesn't Assemble
 
-As mentioned above, JLCPCB will not have assembled all the parts.  Primarily the pots, LEDs, and Foot Switches, will still need to be assembled by hand.  
+There are a few parts that you will need to order yourself and solder on the PCBs after you recieve them from JLCPCB.
+
+Here is a list of the additional parts to order for the PCB:
+
+1. 2 Headers 20-Pin Single Row for the Daisy Seed. I used these from [Amazon](https://www.amazon.com/dp/B09MYBZZKZ)
+2. 4 Pots. These are the ones I used [Tayda B10k](https://www.taydaelectronics.com/tayda-10k-ohm-linear-taper-potentiometer-spline-shaft-pcb-mount-rv16196.html)
+3. 2 Leds (3mm Any Color). These are the one I used from [Amazon](https://www.amazon.com/dp/B07QXR5MZB)
+4. 1 or 2 Footswitches. These are the ones I used from [Amazon](https://www.amazon.com/dp/B08TBTWDYV)
+
+## 6. Finish the PCB (Solder Everything!)
+
+Once you receive the PCB from JLCPCB and the extra parts you ordered separately (Headers, Pots, LEDs, Foot Switches), you will need to solder everything to finish the PCB.
 
 Make sure to solder them in the following order (everything goes on the side with the SMD parts:
 
@@ -149,18 +151,27 @@ It will roughly look like this when finished with this step:
 
 ![CircuitBoard](images/CircuitBoard-Back.png)
 
-## 6. Flash the Software to the Hardware
+## 7. Order the Enclosure and External Hardware
+
+You'll also need to order an enclosure and the external hardware such as the knobs and the Led Holders.
+
+You can either order a generic 1590B sized enclosure like these from [Tayda](https://www.taydaelectronics.com/hardware/enclosures/1590b-style.html) and drill your own holes (which is a pain in the butt), or you can order a custom drilled & powder coated enclosure from Tayda using this [Custom Drill Template](https://drill.taydakits.com/box-designs/new?public_key=YWRhVFFGU0Z2c3RJR09VQ1U4S3EvUT09Cg==)
+
+Additional External Hardware:
+
+1. 4 Knobs for the POTS.  These are the ones I used in various colors from [Tayda](https://www.taydaelectronics.com/knurled-aluminum-yellow-knob-2845.html)
+2. 2 Led Holders (for the enclosure). These are the ones I used from [Amazon](https://www.amazon.com/gp/product/B083Q9QMN4)  
+
+## 8. Flash the Software to the Daisy Seed on the Hardware
 
 Before you attempt to get everything fitted into the enclosure, it's best to make sure all the hardware works.
 
+Install the Daisy Seed into the headers on the PCB.
+
 You'll need to compile the code and flash it into the Daisy Seed on the hardware. Instructions can be found [here](../../../Software/GuitarPedal/README.md).
 
-## 7. Order the Enclosure
+## 9. Jam everything into the enclosure, and ENJOY!
 
-You'll also need to order the enclosure, which is 1590B sized.
-
-You can either order a generic one from Amazon or Tayra and drill your own holes (which is a pain in the butt), or you can order a custom drilled & powder coated enclosure from Tayda using this [Custom Drill Template](https://drill.taydakits.com/box-designs/new?public_key=YWRhVFFGU0Z2c3RJR09VQ1U4S3EvUT09Cg==)
-
-## 8. Jam everything into the enclosure, and ENJOY!
+You'll want to use the LED Holders on on the enclosure and use the washers and nuts that came with the Pots and Encoder to secure them to the enclosure.
 
 ![FinalProduct](images/FinalProduct.png)
