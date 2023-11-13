@@ -1,5 +1,9 @@
 # Ordering Hardware from me
-I'm not really in the business of selling kits or finished pedals, however, sometimes I do end up with extra PCBs since the minimum order from JLCPCB is 5 that I'm willing to sell to folks at cost.  If you are interested, please message me through GitHub or you can find me on the Electro-Smith [Forums](https://forum.electro-smith.com/t/my-daisy-guitar-pedal-designs-on-github/3641) & [Discord](https://discord.gg/ByHBnMtQTR) as Kshep and can message me there.
+I get a lot of requests to buy kits or finished pedals based on my designs. This is not something I typically do, but sometimes I do have extra PCBs, parts, and enclosures lying around and I'm willing to pass them along to you, basically at cost, as outlined in the options below.
+
+If you are interested, please message me through GitHub or you can find me on the Electro-Smith [Forums](https://forum.electro-smith.com/t/my-daisy-guitar-pedal-designs-on-github/3641) & [Discord](https://discord.gg/ByHBnMtQTR) as Kshep and can message me there. 
+
+I also really can't supply much customer support on this stuff or offer any warranty on the hardware beyond replacing it if it arrives non-functional. I'm not really trying to start a pedal business. I'm doing this for fun and to learn new things, which is why I provide all these designs and documenation here on GitHub for free.
 
 ## Option 1 - PCB Only
 Price: $50 (USD) + Shipping & Handling
@@ -37,7 +41,7 @@ You'll basically be starting at [Step 7: Order the Enclosure and External Hardwa
 ## Option 4 - Complete Pedal (without Daisy Seed)
 Price: $150 (USD) + Shipping & Handling
 
-Honestly, I don't love this option, but I might be willing to go the extra mile, depending if I'm really feeling generous with my time. Like I said at the beginning, I'm not really interested in getting into the business of selling pedals or kits.
+Honestly, I don't love this option, but I might be willing to go the extra mile, depending if I'm really feeling generous with my time. Like I said at the beginning, I'm not really interested in getting into the pedal business.
 
 I also usually don't have extra Enclosures and Knobs around, so this might not always be an option. Plus picking a custom color and knobs for your pedal is half the fun! [Step 7: Order the Enclosure and External Hardware](README.md#7-order-the-enclosure-and-external-hardware) is so freaking easy, I highly recommend doing Option 3, instead of this one.
 
