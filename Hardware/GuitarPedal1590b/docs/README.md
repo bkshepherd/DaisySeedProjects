@@ -22,7 +22,7 @@ I like to order my PCBs from https://www.jlcpcb.com, but anywhere should work fi
 
 Follow these steps to get the PCB made by JLCPCB:
 
-1. Download the ready-made [JLCPCB Gerber Files](../pcb/JLCPCB-Gerbers/DaisySeedPedal1590-Rev5-gerbers.zip) for this project to your computer. (Keep the files zipped)
+1. Download the ready-made [JLCPCB Gerber Files](../pcb/JLCPCB-Gerbers/DaisySeedPedal1590b-Rev6-gerbers.zip) for this project to your computer. (Keep the files zipped)
 2. Visit the [JLCPCB Website](https://www.jlcpcb.com).
 3. Click the **Order Now** button in the top menu bar.
 4. Click the **Add Gerber File** button. ![Add Gerbers](images/JLCPCB-OrderNow.png)
