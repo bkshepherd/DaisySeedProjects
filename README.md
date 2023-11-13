@@ -8,21 +8,22 @@ This is a demo of a pedal board I put together using 3 of my custom Daisy Seed b
 The software that can run on any of the custom Guitar Pedal hardware projects listed below as well at the PedalPCB Terrarium hardware.  This software is a flexible platform that abstracts the underlying Guitar Pedal hardware and allows a collection of Effects Modules to run on any of those hardware platforms.
 
 ## Hardware Projects:
-### 1. [Guitar Effect Pedal in 1590b Enclosure](Hardware/GuitarPedal1590b/README.md) (Through-hole parts)
-A robust and tiny platform for making DSP based guitar FX pedals. Stereo Audio, Midi in/out, 4 Knobs, 2 LEDs, 1 or 2 Foot Switches, all based on the Daisy Seed microcontroller.
-
-![FinalProduct1590b](Hardware/GuitarPedal1590b/docs/images/FinalProduct.png) ![CircuitBoard1590b](Hardware/GuitarPedal1590b/docs/images/CircuitBoard.png)
-
-### 2. [Guitar Effect Pedal in 1590b Enclosure](Hardware/GuitarPedal1590b-SMD/README.md) (SMD Parts)
-
-Same form factor and features as the Through-Hole version of the 1590b pedal plus "True Bypass". Using SMD parts for easy manufacturing by a fab such as JLCPCB.
-
-![FinalProduct1590b-SMD](Hardware/GuitarPedal1590b-SMD/docs/images/FinalProduct.png) ![CircuitBoard1590b-SMD](Hardware/GuitarPedal1590b-SMD/docs/images/CircuitBoard.png)
-
-### 3. [Guitar Effect Pedal in 125b Enclosure](Hardware/GuitarPedal125b/README.md) (SMD Parts)
+### 1. [Guitar Effect Pedal in 125b Enclosure](Hardware/GuitarPedal125b/README.md) (SMD Parts)
 A feature rich and flexible platform for making DSP based guitar FX pedals. Stereo Audio, Midi in/out, OLED Display, Rotary Encoder for Menu Navigation, 6 Knobs, 2 LEDs, 2 Foot Switches, Relay based "True Bypass" switching, all based on the Daisy Seed microcontroller.
 
 ![FinalProduct125b](Hardware/GuitarPedal125b/docs/images/FinalProduct.png) ![CircuitBoard125b](Hardware/GuitarPedal125b/docs/images/CircuitBoard-Back.png)
+
+### 2. [Guitar Effect Pedal in 1590b Enclosure](Hardware/GuitarPedal1590b-SMD/README.md) (SMD Parts)
+
+A robust and tiny platform for making DSP based guitar FX pedals. Stereo Audio, Midi in/out, 4 Knobs, 2 LEDs, 1 or 2 Foot Switches, Relay based "True Bypass" switching, all based on the Daisy Seed microcontroller. Using SMD parts for easy manufacturing by a fab such as JLCPCB.
+
+![FinalProduct1590b-SMD](Hardware/GuitarPedal1590b-SMD/docs/images/FinalProduct.png) ![CircuitBoard1590b-SMD](Hardware/GuitarPedal1590b-SMD/docs/images/CircuitBoard.png)
+
+### 3. [Guitar Effect Pedal in 1590b Enclosure](Hardware/GuitarPedal1590b/README.md) (Through-hole parts)
+
+Same form factor and features as the SMD version of the 1590b pedal, minus the Relay based "True Bypass" switching. Using all Through-Hole parts for easy assembly at home with limited soldering skills.
+
+![FinalProduct1590b](Hardware/GuitarPedal1590b/docs/images/FinalProduct.png) ![CircuitBoard1590b](Hardware/GuitarPedal1590b/docs/images/CircuitBoard.png)
 
 More Information about the Daisy Seed can be found at:
 
