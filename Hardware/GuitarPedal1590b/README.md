@@ -1,4 +1,4 @@
-# Guitar Pedal 1590b - Through-Hole Components
+# Guitar Pedal 1590b - Through-Hole Parts
 
 ### Rev 6 - 11/12/2023
 
