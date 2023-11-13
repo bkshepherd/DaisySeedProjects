@@ -3,7 +3,7 @@ I get a lot of requests to buy kits or finished pedals based on my designs. This
 
 If you are interested, please message me through GitHub or you can find me on the Electro-Smith [Forums](https://forum.electro-smith.com/t/my-daisy-guitar-pedal-designs-on-github/3641) & [Discord](https://discord.gg/ByHBnMtQTR) as Kshep and can message me there. 
 
-I also really can't supply much customer support on this stuff or offer any warranty on the hardware beyond replacing it if it arrives non-functional. I'm not really trying to start a pedal business. I'm doing this for fun and to learn new things, which is why I provide all these designs and documenation here on GitHub for free.
+I also really can't supply much customer support on this stuff or offer any warranty on the hardware. I'm not really trying to start a pedal business. I'm doing this for fun and to learn new things, which is why I provide all these designs and documenation here on GitHub for free.
 
 ## Option 1 - PCB Only
 Price: $50 (USD) + Shipping & Handling
