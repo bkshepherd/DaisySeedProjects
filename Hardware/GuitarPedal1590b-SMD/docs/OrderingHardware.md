@@ -45,4 +45,4 @@ This option is everything you need, except the Daisy Seed. Knobs and Enclosure c
 
 You'll basically get a finished pedal ready for you to [create your own cool effects](../../../Software/GuitarPedal/README.md).
 
-![PCBs](images/CircuitBoard.png)![Enclosure and Knobs](images/EnclosureAndKnobs.png)![PCBs](images/FinalProduct.png)
+![PCBs](images/CircuitBoard.png)![PCBs](images/FinalProduct.png)
