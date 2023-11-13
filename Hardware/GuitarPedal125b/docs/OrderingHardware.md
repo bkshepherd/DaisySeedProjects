@@ -34,22 +34,15 @@ You'll basically be starting at [Step 7: Order the Enclosure and External Hardwa
 
 ![PCBs](images/CircuitBoard-Front.png)
 
-## Option 4 - Complete PCB + Enclosure & Knobs (without Daisy Seed)
+## Option 4 - Complete Pedal (without Daisy Seed)
 Price: $150 (USD) + Shipping & Handling
-
-I usually don't have extra Enclosures and Knobs around, so this might not be an option. Plus picking a custom color and knobs for your pedal is half the fun! [Step 7: Order the Enclosure and External Hardware](README.md#7-order-the-enclosure-and-external-hardware) is so freaking easy, I highly don't recommend this option.
-
-This option is the full kit. Everything you need to finish the Pedal, except the Daisy Seed. You will still need Assemble everything yourself. Knobs and Enclosure colors are at my whim and may vary based on what I have lying around.
-
-You'll basically be starting at [Step 8: Flash the Software to the Daisy Seed](README.md#8-flash-the-software-to-the-daisy-seed-on-the-hardware)
-
-![PCBs](images/CircuitBoard-Front.png)![Enclosure and Knobs](images/EnclosureAndKnobs.png)
-
-## Option 5 - Complete Pedal (with or without Daisy Seed)
-Price: Market Price (Ask Me)
 
 Honestly, I don't love this option, but I might be willing to go the extra mile, depending if I'm really feeling generous with my time. Like I said at the beginning, I'm not really interested in getting into the business of selling pedals or kits.
 
-You'll basically get a finished product ready for you to [create your own cool effects](../../../Software/GuitarPedal/README.md).
+I also usually don't have extra Enclosures and Knobs around, so this might not always be an option. Plus picking a custom color and knobs for your pedal is half the fun! [Step 7: Order the Enclosure and External Hardware](README.md#7-order-the-enclosure-and-external-hardware) is so freaking easy, I highly recommend doing Option 3, instead of this one.
 
-![PCBs](images/FinalProduct.png)
+This option is everything you need, except the Daisy Seed. Knobs and Enclosure colors are at my whim and may vary based on what I have lying around.
+
+You'll basically get a finished pedal ready for you to [create your own cool effects](../../../Software/GuitarPedal/README.md).
+
+![PCBs](images/CircuitBoard-Front.png)![Enclosure and Knobs](images/EnclosureAndKnobs.png)![PCBs](images/FinalProduct.png)
