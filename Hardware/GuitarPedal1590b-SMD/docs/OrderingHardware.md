@@ -37,7 +37,9 @@ You'll basically be starting at [Step 7: Order the Enclosure and External Hardwa
 ## Option 4 - Complete Pedal (without Daisy Seed)
 Price: $125 (USD) + Shipping & Handling
 
-Honestly, I don't love this option, but I might be willing to go the extra mile, depending if I'm really feeling generous with my time. Like I said at the beginning, I'm not really interested in getting into the business of selling pedals or kits. Plus picking custom colors for your knobs and enclosure is half the fun! [Step 7: Order the Enclosure and External Hardware](README.md#7-order-the-enclosure-and-external-hardware) is so freaking easy, I highly recommend doing Option 3, instead of this one.
+Honestly, I don't love this option, but I might be willing to go the extra mile, depending if I'm really feeling generous with my time. Like I said at the beginning, I'm not really interested in getting into the business of selling pedals or kits. 
+
+I also usually don't have extra Enclosures and Knobs around, so this might not always be an option. Plus picking custom colors for your knobs and enclosure is half the fun! [Step 7: Order the Enclosure and External Hardware](README.md#7-order-the-enclosure-and-external-hardware) is so freaking easy, I highly recommend doing Option 3, instead of this one.
 
 This option is everything you need, except the Daisy Seed. Knobs and Enclosure colors are at my whim and may vary based on what I have lying around.
 
