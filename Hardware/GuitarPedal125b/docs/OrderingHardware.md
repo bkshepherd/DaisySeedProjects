@@ -23,7 +23,7 @@ You'll basically be starting at [Step 6: Finish the PCB](README.md#6-finish-the-
 
 ![PCBs](images/PCBs.png)![PCB Extra Parts](images/PCBExtraParts.png)
 
-## Option 3 - Complete PCB
+## Option 3 - Complete PCB (without Daisy Seed)
 Price: $100 (USD) + Shipping & Handling
 
 Not feeling like you want to solder anything? I hear ya, me either.
