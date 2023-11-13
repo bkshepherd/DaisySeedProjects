@@ -37,15 +37,6 @@ Once you've built the hardware you can deploy the software from my Multi-Effect 
 
 This software provides a hardware abstraction layer as well as a few custom FX including Tremolo, Chorus, Overdrive, and Stereo Auto-Pan.
 
-Click on this image for a Demo Video (this pedal is on the left in the pedal board):
-
-[![Demo Video](https://img.youtube.com/vi/ZkLnS43acQo/0.jpg)](https://www.youtube.com/watch?v=ZkLnS43acQo)
-
-Getting Started:
-
-1. [Build the Hardware](docs/README.md)
-2. [Deploy the Software to the Hardware](../../Software/GuitarPedal/README.md)
-
 ## Past Revisions
 ### Rev 5 - 6/3/2023
 
