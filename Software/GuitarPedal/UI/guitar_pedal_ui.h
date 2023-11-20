@@ -25,7 +25,7 @@ class GuitarPedalUI
     void UpdateActiveEffect(int effectID);
 
     /** Handle updating a Parameter Value for the Active Effect Module based on the ID */
-    void UpdateActiveEffectParameterValue(int paramID, uint8_t paramValue, bool showChangeOnDisplay = false);
+    void UpdateActiveEffectParameterValue(int paramID, bool showChangeOnDisplay = false);
 
     /** Handle Showing the Saving Settings Screen */
     void ShowSavingSettingsScreen();
@@ -72,6 +72,7 @@ class GuitarPedalUI
     const char** m_availableEffectNames;
     MappedStringListValue *m_availableEffectListMappedValues;
     MappedIntValue **m_activeEffectSettingValues;
+    bool *m_activeEffectSettingBoolValues;
     MappedIntValue m_midiChannelSettingValue;
 
     bool m_displayingSaveSettingsNotification;

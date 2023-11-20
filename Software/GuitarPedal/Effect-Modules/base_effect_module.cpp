@@ -77,7 +77,34 @@ const char *BaseEffectModule::GetParameterName(int parameter_id)
     return m_paramMetaData[parameter_id].name;
 }
 
-uint8_t BaseEffectModule::GetParameter(int parameter_id)
+int BaseEffectModule::GetParameterType(int parameter_id)
+{
+    // Make sure parameter_id is valid.
+    if (m_params == NULL || parameter_id < 0 || parameter_id >= m_paramCount || m_paramMetaData == NULL)
+    {
+        return -1;
+    }
+    
+    return m_paramMetaData[parameter_id].valueType;
+}
+
+int BaseEffectModule::GetParameterBinCount(int parameter_id)
+{
+    // Make sure parameter_id is valid.
+    if (m_params == NULL || parameter_id < 0 || parameter_id >= m_paramCount || m_paramMetaData == NULL)
+    {
+        return -1;
+    }
+    
+    if (m_paramMetaData[parameter_id].valueType != 3)
+    {
+        return -1;
+    }
+
+    return m_paramMetaData[parameter_id].valueBinCount;
+}
+
+uint8_t BaseEffectModule::GetParameterRaw(int parameter_id)
 {
     // Make sure parameter_id is valid.
     if (m_params == NULL || parameter_id < 0 || parameter_id >= m_paramCount)
@@ -90,7 +117,29 @@ uint8_t BaseEffectModule::GetParameter(int parameter_id)
 
 float BaseEffectModule::GetParameterAsMagnitude(int parameter_id)
 {
-    return (float)GetParameter(parameter_id) / 127.0f;
+    return (float)GetParameterRaw(parameter_id) / 127.0f;
+}
+
+bool BaseEffectModule::GetParameterAsBool(int parameter_id)
+{
+    return (GetParameterRaw(parameter_id) > 63);
+}
+
+int BaseEffectModule::GetParameterAsBinnedValue(int parameter_id)
+{
+    int binCount = GetParameterBinCount(parameter_id);
+
+    // Make this is a binned value
+    if (binCount == -1)
+    {
+        return 1;
+    }
+
+    // Get the Bin number from a raw value stored as 0..127
+    float binSize = 128.0f / binCount;
+    float midPoint = (0.5f - (1.0f / 128.0f));
+    float offset = (1.0f / 128.0f);
+    return (int)(((GetParameterRaw(parameter_id) + midPoint) / binSize) + offset) + 1;
 }
 
 int BaseEffectModule::GetMappedParameterIDForKnob(int knob_id)
@@ -125,7 +174,7 @@ int BaseEffectModule::GetMappedParameterIDForMidiCC(int midiCC_id)
     return -1;
 }
 
-void BaseEffectModule::SetParameter(int parameter_id, uint8_t value)
+void BaseEffectModule::SetParameterRaw(int parameter_id, uint8_t value)
 {
     // Make sure parameter_id is valid.
     if (m_params == NULL || parameter_id < 0 || parameter_id >= m_paramCount)
@@ -142,21 +191,49 @@ void BaseEffectModule::SetParameter(int parameter_id, uint8_t value)
     m_params[parameter_id] = value;
 }
 
-void BaseEffectModule::SetParameterAsMagnitude(int parameter_id, float floatValue)
+void BaseEffectModule::SetParameterAsMagnitude(int parameter_id, float value)
 {
-    // Make sure the floatValue is in the valid range.
-    if (floatValue < 0.0f)
+    // Make sure the value is in the valid range.
+    if (value < 0.0f)
     {
-        SetParameter(parameter_id, 0);
+        SetParameterRaw(parameter_id, 0);
         return;
     }
-    else if (floatValue > 1.0f)
+    else if (value > 1.0f)
     {
-        SetParameter(parameter_id, 127);
+        SetParameterRaw(parameter_id, 127);
         return;
     }
 
-    SetParameter(parameter_id, (uint8_t)((127.0f * floatValue) + 0.35f)); 
+    SetParameterRaw(parameter_id, (uint8_t)((127.0f * value) + 0.35f)); 
+}
+
+void BaseEffectModule::SetParameterAsBool(int parameter_id, bool value)
+{
+    if (value)
+    {
+        SetParameterRaw(parameter_id, 127);
+    }
+    else
+    {
+        SetParameterRaw(parameter_id, 0);
+    }
+    
+}
+
+void BaseEffectModule::SetParameterAsBinnedValue(int parameter_id, u_int8_t bin)
+{
+    int binCount = GetParameterBinCount(parameter_id);
+
+    // Make sure that this is a binned type value and we're within range
+    if (binCount == -1 || bin < 1 || bin > binCount)
+    {
+        return;
+    }
+
+    // Map the Bin number into a raw value mapped in 0..127
+    float binSize = 128.0f / binCount;
+    SetParameterRaw(parameter_id, (int)(((bin - 1) * binSize) + (binSize / 2.0f)));
 }
 
 void BaseEffectModule::ProcessMono(float in)

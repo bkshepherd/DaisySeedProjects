@@ -3,11 +3,11 @@
 using namespace bkshepherd;
 
 static const int s_paramCount = 5;
-static const ParameterMetaData s_metaData[s_paramCount] = {{"Wet", 83, 0, 20},
-                                                           {"Delay", 64, 1, 21},
-                                                           {"LFO Freq", 35, 2, 22},
-                                                           {"LFO Depth", 40, 3, 23},
-                                                           {"Feedback", 30, 4, 24}};
+static const ParameterMetaData s_metaData[s_paramCount] = {{"Wet", 1, 0, 83, 0, 20},
+                                                           {"Delay", 1, 0, 64, 1, 21},
+                                                           {"LFO Freq", 1, 0, 35, 2, 22},
+                                                           {"LFO Depth", 1, 0, 40, 3, 23},
+                                                           {"Feedback", 1, 0, 30, 4, 24}};
 
 // Default Constructor
 ChorusModule::ChorusModule() : BaseEffectModule(),

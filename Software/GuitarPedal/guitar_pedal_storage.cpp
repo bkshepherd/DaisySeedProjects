@@ -20,7 +20,7 @@ void InitPersistantStorage()
     defaultSettings.globalRelayBypassEnabled = false;
     defaultSettings.globalSplitMonoInputToStereo = true;
 
-    // All Effect Params in the settings sound be zero'd
+    // All Effect Params in the settings should be zero'd
     for (int i = 0; i < SETTINGS_MAX_EFFECT_COUNT * SETTINGS_MAX_EFFECT_PARAM_COUNT; i++)
     {
         defaultSettings.globalEffectsSettings[i] = 0;
@@ -33,7 +33,7 @@ void InitPersistantStorage()
 
         for (int paramID = 0;  paramID < paramCount; paramID++)
         {
-            defaultSettings.globalEffectsSettings[(effectID * SETTINGS_MAX_EFFECT_PARAM_COUNT) + paramID] = availableEffects[effectID]->GetParameter(paramID);
+            defaultSettings.globalEffectsSettings[(effectID * SETTINGS_MAX_EFFECT_PARAM_COUNT) + paramID] = availableEffects[effectID]->GetParameterRaw(paramID);
         }
     } 
     
@@ -49,7 +49,8 @@ void LoadEffectSettingsFromPersistantStorage()
 
         for (int paramID = 0; paramID < paramCount; paramID++)
         {
-            availableEffects[effectID]->SetParameter(paramID, GetSettingsParameterValueForEffect(effectID, paramID));
+            uint8_t value = GetSettingsParameterValueForEffect(effectID, paramID);
+            availableEffects[effectID]->SetParameterRaw(paramID, value);
         }
     }
 }
@@ -63,7 +64,7 @@ void SaveEffectSettingsToPersitantStorageForEffectID(int effectID)
 
         for (int paramID = 0; paramID < paramCount; paramID++)
         {
-            SetSettingsParameterValueForEffect(effectID, paramID, availableEffects[effectID]->GetParameter(paramID));
+            SetSettingsParameterValueForEffect(effectID, paramID, availableEffects[effectID]->GetParameterRaw(paramID));
         }
     }
 }

@@ -26,7 +26,7 @@
       "request": "launch",
       "runToMain": true,
       "servertype": "openocd",
-      "showDevDebugOutput": true,
+      "showDevDebugOutput": "parsed",
       "svdFile": "${workspaceRoot}/.vscode/STM32H750x.svd",
       "type": "cortex-debug",
       "liveWatch": {

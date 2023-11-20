@@ -69,11 +69,28 @@ void GuitarPedalUI::UpdateActiveEffect(int effectID)
     }
 }
 
-void GuitarPedalUI::UpdateActiveEffectParameterValue(int paramID, uint8_t paramValue, bool showChangeOnDisplay)
+void GuitarPedalUI::UpdateActiveEffectParameterValue(int paramID, bool showChangeOnDisplay)
 {
     if (hardware.SupportsDisplay())
     {
-        m_activeEffectSettingValues[paramID]->Set(paramValue);
+        int parameterType = activeEffect->GetParameterType(paramID);
+
+        // Update the UI based on the parameter type
+        if (parameterType == -1 || parameterType == 0 || parameterType == 1)
+        {
+            // Unknown, Raw value or Float Magnitude Types
+            m_activeEffectSettingValues[paramID]->Set(activeEffect->GetParameterRaw(paramID));
+        }
+        else if (parameterType == 2)
+        {
+            // Bool Type
+            m_activeEffectSettingBoolValues[paramID] = activeEffect->GetParameterAsBool(paramID);
+        }
+        else if (parameterType == 3)
+        {
+            // Binned Value Type
+            m_activeEffectSettingValues[paramID]->Set(activeEffect->GetParameterAsBinnedValue(paramID));
+        }
 
         if (showChangeOnDisplay)
         {
@@ -173,6 +190,11 @@ void GuitarPedalUI::InitEffectUiPages()
         m_numActiveEffectSettingsItems = 0;
     }
 
+    if (m_activeEffectSettingBoolValues != NULL)
+    {
+        delete [] m_activeEffectSettingBoolValues;
+    }
+
     if (m_activeEffectSettingsMenuItems != NULL)
     {
         delete [] m_activeEffectSettingsMenuItems;
@@ -180,14 +202,38 @@ void GuitarPedalUI::InitEffectUiPages()
 
     m_numActiveEffectSettingsItems = activeEffect->GetParameterCount();
     m_activeEffectSettingValues = new MappedIntValue*[m_numActiveEffectSettingsItems];
+    m_activeEffectSettingBoolValues = new bool[m_numActiveEffectSettingsItems];
     m_activeEffectSettingsMenuItems = new AbstractMenu::ItemConfig[m_numActiveEffectSettingsItems + 1];
     
     for (int i = 0; i < m_numActiveEffectSettingsItems; i++)
     {
-        m_activeEffectSettingsMenuItems[i].type = AbstractMenu::ItemType::valueItem;
         m_activeEffectSettingsMenuItems[i].text = activeEffect->GetParameterName(i);
-        m_activeEffectSettingValues[i] = new MappedIntValue(0, 127, activeEffect->GetParameter(i), 1, 5);
-        m_activeEffectSettingsMenuItems[i].asMappedValueItem.valueToModify = m_activeEffectSettingValues[i];
+
+        int parameterType = activeEffect->GetParameterType(i);        
+
+        if (parameterType == -1 || parameterType == 0 || parameterType == 1)
+        {
+            // Unknown, Raw value or Float Magnitude Types
+            m_activeEffectSettingsMenuItems[i].type = AbstractMenu::ItemType::valueItem;
+            m_activeEffectSettingValues[i] = new MappedIntValue(0, 127, activeEffect->GetParameterRaw(i), 1, 5);
+            m_activeEffectSettingsMenuItems[i].asMappedValueItem.valueToModify = m_activeEffectSettingValues[i];
+        }
+        else if (parameterType == 2)
+        {
+            // Boolean Type
+            m_activeEffectSettingsMenuItems[i].type = AbstractMenu::ItemType::checkboxItem;
+            m_activeEffectSettingValues[i] = new MappedIntValue(0, 127, activeEffect->GetParameterRaw(i), 1, 5);
+            m_activeEffectSettingBoolValues[i] = activeEffect->GetParameterAsBool(i);
+            m_activeEffectSettingsMenuItems[i].asCheckboxItem.valueToModify = &m_activeEffectSettingBoolValues[i];
+        }
+        else if (parameterType == 3)
+        {
+            // Binned Value Type
+            m_activeEffectSettingsMenuItems[i].type = AbstractMenu::ItemType::valueItem;
+            int binnedValue = activeEffect->GetParameterAsBinnedValue(i);
+            m_activeEffectSettingValues[i] = new MappedIntValue(1, activeEffect->GetParameterBinCount(i), binnedValue, 1, 5);
+            m_activeEffectSettingsMenuItems[i].asMappedValueItem.valueToModify = m_activeEffectSettingValues[i];
+        }
     }
 
     m_activeEffectSettingsMenuItems[m_numActiveEffectSettingsItems].type = AbstractMenu::ItemType::closeMenuItem;
@@ -333,7 +379,23 @@ void GuitarPedalUI::UpdateUI(float elapsedTime)
     // Update all Active Effect Parameter Settings to values from the menu system
     for (int i = 0; i < m_numActiveEffectSettingsItems; i++)
     {
-        activeEffect->SetParameter(i, m_activeEffectSettingValues[i]->Get());
+        int parameterType = activeEffect->GetParameterType(i);
+
+        if (parameterType == -1 || parameterType == 0 || parameterType == 1)
+        {
+            // Unknown, Raw value or Float Magnitude Types
+            activeEffect->SetParameterRaw(i, m_activeEffectSettingValues[i]->Get());
+        }
+        else if (parameterType == 2)
+        {
+            // Bool Type
+            activeEffect->SetParameterAsBool(i, m_activeEffectSettingBoolValues[i]);
+        }
+        else if (parameterType == 3)
+        {
+            // Binned Value Type
+            activeEffect->SetParameterAsBinnedValue(i, m_activeEffectSettingValues[i]->Get());
+        }
     }
 
     // Update the Midi Channel if the value was changed in the Menu

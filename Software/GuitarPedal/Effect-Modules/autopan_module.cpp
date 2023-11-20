@@ -3,10 +3,10 @@
 using namespace bkshepherd;
 
 static const int s_paramCount = 4;
-static const ParameterMetaData s_metaData[s_paramCount] = {{"Wet", 127, 0, 20},
-                                                           {"Osc Wave", 0, -1, 21},
-                                                           {"Osc Freq", 12, 1, 1},
-                                                           {"Algorithm", 0, -1, 23}};       // 0 is Mono (even if fed stereo) 1 is Stereo
+static const ParameterMetaData s_metaData[s_paramCount] = {{"Wet", 1, 0, 127, 0, 20},
+                                                           {"Osc Wave", 3, 8, 0, 2, 21},
+                                                           {"Osc Freq", 1, 0, 12, 1, 1},
+                                                           {"Stereo", 2, 0, 0, -1, 23}};       // 0 is Mono (even if fed stereo) 1 is Stereo
 
 // Default Constructor
 AutoPanModule::AutoPanModule() : BaseEffectModule(),
@@ -42,12 +42,12 @@ void AutoPanModule::ProcessMono(float in)
     BaseEffectModule::ProcessMono(in);
 
     // Calculate Pan Oscillation 
-    m_freqOsc.SetWaveform(GetParameter(1));
+    m_freqOsc.SetWaveform(GetParameterAsBinnedValue(1) - 1);
     m_freqOsc.SetAmp(0.5f);
     m_freqOsc.SetFreq(m_freqOscFreqMin + (GetParameterAsMagnitude(2) * m_freqOscFreqMax));
     float mod = 0.5f + m_freqOsc.Process();
 
-    if (GetParameter(2) == 0) {
+    if (GetParameterRaw(2) == 0) {
         mod = 0.5f;
         m_pan = mod;
     }
@@ -73,7 +73,7 @@ void AutoPanModule::ProcessStereo(float inL, float inR)
     ProcessMono(inL);
 
     // If we are processing in mono only no need to do anything
-    if (GetParameter(3) == 0)
+    if (!GetParameterAsBool(3))
     {
         return;
     }

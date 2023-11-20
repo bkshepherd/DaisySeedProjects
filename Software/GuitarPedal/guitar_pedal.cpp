@@ -362,8 +362,8 @@ void HandleMidiMessage(MidiEvent m)
 
                 if (effectParamID != -1)
                 {
-                    activeEffect->SetParameter(effectParamID, p.value);
-                    guitarPedalUI.UpdateActiveEffectParameterValue(effectParamID, activeEffect->GetParameter(effectParamID));
+                    activeEffect->SetParameterRaw(effectParamID, p.value);
+                    guitarPedalUI.UpdateActiveEffectParameterValue(effectParamID, activeEffect->GetParameterRaw(effectParamID));
                 }
             }
             break;
@@ -424,6 +424,7 @@ int main(void)
     
     // Set the active effect
     activeEffect = availableEffects[settings.globalActiveEffectID];
+    activeEffectID = settings.globalActiveEffectID;
 
     // Init the Menu UI System
     if (hardware.SupportsDisplay())
@@ -495,7 +496,7 @@ int main(void)
                         activeEffect->SetParameterAsMagnitude(parameterID, knobValueCache[i]);
 
                         // Update the effect parameter on the menu system
-                        guitarPedalUI.UpdateActiveEffectParameterValue(parameterID, activeEffect->GetParameter(parameterID), true);
+                        guitarPedalUI.UpdateActiveEffectParameterValue(parameterID, true);
                     }
                 }
             }
@@ -527,10 +528,10 @@ int main(void)
                 hardware.display.SetCursor(0, 0);
                 hardware.display.WriteString("Debug:", Font_7x10, true);
                 hardware.display.SetCursor(0, 15);
-                sprintf(strbuff, "MuteOn: %d", muteOn);
+                sprintf(strbuff, "Raw: %d", activeEffect->GetParameterRaw(3));
                 hardware.display.WriteString(strbuff, Font_7x10, true);
                 hardware.display.SetCursor(0, 30);
-                sprintf(strbuff, "BypassOn: %d", bypassOn);
+                sprintf(strbuff, "AsBin: %d", activeEffect->GetParameterAsBinnedValue(3));
                 hardware.display.WriteString(strbuff, Font_7x10, true);
                 hardware.display.SetCursor(0, 45);
                 sprintf(strbuff, "LED: %d", (int)(activeEffect->GetOutputLEDBrightness() * 100.0f));

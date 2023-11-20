@@ -3,11 +3,11 @@
 using namespace bkshepherd;
 
 static const int s_paramCount = 5;
-static const ParameterMetaData s_metaData[s_paramCount] = {{"Wave", 0, -1, 20},
-                                                           {"Depth", 74, 1, 21},
-                                                           {"Freq", 67, 0, 1},
-                                                           {"Osc Wave", 0, -1, 23},
-                                                           {"Osc Freq", 12, 2, 24}};
+static const ParameterMetaData s_metaData[s_paramCount] = {{"Wave", 3, 8, 0, 3, 20},
+                                                           {"Depth", 1, 0, 74, 1, 21},
+                                                           {"Freq", 1, 0, 67, 0, 1},
+                                                           {"Osc Wave", 3, 8, 0, 4, 23},
+                                                           {"Osc Freq", 1, 0, 12, 2, 24}};
 
 // Default Constructor
 ModulatedTremoloModule::ModulatedTremoloModule() : BaseEffectModule(),
@@ -46,17 +46,17 @@ void ModulatedTremoloModule::ProcessMono(float in)
     BaseEffectModule::ProcessMono(in);
 
     // Calculate Tremolo Frequency Oscillation
-    m_freqOsc.SetWaveform(GetParameter(3));
+    m_freqOsc.SetWaveform(GetParameterAsBinnedValue(3) - 1);
     m_freqOsc.SetAmp(0.5f);
     m_freqOsc.SetFreq(m_freqOscFreqMin + (GetParameterAsMagnitude(4) * m_freqOscFreqMax));
     float mod = 0.5f + m_freqOsc.Process();
 
-    if (GetParameter(4) == 0) {
+    if (GetParameterRaw(4) == 0) {
         mod = 1.0f;
     }
 
     // Calculate the effect
-    m_tremolo.SetWaveform(GetParameter(0));
+    m_tremolo.SetWaveform(GetParameterAsBinnedValue(0) - 1);
     m_tremolo.SetDepth(GetParameterAsMagnitude(1));
     m_tremolo.SetFreq(m_tremoloFreqMin + ((GetParameterAsMagnitude(2) * m_tremoloFreqMax) * mod));
     m_cachedEffectMagnitudeValue = m_tremolo.Process(1.0f);
