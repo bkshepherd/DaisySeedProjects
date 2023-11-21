@@ -59,7 +59,9 @@ void ModulatedTremoloModule::ProcessMono(float in)
     m_tremolo.SetWaveform(GetParameterAsBinnedValue(0) - 1);
     m_tremolo.SetDepth(GetParameterAsMagnitude(1));
     m_tremolo.SetFreq(m_tremoloFreqMin + ((GetParameterAsMagnitude(2) * m_tremoloFreqMax) * mod));
-    m_cachedEffectMagnitudeValue = m_tremolo.Process(1.0f);
+
+    // Ease the effect value into it's target to avoid clipping with square or sawtooth waves
+    fonepole(m_cachedEffectMagnitudeValue, m_tremolo.Process(1.0f), .01f);
 
     m_audioLeft = m_audioLeft * m_cachedEffectMagnitudeValue;
     m_audioRight = m_audioLeft;
