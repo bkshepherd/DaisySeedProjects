@@ -2,7 +2,7 @@
 TARGET =  guitarpedal
 
 # Sources
-CPP_SOURCES = guitar_pedal.cpp guitar_pedal_storage.cpp $(wildcard */*.cpp)
+CPP_SOURCES = guitar_pedal.cpp guitar_pedal_storage.cpp $(wildcard */*.cpp) Effect-Modules/Chopper/chopper.cpp
 
 # Library Locations
 DAISYSP_DIR ?= /Users/kshep/Dev/DaisySP
