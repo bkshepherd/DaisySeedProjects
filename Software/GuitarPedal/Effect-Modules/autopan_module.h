@@ -24,6 +24,9 @@ class AutoPanModule : public BaseEffectModule
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;
     float GetOutputLEDBrightness() override;
+    void UpdateUI(float elapsedTime) override;
+    void DrawUI(OneBitGraphicsDisplay& display, int currentIndex, int numItemsTotal, Rectangle boundsToDrawIn, bool isEditing) override;
+
 
   private:
     float m_pan; // 0 to 1 value 0 is full left, 1 is full right.

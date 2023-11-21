@@ -154,6 +154,12 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
     // Handle Effect State being Toggled.
     if (effectOn != oldEffectOn)
     {
+        // Set the stats on the effect
+        if (activeEffect != NULL)
+        {
+            activeEffect->SetActive(effectOn);
+        }
+
         // Setup the crossfade
         isCrossFading = true;
         samplesTilCrossFadingComplete = crossFaderTransitionTimeInSamples;
@@ -427,6 +433,7 @@ int main(void)
     // Set the active effect
     activeEffect = availableEffects[settings.globalActiveEffectID];
     activeEffectID = settings.globalActiveEffectID;
+    activeEffect->SetActive(effectOn);
 
     // Init the Menu UI System
     if (hardware.SupportsDisplay())

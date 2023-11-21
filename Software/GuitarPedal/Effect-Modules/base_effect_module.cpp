@@ -6,7 +6,8 @@ using namespace bkshepherd;
 BaseEffectModule::BaseEffectModule() : m_paramCount(0),
                                         m_params(NULL),
                                         m_audioLeft(0.0f),
-                                        m_audioRight(0.0f)
+                                        m_audioRight(0.0f),
+                                        m_isActive(false)
 {
     m_name = "Base";
     m_paramMetaData = NULL;
@@ -261,6 +262,16 @@ float BaseEffectModule::GetAudioRight()
 float BaseEffectModule::GetOutputLEDBrightness()
 {
     return 1.0f;
+}
+
+void BaseEffectModule::SetActive(bool isActive)
+{
+    m_isActive = isActive;
+}
+
+bool BaseEffectModule::IsActive()
+{
+    return m_isActive;
 }
 
 void BaseEffectModule::UpdateUI(float elapsedTime)

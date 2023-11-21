@@ -98,3 +98,37 @@ float AutoPanModule::GetOutputLEDBrightness()
 {    
     return BaseEffectModule::GetOutputLEDBrightness() * m_pan;
 }
+
+void AutoPanModule::UpdateUI(float elapsedTime)
+{
+    // Let the base class do it's thing.
+    BaseEffectModule::UpdateUI(elapsedTime);
+
+}
+
+void AutoPanModule::DrawUI(OneBitGraphicsDisplay& display, int currentIndex, int numItemsTotal, Rectangle boundsToDrawIn, bool isEditing)
+{
+    // Let the base class do it's thing.
+    BaseEffectModule::DrawUI(display, currentIndex, numItemsTotal, boundsToDrawIn, isEditing);
+
+    // If the effect isn't enabled don't draw the custom UI
+    if (!IsActive())
+    {
+        return;
+    }
+
+    int lineY = (boundsToDrawIn.GetHeight() / 5.0f) * 3;
+    int lineStartX = boundsToDrawIn.GetX();
+    int lineEndX = boundsToDrawIn.GetRight();
+
+    // calculate the pan location
+    int panLocationX = lineStartX + (m_pan * (boundsToDrawIn.GetWidth() - 20));
+
+    // Draws a line and a ball where the pan is currently located between L/R side
+    display.DrawLine(lineStartX + 10, lineY, lineEndX - 10, lineY, true);
+    display.DrawCircle(panLocationX + 10, lineY, 3, true);
+    display.SetCursor(lineStartX, lineY - 4);
+    display.WriteChar('L', Font_6x8, true);
+    display.SetCursor(lineEndX - 6, lineY - 4);
+    display.WriteChar('R', Font_6x8, true);
+}

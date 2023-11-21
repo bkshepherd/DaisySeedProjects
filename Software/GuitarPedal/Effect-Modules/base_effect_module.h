@@ -146,6 +146,16 @@ class BaseEffectModule
     */
     virtual float GetOutputLEDBrightness();
 
+    /** Sets the state of this Effect
+     * @param isActive True for Active, False for Not-Active.
+    */
+    virtual void SetActive(bool isActive);
+
+    /** Returns the status of the Effect
+     \return Value True if the Effect is Active and False if the Effect is Bypassed
+    */
+    bool IsActive();
+
     /** Handles updating the custom UI for this Effect.
      * @param elapsedTime a float value of how much time (in seconds) has elapsed since the last update
      */
@@ -174,6 +184,7 @@ class BaseEffectModule
     float m_audioRight;                         // Last Audio Sample value for the Right Stereo Channel
 
   private:
+    float   m_isActive;
     float   m_sampleRate;                       // Current Sample Rate this Effect was initialized for.
 
 };
