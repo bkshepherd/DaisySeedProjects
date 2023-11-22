@@ -40,6 +40,35 @@ A full list of all the required components can be found in the [Bill_of_Material
 
 ## 3. Solder Everything
 
+I like to solder in the following order for simplicy:
+
+1. All Resistors
+2. Diodes - D1 & D2
+3. MLCC Capacitors - 10uF - C1, C4, C9, C10, C11, C12, C15, C16
+4. (*Optional) MLCC Capacitor - 10uF - C5
+5. Film Capacitors - 100nF - C2, C3, C7, C8, C13, C14
+6. Ceramic Capacitor - 100nf - C17
+7. LDO - 5V Linear Voltage Regular - U1
+8. ICs - U3,U4,U5
+9. Jacks - J1, J2, J3, J4, J5
+10. 20 Pin Headers (x2) - A1
+11. 3mm LEDs - LED1 & LED2 - You'll want to keep the legs long possibly using a 10mm spacer from the PCB, Short pin goes to the square pad!
+
+Optional Filtered Power Supply:
+
+If you plan to connect this pedal to a high quality isolated power source, this step is not necessary. Otherwise, it's probably a good idea to do. You can add it later if you like, but you'll have to remove the Pot that this stuff sits under...
+
+12. (*Optional) Electrolytic Capacitor - 22uF - C6
+13. (*Optional) Inductor - 2.2 uH - L1
+14. (*Optional) - Isolated Power Converter - U2
+
+If you don't plan to use the Optional parts above, you must bridge the contacts on R21 with solder. Otherwise, leave R21 unbridged.
+
+Finally:
+
+15. All Pots
+16. All Footswitches
+
 It will roughly look like this when finished with this step:
 
 ![CircuitBoard](images/CircuitBoard.png)
