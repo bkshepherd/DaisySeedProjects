@@ -69,9 +69,8 @@ Finally:
 15. All Pots
 16. All Footswitches
 
-It will roughly look like this when finished with this step:
-
-![CircuitBoard](images/CircuitBoard.png)
+It goes a little something like this:
+![Soldering](images/Soldering.gif)
 
 (I omitted the 2nd foot switch from my build)
 
