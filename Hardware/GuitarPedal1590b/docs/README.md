@@ -70,6 +70,7 @@ Finally:
 16. All Footswitches
 
 It goes a little something like this:
+
 ![Soldering](images/Soldering.gif)
 
 (I omitted the 2nd foot switch from my build)
