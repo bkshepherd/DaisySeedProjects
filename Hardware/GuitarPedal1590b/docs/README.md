@@ -1,5 +1,5 @@
 # Building the Hardware
-Some quick instructions for how to make the GuitarPedal1590B Hardware.  This document assumes you know the basics about soldering and circuit board assembly.  You'll also need to be fairly handy with a drill to mount the various knobs and switches on the enclosure (or you can order one pre-made from Tayda).
+Some quick instructions for how to make the GuitarPedal1590B Hardware.  This document assumes you know the basics about soldering and circuit board assembly.
 
 Quick note, I couldn't include some of the custom footprints for specific components due to licenses that wouldn't allow redistribution.  Here is a list of where you can find some of them:
 
@@ -36,7 +36,7 @@ They will give you a price for ordering 5 pcbs (that's their minimum order).  I 
 
 ## 2. Source the Components
 
-A full list of all the required components can be found in the [Bill_of_Materials_BOM.xlsx](Bill_of_Materials_BOM.xlsx) file.  Everything uses Through-Hole type components for simplicity sake.
+A full list of all the required components can be found in the [Bill_of_Materials_BOM.xlsx](Bill_of_Materials_BOM.xlsx) file.  Everything uses Through-Hole type components for simplicity sake. You can omit components C6, L1, and U2 if you don't want to use the optional filtered power section of the schematic.
 
 ## 3. Solder Everything
 
@@ -56,13 +56,19 @@ I like to solder in the following order for simplicy:
 
 Optional Filtered Power Supply:
 
-If you plan to connect this pedal to a high quality isolated power source, this step is not necessary. Otherwise, it's probably a good idea to do. You can add it later if you like, but you'll have to remove the Pot that this stuff sits under...
+This circuit board supports an optional filtered power supply section. If you plan to connect this pedal to a high quality isolated power source, this step is not necessary, and you can omit C6, L1, and U2. Otherwise, it's probably a good idea to do. You can add it later if you like, but you'll have to remove the Pot that this stuff sits under...
 
 12. (*Optional) Electrolytic Capacitor - 22uF - C6
 13. (*Optional) Inductor - 2.2 uH - L1
 14. (*Optional) - Isolated Power Converter - U2
 
-If you don't plan to use the Optional parts above, you must bridge the contacts on R21 with solder. Otherwise, leave R21 unbridged.
+It looks like this image (perhaps slight change in placement of parts) if you do include this option. Leave R21 un-bridged.
+
+![Soldering](images/FilteredPower.png)
+
+If you don't plan to filter the power, you must bridge the contacts on R21 with solder as shown in this image.
+
+![Soldering](images/FilteredPowerBypass.png)
 
 Finally:
 
