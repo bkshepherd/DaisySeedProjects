@@ -81,20 +81,29 @@ It goes a little something like this:
 
 (I omitted the 2nd foot switch from my build)
 
-## 4. Flash the Software to the Hardware
+## 4. Order the Enclosure and External Hardware
+
+You'll also need to order an enclosure and the external hardware such as the knobs and the Led Holders.
+
+You can either order a generic 1590B sized enclosure like these from [Tayda](https://www.taydaelectronics.com/hardware/enclosures/1590b-style.html) and drill your own holes (which is a pain in the butt), or you can order a custom drilled & powder coated enclosure from Tayda using this [Custom Drill Template](https://drill.taydakits.com/box-designs/new?public_key=YWRhVFFGU0Z2c3RJR09VQ1U4S3EvUT09Cg==)
+
+Additional External Hardware:
+
+1. 4 Knobs for the POTS.  These are the ones I used in various colors from [Tayda](https://www.taydaelectronics.com/knurled-aluminum-yellow-knob-2845.html)
+2. 2 Led Holders (for the enclosure). These are the ones I used from [Amazon](https://www.amazon.com/gp/product/B083Q9QMN4)
+
+![Enclosure and Knobs](images/EnclosureAndKnobs.png)
+
+## 5. Flash the Software to the Daisy Seed on the Hardware
 
 Before you attempt to get everything fitted into the enclosure, it's best to make sure all the hardware works.
 
+Install the Daisy Seed into the headers on the PCB.
+
 You'll need to compile the code and flash it into the Daisy Seed on the hardware. Instructions can be found [here](../../../Software/GuitarPedal/README.md).
 
-## 5. Order the Enclosure
-
-You'll also need to order the enclosure, which is 1590B sized.
-
-You can either order a generic one like this from Amazon: https://www.amazon.com/dp/B07VKR51NN and drill your own holes (which is a pain in the butt), or you can order a custom drilled & powder coated enclosure from Tayda using this [Custom Drill Template](https://drill.taydakits.com/box-designs/new?public_key=YWRhVFFGU0Z2c3RJR09VQ1U4S3EvUT09Cg==)
-
-Please note, the top two tiny holes inbetween the knobs are so you can reach the flash and reset buttons on the DaisySeed, for easy re-programming during development.  You can keep or omit them. 
-
 ## 6. Jam everything into the enclosure, and ENJOY!
+
+You'll want to use the LED Holders on on the enclosure and use the washers and nuts that came with the Pots and Encoder to secure them to the enclosure.
 
 ![FinalProduct](images/FinalProduct.png)
