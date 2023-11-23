@@ -94,9 +94,16 @@ void AutoPanModule::ProcessStereo(float inL, float inR)
     m_audioRight = audioRightWet * GetParameterAsMagnitude(0) + m_audioRight * (1.0f - GetParameterAsMagnitude(0));
 }
 
-float AutoPanModule::GetOutputLEDBrightness()
+float AutoPanModule::GetBrightnessForLED(int led_id)
 {    
-    return BaseEffectModule::GetOutputLEDBrightness() * m_pan;
+    float value = BaseEffectModule::GetBrightnessForLED(led_id);
+
+    if (led_id == 1)
+    {
+        return value * m_pan;
+    }
+
+    return value;
 }
 
 void AutoPanModule::UpdateUI(float elapsedTime)
@@ -112,7 +119,7 @@ void AutoPanModule::DrawUI(OneBitGraphicsDisplay& display, int currentIndex, int
     BaseEffectModule::DrawUI(display, currentIndex, numItemsTotal, boundsToDrawIn, isEditing);
 
     // If the effect isn't enabled don't draw the custom UI
-    if (!IsActive())
+    if (!IsEnabled())
     {
         return;
     }

@@ -79,7 +79,14 @@ void ModulatedTremoloModule::ProcessStereo(float inL, float inR)
     m_audioRight = m_audioRight * m_cachedEffectMagnitudeValue;
 }
 
-float ModulatedTremoloModule::GetOutputLEDBrightness()
+float ModulatedTremoloModule::GetBrightnessForLED(int led_id)
 {    
-    return BaseEffectModule::GetOutputLEDBrightness() * m_cachedEffectMagnitudeValue;
+    float value = BaseEffectModule::GetBrightnessForLED(led_id);
+
+    if (led_id == 1)
+    {
+        return value * m_cachedEffectMagnitudeValue;
+    }
+
+    return value;
 }

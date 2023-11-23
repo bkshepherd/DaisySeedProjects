@@ -76,7 +76,14 @@ void ChopperModule::ProcessStereo(float inL, float inR)
     m_audioRight = audioRightWet * GetParameterAsMagnitude(0) + m_audioRight * (1.0f - GetParameterAsMagnitude(0));
 }
 
-float ChopperModule::GetOutputLEDBrightness()
+float ChopperModule::GetBrightnessForLED(int led_id)
 {    
-    return BaseEffectModule::GetOutputLEDBrightness() * m_cachedEffectMagnitudeValue;
+    float value = BaseEffectModule::GetBrightnessForLED(led_id);
+
+    if (led_id == 1)
+    {
+        return value * m_cachedEffectMagnitudeValue;
+    }
+
+    return value;
 }

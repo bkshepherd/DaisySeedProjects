@@ -65,3 +65,15 @@ void ChorusModule::ProcessStereo(float inL, float inR)
     // Calculate the effect
     m_audioRight = m_chorus.GetRight() * GetParameterAsMagnitude(0) + m_audioRight * (1.0f - GetParameterAsMagnitude(0));
 }
+
+float ChorusModule::GetBrightnessForLED(int led_id)
+{    
+    float value = BaseEffectModule::GetBrightnessForLED(led_id);
+
+    if (led_id == 1)
+    {
+        return value * GetParameterAsMagnitude(0);
+    }
+
+    return value;
+}

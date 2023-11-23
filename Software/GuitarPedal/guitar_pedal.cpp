@@ -157,7 +157,7 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
         // Set the stats on the effect
         if (activeEffect != NULL)
         {
-            activeEffect->SetActive(effectOn);
+            activeEffect->SetEnabled(effectOn);
         }
 
         // Setup the crossfade
@@ -250,8 +250,8 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
             effectOutputRight = activeEffect->GetAudioRight();
 
             // Update state of the LEDs
-            led1Brightness = 1.0f;
-            led2Brightness = activeEffect->GetOutputLEDBrightness();
+            led1Brightness = activeEffect->GetBrightnessForLED(0);
+            led2Brightness = activeEffect->GetBrightnessForLED(1);
         }
 
         // Setup the crossfade target to be the effect
@@ -433,7 +433,7 @@ int main(void)
     // Set the active effect
     activeEffect = availableEffects[settings.globalActiveEffectID];
     activeEffectID = settings.globalActiveEffectID;
-    activeEffect->SetActive(effectOn);
+    activeEffect->SetEnabled(effectOn);
 
     // Init the Menu UI System
     if (hardware.SupportsDisplay())
@@ -543,7 +543,7 @@ int main(void)
                 sprintf(strbuff, "AsBin: %d", activeEffect->GetParameterAsBinnedValue(3));
                 hardware.display.WriteString(strbuff, Font_7x10, true);
                 hardware.display.SetCursor(0, 45);
-                sprintf(strbuff, "LED: %d", (int)(activeEffect->GetOutputLEDBrightness() * 100.0f));
+                sprintf(strbuff, "LED: %d", (int)(activeEffect->GetBrightnessForLED(1) * 100.0f));
                 hardware.display.WriteString(strbuff, Font_7x10, true);
                 hardware.display.Update();
             }

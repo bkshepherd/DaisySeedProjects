@@ -141,20 +141,25 @@ class BaseEffectModule
     */
     float GetAudioRight();
 
-    /** Returns a value that can be used to drive the Effect LED brightness.
-     \return Value 0..1 for the intended LED brightness.
+    /** Returns a value that can be used to drive the Effect LED brightness for a specific led.
+     \return float value 0..1 for the intended LED brightness.
     */
-    virtual float GetOutputLEDBrightness();
+    virtual float GetBrightnessForLED(int led_id);
 
     /** Sets the state of this Effect
-     * @param isActive True for Active, False for Not-Active.
+     * @param isEnabled True for Enabled, False for Bypassed.
     */
-    virtual void SetActive(bool isActive);
+    virtual void SetEnabled(bool isEnabled);
 
     /** Returns the status of the Effect
-     \return Value True if the Effect is Active and False if the Effect is Bypassed
+     \return Value True if the Effect is Enabled and False if the Effect is Bypassed
     */
-    bool IsActive();
+    bool IsEnabled();
+
+    /** Sets the Tempo of this Effect
+     * @param tempo the Tempo in Beats Per Minute (BPM) as a uint32_t
+    */
+    virtual void SetTempo(uint32_t tempo);
 
     /** Handles updating the custom UI for this Effect.
      * @param elapsedTime a float value of how much time (in seconds) has elapsed since the last update
@@ -184,8 +189,8 @@ class BaseEffectModule
     float m_audioRight;                         // Last Audio Sample value for the Right Stereo Channel
 
   private:
-    float   m_isActive;
-    float   m_sampleRate;                       // Current Sample Rate this Effect was initialized for.
+    bool m_isEnabled;
+    float m_sampleRate;                       // Current Sample Rate this Effect was initialized for.
 
 };
 } // namespace bkshepherd

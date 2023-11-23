@@ -7,7 +7,7 @@ BaseEffectModule::BaseEffectModule() : m_paramCount(0),
                                         m_params(NULL),
                                         m_audioLeft(0.0f),
                                         m_audioRight(0.0f),
-                                        m_isActive(false)
+                                        m_isEnabled(false)
 {
     m_name = "Base";
     m_paramMetaData = NULL;
@@ -259,31 +259,53 @@ float BaseEffectModule::GetAudioRight()
     return m_audioRight;
 }
 
-float BaseEffectModule::GetOutputLEDBrightness()
+float BaseEffectModule::GetBrightnessForLED(int led_id)
 {
-    return 1.0f;
+    // By default will always return 1.0f if the effect is enabled and 0.0f if the effect is bypassed.
+    // Each effect module is expected to override this function to treat the LEDs apropriately.
+    // By convention LED_ID 0 should always reflect the status of the Effect as Enabled or Bypassed. 
+
+    if (m_isEnabled)
+    {
+        return 1.0f;
+    }
+
+    return 0.0f;
 }
 
-void BaseEffectModule::SetActive(bool isActive)
+void BaseEffectModule::SetEnabled(bool isEnabled)
 {
-    m_isActive = isActive;
+    m_isEnabled = isEnabled;
 }
 
-bool BaseEffectModule::IsActive()
+bool BaseEffectModule::IsEnabled()
 {
-    return m_isActive;
+    return m_isEnabled;
+}
+
+void BaseEffectModule::SetTempo(uint32_t tempo)
+{
+    // Do nothing.
+    
+    // Not all Effects are time based.
+    
+    // Effect modules are expected to override this fucntion if they are time based.
 }
 
 void BaseEffectModule::UpdateUI(float elapsedTime)
 {
+    // Do nothing.
 
+    // Not all Effects will have custom UI that needs to udpate based on the passage of time.
+
+    // Effect modules are expected to override this fucntion if they have custom UI requiring time based changes.
 }
 
 void BaseEffectModule::DrawUI(OneBitGraphicsDisplay& display, int currentIndex, int numItemsTotal, Rectangle boundsToDrawIn, bool isEditing)
 {
     // By Default, the UI for an Effect Module is no different than it would be for the normal
     // FullScreenItemMenu. A specific Effect Module is welcome to override this whole function
-    // to take over the full screen.
+    // to take over the full screen. Or overlay additional UI on top of this default UI.
 
     // Top Half of Screen is for the Effect Name and arrow indicators
     int topRowHeight = boundsToDrawIn.GetHeight() / 2;
