@@ -1,4 +1,5 @@
 #include "modulated_tremolo_module.h"
+#include "../Util/audio_utilities.h"
 
 using namespace bkshepherd;
 
@@ -77,6 +78,26 @@ void ModulatedTremoloModule::ProcessStereo(float inL, float inR)
 
     // Use the same magnitude as already calculated for the Left Audio
     m_audioRight = m_audioRight * m_cachedEffectMagnitudeValue;
+}
+
+void ModulatedTremoloModule::SetTempo(uint32_t time_between_beats_ms)
+{
+    uint32_t bpm = ms_to_tempo(time_between_beats_ms);
+    float freq = tempo_to_freq(bpm);
+
+    if (freq <= m_tremoloFreqMin)
+    {
+        SetParameterRaw(2, 0);
+    }
+    else if (freq >= m_tremoloFreqMax)
+    {
+        SetParameterRaw(2, 127);
+    }
+    else 
+    {
+        // Get the parameter as close as we can to target tempo
+        SetParameterRaw(2, ((freq - m_tremoloFreqMin) / (m_tremoloFreqMax - m_tremoloFreqMin)) * 128);
+    }
 }
 
 float ModulatedTremoloModule::GetBrightnessForLED(int led_id)

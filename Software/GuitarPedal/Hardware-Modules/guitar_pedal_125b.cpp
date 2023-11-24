@@ -1,10 +1,16 @@
 #include "guitar_pedal_125b.h"
 
 using namespace bkshepherd;
-  
+
+static const int s_switchParamCount = 2;
+static const BaseHardwareModule::PreferredSwitchMetaData s_switchMetaData[s_switchParamCount] = {{BaseHardwareModule::SpecialFunctionType::Bypass, 0},
+                                                                                            {BaseHardwareModule::SpecialFunctionType::TapTempo, 1}}; 
+
 GuitarPedal125B::GuitarPedal125B() : BaseHardwareModule()
 {
-
+    // Setup the Switch Meta Data for this hardware
+    m_switchMetaDataParamCount = s_switchParamCount;
+    m_switchMetaData = s_switchMetaData;
 }
 
 GuitarPedal125B::~GuitarPedal125B()

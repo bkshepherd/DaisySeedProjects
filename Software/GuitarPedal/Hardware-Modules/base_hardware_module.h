@@ -22,7 +22,23 @@ namespace bkshepherd {
 */
 class BaseHardwareModule
 {
-  public:
+   public:
+
+   /** Special Function Types */
+   enum SpecialFunctionType
+   {
+      Bypass,                    // Bypass
+      TapTempo,                  // TapTempo
+      SpecialFunctionType_LAST,  // Last enum item
+   };
+
+   // Meta data for mapping preferred switch ids to special function types
+   struct PreferredSwitchMetaData
+   {
+      SpecialFunctionType sfType;   // The Special Function Type
+      int switchMapping;            // The ID of the Physical Switch mapped to this SpecialFunctionType.
+   };          
+   
     /** Constructor */
     BaseHardwareModule();
     /** Destructor */
@@ -108,6 +124,12 @@ class BaseHardwareModule
     */
     int GetNumberOfSamplesForTime(float time);
 
+    /** Get Time (in seconds) for a specific Numbers of Samples
+    \param samples Specified number of samples.
+    \return float number of seconds at the current sample rate.
+    */
+    float GetTimeForNumberOfSamples(int samples);
+
     /** Get number of knobs.
     \return Number of Knobs.
     */
@@ -133,6 +155,13 @@ class BaseHardwareModule
     \return Number of LEDs.
     */
     int GetLedCount();
+
+    /**
+       Gets the ID of the Switch this hardware would prefer is used for a specific special function such as Bypass or TapTempo.
+       \param sfType The type of special function
+       \return The preferred SwitchID for this function. -1 if there is no available switch for this function on this hardware
+     */
+    int GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType sfType);
 
     /**
        Set Led
@@ -182,6 +211,8 @@ class BaseHardwareModule
     bool m_supportsTrueBypass;
     bool m_audioBypass;
     bool m_audioMute;
+    int m_switchMetaDataParamCount;                           // Number of Switch Meta Data Parameters
+    const PreferredSwitchMetaData *m_switchMetaData;
 
     void SetHidUpdateRates();
 

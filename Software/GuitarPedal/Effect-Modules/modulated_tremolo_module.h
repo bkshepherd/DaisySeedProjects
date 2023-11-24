@@ -23,6 +23,7 @@ class ModulatedTremoloModule : public BaseEffectModule
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;
+    void SetTempo(uint32_t time_between_beats_ms) override;
     float GetBrightnessForLED(int led_id) override;
 
   private:

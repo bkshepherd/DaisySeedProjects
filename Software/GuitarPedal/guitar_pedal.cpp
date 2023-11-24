@@ -8,6 +8,7 @@
 #include "Effect-Modules/chorus_module.h"
 #include "Effect-Modules/chopper_module.h"
 #include "UI/guitar_pedal_ui.h"
+#include "Util/audio_utilities.h"
 
 using namespace daisy;
 using namespace daisysp;
@@ -56,6 +57,17 @@ int knobValueIdleTimeInSamples;
 bool *knobValueCacheChanged = NULL;
 float *knobValueCache = NULL;
 int *knobValueSamplesTilIdle = NULL;
+
+// Switch Monitorying Variables
+float switchEnabledIdleTimeInSeconds = 2.0f;
+int switchEnabledIdleTimeInSamples;
+bool *switchEnabledCache = NULL;
+bool *switchDoubleEnabledCache = NULL;
+int *switchEnabledSamplesTilIdle = NULL;
+
+// Tempo
+bool needToChangeTempo = false;
+uint32_t timeBetweenBeatsInMS = 0;
 
 bool isCrossFading = false;
 bool isCrossFadingForward = true;   // True goes Source->Target, False goes Target->Source
@@ -137,7 +149,56 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
 
     //If the First Footswitch button is pressed, toggle the effect enabled
     bool oldEffectOn = effectOn;
-    effectOn ^= hardware.switches[0].RisingEdge();
+
+    // Process the switches
+    for (int i = 0; i < hardware.GetSwitchCount(); i++)
+    {
+        bool switchPressed = hardware.switches[i].RisingEdge();
+
+        // Find which hardware switch is mapped to the Effect On/Off Bypass function
+        if (i == hardware.GetPreferredSwitchIDForSpecialFunctionType(BaseHardwareModule::SpecialFunctionType::Bypass))
+        {
+             effectOn ^= switchPressed;
+        }
+
+        if (switchEnabledCache[i] == true)
+        {
+            switchEnabledSamplesTilIdle[i] -= size;
+
+            if (switchEnabledSamplesTilIdle[i] <= 0)
+            {
+                switchEnabledCache[i] = false;
+
+                if (switchDoubleEnabledCache[i] != true)
+                {
+                    // We can safely know this was only a single tap here.
+                    
+                }
+
+                switchDoubleEnabledCache[i] = false;
+            }
+        }
+
+        if (switchPressed)
+        {
+            // Note that switch is pressed and reset the IdleTimer for detecting double presses
+            switchEnabledCache[i] = switchPressed;
+
+            if (switchEnabledSamplesTilIdle[i] > 0)
+            {
+                switchDoubleEnabledCache[i] = true;
+
+                // Register as Tap Tempo if Switch ID matched preferred mapping for TapTempo
+                if (i == hardware.GetPreferredSwitchIDForSpecialFunctionType(BaseHardwareModule::SpecialFunctionType::TapTempo))
+                {
+                    needToChangeTempo = true;
+                    timeBetweenBeatsInMS = hardware.GetTimeForNumberOfSamples(switchEnabledIdleTimeInSamples - switchEnabledSamplesTilIdle[i]) * 1000;
+                }
+            }
+
+            switchEnabledSamplesTilIdle[i] = switchEnabledIdleTimeInSamples;
+        }
+    }
 
     // Handle updating the Hardware Bypass & Muting signals
     if (hardware.SupportsTrueBypass() && settings.globalRelayBypassEnabled)
@@ -459,6 +520,19 @@ int main(void)
     knobValueSamplesTilIdle = new int[hardware.GetKnobCount()];
     knobValueIdleTimeInSamples = hardware.GetNumberOfSamplesForTime(knobValueIdleTimeInSeconds);
 
+    // Init the Switch Monitoring System
+    switchEnabledCache = new bool[hardware.GetSwitchCount()];
+    switchDoubleEnabledCache = new bool[hardware.GetSwitchCount()];
+    switchEnabledSamplesTilIdle = new int[hardware.GetSwitchCount()];
+    switchEnabledIdleTimeInSamples = hardware.GetNumberOfSamplesForTime(switchEnabledIdleTimeInSeconds);
+
+    for (int i = 0; i < hardware.GetSwitchCount(); i++)
+    {
+        switchEnabledCache[i] = false;
+        switchDoubleEnabledCache[i] = false;
+        switchEnabledSamplesTilIdle[i] = 0;
+    }
+
     // Setup the cross fader
     crossFaderLeft.Init();
     crossFaderRight.Init();
@@ -504,13 +578,23 @@ int main(void)
                         // Set the new value on the effect parameter directly
                         activeEffect->SetParameterAsMagnitude(parameterID, knobValueCache[i]);
 
-                        // Update the effect parameter on the menu system
+                        // Update the effect parameter on the menu system to reflect the change
                         guitarPedalUI.UpdateActiveEffectParameterValue(parameterID, true);
                     }
                 }
             }
         }
         
+        // Handle Global Tempo Changes
+        if (needToChangeTempo)
+        {                    
+            activeEffect->SetTempo(timeBetweenBeatsInMS);
+            needToChangeTempo = false;
+
+            // Update the effect parameters on the menu system to reflect any changes
+            guitarPedalUI.UpdateActiveEffectParameterValues();
+        }
+
         if (hardware.SupportsDisplay())
         {
             // Handle a Change in the Active Effect from the Menu System
@@ -537,13 +621,13 @@ int main(void)
                 hardware.display.SetCursor(0, 0);
                 hardware.display.WriteString("Debug:", Font_7x10, true);
                 hardware.display.SetCursor(0, 15);
-                sprintf(strbuff, "Raw: %d", activeEffect->GetParameterRaw(3));
+                sprintf(strbuff, "tap: %d", switchEnabledCache[1]);
                 hardware.display.WriteString(strbuff, Font_7x10, true);
                 hardware.display.SetCursor(0, 30);
-                sprintf(strbuff, "AsBin: %d", activeEffect->GetParameterAsBinnedValue(3));
+                sprintf(strbuff, "dtap: %d", switchDoubleEnabledCache[1]);
                 hardware.display.WriteString(strbuff, Font_7x10, true);
                 hardware.display.SetCursor(0, 45);
-                sprintf(strbuff, "LED: %d", (int)(activeEffect->GetBrightnessForLED(1) * 100.0f));
+                sprintf(strbuff, "Beat %ld", timeBetweenBeatsInMS);
                 hardware.display.WriteString(strbuff, Font_7x10, true);
                 hardware.display.Update();
             }

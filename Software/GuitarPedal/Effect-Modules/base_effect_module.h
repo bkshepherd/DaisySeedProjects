@@ -157,9 +157,9 @@ class BaseEffectModule
     bool IsEnabled();
 
     /** Sets the Tempo of this Effect
-     * @param tempo the Tempo in Beats Per Minute (BPM) as a uint32_t
+     * @param time_between_beats_ms the Tempo in Beats Per Minute (BPM) as a uint32_t
     */
-    virtual void SetTempo(uint32_t tempo);
+    virtual void SetTempo(uint32_t time_between_beats_ms);
 
     /** Handles updating the custom UI for this Effect.
      * @param elapsedTime a float value of how much time (in seconds) has elapsed since the last update

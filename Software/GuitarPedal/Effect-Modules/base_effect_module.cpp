@@ -1,4 +1,5 @@
 #include "base_effect_module.h"
+#include "../Util/audio_utilities.h"
 
 using namespace bkshepherd;
 
@@ -283,7 +284,7 @@ bool BaseEffectModule::IsEnabled()
     return m_isEnabled;
 }
 
-void BaseEffectModule::SetTempo(uint32_t tempo)
+void BaseEffectModule::SetTempo(uint32_t time_between_beats_ms)
 {
     // Do nothing.
     

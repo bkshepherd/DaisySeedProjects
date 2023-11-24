@@ -27,6 +27,9 @@ class GuitarPedalUI
     /** Handle updating a Parameter Value for the Active Effect Module based on the ID */
     void UpdateActiveEffectParameterValue(int paramID, bool showChangeOnDisplay = false);
 
+    /** Handle updating all Parameter Values for the Active Effect Module */
+    void UpdateActiveEffectParameterValues();
+
     /** Handle Showing the Saving Settings Screen */
     void ShowSavingSettingsScreen();
 

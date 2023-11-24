@@ -119,6 +119,17 @@ void GuitarPedalUI::UpdateActiveEffectParameterValue(int paramID, bool showChang
     }
 }
     
+void GuitarPedalUI::UpdateActiveEffectParameterValues()
+{
+    if (hardware.SupportsDisplay())
+    {
+        for (int paramID = 0; paramID < activeEffect->GetParameterCount(); paramID++)
+        {
+            UpdateActiveEffectParameterValue(paramID, false);
+        }
+    }
+}
+
 void GuitarPedalUI::ShowSavingSettingsScreen()
 {
     m_displayingSaveSettingsNotification = true;
