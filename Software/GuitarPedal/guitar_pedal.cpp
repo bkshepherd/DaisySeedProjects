@@ -67,7 +67,7 @@ int *switchEnabledSamplesTilIdle = NULL;
 
 // Tempo
 bool needToChangeTempo = false;
-uint32_t timeBetweenBeatsInMS = 0;
+uint32_t globalTempoBPM = 0;
 
 bool isCrossFading = false;
 bool isCrossFadingForward = true;   // True goes Source->Target, False goes Target->Source
@@ -192,7 +192,8 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
                 if (i == hardware.GetPreferredSwitchIDForSpecialFunctionType(BaseHardwareModule::SpecialFunctionType::TapTempo))
                 {
                     needToChangeTempo = true;
-                    timeBetweenBeatsInMS = hardware.GetTimeForNumberOfSamples(switchEnabledIdleTimeInSamples - switchEnabledSamplesTilIdle[i]) * 1000;
+                    float timeBetweenPresses = hardware.GetTimeForNumberOfSamples(switchEnabledIdleTimeInSamples - switchEnabledSamplesTilIdle[i]);
+                    globalTempoBPM = s_to_tempo(timeBetweenPresses);
                 }
             }
 
@@ -587,8 +588,8 @@ int main(void)
         
         // Handle Global Tempo Changes
         if (needToChangeTempo)
-        {                    
-            activeEffect->SetTempo(timeBetweenBeatsInMS);
+        {                  
+            activeEffect->SetTempo(globalTempoBPM);
             needToChangeTempo = false;
 
             // Update the effect parameters on the menu system to reflect any changes
@@ -627,7 +628,7 @@ int main(void)
                 sprintf(strbuff, "dtap: %d", switchDoubleEnabledCache[1]);
                 hardware.display.WriteString(strbuff, Font_7x10, true);
                 hardware.display.SetCursor(0, 45);
-                sprintf(strbuff, "Beat %ld", timeBetweenBeatsInMS);
+                sprintf(strbuff, "BPM %ld", globalTempoBPM);
                 hardware.display.WriteString(strbuff, Font_7x10, true);
                 hardware.display.Update();
             }

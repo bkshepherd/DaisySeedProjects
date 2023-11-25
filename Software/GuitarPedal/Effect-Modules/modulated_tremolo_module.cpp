@@ -80,9 +80,8 @@ void ModulatedTremoloModule::ProcessStereo(float inL, float inR)
     m_audioRight = m_audioRight * m_cachedEffectMagnitudeValue;
 }
 
-void ModulatedTremoloModule::SetTempo(uint32_t time_between_beats_ms)
+void ModulatedTremoloModule::SetTempo(uint32_t bpm)
 {
-    uint32_t bpm = ms_to_tempo(time_between_beats_ms);
     float freq = tempo_to_freq(bpm);
 
     if (freq <= m_tremoloFreqMin)

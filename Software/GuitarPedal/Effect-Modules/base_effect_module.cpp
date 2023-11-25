@@ -284,7 +284,7 @@ bool BaseEffectModule::IsEnabled()
     return m_isEnabled;
 }
 
-void BaseEffectModule::SetTempo(uint32_t time_between_beats_ms)
+void BaseEffectModule::SetTempo(uint32_t bpm)
 {
     // Do nothing.
     
