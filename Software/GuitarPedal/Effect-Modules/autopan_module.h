@@ -23,6 +23,7 @@ class AutoPanModule : public BaseEffectModule
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;
+    void SetTempo(uint32_t bpm) override;
     float GetBrightnessForLED(int led_id) override;
     void UpdateUI(float elapsedTime) override;
     void DrawUI(OneBitGraphicsDisplay& display, int currentIndex, int numItemsTotal, Rectangle boundsToDrawIn, bool isEditing) override;

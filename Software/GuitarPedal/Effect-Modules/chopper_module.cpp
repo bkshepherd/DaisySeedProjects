@@ -1,4 +1,5 @@
 #include "chopper_module.h"
+#include "../Util/audio_utilities.h"
 
 using namespace bkshepherd;
 
@@ -74,6 +75,28 @@ void ChopperModule::ProcessStereo(float inL, float inR)
 
     // Handle the wet / dry mix
     m_audioRight = audioRightWet * GetParameterAsMagnitude(0) + m_audioRight * (1.0f - GetParameterAsMagnitude(0));
+}
+
+void ChopperModule::SetTempo(uint32_t bpm)
+{
+    float freq = tempo_to_freq(bpm);
+
+    // Adjust the frequency into a range that makes sense for the effect
+    freq = freq / 4.0f;
+
+    if (freq <= m_tempoFreqMin)
+    {
+        SetParameterRaw(1, 0);
+    }
+    else if (freq >= m_tempoFreqMax)
+    {
+        SetParameterRaw(1, 127);
+    }
+    else 
+    {
+        // Get the parameter as close as we can to target tempo
+        SetParameterRaw(1, ((freq - m_tempoFreqMin) / (m_tempoFreqMax - m_tempoFreqMin)) * 128);
+    }
 }
 
 float ChopperModule::GetBrightnessForLED(int led_id)

@@ -1,4 +1,5 @@
 #include "autopan_module.h"
+#include "../Util/audio_utilities.h"
 
 using namespace bkshepherd;
 
@@ -92,6 +93,28 @@ void AutoPanModule::ProcessStereo(float inL, float inR)
     // Handle the wet / dry mix
     m_audioLeft = audioLeftWet * GetParameterAsMagnitude(0) + m_audioLeft * (1.0f - GetParameterAsMagnitude(0));
     m_audioRight = audioRightWet * GetParameterAsMagnitude(0) + m_audioRight * (1.0f - GetParameterAsMagnitude(0));
+}
+
+void AutoPanModule::SetTempo(uint32_t bpm)
+{
+    float freq = tempo_to_freq(bpm);
+
+    // Adjust the frequency into a range that makes sense for the effect
+    freq = freq / 4.0f;
+
+    if (freq <= m_freqOscFreqMin)
+    {
+        SetParameterRaw(2, 0);
+    }
+    else if (freq >= m_freqOscFreqMax)
+    {
+        SetParameterRaw(2, 127);
+    }
+    else 
+    {
+        // Get the parameter as close as we can to target tempo
+        SetParameterRaw(2, ((freq - m_freqOscFreqMin) / (m_freqOscFreqMax - m_freqOscFreqMin)) * 128);
+    }
 }
 
 float AutoPanModule::GetBrightnessForLED(int led_id)
