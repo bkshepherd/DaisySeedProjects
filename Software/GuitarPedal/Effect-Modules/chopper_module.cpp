@@ -4,10 +4,10 @@
 using namespace bkshepherd;
 
 static const int s_paramCount = 4;
-static const ParameterMetaData s_metaData[s_paramCount] = {{"Wet", 1, 0, 63, 0, 20},
-                                                           {"Tempo", 1, 0, 63, 1, 23},
-                                                           {"PulseW", 1, 0, 38, 2, 24},
-                                                           {"Pattern", 3, 14, 0, 3, 25}};
+static const ParameterMetaData s_metaData[s_paramCount] = {{name: "Wet", valueType: ParameterValueType::FloatMagnitude, valueBinCount: 0, defaultValue: 63, knobMapping: 0, midiCCMapping: 20},
+                                                           {name: "Tempo", valueType: ParameterValueType::FloatMagnitude, valueBinCount: 0, defaultValue: 63, knobMapping: 1, midiCCMapping: 23},
+                                                           {name: "Duty", valueType: ParameterValueType::FloatMagnitude, valueBinCount: 0, defaultValue: 38, knobMapping: 2, midiCCMapping: 24},
+                                                           {name: "Pattern", valueType: ParameterValueType::Binned, valueBinCount: 14, defaultValue: 0, knobMapping: 3, midiCCMapping: 25}};
 
 // Default Constructor
 ChopperModule::ChopperModule() : BaseEffectModule(),

@@ -17,28 +17,27 @@ using MyOledDisplay = OledDisplay<SSD130x4WireSpi128x64Driver>;
 
 namespace bkshepherd {
 
+/** Special Function Types */
+enum SpecialFunctionType
+{
+   Bypass,                    // Bypass
+   TapTempo,                  // TapTempo
+   SpecialFunctionType_LAST,  // Last enum item
+};
+
+// Meta data for mapping preferred switch ids to special function types
+struct PreferredSwitchMetaData
+{
+   SpecialFunctionType sfType;   // The Special Function Type
+   int switchMapping;            // The ID of the Physical Switch mapped to this SpecialFunctionType.
+};   
+
 /**
    @brief Helpers and hardware definitions for a 125B sized Guitar Pedal based on the Daisy Seed.
 */
 class BaseHardwareModule
 {
-   public:
-
-   /** Special Function Types */
-   enum SpecialFunctionType
-   {
-      Bypass,                    // Bypass
-      TapTempo,                  // TapTempo
-      SpecialFunctionType_LAST,  // Last enum item
-   };
-
-   // Meta data for mapping preferred switch ids to special function types
-   struct PreferredSwitchMetaData
-   {
-      SpecialFunctionType sfType;   // The Special Function Type
-      int switchMapping;            // The ID of the Physical Switch mapped to this SpecialFunctionType.
-   };          
-   
+   public:       
     /** Constructor */
     BaseHardwareModule();
     /** Destructor */

@@ -2,7 +2,7 @@
 #include "chopper.h"
 
 using namespace daisysp;
-using namespace bytebeat;
+using namespace bkshepherd;
 
 constexpr float TWO_PI_RECIP = 1.0f / TWOPI_F;
 

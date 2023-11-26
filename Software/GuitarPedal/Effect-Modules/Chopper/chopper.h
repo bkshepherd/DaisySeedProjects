@@ -5,7 +5,7 @@
 #include <stdint.h>
 #ifdef __cplusplus
 
-namespace bytebeat
+namespace bkshepherd
 {
 
 #define PATTERN_STEPS_MAX 16

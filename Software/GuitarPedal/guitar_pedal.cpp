@@ -156,7 +156,7 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
         bool switchPressed = hardware.switches[i].RisingEdge();
 
         // Find which hardware switch is mapped to the Effect On/Off Bypass function
-        if (i == hardware.GetPreferredSwitchIDForSpecialFunctionType(BaseHardwareModule::SpecialFunctionType::Bypass))
+        if (i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Bypass))
         {
              effectOn ^= switchPressed;
         }
@@ -189,7 +189,7 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
                 switchDoubleEnabledCache[i] = true;
 
                 // Register as Tap Tempo if Switch ID matched preferred mapping for TapTempo
-                if (i == hardware.GetPreferredSwitchIDForSpecialFunctionType(BaseHardwareModule::SpecialFunctionType::TapTempo))
+                if (i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::TapTempo))
                 {
                     needToChangeTempo = true;
                     float timeBetweenPresses = hardware.GetTimeForNumberOfSamples(switchEnabledIdleTimeInSamples - switchEnabledSamplesTilIdle[i]);

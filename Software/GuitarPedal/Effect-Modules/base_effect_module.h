@@ -13,16 +13,26 @@ using namespace daisy;
 namespace bkshepherd
 {
 
+/** Parameter Value Types */
+enum ParameterValueType
+{
+  Raw,                        // Raw Parameter Value (0 .. 127)
+  FloatMagnitude,             // Float Magnitude Value (0.0f - 1.0f)
+  Bool,                       // Boolean Value
+  Binned,                     // Binned Value (1 to valueBinCount)
+  ParameterValueType_LAST,   // Last enum item
+};
+
 // Meta data for an individual Effect Parameter.  Effects may have zero or more Parameters.
 // This data structure contains information about the Effect Parameter. 
 struct ParameterMetaData
 {
-  const char* name;           // The Name of this Parameter that gets displayed on the Screen when editing the parameters value
-  int valueType;              // The Type of this Parameter value. 0 is raw 0..127 value, 1 is a Float Magnitude (0.0f..1.0f), 2 is Bool (True / False), 3 is a Binned Value of range 1 to valueBinCount
-  int valueBinCount;          // The number of distinct choices allowed for this parameter value
-  uint8_t defaultValue;       // The Default Value set for this parameter the first time the device is powered up
-  int knobMapping;            // The ID of the Physical Knob mapped to this Parameter. -1 if this Parameter is not controlled by a Knob
-  int midiCCMapping;          // The Midi CC ID mapped to this Parameter. -1 of this Parameter is not controllable via Midi CC messages
+  const char* name;             // The Name of this Parameter that gets displayed on the Screen when editing the parameters value
+  ParameterValueType valueType; // The Type of this Parameter value.
+  int valueBinCount;            // The number of distinct choices allowed for this parameter value
+  uint8_t defaultValue;         // The Default Value set for this parameter the first time the device is powered up
+  int knobMapping;              // The ID of the Physical Knob mapped to this Parameter. -1 if this Parameter is not controlled by a Knob
+  int midiCCMapping;            // The Midi CC ID mapped to this Parameter. -1 of this Parameter is not controllable via Midi CC messages
 };
 
 class BaseEffectModule

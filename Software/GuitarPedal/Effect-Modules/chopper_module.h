@@ -11,7 +11,6 @@
 /** @file chopper_module.h */
 
 using namespace daisysp;
-using namespace bytebeat;
 
 namespace bkshepherd
 {
