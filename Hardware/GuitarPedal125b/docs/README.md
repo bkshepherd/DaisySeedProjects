@@ -142,7 +142,7 @@ Make sure to solder them in the following order (everything goes on the side wit
 1. Both 20pin Headers (make sure this goes on the side with all the SMD parts!)
 2. Pots 1 - 6 (Please note these require special care as mentioned below)
 3. Rotary Encoder
-4. OLED Screen
+4. OLED Screen (Using the header that's already on the OLED, get it as flush with the board as you can, don't try to use a female socket on the pcb)
 5. 2 Leds (You'll need to cut the legs short almost flush with the PCB, Short pin goes to the square pad)
 6. 2 Footswitches
    
