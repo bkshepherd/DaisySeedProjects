@@ -1,0 +1,6 @@
+[submodule "Software/GuitarPedal/DaisySP"]
+	path = Software/GuitarPedal/DaisySP
+	url = https://github.com/electro-smith/DaisySP.git
+[submodule "Software/GuitarPedal/libDaisy"]
+	path = Software/GuitarPedal/libDaisy
+	url = https://github.com/electro-smith/libDaisy.git
