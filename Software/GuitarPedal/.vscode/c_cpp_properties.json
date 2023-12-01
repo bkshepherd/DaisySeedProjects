@@ -11,8 +11,8 @@
             ],
             "includePath": [
                 "${workspaceFolder}/**",
-                "/Users/kshep/Dev/libDaisy/**",
-                "/Users/kshep/Dev/DaisySP/**"
+                "${workspaceFolder}/libDaisy/**",
+                "${workspaceFolder}/DaisySP/**"
             ],
             "name": "Win32",
             "windowsSdkVersion": "10.0.17763.0",
@@ -29,8 +29,8 @@
             ],
             "includePath": [
                 "${workspaceFolder}/**",
-                "/Users/kshep/Dev/libDaisy/**",
-                "/Users/kshep/Dev/DaisySP/**"
+                "${workspaceFolder}/libDaisy/**",
+                "${workspaceFolder}/DaisySP/**"
             ],
             "name": "macOS",
             "configurationProvider": "ms-vscode.makefile-tools"
