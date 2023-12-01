@@ -5,8 +5,8 @@ TARGET =  guitarpedal
 CPP_SOURCES = guitar_pedal.cpp guitar_pedal_storage.cpp $(wildcard */*.cpp) Effect-Modules/Chopper/chopper.cpp
 
 # Library Locations
-DAISYSP_DIR ?= /Users/kshep/Dev/DaisySP
-LIBDAISY_DIR ?= /Users/kshep/Dev/libDaisy
+DAISYSP_DIR ?= DaisySP
+LIBDAISY_DIR ?= libDaisy
 
 # Core location, and generic Makefile.
 SYSTEM_FILES_DIR = $(LIBDAISY_DIR)/core
