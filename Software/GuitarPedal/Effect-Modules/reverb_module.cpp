@@ -53,7 +53,6 @@ void ReverbModule::ProcessMono(float in)
     invertedFreq = invertedFreq * invertedFreq; // also square it for exponential taper (more control over lower frequencies)
     m_reverbStereo.SetLpFreq(m_lpFreqMin + invertedFreq * (m_lpFreqMax - m_lpFreqMin));
 
-    //Process(const float &in1, const float &in2, float *out1, float *out2);
     m_reverbStereo.Process(sendl, sendr, &wetl, &wetr);
     m_audioLeft = wetl * GetParameterAsMagnitude(2) + in * (1.0 - GetParameterAsMagnitude(2));
     m_audioRight = wetr * GetParameterAsMagnitude(2) + in * (1.0 - GetParameterAsMagnitude(2));
