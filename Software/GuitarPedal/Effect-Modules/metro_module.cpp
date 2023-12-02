@@ -8,8 +8,7 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
     {name : "Tempo", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 63, knobMapping : 0, midiCCMapping : 23}};
 
 // Default Constructor
-MetroModule::MetroModule() : BaseEffectModule(), m_tempoFreqMin(0.5f), m_tempoFreqMax(4.0f), m_cachedEffectMagnitudeValue(1.0f)
-
+MetroModule::MetroModule() : BaseEffectModule(), m_tempoBpmMin(40), m_tempoBpmMax(200)
 {
   // Set the name of the effect
   m_name = "Metronome";
@@ -49,18 +48,19 @@ void MetroModule::ProcessStereo(float inL, float inR)
 void MetroModule::SetTempo(uint32_t bpm)
 {
   float freq = tempo_to_freq(bpm);
+  /*
+    // Adjust the frequency into a range that makes sense for the effect
+    freq = freq / 4.0f;
 
-  // Adjust the frequency into a range that makes sense for the effect
-  freq = freq / 4.0f;
-
-  if (freq <= m_tempoFreqMin) {
-    SetParameterRaw(1, 0);
-  } else if (freq >= m_tempoFreqMax) {
-    SetParameterRaw(1, 127);
-  } else {
-    // Get the parameter as close as we can to target tempo
-    SetParameterRaw(1, ((freq - m_tempoFreqMin) / (m_tempoFreqMax - m_tempoFreqMin)) * 128);
-  }
+    if (freq <= m_tempoFreqMin) {
+      SetParameterRaw(1, 0);
+    } else if (freq >= m_tempoFreqMax) {
+      SetParameterRaw(1, 127);
+    } else {
+      // Get the parameter as close as we can to target tempo
+      SetParameterRaw(1, ((freq - m_tempoFreqMin) / (m_tempoFreqMax - m_tempoFreqMin)) * 128);
+    }
+  */
 }
 
 float MetroModule::GetBrightnessForLED(int led_id)
@@ -68,7 +68,7 @@ float MetroModule::GetBrightnessForLED(int led_id)
   float value = BaseEffectModule::GetBrightnessForLED(led_id);
 
   if (led_id == 1) {
-    return value * m_cachedEffectMagnitudeValue;
+    //  return value * m_cachedEffectMagnitudeValue;
   }
 
   return value;
@@ -77,6 +77,15 @@ float MetroModule::GetBrightnessForLED(int led_id)
 void MetroModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int numItemsTotal, Rectangle boundsToDrawIn, bool isEditing)
 {
   BaseEffectModule::DrawUI(display, currentIndex, numItemsTotal, boundsToDrawIn, isEditing);
+
+  char strbuff[128];
+  int topRowHeight = boundsToDrawIn.GetHeight() / 2;
+  int tempoRaw = GetParameterRaw(0);
+  int tempo = m_tempoBpmMin + (tempoRaw * (m_tempoBpmMax - m_tempoBpmMin) / 127);
+  sprintf(strbuff, "%d BPM", tempo);
+  boundsToDrawIn.RemoveFromTop(topRowHeight);
+  display.WriteStringAligned(strbuff, Font_11x18, boundsToDrawIn, Alignment::centered, true);
+
   /*
 
     Pattern pattern = m_chopper.GetPattern(GetParameterAsBinnedValue(3) - 1);

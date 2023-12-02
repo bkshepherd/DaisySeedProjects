@@ -28,10 +28,8 @@ public:
   void DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int numItemsTotal, Rectangle boundsToDrawIn, bool isEditing) override;
 
 private:
-  float m_tempoFreqMin;
-  float m_tempoFreqMax;
-
-  float m_cachedEffectMagnitudeValue;
+  uint16_t m_tempoBpmMin;
+  uint16_t m_tempoBpmMax;
 };
 } // namespace bkshepherd
 #endif
