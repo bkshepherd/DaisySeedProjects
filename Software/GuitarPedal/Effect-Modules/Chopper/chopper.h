@@ -101,7 +101,8 @@ public:
   void NextPattern(bool reset = true);
   void PrevPattern(bool reset = true);
   inline int16_t GetCurrentPattern() { return current_pattern_; }
-
+  inline Pattern GetPattern(int id) { return Patterns[id]; }
+  
   // Envelope methods
   void SetAttack(float attack) { env_.SetTime(daisysp::ADSR_SEG_ATTACK, attack); }
   void SetDecay(float decay) { env_.SetTime(daisysp::ADSR_SEG_DECAY, decay); }
