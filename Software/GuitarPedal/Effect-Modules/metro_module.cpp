@@ -167,36 +167,5 @@ void MetroModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int n
   uint16_t position = m_direction == 0 ? m_quadrant * pos_inc : -(m_quadrant - 15) * pos_inc;
 
   Rectangle r(position, topRowHeight - 5, pos_inc - 1, 10);
-  // Rectangle r(-(m_quadrant - 15) * pos_inc, topRowHeight - 5, pos_inc - 1, 10);
   display.DrawRect(r, true, (m_quadrant % 4) == 0);
-
-  /*
-
-    Pattern pattern = m_chopper.GetPattern(GetParameterAsBinnedValue(3) - 1);
-    int width = boundsToDrawIn.GetWidth();
-    int stepWidth = (width / PATTERN_STEPS_MAX);
-    int top = 30;
-
-    int x = 0;
-    for (int step = 0; step < pattern.length; step++) {
-      Note note = pattern.notes[step];
-      switch (note.duration) {
-      case NoteDuration::D16: {
-        Rectangle r(x, top, stepWidth - 2, stepWidth - 2);
-        display.DrawRect(r, true, note.active);
-        x += stepWidth;
-      } break;
-      case NoteDuration::D8: {
-        Rectangle r(x, top, stepWidth * 2 - 2, stepWidth - 2);
-        display.DrawRect(r, true, note.active);
-        x += stepWidth * 2;
-      } break;
-      case NoteDuration::D4: {
-        Rectangle r(x, top, stepWidth * 4 - 2, stepWidth - 2);
-        display.DrawRect(r, true, note.active);
-        x += stepWidth * 4;
-      } break;
-      }
-    }
-  */
 }
