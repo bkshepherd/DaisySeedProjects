@@ -39,13 +39,14 @@ uint16_t Metronome::GetQuadrant()
     return 3;
 }
 
-uint16_t Metronome::GetQuadrant8()
+uint16_t Metronome::GetQuadrant16()
 {
   float phase = phs_;
   if (phase > TWOPI_F)
     phase = TWOPI_F;
 
-  uint16_t quadrant = (uint16_t)(phase / TWOPI_F) * 7.0;
+  uint16_t quadrant = (uint16_t)(phase * 16.0 / TWOPI_F);
+  return quadrant;
 }
 
 static const int s_paramCount = 1;
@@ -53,7 +54,7 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
     {name : "Tempo", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 63, knobMapping : 0, midiCCMapping : 23}};
 
 // Default Constructor
-MetroModule::MetroModule() : BaseEffectModule(), m_tempoBpmMin(40), m_tempoBpmMax(200)
+MetroModule::MetroModule() : BaseEffectModule(), m_tempoBpmMin(10), m_tempoBpmMax(200)
 {
   // Set the name of the effect
   m_name = "Metronome";
@@ -90,7 +91,7 @@ void MetroModule::Process()
     m_metro.SetFreq(freq);
 
   m_metro.Process();
-  m_quadrant = m_metro.GetQuadrant();
+  m_quadrant = m_metro.GetQuadrant16();
 }
 
 void MetroModule::ProcessMono(float in)
@@ -149,21 +150,23 @@ void MetroModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int n
   int topRowHeight = boundsToDrawIn.GetHeight() / 2;
   int tempoRaw = GetParameterRaw(0);
   int tempo = raw_tempo_to_bpm(tempoRaw);
+  /*
+    sprintf(strbuff, "%d BPM", tempo);
+    boundsToDrawIn.RemoveFromTop(topRowHeight);
+    display.WriteStringAligned(strbuff, Font_11x18, boundsToDrawIn, Alignment::centered, true);
+  */
 
-  sprintf(strbuff, "%d BPM", tempo);
-  boundsToDrawIn.RemoveFromTop(topRowHeight);
-  display.WriteStringAligned(strbuff, Font_11x18, boundsToDrawIn, Alignment::centered, true);
+  //  uint16_t quadrant = m_metro.GetQuadrant16();
+  sprintf(strbuff, "%d", m_quadrant);
+  // sprintf(strbuff, "%d", boundsToDrawIn.GetWidth());
 
-  uint16_t quadrant = m_metro.GetQuadrant8();
-  sprintf(strbuff, "%d", quadrant);
   boundsToDrawIn.RemoveFromTop(topRowHeight);
   display.WriteStringAligned(strbuff, Font_11x18, boundsToDrawIn, Alignment::centered, true);
 
   // Show metronome indicator
-
-  // int pos_inc = boundsToDrawIn.GetWidth() / 4;
-  // Rectangle r(quadrant * pos_inc, topRowHeight - 5, pos_inc, 10);
-  // display.DrawRect(r, true, quadrant == 0);
+  int pos_inc = boundsToDrawIn.GetWidth() / 16;
+  Rectangle r(m_quadrant * pos_inc, topRowHeight - 5, pos_inc, 10);
+  display.DrawRect(r, true, true);
 
   /*
 
