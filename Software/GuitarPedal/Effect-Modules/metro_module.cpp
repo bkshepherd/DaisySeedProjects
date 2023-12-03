@@ -39,12 +39,22 @@ uint16_t Metronome::GetQuadrant()
     return 3;
 }
 
+uint16_t Metronome::GetQuadrant16()
+{
+  float phase = phs_;
+  if (phase > TWOPI_F)
+    phase = TWOPI_F;
+
+  uint16_t quadrant = (uint16_t)(phase * 16.0 / TWOPI_F);
+  return quadrant;
+}
+
 static const int s_paramCount = 1;
 static const ParameterMetaData s_metaData[s_paramCount] = {
     {name : "Tempo", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 63, knobMapping : 0, midiCCMapping : 23}};
 
 // Default Constructor
-MetroModule::MetroModule() : BaseEffectModule(), m_tempoBpmMin(40), m_tempoBpmMax(200)
+MetroModule::MetroModule() : BaseEffectModule(), m_tempoBpmMin(10), m_tempoBpmMax(200)
 {
   // Set the name of the effect
   m_name = "Metronome";
@@ -66,6 +76,7 @@ void MetroModule::Init(float sample_rate)
 {
   BaseEffectModule::Init(sample_rate);
   m_quadrant = 0;
+  m_direction = 0;
 
   const float freq = tempo_to_freq(DefaultTempoBpm);
   m_metro.Init(freq, sample_rate);
@@ -81,7 +92,7 @@ void MetroModule::Process()
     m_metro.SetFreq(freq);
 
   m_metro.Process();
-  m_quadrant = m_metro.GetQuadrant();
+  m_quadrant = m_metro.GetQuadrant16();
 }
 
 void MetroModule::ProcessMono(float in)
@@ -101,6 +112,7 @@ void MetroModule::ProcessStereo(float inL, float inR)
 
 void MetroModule::SetTempo(uint32_t bpm)
 {
+  // TODO: need to adjust for min/max BPM
   float freq = tempo_to_freq(bpm);
   /*
     // Adjust the frequency into a range that makes sense for the effect
@@ -139,22 +151,24 @@ void MetroModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int n
   int topRowHeight = boundsToDrawIn.GetHeight() / 2;
   int tempoRaw = GetParameterRaw(0);
   int tempo = raw_tempo_to_bpm(tempoRaw);
+  /*
+    sprintf(strbuff, "%d BPM", tempo);
+    boundsToDrawIn.RemoveFromTop(topRowHeight);
+    display.WriteStringAligned(strbuff, Font_11x18, boundsToDrawIn, Alignment::centered, true);
+  */
 
-  sprintf(strbuff, "%d BPM", tempo);
+  sprintf(strbuff, "%d", m_quadrant);
+
   boundsToDrawIn.RemoveFromTop(topRowHeight);
   display.WriteStringAligned(strbuff, Font_11x18, boundsToDrawIn, Alignment::centered, true);
 
-  // sprintf(strbuff, "%d", m_quadrant);
-  // boundsToDrawIn.RemoveFromTop(topRowHeight);
-  // display.WriteStringAligned(strbuff, Font_11x18, boundsToDrawIn, Alignment::centered, true);
-
   // Show metronome indicator
+  int pos_inc = boundsToDrawIn.GetWidth() / 16;
+  uint16_t position = m_direction == 0 ? m_quadrant * pos_inc : -(m_quadrant - 15) * pos_inc;
 
-  int pos_inc = boundsToDrawIn.GetWidth() / 4;
-  uint16_t quadrant = m_metro.GetQuadrant();
-
-  Rectangle r(quadrant * pos_inc, topRowHeight - 5, pos_inc, 10);
-  display.DrawRect(r, true, quadrant == 0);
+  Rectangle r(position, topRowHeight - 5, pos_inc - 1, 10);
+  // Rectangle r(-(m_quadrant - 15) * pos_inc, topRowHeight - 5, pos_inc - 1, 10);
+  display.DrawRect(r, true, (m_quadrant % 4) == 0);
 
   /*
 
