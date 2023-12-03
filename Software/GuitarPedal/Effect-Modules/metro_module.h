@@ -7,7 +7,7 @@
 #include <stdint.h>
 #ifdef __cplusplus
 
-/** @file chopper_module.h */
+/** @file metro_module.h */
 
 using namespace daisysp;
 
@@ -46,7 +46,12 @@ public:
    */
   inline float GetPhase() { return phs_; }
 
+  /** Returns the phase quadrant (0-4)
+   */
   uint16_t GetQuadrant();
+
+  /** Returns the phase quadrant (0-16)
+   */
   uint16_t GetQuadrant16();
 
 private:
@@ -78,6 +83,7 @@ private:
   uint16_t m_direction;
   Metronome m_metro;
 
+  // Utility methods
   uint16_t raw_tempo_to_bpm(uint8_t value);
   uint8_t bpm_tempo_to_raw(uint16_t bpm);
 };
