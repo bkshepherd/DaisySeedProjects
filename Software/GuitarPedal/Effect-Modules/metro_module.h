@@ -47,6 +47,7 @@ public:
   inline float GetPhase() { return phs_; }
 
   uint16_t GetQuadrant();
+  uint16_t GetQuadrant8();
 
 private:
   float freq_;
