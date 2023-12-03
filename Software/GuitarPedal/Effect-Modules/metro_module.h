@@ -79,6 +79,7 @@ private:
   Metronome m_metro;
 
   uint16_t raw_tempo_to_bpm(uint8_t value);
+  uint8_t bpm_tempo_to_raw(uint16_t bpm);
 };
 } // namespace bkshepherd
 #endif

@@ -112,37 +112,32 @@ void MetroModule::ProcessStereo(float inL, float inR)
   m_audioRight = inR;
 }
 
-void MetroModule::SetTempo(uint32_t bpm)
-{
-  // TODO: need to adjust for min/max BPM
-  float freq = tempo_to_freq(bpm);
-  /*
-    // Adjust the frequency into a range that makes sense for the effect
-    freq = freq / 4.0f;
-
-    if (freq <= m_tempoFreqMin) {
-      SetParameterRaw(1, 0);
-    } else if (freq >= m_tempoFreqMax) {
-      SetParameterRaw(1, 127);
-    } else {
-      // Get the parameter as close as we can to target tempo
-      SetParameterRaw(1, ((freq - m_tempoFreqMin) / (m_tempoFreqMax - m_tempoFreqMin)) * 128);
-    }
-  */
-}
+void MetroModule::SetTempo(uint32_t bpm) { SetParameterRaw(1, bpm_tempo_to_raw(bpm)); }
 
 float MetroModule::GetBrightnessForLED(int led_id)
 {
   float value = BaseEffectModule::GetBrightnessForLED(led_id);
 
   if (led_id == 1) {
-    //  return value * m_cachedEffectMagnitudeValue;
+    return 1.0f - (m_quadrant / 16.0);
   }
 
   return value;
 }
 
 uint16_t MetroModule::raw_tempo_to_bpm(uint8_t value) { return m_tempoBpmMin + (value * (m_tempoBpmMax - m_tempoBpmMin) / 127); }
+
+uint8_t MetroModule::bpm_tempo_to_raw(uint16_t bpm)
+{
+  if (bpm > m_tempoBpmMax)
+    bpm = m_tempoBpmMax;
+  else if (bpm < m_tempoBpmMin)
+    bpm = m_tempoBpmMin;
+
+  float normalized = (bpm - m_tempoBpmMin) / (m_tempoBpmMax - m_tempoBpmMin);
+  uint8_t raw = normalized * 127;
+  return raw;
+}
 
 void MetroModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int numItemsTotal, Rectangle boundsToDrawIn, bool isEditing)
 {
@@ -153,20 +148,22 @@ void MetroModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int n
   int topRowHeight = boundsToDrawIn.GetHeight() / 2;
   int tempoRaw = GetParameterRaw(0);
   int tempo = raw_tempo_to_bpm(tempoRaw);
+
+  sprintf(strbuff, "%d BPM", tempo);
+  boundsToDrawIn.RemoveFromTop(topRowHeight);
+  display.WriteStringAligned(strbuff, Font_11x18, boundsToDrawIn, Alignment::centered, true);
+
   /*
-    sprintf(strbuff, "%d BPM", tempo);
+    sprintf(strbuff, " %d ", m_quadrant);
     boundsToDrawIn.RemoveFromTop(topRowHeight);
     display.WriteStringAligned(strbuff, Font_11x18, boundsToDrawIn, Alignment::centered, true);
   */
-
-  sprintf(strbuff, " %d ", m_quadrant);
-  boundsToDrawIn.RemoveFromTop(topRowHeight);
-  display.WriteStringAligned(strbuff, Font_11x18, boundsToDrawIn, Alignment::centered, true);
 
   // Show metronome indicator
   int pos_inc = boundsToDrawIn.GetWidth() / 16;
   uint16_t position = m_direction == 0 ? m_quadrant * pos_inc : -(m_quadrant - 15) * pos_inc;
 
-  Rectangle r(position, topRowHeight - 5, pos_inc - 1, 10);
-  display.DrawRect(r, true, (m_quadrant % 4) == 0);
+  Rectangle r(position, topRowHeight - 5, pos_inc - 1, 20 - m_quadrant);
+  // display.DrawRect(r, true, (m_quadrant % 4) == 0);
+  display.DrawRect(r, true, true);
 }
