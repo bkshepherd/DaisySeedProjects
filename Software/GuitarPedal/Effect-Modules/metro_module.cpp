@@ -3,6 +3,42 @@
 
 using namespace bkshepherd;
 
+void Metronome::Init(float freq, float sample_rate)
+{
+  freq_ = freq;
+  phs_ = 0.0f;
+  sample_rate_ = sample_rate;
+  phs_inc_ = (TWOPI_F * freq_) / sample_rate_;
+}
+
+uint8_t Metronome::Process()
+{
+  phs_ += phs_inc_;
+  if (phs_ >= TWOPI_F) {
+    phs_ -= TWOPI_F;
+    return 1;
+  }
+  return 0;
+}
+
+void Metronome::SetFreq(float freq)
+{
+  freq_ = freq;
+  phs_inc_ = (TWOPI_F * freq_) / sample_rate_;
+}
+
+uint16_t Metronome::GetQuadrant()
+{
+  if (phs_ < PI_F / 2.0)
+    return 0;
+  else if (phs_ >= PI_F / 2.0 && phs_ < PI_F)
+    return 1;
+  else if (phs_ >= PI_F && phs_ < PI_F * 3.0 / 2.0)
+    return 2;
+  else
+    return 3;
+}
+
 static const int s_paramCount = 1;
 static const ParameterMetaData s_metaData[s_paramCount] = {
     {name : "Tempo", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 63, knobMapping : 0, midiCCMapping : 23}};
@@ -29,18 +65,36 @@ MetroModule::~MetroModule()
 void MetroModule::Init(float sample_rate)
 {
   BaseEffectModule::Init(sample_rate);
+  m_quadrant = 0;
 
-  // m_chopper.Init(sample_rate);
+  const float freq = tempo_to_freq(DefaultTempoBpm);
+  m_metro.Init(freq, sample_rate);
+}
+
+void MetroModule::Process()
+{
+  const int tempoRaw = GetParameterRaw(0);
+  const uint16_t tempo = raw_tempo_to_bpm(tempoRaw);
+  const float freq = tempo_to_freq(tempo);
+
+  if (freq != m_metro.GetFreq())
+    m_metro.SetFreq(freq);
+
+  m_metro.Process();
+  m_quadrant = m_metro.GetQuadrant();
 }
 
 void MetroModule::ProcessMono(float in)
 {
   BaseEffectModule::ProcessMono(in);
+  Process();
   m_audioRight = m_audioLeft = in;
 }
 
 void MetroModule::ProcessStereo(float inL, float inR)
 {
+  BaseEffectModule::ProcessStereo(inL, inR);
+  Process();
   m_audioRight = inL;
   m_audioRight = inR;
 }
@@ -74,17 +128,33 @@ float MetroModule::GetBrightnessForLED(int led_id)
   return value;
 }
 
+uint16_t MetroModule::raw_tempo_to_bpm(uint8_t value) { return m_tempoBpmMin + (value * (m_tempoBpmMax - m_tempoBpmMin) / 127); }
+
 void MetroModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int numItemsTotal, Rectangle boundsToDrawIn, bool isEditing)
 {
   BaseEffectModule::DrawUI(display, currentIndex, numItemsTotal, boundsToDrawIn, isEditing);
 
+  // Show tempo in BPM
   char strbuff[128];
   int topRowHeight = boundsToDrawIn.GetHeight() / 2;
   int tempoRaw = GetParameterRaw(0);
-  int tempo = m_tempoBpmMin + (tempoRaw * (m_tempoBpmMax - m_tempoBpmMin) / 127);
+  int tempo = raw_tempo_to_bpm(tempoRaw);
+
   sprintf(strbuff, "%d BPM", tempo);
   boundsToDrawIn.RemoveFromTop(topRowHeight);
   display.WriteStringAligned(strbuff, Font_11x18, boundsToDrawIn, Alignment::centered, true);
+
+  // sprintf(strbuff, "%d", m_quadrant);
+  // boundsToDrawIn.RemoveFromTop(topRowHeight);
+  // display.WriteStringAligned(strbuff, Font_11x18, boundsToDrawIn, Alignment::centered, true);
+
+  // Show metronome indicator
+
+  int pos_inc = boundsToDrawIn.GetWidth() / 4;
+  uint16_t quadrant = m_metro.GetQuadrant();
+
+  Rectangle r(quadrant * pos_inc, topRowHeight - 5, pos_inc, 10);
+  display.DrawRect(r, true, quadrant == 0);
 
   /*
 
