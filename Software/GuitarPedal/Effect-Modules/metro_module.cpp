@@ -91,7 +91,9 @@ void MetroModule::Process()
   if (freq != m_metro.GetFreq())
     m_metro.SetFreq(freq);
 
-  m_metro.Process();
+  if (m_metro.Process())
+    m_direction = !m_direction;
+
   m_quadrant = m_metro.GetQuadrant16();
 }
 
@@ -157,8 +159,7 @@ void MetroModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int n
     display.WriteStringAligned(strbuff, Font_11x18, boundsToDrawIn, Alignment::centered, true);
   */
 
-  sprintf(strbuff, "%d", m_quadrant);
-
+  sprintf(strbuff, " %d ", m_quadrant);
   boundsToDrawIn.RemoveFromTop(topRowHeight);
   display.WriteStringAligned(strbuff, Font_11x18, boundsToDrawIn, Alignment::centered, true);
 
