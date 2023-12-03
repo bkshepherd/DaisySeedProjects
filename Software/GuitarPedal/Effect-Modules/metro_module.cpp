@@ -144,14 +144,14 @@ void MetroModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int n
   BaseEffectModule::DrawUI(display, currentIndex, numItemsTotal, boundsToDrawIn, isEditing);
 
   // Show tempo in BPM
-  char strbuff[128];
+  char strbuff[64];
   int topRowHeight = boundsToDrawIn.GetHeight() / 2;
   int tempoRaw = GetParameterRaw(0);
   int tempo = raw_tempo_to_bpm(tempoRaw);
 
   sprintf(strbuff, "%d BPM", tempo);
   boundsToDrawIn.RemoveFromTop(topRowHeight);
-  display.WriteStringAligned(strbuff, Font_11x18, boundsToDrawIn, Alignment::centered, true);
+  display.WriteStringAligned(strbuff, Font_7x10, boundsToDrawIn, Alignment::centered, true);
 
   /*
     sprintf(strbuff, " %d ", m_quadrant);
@@ -163,7 +163,7 @@ void MetroModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int n
   int pos_inc = boundsToDrawIn.GetWidth() / 16;
   uint16_t position = m_direction == 0 ? m_quadrant * pos_inc : -(m_quadrant - 15) * pos_inc;
 
-  Rectangle r(position, topRowHeight - 5, pos_inc - 1, 20 - m_quadrant);
+  Rectangle r(position, topRowHeight - 7, pos_inc - 1, 20 - m_quadrant);
   // display.DrawRect(r, true, (m_quadrant % 4) == 0);
   display.DrawRect(r, true, true);
 }
