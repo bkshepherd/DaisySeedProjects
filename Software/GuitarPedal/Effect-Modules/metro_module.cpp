@@ -76,6 +76,7 @@ void MetroModule::Init(float sample_rate)
 {
   BaseEffectModule::Init(sample_rate);
   m_quadrant = 0;
+  m_direction = 0;
 
   const float freq = tempo_to_freq(DefaultTempoBpm);
   m_metro.Init(freq, sample_rate);
@@ -156,17 +157,18 @@ void MetroModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int n
     display.WriteStringAligned(strbuff, Font_11x18, boundsToDrawIn, Alignment::centered, true);
   */
 
-  //  uint16_t quadrant = m_metro.GetQuadrant16();
   sprintf(strbuff, "%d", m_quadrant);
-  // sprintf(strbuff, "%d", boundsToDrawIn.GetWidth());
 
   boundsToDrawIn.RemoveFromTop(topRowHeight);
   display.WriteStringAligned(strbuff, Font_11x18, boundsToDrawIn, Alignment::centered, true);
 
   // Show metronome indicator
   int pos_inc = boundsToDrawIn.GetWidth() / 16;
-  Rectangle r(m_quadrant * pos_inc, topRowHeight - 5, pos_inc, 10);
-  display.DrawRect(r, true, true);
+  uint16_t position = m_direction == 0 ? m_quadrant * pos_inc : -(m_quadrant - 15) * pos_inc;
+
+  Rectangle r(position, topRowHeight - 5, pos_inc - 1, 10);
+  // Rectangle r(-(m_quadrant - 15) * pos_inc, topRowHeight - 5, pos_inc - 1, 10);
+  display.DrawRect(r, true, (m_quadrant % 4) == 0);
 
   /*
 

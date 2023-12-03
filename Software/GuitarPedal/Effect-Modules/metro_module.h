@@ -75,7 +75,7 @@ private:
   uint16_t m_tempoBpmMin;
   uint16_t m_tempoBpmMax;
   uint16_t m_quadrant;
-
+  uint16_t m_direction;
   Metronome m_metro;
 
   uint16_t raw_tempo_to_bpm(uint8_t value);
