@@ -78,19 +78,20 @@ void MetroModule::Init(float sample_rate)
   BaseEffectModule::Init(sample_rate);
   m_quadrant = 0;
   m_direction = 0;
+  m_beat = 0;
 
   // set oscillator
-  osc_.Init(sample_rate);
-  osc_.SetWaveform(Oscillator::WAVE_POLYBLEP_SAW);
-  osc_.SetFreq(440.0f);
-  osc_.SetAmp(1.0f);
+  m_osc.Init(sample_rate);
+  m_osc.SetWaveform(Oscillator::WAVE_POLYBLEP_SAW);
+  m_osc.SetFreq(440.0f);
+  m_osc.SetAmp(1.0f);
 
   // Set envelope
-  env_.Init(sample_rate);
-  env_.SetTime(ADSR_SEG_ATTACK, .1);
-  env_.SetTime(ADSR_SEG_DECAY, .2);
-  env_.SetTime(ADSR_SEG_RELEASE, .01);
-  env_.SetSustainLevel(.9);
+  m_env.Init(sample_rate);
+  m_env.SetTime(ADSR_SEG_ATTACK, .1);
+  m_env.SetTime(ADSR_SEG_DECAY, .2);
+  m_env.SetTime(ADSR_SEG_RELEASE, .01);
+  m_env.SetSustainLevel(.9);
 
   // Set metronome
   const float freq = tempo_to_freq(DefaultTempoBpm);
@@ -107,13 +108,15 @@ float MetroModule::Process()
     m_metro.SetFreq(freq);
 
   if (m_metro.Process()) {
+    m_beat++;
+    m_osc.SetFreq((m_beat % 4 == 0) ? 440.0f : 220.0f);
     m_direction = !m_direction;
   }
 
   m_quadrant = m_metro.GetQuadrant16();
 
-  float sig = osc_.Process();
-  float env_out = env_.Process(m_quadrant < 8);
+  float sig = m_osc.Process();
+  float env_out = m_env.Process(m_quadrant < 2);
   return sig * env_out;
 }
 
