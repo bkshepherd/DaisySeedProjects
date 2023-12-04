@@ -55,7 +55,7 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
     {name : "Mix", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 10, knobMapping : 1, midiCCMapping : 21}};
 
 // Default Constructor
-MetroModule::MetroModule() : BaseEffectModule(), m_tempoBpmMin(10), m_tempoBpmMax(200), m_levelMin(0.0f), m_levelMax(1.0f)
+MetroModule::MetroModule() : BaseEffectModule(), m_tempoBpmMin(40), m_tempoBpmMax(200), m_levelMin(0.0f), m_levelMax(1.0f)
 {
   // Set the name of the effect
   m_name = "Metronome";
