@@ -7,7 +7,7 @@
 #include <stdint.h>
 #ifdef __cplusplus
 
-/** @file chopper_module.h */
+/** @file metro_module.h */
 
 using namespace daisysp;
 
@@ -46,7 +46,12 @@ public:
    */
   inline float GetPhase() { return phs_; }
 
+  /** Returns the phase quadrant (0-4)
+   */
   uint16_t GetQuadrant();
+
+  /** Returns the phase quadrant (0-16)
+   */
   uint16_t GetQuadrant16();
 
 private:
@@ -65,7 +70,7 @@ public:
   void Init(float sample_rate) override;
   void ProcessMono(float in) override;
   void ProcessStereo(float inL, float inR) override;
-  void Process();
+  float Process();
 
   void SetTempo(uint32_t bpm) override;
   float GetBrightnessForLED(int led_id) override;
@@ -74,10 +79,17 @@ public:
 private:
   uint16_t m_tempoBpmMin;
   uint16_t m_tempoBpmMax;
+  float m_levelMin;
+  float m_levelMax;
+
   uint16_t m_quadrant;
   uint16_t m_direction;
   Metronome m_metro;
 
+  daisysp::Oscillator osc_;
+  daisysp::Adsr env_;
+
+  // Utility methods
   uint16_t raw_tempo_to_bpm(uint8_t value);
   uint8_t bpm_tempo_to_raw(uint16_t bpm);
 };

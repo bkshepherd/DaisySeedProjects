@@ -49,12 +49,13 @@ uint16_t Metronome::GetQuadrant16()
   return quadrant;
 }
 
-static const int s_paramCount = 1;
+static const int s_paramCount = 2;
 static const ParameterMetaData s_metaData[s_paramCount] = {
-    {name : "Tempo", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 63, knobMapping : 0, midiCCMapping : 23}};
+    {name : "Tempo", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 63, knobMapping : 0, midiCCMapping : 23},
+    {name : "Level", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 20, knobMapping : 1, midiCCMapping : 21}};
 
 // Default Constructor
-MetroModule::MetroModule() : BaseEffectModule(), m_tempoBpmMin(10), m_tempoBpmMax(200)
+MetroModule::MetroModule() : BaseEffectModule(), m_tempoBpmMin(10), m_tempoBpmMax(200), m_levelMin(0.01f), m_levelMax(0.10f)
 {
   // Set the name of the effect
   m_name = "Metronome";
@@ -78,11 +79,25 @@ void MetroModule::Init(float sample_rate)
   m_quadrant = 0;
   m_direction = 0;
 
+  // set oscillator
+  osc_.Init(sample_rate);
+  osc_.SetWaveform(Oscillator::WAVE_POLYBLEP_SAW);
+  osc_.SetFreq(440.0f);
+  osc_.SetAmp(1.0f);
+
+  // Set envelope
+  env_.Init(sample_rate);
+  env_.SetTime(ADSR_SEG_ATTACK, .1);
+  env_.SetTime(ADSR_SEG_DECAY, .2);
+  env_.SetTime(ADSR_SEG_RELEASE, .01);
+  env_.SetSustainLevel(.9);
+
+  // Set metronome
   const float freq = tempo_to_freq(DefaultTempoBpm);
   m_metro.Init(freq, sample_rate);
 }
 
-void MetroModule::Process()
+float MetroModule::Process()
 {
   const int tempoRaw = GetParameterRaw(0);
   const uint16_t tempo = raw_tempo_to_bpm(tempoRaw);
@@ -91,25 +106,34 @@ void MetroModule::Process()
   if (freq != m_metro.GetFreq())
     m_metro.SetFreq(freq);
 
-  if (m_metro.Process())
+  if (m_metro.Process()) {
     m_direction = !m_direction;
+  }
 
   m_quadrant = m_metro.GetQuadrant16();
+
+  float sig = osc_.Process();
+  float env_out = env_.Process(m_quadrant < 8);
+  return sig * env_out;
 }
 
 void MetroModule::ProcessMono(float in)
 {
   BaseEffectModule::ProcessMono(in);
-  Process();
-  m_audioRight = m_audioLeft = in;
+  float sig = Process();
+  // m_audioRight = m_audioLeft = in * 0.5f + sig * 0.5f;
+  // Adjust the level
+  m_audioLeft = sig * (m_levelMin + (GetParameterAsMagnitude(1) * (m_levelMax - m_levelMin)));
+  m_audioRight = m_audioLeft;
 }
 
 void MetroModule::ProcessStereo(float inL, float inR)
 {
   BaseEffectModule::ProcessStereo(inL, inR);
-  Process();
-  m_audioRight = inL;
-  m_audioRight = inR;
+  float sig = Process();
+  // Adjust the level
+  m_audioLeft = sig * (m_levelMin + (GetParameterAsMagnitude(1) * (m_levelMax - m_levelMin)));
+  m_audioRight = m_audioLeft;
 }
 
 void MetroModule::SetTempo(uint32_t bpm) { SetParameterRaw(1, bpm_tempo_to_raw(bpm)); }
@@ -151,7 +175,7 @@ void MetroModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int n
 
   sprintf(strbuff, "%d BPM", tempo);
   boundsToDrawIn.RemoveFromTop(topRowHeight);
-  display.WriteStringAligned(strbuff, Font_7x10, boundsToDrawIn, Alignment::centered, true);
+  display.WriteStringAligned(strbuff, Font_11x18, boundsToDrawIn, Alignment::centered, true);
 
   /*
     sprintf(strbuff, " %d ", m_quadrant);
