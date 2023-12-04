@@ -82,14 +82,14 @@ void MetroModule::Init(float sample_rate)
   osc_.Init(sample_rate);
   osc_.SetWaveform(Oscillator::WAVE_POLYBLEP_SAW);
   osc_.SetFreq(440.0f);
-  osc_.SetAmp(0.9f);
+  osc_.SetAmp(1.0f);
 
   // Set envelope
   env_.Init(sample_rate);
   env_.SetTime(ADSR_SEG_ATTACK, .1);
-  env_.SetTime(ADSR_SEG_DECAY, .1);
+  env_.SetTime(ADSR_SEG_DECAY, .2);
   env_.SetTime(ADSR_SEG_RELEASE, .01);
-  env_.SetSustainLevel(.5);
+  env_.SetSustainLevel(.9);
 
   // Set metronome
   const float freq = tempo_to_freq(DefaultTempoBpm);
@@ -112,24 +112,24 @@ float MetroModule::Process()
   m_quadrant = m_metro.GetQuadrant16();
 
   float sig = osc_.Process();
-  float env_out = env_.Process(m_quadrant == 0);
-
+  float env_out = env_.Process(m_quadrant < 8);
   return sig * env_out;
 }
 
 void MetroModule::ProcessMono(float in)
 {
   BaseEffectModule::ProcessMono(in);
-  Process();
-  m_audioRight = m_audioLeft = in;
+  float sig = Process();
+  // m_audioRight = m_audioLeft = in * 0.5f + sig * 0.5f;
+  m_audioRight = m_audioLeft = sig;
 }
 
 void MetroModule::ProcessStereo(float inL, float inR)
 {
   BaseEffectModule::ProcessStereo(inL, inR);
-  Process();
-  m_audioRight = inL;
-  m_audioRight = inR;
+  float sig = Process();
+  m_audioLeft = sig;
+  m_audioRight = sig;
 }
 
 void MetroModule::SetTempo(uint32_t bpm) { SetParameterRaw(1, bpm_tempo_to_raw(bpm)); }
