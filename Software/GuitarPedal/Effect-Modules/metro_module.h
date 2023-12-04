@@ -79,6 +79,9 @@ public:
 private:
   uint16_t m_tempoBpmMin;
   uint16_t m_tempoBpmMax;
+  float m_levelMin;
+  float m_levelMax;
+
   uint16_t m_quadrant;
   uint16_t m_direction;
   Metronome m_metro;

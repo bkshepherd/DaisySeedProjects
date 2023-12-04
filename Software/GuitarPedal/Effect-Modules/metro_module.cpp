@@ -49,12 +49,13 @@ uint16_t Metronome::GetQuadrant16()
   return quadrant;
 }
 
-static const int s_paramCount = 1;
+static const int s_paramCount = 2;
 static const ParameterMetaData s_metaData[s_paramCount] = {
-    {name : "Tempo", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 63, knobMapping : 0, midiCCMapping : 23}};
+    {name : "Tempo", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 63, knobMapping : 0, midiCCMapping : 23},
+    {name : "Level", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 20, knobMapping : 1, midiCCMapping : 21}};
 
 // Default Constructor
-MetroModule::MetroModule() : BaseEffectModule(), m_tempoBpmMin(10), m_tempoBpmMax(200)
+MetroModule::MetroModule() : BaseEffectModule(), m_tempoBpmMin(10), m_tempoBpmMax(200), m_levelMin(0.01f), m_levelMax(0.10f)
 {
   // Set the name of the effect
   m_name = "Metronome";
@@ -121,15 +122,18 @@ void MetroModule::ProcessMono(float in)
   BaseEffectModule::ProcessMono(in);
   float sig = Process();
   // m_audioRight = m_audioLeft = in * 0.5f + sig * 0.5f;
-  m_audioRight = m_audioLeft = sig;
+  // Adjust the level
+  m_audioLeft = sig * (m_levelMin + (GetParameterAsMagnitude(1) * (m_levelMax - m_levelMin)));
+  m_audioRight = m_audioLeft;
 }
 
 void MetroModule::ProcessStereo(float inL, float inR)
 {
   BaseEffectModule::ProcessStereo(inL, inR);
   float sig = Process();
-  m_audioLeft = sig;
-  m_audioRight = sig;
+  // Adjust the level
+  m_audioLeft = sig * (m_levelMin + (GetParameterAsMagnitude(1) * (m_levelMax - m_levelMin)));
+  m_audioRight = m_audioLeft;
 }
 
 void MetroModule::SetTempo(uint32_t bpm) { SetParameterRaw(1, bpm_tempo_to_raw(bpm)); }
@@ -171,7 +175,7 @@ void MetroModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int n
 
   sprintf(strbuff, "%d BPM", tempo);
   boundsToDrawIn.RemoveFromTop(topRowHeight);
-  display.WriteStringAligned(strbuff, Font_7x10, boundsToDrawIn, Alignment::centered, true);
+  display.WriteStringAligned(strbuff, Font_11x18, boundsToDrawIn, Alignment::centered, true);
 
   /*
     sprintf(strbuff, " %d ", m_quadrant);
