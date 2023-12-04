@@ -52,10 +52,10 @@ uint16_t Metronome::GetQuadrant16()
 static const int s_paramCount = 2;
 static const ParameterMetaData s_metaData[s_paramCount] = {
     {name : "Tempo", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 63, knobMapping : 0, midiCCMapping : 23},
-    {name : "Level", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 20, knobMapping : 1, midiCCMapping : 21}};
+    {name : "Mix", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 10, knobMapping : 1, midiCCMapping : 21}};
 
 // Default Constructor
-MetroModule::MetroModule() : BaseEffectModule(), m_tempoBpmMin(10), m_tempoBpmMax(200), m_levelMin(0.01f), m_levelMax(0.10f)
+MetroModule::MetroModule() : BaseEffectModule(), m_tempoBpmMin(10), m_tempoBpmMax(200), m_levelMin(0.0f), m_levelMax(1.0f)
 {
   // Set the name of the effect
   m_name = "Metronome";
@@ -84,14 +84,14 @@ void MetroModule::Init(float sample_rate)
   m_osc.Init(sample_rate);
   m_osc.SetWaveform(Oscillator::WAVE_POLYBLEP_SAW);
   m_osc.SetFreq(440.0f);
-  m_osc.SetAmp(1.0f);
+  m_osc.SetAmp(0.02f);
 
   // Set envelope
   m_env.Init(sample_rate);
   m_env.SetTime(ADSR_SEG_ATTACK, .1);
   m_env.SetTime(ADSR_SEG_DECAY, .2);
   m_env.SetTime(ADSR_SEG_RELEASE, .01);
-  m_env.SetSustainLevel(.9);
+  m_env.SetSustainLevel(.5);
 
   // Set metronome
   const float freq = tempo_to_freq(DefaultTempoBpm);
@@ -126,7 +126,9 @@ void MetroModule::ProcessMono(float in)
   float sig = Process();
   // m_audioRight = m_audioLeft = in * 0.5f + sig * 0.5f;
   // Adjust the level
-  m_audioLeft = sig * (m_levelMin + (GetParameterAsMagnitude(1) * (m_levelMax - m_levelMin)));
+  //  m_audioLeft = in + sig * (m_levelMin + (GetParameterAsMagnitude(1) * (m_levelMax - m_levelMin)));
+  float level = (m_levelMin + (GetParameterAsMagnitude(1) * (m_levelMax - m_levelMin)));
+  m_audioLeft = sig * level + in * (1.0f - level);
   m_audioRight = m_audioLeft;
 }
 
@@ -135,8 +137,12 @@ void MetroModule::ProcessStereo(float inL, float inR)
   BaseEffectModule::ProcessStereo(inL, inR);
   float sig = Process();
   // Adjust the level
-  m_audioLeft = sig * (m_levelMin + (GetParameterAsMagnitude(1) * (m_levelMax - m_levelMin)));
-  m_audioRight = m_audioLeft;
+  //  m_audioLeft = inL + sig * (m_levelMin + (GetParameterAsMagnitude(1) * (m_levelMax - m_levelMin)));
+  //  m_audioRight = m_audioLeft;
+  float level = (m_levelMin + (GetParameterAsMagnitude(1) * (m_levelMax - m_levelMin)));
+
+  m_audioLeft = sig * level + inL * (1.0f - level);
+  m_audioRight = sig * level + inR * (1.0f - level);
 }
 
 void MetroModule::SetTempo(uint32_t bpm) { SetParameterRaw(1, bpm_tempo_to_raw(bpm)); }
