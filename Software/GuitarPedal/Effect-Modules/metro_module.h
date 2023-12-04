@@ -84,10 +84,12 @@ private:
 
   uint16_t m_quadrant;
   uint16_t m_direction;
+  uint32_t m_beat;
+
   Metronome m_metro;
 
-  daisysp::Oscillator osc_;
-  daisysp::Adsr env_;
+  daisysp::Oscillator m_osc;
+  daisysp::Adsr m_env;
 
   // Utility methods
   uint16_t raw_tempo_to_bpm(uint8_t value);
