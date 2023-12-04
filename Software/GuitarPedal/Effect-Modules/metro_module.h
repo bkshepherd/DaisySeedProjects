@@ -70,7 +70,7 @@ public:
   void Init(float sample_rate) override;
   void ProcessMono(float in) override;
   void ProcessStereo(float inL, float inR) override;
-  void Process();
+  float Process();
 
   void SetTempo(uint32_t bpm) override;
   float GetBrightnessForLED(int led_id) override;
@@ -82,6 +82,9 @@ private:
   uint16_t m_quadrant;
   uint16_t m_direction;
   Metronome m_metro;
+
+  daisysp::Oscillator osc_;
+  daisysp::Adsr env_;
 
   // Utility methods
   uint16_t raw_tempo_to_bpm(uint8_t value);
