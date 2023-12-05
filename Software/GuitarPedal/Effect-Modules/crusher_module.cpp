@@ -2,6 +2,26 @@
 
 using namespace bkshepherd;
 
+class Bitcrusher
+{
+public:
+  Bitcrusher() { quant = 65536.0; } // need some default value
+
+  float process(float in) { return truncf(in * quant) / quant; }
+
+  void setNumberOfBits(float nBits)
+  {
+    if (nBits < 1.0)
+      nBits = 1.0;
+    if (nBits > 32.0)
+      nBits = 32.0;
+    quant = pow(2.0, nBits);
+  }
+
+private:
+  float quant;
+};
+
 static const int s_paramCount = 3;
 static const ParameterMetaData s_metaData[s_paramCount] = {
     {name : "Level", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 40, knobMapping : 0, midiCCMapping : -1},
