@@ -133,9 +133,7 @@ void MetroModule::ProcessMono(float in)
 {
   BaseEffectModule::ProcessMono(in);
   float sig = Process();
-  // m_audioRight = m_audioLeft = in * 0.5f + sig * 0.5f;
   // Adjust the level
-  //  m_audioLeft = in + sig * (m_levelMin + (GetParameterAsMagnitude(1) * (m_levelMax - m_levelMin)));
   float level = (m_levelMin + (GetParameterAsMagnitude(1) * (m_levelMax - m_levelMin)));
   m_audioLeft = sig * level + in * (1.0f - level);
   m_audioRight = m_audioLeft;
@@ -146,10 +144,7 @@ void MetroModule::ProcessStereo(float inL, float inR)
   BaseEffectModule::ProcessStereo(inL, inR);
   float sig = Process();
   // Adjust the level
-  //  m_audioLeft = inL + sig * (m_levelMin + (GetParameterAsMagnitude(1) * (m_levelMax - m_levelMin)));
-  //  m_audioRight = m_audioLeft;
   float level = (m_levelMin + (GetParameterAsMagnitude(1) * (m_levelMax - m_levelMin)));
-
   m_audioLeft = sig * level + inL * (1.0f - level);
   m_audioRight = sig * level + inR * (1.0f - level);
 }
@@ -205,7 +200,7 @@ void MetroModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int n
   int pos_inc = boundsToDrawIn.GetWidth() / 16;
   uint16_t position = m_direction == 0 ? m_quadrant * pos_inc : -(m_quadrant - 15) * pos_inc;
 
-  Rectangle r(position, topRowHeight - 7, pos_inc - 1, 20 - m_quadrant);
+  Rectangle r(position, topRowHeight - 7, pos_inc - 1, 10);
   // display.DrawRect(r, true, (m_quadrant % 4) == 0);
   display.DrawRect(r, true, true);
 }
