@@ -4,8 +4,8 @@ using namespace bkshepherd;
 
 static const int s_paramCount = 3;
 static const ParameterMetaData s_metaData[s_paramCount] = {
-    {name : "Rate", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 1, knobMapping : 0, midiCCMapping : -1},
-    {name : "Level", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 40, knobMapping : 1, midiCCMapping : -1},
+    {name : "Level", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 40, knobMapping : 0, midiCCMapping : -1},
+    {name : "Rate", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 1, knobMapping : 1, midiCCMapping : -1},
     {name : "Cutoff", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 40, knobMapping : 2, midiCCMapping : -1},
 };
 
@@ -32,10 +32,10 @@ void CrusherModule::Init(float sample_rate)
 {
   BaseEffectModule::Init(sample_rate);
   tone.Init(sample_rate);
-  crushmod = 1; // 1- 50
+  crushcount = 0;
 }
 
-void CrusherModule::Process(float &outl, float &outr, float inl, float inr)
+void CrusherModule::Process(float &outl, float &outr, float inl, float inr, int crushmod)
 {
   crushcount++;
   crushcount %= crushmod;
@@ -51,43 +51,31 @@ void CrusherModule::ProcessMono(float in)
 {
   BaseEffectModule::ProcessMono(in);
 
-  float level = m_levelMin + (GetParameterAsMagnitude(1) * (m_levelMax - m_levelMin));
+  float left, right;
+  float level = m_levelMin + (GetParameterAsMagnitude(0) * (m_levelMax - m_levelMin));
   float cutoff = m_cutoffMin + GetParameterAsMagnitude(2) * (m_cutoffMax - m_cutoffMin);
+  int crushmod = (int)m_rateMin + GetParameterAsMagnitude(1) * (m_rateMax - m_rateMin);
 
   tone.SetFreq(cutoff);
 
-  crushmod = (int)m_rateMin + GetParameterAsMagnitude(0) * (m_rateMax - m_rateMin);
-
-  float left, right;
-  Process(left, right, in, in);
+  Process(left, right, in, in, crushmod);
 
   m_audioRight = m_audioLeft = left * level;
 }
 
 void CrusherModule::ProcessStereo(float inL, float inR)
 {
-  float level = m_levelMin + (GetParameterAsMagnitude(1) * (m_levelMax - m_levelMin));
+  BaseEffectModule::ProcessStereo(inL, inR);
+
+  float left, right;
+  float level = m_levelMin + (GetParameterAsMagnitude(0) * (m_levelMax - m_levelMin));
   float cutoff = m_cutoffMin + GetParameterAsMagnitude(2) * (m_cutoffMax - m_cutoffMin);
+  int crushmod = (int)m_rateMin + GetParameterAsMagnitude(1) * (m_rateMax - m_rateMin);
 
   tone.SetFreq(cutoff);
 
-  crushmod = (int)m_rateMin + GetParameterAsMagnitude(0) * (m_rateMax - m_rateMin);
-
-  float left, right;
-  Process(left, right, inL, inR);
+  Process(left, right, inL, inR, crushmod);
 
   m_audioRight = right * level;
   m_audioLeft = left * level;
 }
-/*
-float CrusherModule::GetBrightnessForLED(int led_id)
-{
-  float value = BaseEffectModule::GetBrightnessForLED(led_id);
-
-  if (led_id == 1) {
-    // return value * GetParameterAsMagnitude(0);
-  }
-
-  return value;
-}
-*/

@@ -23,14 +23,13 @@ public:
   void Init(float sample_rate) override;
   void ProcessMono(float in) override;
   void ProcessStereo(float inL, float inR) override;
-  // float GetBrightnessForLED(int led_id) override;
 
 private:
-  void Process(float &outl, float &outr, float inl, float inr);
+  void Process(float &outl, float &outr, float inl, float inr, int crushmod);
 
   Tone tone;
-  int crushmod, crushcount;
-  float crushsl, crushsr, drywet;
+  int crushcount;
+  float crushsl, crushsr;
 
   // Parameter limits
   float m_rateMin;
