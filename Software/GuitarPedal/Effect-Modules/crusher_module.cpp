@@ -4,15 +4,13 @@ using namespace bkshepherd;
 
 static const int s_paramCount = 3;
 static const ParameterMetaData s_metaData[s_paramCount] = {
-    {name : "Rate", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 57, knobMapping : 0, midiCCMapping : 1},
-    {name : "Level", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 40, knobMapping : 1, midiCCMapping : 21},
-    {name : "Cutoff", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 40, knobMapping : 2, midiCCMapping : 21},
+    {name : "Rate", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 1, knobMapping : 0, midiCCMapping : -1},
+    {name : "Level", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 40, knobMapping : 1, midiCCMapping : -1},
+    {name : "Cutoff", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 40, knobMapping : 2, midiCCMapping : -1},
 };
 
 // Default Constructor
-CrusherModule::CrusherModule() : BaseEffectModule()
-//, m_driveMin(0.4f), m_driveMax(0.8f), m_levelMin(0.01f), m_levelMax(0.20f)
-
+CrusherModule::CrusherModule() : BaseEffectModule(), m_rateMin(1), m_rateMax(50), m_levelMin(0.01), m_levelMax(20), m_cutoffMin(500), m_cutoffMax(20000)
 {
   // Set the name of the effect
   m_name = "Crusher";
@@ -35,7 +33,6 @@ void CrusherModule::Init(float sample_rate)
   BaseEffectModule::Init(sample_rate);
   tone.Init(sample_rate);
   crushmod = 1; // 1- 50
-  cutoff = 500; // 500 - 20000
 }
 
 void CrusherModule::Process(float &outl, float &outr, float inl, float inr)
@@ -54,9 +51,12 @@ void CrusherModule::ProcessMono(float in)
 {
   BaseEffectModule::ProcessMono(in);
 
-  cutoff = GetParameterAsMagnitude(2) * 19500 + 500;
+  float level = m_levelMin + (GetParameterAsMagnitude(1) * (m_levelMax - m_levelMin));
+  float cutoff = m_cutoffMin + GetParameterAsMagnitude(2) * (m_cutoffMax - m_cutoffMin);
+
   tone.SetFreq(cutoff);
-  crushmod = (int)GetParameterAsMagnitude(0) * 49 - 1;
+
+  crushmod = (int)m_rateMin + GetParameterAsMagnitude(0) * (m_rateMax - m_rateMin);
 
   float left, right;
   Process(left, right, in, in);
@@ -74,9 +74,12 @@ void CrusherModule::ProcessMono(float in)
 
 void CrusherModule::ProcessStereo(float inL, float inR)
 {
-  cutoff = GetParameterAsMagnitude(2) * 19500 + 500;
+  float level = m_levelMin + (GetParameterAsMagnitude(1) * (m_levelMax - m_levelMin));
+  float cutoff = m_cutoffMin + GetParameterAsMagnitude(2) * (m_cutoffMax - m_cutoffMin);
+
   tone.SetFreq(cutoff);
-  crushmod = (int)GetParameterAsMagnitude(0) * 49 - 1;
+
+  crushmod = (int)m_rateMin + GetParameterAsMagnitude(0) * (m_rateMax - m_rateMin);
 
   float left, right;
   Process(left, right, inL, inR);
@@ -89,9 +92,8 @@ void CrusherModule::ProcessStereo(float inL, float inR)
     // Adjust the level
     m_audioLeft = m_audioLeft * (m_levelMin + (GetParameterAsMagnitude(1) * (m_levelMax - m_levelMin)));
   */
-  m_audioRight = m_audioLeft = left;
-  m_audioRight = inR;
-  m_audioLeft = inL;
+  m_audioRight = right;
+  m_audioLeft = left;
 }
 
 float CrusherModule::GetBrightnessForLED(int led_id)

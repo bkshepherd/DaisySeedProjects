@@ -31,14 +31,14 @@ private:
   Tone tone;
   int crushmod, crushcount;
   float crushsl, crushsr, drywet;
-  float cutoff;
 
-  /*
-    float m_driveMin;
-    float m_driveMax;
-    float m_levelMin;
-    float m_levelMax;
-  */
+  // Parameter limits
+  float m_rateMin;
+  float m_rateMax;
+  float m_levelMin;
+  float m_levelMax;
+  float m_cutoffMin;
+  float m_cutoffMax;
 };
 } // namespace bkshepherd
 #endif
