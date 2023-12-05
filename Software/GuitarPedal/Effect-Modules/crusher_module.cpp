@@ -61,15 +61,7 @@ void CrusherModule::ProcessMono(float in)
   float left, right;
   Process(left, right, in, in);
 
-  /*
-    // Calculate the effect
-    m_overdriveLeft.SetDrive(m_driveMin + (GetParameterAsMagnitude(0) * (m_driveMax - m_driveMin)));
-    m_audioLeft = m_overdriveLeft.Process(m_audioLeft);
-
-    // Adjust the level
-    m_audioLeft = m_audioLeft * (m_levelMin + (GetParameterAsMagnitude(1) * (m_levelMax - m_levelMin)));
-  */
-  m_audioRight = m_audioLeft = left;
+  m_audioRight = m_audioLeft = left * level;
 }
 
 void CrusherModule::ProcessStereo(float inL, float inR)
@@ -84,18 +76,10 @@ void CrusherModule::ProcessStereo(float inL, float inR)
   float left, right;
   Process(left, right, inL, inR);
 
-  /*
-    // Calculate the effect
-    m_overdriveLeft.SetDrive(m_driveMin + (GetParameterAsMagnitude(0) * (m_driveMax - m_driveMin)));
-    m_audioLeft = m_overdriveLeft.Process(m_audioLeft);
-
-    // Adjust the level
-    m_audioLeft = m_audioLeft * (m_levelMin + (GetParameterAsMagnitude(1) * (m_levelMax - m_levelMin)));
-  */
-  m_audioRight = right;
-  m_audioLeft = left;
+  m_audioRight = right * level;
+  m_audioLeft = left * level;
 }
-
+/*
 float CrusherModule::GetBrightnessForLED(int led_id)
 {
   float value = BaseEffectModule::GetBrightnessForLED(led_id);
@@ -106,3 +90,4 @@ float CrusherModule::GetBrightnessForLED(int led_id)
 
   return value;
 }
+*/
