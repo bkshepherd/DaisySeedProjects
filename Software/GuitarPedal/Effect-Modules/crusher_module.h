@@ -30,7 +30,7 @@ public:
       nBits = 1.0;
     else if (nBits > 32.0)
       nBits = 32.0;
-    quant = pow(2.0, nBits);
+    quant = powf(2.0, nBits);
   }
 
 private:
