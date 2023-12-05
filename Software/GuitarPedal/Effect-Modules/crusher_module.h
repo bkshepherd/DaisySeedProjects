@@ -26,10 +26,11 @@ public:
 
   void setNumberOfBits(float nBits)
   {
-    if (nBits < 1.0)
+    if (nBits < 1.0) {
       nBits = 1.0;
-    else if (nBits > 32.0)
+    } else if (nBits > 32.0) {
       nBits = 32.0;
+    }
     quant = powf(2.0, nBits);
   }
 
@@ -52,8 +53,8 @@ private:
   Bitcrusher m_bitcrusher;
 
   // Parameter limits
-  float m_bitsMin;
-  float m_bitsMax;
+  // float m_bitsMin;
+  // float m_bitsMax;
   float m_levelMin;
   float m_levelMax;
   float m_cutoffMin;
