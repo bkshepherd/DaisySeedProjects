@@ -49,10 +49,14 @@ uint16_t Metronome::GetQuadrant16()
   return quadrant;
 }
 
-static const int s_paramCount = 2;
+static const char *TimeSignatureLabels[3] = {"4/4", "3/4", "2/4"};
+static const uint16_t TimeSignatureBase[3] = {4, 3, 2};
+
+static const int s_paramCount = 3;
 static const ParameterMetaData s_metaData[s_paramCount] = {
     {name : "Tempo", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 63, knobMapping : 0, midiCCMapping : 23},
-    {name : "Mix", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 10, knobMapping : 1, midiCCMapping : 21}};
+    {name : "Mix", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 10, knobMapping : 1, midiCCMapping : 21},
+    {name : "Meter", valueType : ParameterValueType::Binned, valueBinCount : 3, defaultValue : 0, knobMapping : 2, midiCCMapping : -1}};
 
 // Default Constructor
 MetroModule::MetroModule() : BaseEffectModule(), m_tempoBpmMin(40), m_tempoBpmMax(200), m_levelMin(0.0f), m_levelMax(1.0f)
@@ -79,6 +83,7 @@ void MetroModule::Init(float sample_rate)
   m_quadrant = 0;
   m_direction = 0;
   m_beat = 0;
+  m_timeSignature = TimeSignature::meter4x4;
 
   // set oscillator
   m_osc.Init(sample_rate);
@@ -104,12 +109,16 @@ float MetroModule::Process()
   const uint16_t tempo = raw_tempo_to_bpm(tempoRaw);
   const float freq = tempo_to_freq(tempo);
 
+  uint16_t tsig = GetParameterAsBinnedValue(2) - 1;
+  if (tsig != m_timeSignature)
+    m_timeSignature = static_cast<TimeSignature>(tsig);
+
   if (freq != m_metro.GetFreq())
     m_metro.SetFreq(freq);
 
   if (m_metro.Process()) {
     m_beat++;
-    m_osc.SetFreq((m_beat % 4 == 0) ? 440.0f : 220.0f);
+    m_osc.SetFreq((m_beat % (TimeSignatureBase[static_cast<uint16_t>(m_timeSignature)]) == 0) ? 440.0f : 220.0f);
     m_direction = !m_direction;
   }
 
@@ -182,7 +191,7 @@ void MetroModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int n
   int tempoRaw = GetParameterRaw(0);
   int tempo = raw_tempo_to_bpm(tempoRaw);
 
-  sprintf(strbuff, "%d BPM", tempo);
+  sprintf(strbuff, "%s %d BPM", TimeSignatureLabels[static_cast<uint16_t>(m_timeSignature)], tempo);
   boundsToDrawIn.RemoveFromTop(topRowHeight);
   display.WriteStringAligned(strbuff, Font_11x18, boundsToDrawIn, Alignment::centered, true);
 

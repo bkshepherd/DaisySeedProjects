@@ -59,6 +59,7 @@ private:
   float phs_, sample_rate_, phs_inc_;
 };
 
+enum TimeSignature { meter4x4 = 0, meter3x4 = 1, meter2x4 = 2 };
 const uint16_t DefaultTempoBpm = 120;
 
 class MetroModule : public BaseEffectModule
@@ -76,6 +77,9 @@ public:
   float GetBrightnessForLED(int led_id) override;
   void DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int numItemsTotal, Rectangle boundsToDrawIn, bool isEditing) override;
 
+  inline void SetTimeSignature(TimeSignature ts) { m_timeSignature = ts; }
+  inline TimeSignature GetTimeSignature() { return m_timeSignature; }
+
 private:
   uint16_t m_tempoBpmMin;
   uint16_t m_tempoBpmMax;
@@ -85,6 +89,8 @@ private:
   uint16_t m_quadrant;
   uint16_t m_direction;
   uint32_t m_beat;
+
+  TimeSignature m_timeSignature;
 
   Metronome m_metro;
 
