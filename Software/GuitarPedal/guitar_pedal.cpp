@@ -9,6 +9,7 @@
 #include "Effect-Modules/chopper_module.h"
 #include "Effect-Modules/reverb_module.h"
 #include "Effect-Modules/metro_module.h"
+#include "Effect-Modules/crusher_module.h"
 #include "UI/guitar_pedal_ui.h"
 #include "Util/audio_utilities.h"
 
@@ -412,7 +413,7 @@ int main(void)
   crossFaderTransitionTimeInSamples = hardware.GetNumberOfSamplesForTime(crossFaderTransitionTimeInSeconds);
 
   // Init the Effects Modules
-  availableEffectsCount = 7;
+  availableEffectsCount = 8;
   availableEffects = new BaseEffectModule *[availableEffectsCount];
 
   availableEffects[0] = new ModulatedTremoloModule();
@@ -422,6 +423,7 @@ int main(void)
   availableEffects[4] = new ChopperModule();
   availableEffects[5] = new ReverbModule();
   availableEffects[6] = new MetroModule();
+  availableEffects[7] = new CrusherModule();
 
   for (int i = 0; i < availableEffectsCount; i++) {
     availableEffects[i]->Init(sample_rate);
