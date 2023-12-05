@@ -5,12 +5,11 @@ using namespace bkshepherd;
 static const int s_paramCount = 3;
 static const ParameterMetaData s_metaData[s_paramCount] = {
     {name : "Level", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 40, knobMapping : 0, midiCCMapping : -1},
-    {name : "Rate", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 1, knobMapping : 1, midiCCMapping : -1},
-    {name : "Cutoff", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 40, knobMapping : 2, midiCCMapping : -1},
-};
+    {name : "Rate", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 0, knobMapping : 1, midiCCMapping : -1},
+    {name : "Cutoff", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 64, knobMapping : 2, midiCCMapping : -1}};
 
 // Default Constructor
-CrusherModule::CrusherModule() : BaseEffectModule(), m_rateMin(1), m_rateMax(50), m_levelMin(0.01), m_levelMax(20), m_cutoffMin(500), m_cutoffMax(20000)
+CrusherModule::CrusherModule() : BaseEffectModule(), m_rateMin(1), m_rateMax(80), m_levelMin(0.01), m_levelMax(20), m_cutoffMin(500), m_cutoffMax(20000)
 {
   // Set the name of the effect
   m_name = "Crusher";
