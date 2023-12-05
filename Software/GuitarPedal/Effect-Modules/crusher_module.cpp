@@ -9,10 +9,7 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
     {name : "Cutoff", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 64, knobMapping : 2, midiCCMapping : -1}};
 
 // Default Constructor
-CrusherModule::CrusherModule()
-    : BaseEffectModule(),
-      // m_bitsMin(1), m_bitsMax(32),
-      m_levelMin(0.01), m_levelMax(20), m_cutoffMin(500), m_cutoffMax(20000)
+CrusherModule::CrusherModule() : BaseEffectModule(), m_levelMin(0.01), m_levelMax(20), m_cutoffMin(500), m_cutoffMax(20000)
 {
   // Set the name of the effect
   m_name = "Crusher";
@@ -44,7 +41,6 @@ void CrusherModule::ProcessMono(float in)
 
   float level = m_levelMin + (GetParameterAsMagnitude(0) * (m_levelMax - m_levelMin));
   float cutoff = m_cutoffMin + GetParameterAsMagnitude(2) * (m_cutoffMax - m_cutoffMin);
-  // float bits = m_bitsMin + GetParameterAsMagnitude(1) * (m_bitsMax - m_bitsMin);
   float bits = (float)GetParameterAsBinnedValue(1);
 
   m_tone.SetFreq(cutoff);
@@ -60,7 +56,6 @@ void CrusherModule::ProcessStereo(float inL, float inR)
 
   float level = m_levelMin + (GetParameterAsMagnitude(0) * (m_levelMax - m_levelMin));
   float cutoff = m_cutoffMin + GetParameterAsMagnitude(2) * (m_cutoffMax - m_cutoffMin);
-  // float bits = m_bitsMin + GetParameterAsMagnitude(1) * (m_bitsMax - m_bitsMin);
   float bits = (float)GetParameterAsBinnedValue(1);
 
   m_tone.SetFreq(cutoff);
