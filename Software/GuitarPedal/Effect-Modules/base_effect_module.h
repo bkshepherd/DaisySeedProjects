@@ -191,6 +191,13 @@ class BaseEffectModule
     */
     virtual void InitParams(int count);
 
+    /** This function gets called every time a parameter changes values.
+     * By default it does nothing, but it's a good one to override if your effect 
+     * needs to do things when specific parameters change.
+     * @param parameter_id  The id of the parameter that changed.
+    */
+    virtual void ParameterChanged(int parameter_id);
+
     const char *m_name;                         // Name of the Effect
     int m_paramCount;                           // Number of Effect Parameters
     uint8_t *m_params;                          // Dynamic Array of Effect Parameter Values

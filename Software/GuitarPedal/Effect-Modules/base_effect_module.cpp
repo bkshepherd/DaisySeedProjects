@@ -190,7 +190,14 @@ void BaseEffectModule::SetParameterRaw(int parameter_id, uint8_t value)
         return;
     }
 
-    m_params[parameter_id] = value;
+    // Only update the value if it changed.
+    if (value != m_params[parameter_id])
+    {
+        m_params[parameter_id] = value;
+
+        // Notify anyone listening if the parameter actually changed.
+        ParameterChanged(parameter_id);
+    }
 }
 
 void BaseEffectModule::SetParameterAsMagnitude(int parameter_id, float value)
@@ -291,6 +298,11 @@ void BaseEffectModule::SetTempo(uint32_t bpm)
     // Not all Effects are time based.
     
     // Effect modules are expected to override this fucntion if they are time based.
+}
+
+void BaseEffectModule::ParameterChanged(int parameter_id)
+{
+    // Do nothing.
 }
 
 void BaseEffectModule::UpdateUI(float elapsedTime)
