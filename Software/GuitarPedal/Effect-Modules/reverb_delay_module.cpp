@@ -119,6 +119,7 @@ void ReverbDelayModule::Init(float sample_rate)
     delayRight.toneOctLP.SetFreq(20000.0);
 
     m_reverbStereo.Init(sample_rate);
+    m_reverbStereo.SetFeedback(0.0);
  
     effect_samplerate = sample_rate;
 

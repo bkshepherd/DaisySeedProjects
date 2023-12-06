@@ -46,8 +46,8 @@ struct delay
             delreverse->Write((feedback * read) + in);
             //delreverse->Write((feedback * read2) + in);  // Writing the read from fwd/oct delay line allows for combining oct and rev for reverse octave!
         } else {
-            del->Write((feedback * read)); // if not active, don't write any new sound to buffer
-            delreverse->Write((feedback * read) + in);
+            del->Write(feedback * read); // if not active, don't write any new sound to buffer
+            delreverse->Write(feedback * read);
             //delreverse->Write((feedback * read2));
         }
 
