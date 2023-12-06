@@ -7,7 +7,8 @@
 #include "Effect-Modules/autopan_module.h"
 #include "Effect-Modules/chorus_module.h"
 #include "Effect-Modules/chopper_module.h"
-#include "Effect-Modules/reverb_module.h"
+//#include "Effect-Modules/reverb_module.h"
+#include "Effect-Modules/reverb_delay_module.h"
 #include "UI/guitar_pedal_ui.h"
 #include "Util/audio_utilities.h"
 
@@ -473,7 +474,8 @@ int main(void)
     availableEffects[2] = new AutoPanModule();
     availableEffects[3] = new ChorusModule();
     availableEffects[4] = new ChopperModule();
-    availableEffects[5] = new ReverbModule();
+    availableEffects[5] = new ReverbDelayModule();
+
     
     for (int i = 0; i < availableEffectsCount; i++)
     {

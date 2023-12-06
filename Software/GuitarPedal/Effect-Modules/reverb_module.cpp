@@ -45,7 +45,7 @@ void ReverbModule::ProcessMono(float in)
 
     float sendl, sendr, wetl, wetr;  // Reverb Inputs/Outputs
     sendl = m_audioLeft;
-    sendr = m_audioLeft;
+    sendr = m_audioRight;
 
     // Calculate the effect
     m_reverbStereo.SetFeedback(m_timeMin + GetParameterAsMagnitude(0) * (m_timeMax - m_timeMin));
@@ -54,8 +54,8 @@ void ReverbModule::ProcessMono(float in)
     m_reverbStereo.SetLpFreq(m_lpFreqMin + invertedFreq * (m_lpFreqMax - m_lpFreqMin));
 
     m_reverbStereo.Process(sendl, sendr, &wetl, &wetr);
-    m_audioLeft = wetl * GetParameterAsMagnitude(2) + in * (1.0 - GetParameterAsMagnitude(2));
-    m_audioRight = wetr * GetParameterAsMagnitude(2) + in * (1.0 - GetParameterAsMagnitude(2));
+    m_audioLeft = wetl * GetParameterAsMagnitude(2) + sendl * (1.0 - GetParameterAsMagnitude(2));
+    m_audioRight = wetr * GetParameterAsMagnitude(2) + sendr * (1.0 - GetParameterAsMagnitude(2));
 
 }
 
