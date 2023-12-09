@@ -36,7 +36,6 @@ class DelayLineRevOct
         write_ptr_ = 0;
         delay_     = 1;
         speed      = 1;
-        direction  = 1;
     }
 
     inline void setOctave(bool isOctave)
@@ -48,14 +47,6 @@ class DelayLineRevOct
         }
     }
 
-    inline void setReverse(bool isReverse)
-    {
-        if (isReverse) {
-            direction = -1;
-        } else {
-            direction = 1;
-        }
-    }
 
     /** sets the delay time in samples
         If a float is passed in, a fractional component will be calculated for interpolating the delay line.
@@ -89,8 +80,8 @@ class DelayLineRevOct
     */
     inline const T Read() const
     {
-        T a = line_[(write_ptr_ * speed * direction + delay_) % max_size];
-        T b = line_[(write_ptr_ * speed * direction + delay_ + 1) % max_size];
+        T a = line_[(write_ptr_ * speed + delay_) % max_size];
+        T b = line_[(write_ptr_ * speed + delay_ + 1) % max_size];
         return a + (b - a) * frac_;
     }
 
@@ -137,7 +128,6 @@ class DelayLineRevOct
     size_t delay_;
     T      line_[max_size];
     int    speed;  // Either 1 or 2
-    int    direction; // Either 1 or -1
 };
 //} // namespace daisysp
 #endif
