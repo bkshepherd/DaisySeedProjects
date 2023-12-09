@@ -3,10 +3,10 @@
 #include "Hardware-Modules/guitar_pedal_125b.h"
 #include "guitar_pedal_storage.h"
 #include "Effect-Modules/modulated_tremolo_module.h"
-#include "Effect-Modules/overdrive_module.h"
-#include "Effect-Modules/autopan_module.h"
-#include "Effect-Modules/chorus_module.h"
-#include "Effect-Modules/chopper_module.h"
+//#include "Effect-Modules/overdrive_module.h"
+//#include "Effect-Modules/autopan_module.h"
+//#include "Effect-Modules/chorus_module.h"
+//#include "Effect-Modules/chopper_module.h"
 //#include "Effect-Modules/reverb_module.h"
 #include "Effect-Modules/reverb_delay_module.h"
 #include "UI/guitar_pedal_ui.h"
@@ -466,15 +466,15 @@ int main(void)
     crossFaderTransitionTimeInSamples = hardware.GetNumberOfSamplesForTime(crossFaderTransitionTimeInSeconds);
 
     // Init the Effects Modules
-    availableEffectsCount = 6;
+    availableEffectsCount = 2;
     availableEffects = new BaseEffectModule*[availableEffectsCount];
 
     availableEffects[0] = new ModulatedTremoloModule();
-    availableEffects[1] = new OverdriveModule();
-    availableEffects[2] = new AutoPanModule();
-    availableEffects[3] = new ChorusModule();
-    availableEffects[4] = new ChopperModule();
-    availableEffects[5] = new ReverbDelayModule();
+    //availableEffects[1] = new OverdriveModule();
+    //availableEffects[2] = new AutoPanModule();
+    //availableEffects[3] = new ChorusModule();
+    //availableEffects[4] = new ChopperModule();
+    availableEffects[1] = new ReverbDelayModule();
 
     
     for (int i = 0; i < availableEffectsCount; i++)

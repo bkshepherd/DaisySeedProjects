@@ -13,21 +13,34 @@
 
 using namespace daisysp;
 
-// Delay
+// Delay Max Definitions (Assumes 48kHz samplerate)
 #define MAX_DELAY static_cast<size_t>(48000 * 4.f) // 4 second max delay
 #define MAX_DELAY_REV static_cast<size_t>(48000 * 8.f) // 8 second max delay (needs to be double for reverse, since read/write pointers are going opposite directions in the buffer)
+#define MAX_DELAY_SPREAD static_cast<size_t>(48000 * 2.f) // Up to 2 second for Ping Pong, or 50 ms for Spread effect 
 
+// This is the core delay struct, which actually includes two delays, 
+// one for forwared/octave, and one for reverse. This is required
+// because the reverse delayline needs to be double the size of the
+// normal delayline to have the same range of the Time control. Both
+// delays are processed, with the main delay feeding into the reverse
+// delay to allow for Reverse Octave. A lowpass filter is included in
+// the feedback loop, which can tame the harsh high frequencies of the
+// octave delay, or create a "fading into the distance" effect for the
+// forward and reverse delays. A "level" param is included for modulation
+// of the output volume, for stereo panning.
 struct delay
 {
     DelayLineRevOct<float, MAX_DELAY> *del;
     DelayLineReverse<float, MAX_DELAY_REV> *delreverse;
     float                        currentDelay;
     float                        delayTarget;
-    float                        feedback;
+    float                        feedback = 0.0;
     float                        active = false;
-    //float                        maxInternalDelay;
     bool                         reverseMode = false;
-    Tone                         toneOctLP;  // Low Pass filter
+    Tone                         toneOctLP;  // Low Pass 
+    float                        level = 1.0;      // Level multiplier of output, added for stereo modulation
+    float                        level_reverse = 1.0;      // Level multiplier of output, added for stereo modulation
+    bool                         dual_delay = false;
     
     float Process(float in)
     {
@@ -51,10 +64,38 @@ struct delay
             //delreverse->Write((feedback * read2));
         }
 
-        if (reverseMode)
-            return read_reverse;
-        else  
-            return read;
+        if (dual_delay) {
+            return read_reverse * level_reverse * 0.5 + read * level * 0.5; // Half the volume to keep total level consistent
+        } else if (reverseMode) {
+            return read_reverse * level_reverse;
+        } else {
+            return read * level;
+        }
+    }
+};
+
+// For stereo spread setting (delay the right channel signal from 0 to 50ms)
+//    A short, zero feedback (one repeat) delay for stereo spread
+// Also used for Ping Pong effect, by setting this delay to half the normal delay time setting and applying to right channel
+struct delay_spread
+{
+    DelayLine<float, MAX_DELAY_SPREAD> *del;
+    float                        currentDelay;
+    float                        delayTarget;
+    float                        active = false;
+    
+    float Process(float in)
+    {
+        //set delay times
+        fonepole(currentDelay, delayTarget, .0002f);
+        del->SetDelay(currentDelay);
+
+        float read = del->Read();
+        if (active) {
+            del->Write(in);
+        } 
+
+        return read;
     }
 };
 
@@ -88,16 +129,23 @@ class ReverbDelayModule : public BaseEffectModule
     float m_lpFreqMax;
     float m_delaySamplesMin;
     float m_delaySamplesMax;
+    float m_delaySpreadMin;
+    float m_delaySpreadMax;
+    float m_delayPPMin;
+    float m_delayPPMax;
+    float m_pdelRight_out;
+
 
     // Delays
     delay             delayLeft;
     delay             delayRight;
+    delay_spread       delaySpread;
 
     // Mix params
-    float delayWetMix;
-    float delayDryMix;
-    float reverbWetMix;
-    float reverbDryMix;
+    float delayWetMix = 0.5;
+    float delayDryMix = 0.5;
+    float reverbWetMix = 0.5;
+    float reverbDryMix = 0.5;
 
     float effect_samplerate;
 
