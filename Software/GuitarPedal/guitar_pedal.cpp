@@ -486,12 +486,6 @@ int main(void)
     InitPersistantStorage();
 
     Settings &settings = storage.GetSettings();
-
-    // If the stored data is not the current version do a factory reset
-    if (settings.fileFormatVersion != SETTINGS_FILE_FORMAT_VERSION)
-    {
-        storage.RestoreDefaults();
-    }
     
     // Load all the effect specific settings
     LoadEffectSettingsFromPersistantStorage();

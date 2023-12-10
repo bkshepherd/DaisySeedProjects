@@ -38,6 +38,20 @@ void InitPersistantStorage()
     } 
     
     storage.Init(defaultSettings);
+
+    Settings &settings = storage.GetSettings();
+    
+    // If the stored data is not the current version do a factory reset
+    if (settings.fileFormatVersion != SETTINGS_FILE_FORMAT_VERSION)
+    {
+        storage.RestoreDefaults();
+    }
+
+    // Make sure the settings active effect is within the proper range.
+    if (settings.globalActiveEffectID < 0 || settings.globalActiveEffectID >= availableEffectsCount)
+    {
+        settings.globalActiveEffectID = 0;
+    }
 }
 
 void LoadEffectSettingsFromPersistantStorage()
