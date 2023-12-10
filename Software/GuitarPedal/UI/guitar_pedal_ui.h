@@ -74,7 +74,8 @@ class GuitarPedalUI
 
     const char** m_availableEffectNames;
     MappedStringListValue *m_availableEffectListMappedValues;
-    MappedIntValue **m_activeEffectSettingValues;
+    MappedIntValue **m_activeEffectSettingIntValues;
+    MappedStringListValue **m_activeEffectSettingStringValues;
     bool *m_activeEffectSettingBoolValues;
     MappedIntValue m_midiChannelSettingValue;
 
