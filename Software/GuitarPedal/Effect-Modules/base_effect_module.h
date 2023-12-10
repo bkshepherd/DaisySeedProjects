@@ -30,6 +30,7 @@ struct ParameterMetaData
   const char* name;             // The Name of this Parameter that gets displayed on the Screen when editing the parameters value
   ParameterValueType valueType; // The Type of this Parameter value.
   int valueBinCount;            // The number of distinct choices allowed for this parameter value
+  const char** valueBinNames;   // The human readable display names for the bins
   uint8_t defaultValue;         // The Default Value set for this parameter the first time the device is powered up
   int knobMapping;              // The ID of the Physical Knob mapped to this Parameter. -1 if this Parameter is not controlled by a Knob
   int midiCCMapping;            // The Midi CC ID mapped to this Parameter. -1 of this Parameter is not controllable via Midi CC messages
@@ -70,6 +71,12 @@ class BaseEffectModule
      \return the number of Bins for this Binned Int type Efffect Parameter or -1 if this isn't a Binned Int type parameter
     */
     int GetParameterBinCount(int parameter_id);
+
+    /** Gets the Bin Name of a Binned Int Effect Parameter
+     \param parameter_id Id of the parameter to retrieve.
+     \return the Names of the Bins for this Binned Int type Efffect Parameter or NULL if there aren't any specified
+    */
+    const char** GetParameterBinNames(int parameter_id);
 
     /** Gets the Raw uint8_t value of an Effect Parameter
      \param parameter_id Id of the parameter to retrieve.

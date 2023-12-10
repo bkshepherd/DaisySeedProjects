@@ -104,6 +104,8 @@ If it tells you any parts are missing, you may need to substitute. For instance,
 
 Simply click each part that is not properly placed, and use the buttons to rotate and move them until they are in place. The parts that need fixing are J1,J4,J5,U1,U3,U4,U5,U7,U8,K1,K2,Q1.
 
+* Note U2 (PDS1-S5-S5-M) will not show up as available to change placement / rotation.  JCLPCB doesn't have a 3D model for this part since it's from global sourcing. Don't worry that it's not shown on this screen.
+
 It should look like this when fixed.
 
 ![PCB Assembly Options](images/JLCPCB-AssemblyPlacementFixed.png)

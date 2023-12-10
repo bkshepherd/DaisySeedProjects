@@ -3,12 +3,14 @@
 
 using namespace bkshepherd;
 
+static const char* s_waveBinNames[8] = {"Sine", "Triangle", "Saw", "Ramp", "Square", "Poly Tri", "Poly Saw", "Poly Sqr"};
+
 static const int s_paramCount = 5;
-static const ParameterMetaData s_metaData[s_paramCount] = {{name: "Wave", valueType: ParameterValueType::Binned, valueBinCount: 8, defaultValue: 0, knobMapping: 3, midiCCMapping: 20},
-                                                           {name: "Depth", valueType: ParameterValueType::FloatMagnitude, valueBinCount: 0, defaultValue: 74, knobMapping: 1, midiCCMapping: 21},
-                                                           {name: "Freq", valueType: ParameterValueType::FloatMagnitude, valueBinCount: 0, defaultValue: 67, knobMapping: 0, midiCCMapping: 1},
-                                                           {name: "Osc Wave", valueType: ParameterValueType::Binned, valueBinCount: 8, defaultValue: 0, knobMapping: 4, midiCCMapping: 23},
-                                                           {name: "Osc Freq", valueType: ParameterValueType::FloatMagnitude, valueBinCount: 0, defaultValue: 12, knobMapping: 2, midiCCMapping: 24}};
+static const ParameterMetaData s_metaData[s_paramCount] = {{name: "Wave", valueType: ParameterValueType::Binned, valueBinCount: 8, valueBinNames: s_waveBinNames, defaultValue: 0, knobMapping: 3, midiCCMapping: 20},
+                                                           {name: "Depth", valueType: ParameterValueType::FloatMagnitude, defaultValue: 74, knobMapping: 1, midiCCMapping: 21},
+                                                           {name: "Freq", valueType: ParameterValueType::FloatMagnitude, defaultValue: 67, knobMapping: 0, midiCCMapping: 1},
+                                                           {name: "Osc Wave", valueType: ParameterValueType::Binned, valueBinCount: 8, valueBinNames: s_waveBinNames, defaultValue: 0, knobMapping: 4, midiCCMapping: 23},
+                                                           {name: "Osc Freq", valueType: ParameterValueType::FloatMagnitude, defaultValue: 12, knobMapping: 2, midiCCMapping: 24}};
 
 // Default Constructor
 ModulatedTremoloModule::ModulatedTremoloModule() : BaseEffectModule(),

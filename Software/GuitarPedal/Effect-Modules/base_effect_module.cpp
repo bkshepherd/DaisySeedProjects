@@ -98,12 +98,30 @@ int BaseEffectModule::GetParameterBinCount(int parameter_id)
         return -1;
     }
     
+    // Make sure this is a Binned Int type parameter
     if (m_paramMetaData[parameter_id].valueType != 3)
     {
         return -1;
     }
 
     return m_paramMetaData[parameter_id].valueBinCount;
+}
+
+const char** BaseEffectModule::GetParameterBinNames(int parameter_id)
+{
+    // Make sure parameter_id is valid.
+    if (m_params == NULL || parameter_id < 0 || parameter_id >= m_paramCount || m_paramMetaData == NULL)
+    {
+        return NULL;
+    }
+    
+    // Make sure this is a Binned Int type parameter
+    if (m_paramMetaData[parameter_id].valueType != 3)
+    {
+        return NULL;
+    }
+
+    return m_paramMetaData[parameter_id].valueBinNames;
 }
 
 uint8_t BaseEffectModule::GetParameterRaw(int parameter_id)
@@ -141,7 +159,22 @@ int BaseEffectModule::GetParameterAsBinnedValue(int parameter_id)
     float binSize = 128.0f / binCount;
     float midPoint = (0.5f - (1.0f / 128.0f));
     float offset = (1.0f / 128.0f);
-    return (int)(((GetParameterRaw(parameter_id) + midPoint) / binSize) + offset) + 1;
+
+    // Calculate the bin
+    int bin = (int)(((GetParameterRaw(parameter_id) + midPoint) / binSize) + offset) + 1;
+
+    // A little sanity checking, make sure the bin is clamped to 1..BinCount
+    if (bin < 1)
+    {
+        bin = 1;
+    }
+
+    if (bin > binCount)
+    {
+        bin = binCount;
+    }
+
+    return bin;
 }
 
 int BaseEffectModule::GetMappedParameterIDForKnob(int knob_id)
@@ -242,7 +275,22 @@ void BaseEffectModule::SetParameterAsBinnedValue(int parameter_id, u_int8_t bin)
 
     // Map the Bin number into a raw value mapped in 0..127
     float binSize = 128.0f / binCount;
-    SetParameterRaw(parameter_id, (int)(((bin - 1) * binSize) + (binSize / 2.0f)));
+
+    // Calculate the raw value
+    int rawValue = (int)(((bin - 1) * binSize) + (binSize / 2.0f));
+
+    // A little sanity checking to make sure the raw value is within proper range
+    if (rawValue < 0)
+    {
+        rawValue = 0;
+    }
+
+    if (rawValue > 127)
+    {
+        rawValue = 127;
+    }
+
+    SetParameterRaw(parameter_id, rawValue);
 }
 
 void BaseEffectModule::ProcessMono(float in)
