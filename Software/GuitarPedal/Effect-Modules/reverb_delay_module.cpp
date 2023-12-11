@@ -12,7 +12,7 @@ DelayLineReverse<float, MAX_DELAY_REV> DSY_SDRAM_BSS delayLineRevLeft;
 DelayLineReverse<float, MAX_DELAY_REV> DSY_SDRAM_BSS delayLineRevRight;
 DelayLine<float, MAX_DELAY_SPREAD> DSY_SDRAM_BSS delayLineSpread;
 
-static const int s_paramCount = 18;
+static const int s_paramCount = 19;
 static const ParameterMetaData s_metaData[s_paramCount] = {{name: "Delay Time", valueType: ParameterValueType::FloatMagnitude, valueBinCount: 0, defaultValue: 57, knobMapping: 0, midiCCMapping: 1},  //mod
                                                            {name: "D Feedback", valueType: ParameterValueType::FloatMagnitude, valueBinCount: 0, defaultValue: 57, knobMapping: 1, midiCCMapping: 22},
                                                            {name: "Delay Mix", valueType: ParameterValueType::FloatMagnitude, valueBinCount: 0, defaultValue: 57, knobMapping: 2, midiCCMapping: 23},
@@ -30,7 +30,8 @@ static const ParameterMetaData s_metaData[s_paramCount] = {{name: "Delay Time", 
                                                            {name: "Mod Rate", valueType: ParameterValueType::FloatMagnitude, valueBinCount: 0, defaultValue: 30, knobMapping: -1, midiCCMapping: 35}, 
                                                            {name: "Mod Param", valueType: ParameterValueType::Binned, valueBinCount: 5, valueBinNames: s_modParamNames, defaultValue: 0, knobMapping: -1, midiCCMapping: 36},
                                                            {name: "Mod Wave", valueType: ParameterValueType::Binned, valueBinCount: 5, valueBinNames: s_waveBinNames, defaultValue: 0, knobMapping: -1, midiCCMapping: 37},
-                                                           {name: "Sync Mod F", valueType: ParameterValueType::Bool, valueBinCount: 0, defaultValue: 0, knobMapping: -1, midiCCMapping: 38}};
+                                                           {name: "Sync Mod F", valueType: ParameterValueType::Bool, valueBinCount: 0, defaultValue: 0, knobMapping: -1, midiCCMapping: 38},
+                                                           {name: "Dotted 8th", valueType: ParameterValueType::Bool, valueBinCount: 0, defaultValue: 0, knobMapping: -1, midiCCMapping: 39},};
 
                                                            
 
@@ -245,6 +246,8 @@ void ReverbDelayModule::ProcessMono(float in)
     delayLeft.dual_delay = GetParameterAsBool(12); 
     delayRight.dual_delay = GetParameterAsBool(12);
 
+    delayLeft.dotted_eigth = GetParameterAsBool(18); // dotted 8th
+    delayRight.dotted_eigth = GetParameterAsBool(18); // dotted 8th
 
     if (GetParameterAsMagnitude(12)) {       // If dual delay is turned on, spread controls the L/R panning of the two delays
         delayLeft.level = GetParameterAsMagnitude(10) + 1.0;   // TODO Test, I think this will spread apart the delays to L/R
@@ -341,6 +344,9 @@ void ReverbDelayModule::ProcessStereo(float inL, float inR)
 
     delayLeft.dual_delay = GetParameterAsBool(12); 
     delayRight.dual_delay = GetParameterAsBool(12);
+
+    delayLeft.dotted_eigth = GetParameterAsBool(18); // dotted 8th
+    delayRight.dotted_eigth = GetParameterAsBool(18); // dotted 8th
 
     if (GetParameterAsMagnitude(12)) {       // If dual delay is turned on, spread controls the L/R panning of the two delays
         delayLeft.level = GetParameterAsMagnitude(10) + 1.0;   // TODO Test, I think this will spread apart the delays to L/R

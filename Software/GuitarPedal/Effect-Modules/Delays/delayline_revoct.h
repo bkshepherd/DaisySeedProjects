@@ -36,6 +36,7 @@ class DelayLineRevOct
         write_ptr_ = 0;
         delay_     = 1;
         speed      = 1;
+        delay_dot8 = 1;
     }
 
     inline void setOctave(bool isOctave)
@@ -66,6 +67,12 @@ class DelayLineRevOct
         frac_             = delay - static_cast<float>(int_delay);
         delay_ = static_cast<size_t>(int_delay) < max_size ? int_delay
                                                            : max_size - 1;
+
+        // For dotted eighth
+        int32_t int_delay_dot8 = static_cast<int32_t>(delay * 3.0 / 4.0);
+        frac_dot8             = delay * 3.0 / 4.0 - static_cast<float>(int_delay_dot8);
+        delay_dot8 = static_cast<size_t>(int_delay_dot8) < max_size ? int_delay_dot8
+                                                           : max_size - 1;
     }
 
     /** writes the sample of type T to the delay line, and advances the write ptr
@@ -83,6 +90,14 @@ class DelayLineRevOct
         T a = line_[(write_ptr_ * speed + delay_) % max_size];
         T b = line_[(write_ptr_ * speed + delay_ + 1) % max_size];
         return a + (b - a) * frac_;
+    }
+
+    inline const T ReadDotted8th() const
+    {
+
+        T c = line_[(write_ptr_ * speed + delay_dot8) % max_size];
+        T d = line_[(write_ptr_ * speed + delay_dot8  + 1) % max_size];
+        return c + (d - c) * frac_dot8;
     }
 
     /** Read from a set location */
@@ -128,6 +143,10 @@ class DelayLineRevOct
     size_t delay_;
     T      line_[max_size];
     int    speed;  // Either 1 or 2
+
+    float  frac_dot8;
+    size_t delay_dot8;
+
 };
 //} // namespace daisysp
 #endif

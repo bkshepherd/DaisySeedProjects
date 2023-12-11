@@ -41,6 +41,7 @@ struct delay
     float                        level = 1.0;      // Level multiplier of output, added for stereo modulation
     float                        level_reverse = 1.0;      // Level multiplier of output, added for stereo modulation
     bool                         dual_delay = false;
+    bool                         dotted_eigth = false;
     
     float Process(float in)
     {
@@ -51,10 +52,14 @@ struct delay
 
         float del_read = del->Read();
 
-
         float read_reverse = delreverse->ReadRev(); // REVERSE
 
         float read = toneOctLP.Process(del_read);  // LP filter, tames harsh high frequencies on octave, has fading effect for normal/reverse
+
+        float read_d8 = 0.0;
+        if (dotted_eigth) {
+            read_d8 = del->ReadDotted8th();
+        }
         //float read2 = delreverse->ReadFwd();
         if (active) {
             del->Write((feedback * read) + in);
@@ -66,12 +71,14 @@ struct delay
             //delreverse->Write((feedback * read2));
         }
 
+        // TODO Figure out how to do dotted eighth with reverse delayline
+
         if (dual_delay) {
             return read_reverse * level_reverse * 0.5 + read * level * 0.5; // Half the volume to keep total level consistent
         } else if (reverseMode) {
             return read_reverse * level_reverse;
         } else {
-            return read * level;
+            return (read + read_d8) * level;
         }
     }
 };
