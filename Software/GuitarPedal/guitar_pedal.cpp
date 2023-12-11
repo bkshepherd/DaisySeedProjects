@@ -8,6 +8,9 @@
 //#include "Effect-Modules/chorus_module.h"
 //#include "Effect-Modules/chopper_module.h"
 //#include "Effect-Modules/reverb_module.h"
+//#include "Effect-Modules/metro_module.h"
+//#include "Effect-Modules/scope_module.h"
+//#include "Effect-Modules/crusher_module.h"
 #include "Effect-Modules/reverb_delay_module.h"
 
 #include "UI/guitar_pedal_ui.h"
@@ -457,7 +460,7 @@ void HandleMidiMessage(MidiEvent m)
 int main(void)
 {
     hardware.Init();
-    hardware.SetAudioBlockSize(4);
+    hardware.SetAudioBlockSize(24);  // KAB CHANGED FROM 4 to 48
 
     float sample_rate = hardware.AudioSampleRate();
 
@@ -475,6 +478,9 @@ int main(void)
     //availableEffects[2] = new AutoPanModule();
     //availableEffects[3] = new ChorusModule();
     //availableEffects[4] = new ChopperModule();
+    //availableEffects[1] = new MetroModule();
+    //availableEffects[2] = new ScopeModule();
+    //availableEffects[3] = new CrusherModule();
     availableEffects[1] = new ReverbDelayModule();
     
     for (int i = 0; i < availableEffectsCount; i++)

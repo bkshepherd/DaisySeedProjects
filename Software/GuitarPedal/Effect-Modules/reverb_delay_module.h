@@ -116,6 +116,7 @@ class ReverbDelayModule : public BaseEffectModule
     void CalculateDelayMix();
     void CalculateReverbMix();
     void ParameterChanged(int parameter_id) override;
+    void ProcessModulation();
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;
     void SetTempo(uint32_t bpm) override;
@@ -129,6 +130,8 @@ class ReverbDelayModule : public BaseEffectModule
     float m_timeMax;
     float m_lpFreqMin;
     float m_lpFreqMax;
+    float m_delaylpFreqMin;
+    float m_delaylpFreqMax;
     float m_delaySamplesMin;
     float m_delaySamplesMax;
     float m_delaySpreadMin;
@@ -136,6 +139,11 @@ class ReverbDelayModule : public BaseEffectModule
     float m_delayPPMin;
     float m_delayPPMax;
     float m_pdelRight_out;
+    float m_currentMod;
+
+    Oscillator modOsc;
+    float m_modOscFreqMin;
+    float m_modOscFreqMax;
 
 
     // Delays
@@ -148,6 +156,8 @@ class ReverbDelayModule : public BaseEffectModule
     float delayDryMix = 0.5;
     float reverbWetMix = 0.5;
     float reverbDryMix = 0.5;
+
+    float reverb_level = 1.0;
 
     float effect_samplerate;
 
