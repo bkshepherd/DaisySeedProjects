@@ -36,7 +36,9 @@ class DelayLineRevOct
         write_ptr_ = 0;
         delay_     = 1;
         speed      = 1;
-        delay_dot8 = 1;
+        delay_secondTap = 1;
+        delay_float = 1.0;
+        secondTapFraction = 0.0;
     }
 
     inline void setOctave(bool isOctave)
@@ -47,6 +49,21 @@ class DelayLineRevOct
             speed = 1;
         }
     }
+
+    // Sets the fractional length of the 2nd tap 
+    //   2/3 (0.66667) = Triplett
+    //   3/4 (0.75) = Dotted Eighth
+    inline void set2ndTapFraction(float tapFraction)
+    {
+        secondTapFraction = tapFraction;
+
+        // For secondTap (if this changes we want to recalculate the second tap based on current delay setting)
+        int32_t int_delay_secondTap = static_cast<int32_t>(delay_float * secondTapFraction);
+        frac_secondTap             = delay_float * secondTapFraction - static_cast<float>(int_delay_secondTap);
+        delay_secondTap = static_cast<size_t>(int_delay_secondTap) < max_size ? int_delay_secondTap
+                                                           : max_size - 1;
+    }
+
 
 
     /** sets the delay time in samples
@@ -68,10 +85,11 @@ class DelayLineRevOct
         delay_ = static_cast<size_t>(int_delay) < max_size ? int_delay
                                                            : max_size - 1;
 
-        // For dotted eighth
-        int32_t int_delay_dot8 = static_cast<int32_t>(delay * 3.0 / 4.0);
-        frac_dot8             = delay * 3.0 / 4.0 - static_cast<float>(int_delay_dot8);
-        delay_dot8 = static_cast<size_t>(int_delay_dot8) < max_size ? int_delay_dot8
+        // For secondTap
+        delay_float = delay;
+        int32_t int_delay_secondTap = static_cast<int32_t>(delay_float * secondTapFraction);
+        frac_secondTap             = delay_float * secondTapFraction - static_cast<float>(int_delay_secondTap);
+        delay_secondTap = static_cast<size_t>(int_delay_secondTap) < max_size ? int_delay_secondTap
                                                            : max_size - 1;
     }
 
@@ -92,12 +110,12 @@ class DelayLineRevOct
         return a + (b - a) * frac_;
     }
 
-    inline const T ReadDotted8th() const
+    inline const T ReadSecondTap() const
     {
 
-        T c = line_[(write_ptr_ * speed + delay_dot8) % max_size];
-        T d = line_[(write_ptr_ * speed + delay_dot8  + 1) % max_size];
-        return c + (d - c) * frac_dot8;
+        T c = line_[(write_ptr_ * speed + delay_ + delay_secondTap) % max_size];    // TODO IS pointer correct? was  "write_ptr_ * speed + delay_secondTap"
+        T d = line_[(write_ptr_ * speed + delay_ + delay_secondTap  + 1) % max_size];
+        return c + (d - c) * frac_secondTap;
     }
 
     /** Read from a set location */
@@ -144,8 +162,10 @@ class DelayLineRevOct
     T      line_[max_size];
     int    speed;  // Either 1 or 2
 
-    float  frac_dot8;
-    size_t delay_dot8;
+    float  frac_secondTap;
+    size_t delay_secondTap;
+    float  delay_float; // Saves the last delay float setting for recalculating the second tap if needed
+    float secondTapFraction;
 
 };
 //} // namespace daisysp

@@ -5,6 +5,7 @@ using namespace bkshepherd;
 
 static const char* s_waveBinNames[5] = {"Sine", "Triangle", "Saw", "Ramp", "Square"}; //, "Poly Tri", "Poly Saw", "Poly Sqr"};  // Horrible loud sound when switching to poly tri, not every time, TODO whats going on?
 static const char* s_modParamNames[5] = {"None", "DelayTime", "DelayLevel", "ReverbLevel", "DelayPan"};
+static const char* s_delayModes[3] = {"Normal", "Triplett", "Dotted 8th"};
 
 DelayLineRevOct<float, MAX_DELAY> DSY_SDRAM_BSS delayLineLeft;
 DelayLineRevOct<float, MAX_DELAY> DSY_SDRAM_BSS delayLineRight;
@@ -12,26 +13,27 @@ DelayLineReverse<float, MAX_DELAY_REV> DSY_SDRAM_BSS delayLineRevLeft;
 DelayLineReverse<float, MAX_DELAY_REV> DSY_SDRAM_BSS delayLineRevRight;
 DelayLine<float, MAX_DELAY_SPREAD> DSY_SDRAM_BSS delayLineSpread;
 
-static const int s_paramCount = 19;
+static const int s_paramCount = 19;   // TODO: TEST STARTING WITH THE EXTREMES OF ALL PARAMETERS (high and low, this is where errors tend to occur)
 static const ParameterMetaData s_metaData[s_paramCount] = {{name: "Delay Time", valueType: ParameterValueType::FloatMagnitude, valueBinCount: 0, defaultValue: 57, knobMapping: 0, midiCCMapping: 1},  //mod
                                                            {name: "D Feedback", valueType: ParameterValueType::FloatMagnitude, valueBinCount: 0, defaultValue: 57, knobMapping: 1, midiCCMapping: 22},
                                                            {name: "Delay Mix", valueType: ParameterValueType::FloatMagnitude, valueBinCount: 0, defaultValue: 57, knobMapping: 2, midiCCMapping: 23},
                                                            {name: "Reverb Time", valueType: ParameterValueType::FloatMagnitude, valueBinCount: 0, defaultValue: 57, knobMapping: 3, midiCCMapping: 24},
                                                            {name: "Reverb Damp", valueType: ParameterValueType::FloatMagnitude, valueBinCount: 0, defaultValue: 40, knobMapping: 4, midiCCMapping: 25},  //mod
                                                            {name: "Reverb Mix", valueType: ParameterValueType::FloatMagnitude, valueBinCount: 0, defaultValue: 57, knobMapping: 5, midiCCMapping: 26},
-                                                           {name: "Series D>R", valueType: ParameterValueType::Bool, valueBinCount: 0, defaultValue: 0, knobMapping: -1, midiCCMapping: 27},
-                                                           {name: "Reverse", valueType: ParameterValueType::Bool, valueBinCount: 0, defaultValue: 0, knobMapping: -1, midiCCMapping: 28},
-                                                           {name: "Octave", valueType: ParameterValueType::Bool, valueBinCount: 0, defaultValue: 0, knobMapping: -1, midiCCMapping: 29},
-                                                           {name: "Delay LPF", valueType: ParameterValueType::FloatMagnitude, valueBinCount: 0, defaultValue: 120, knobMapping: -1, midiCCMapping: 30},  //mod
-                                                           {name: "D Spread", valueType: ParameterValueType::FloatMagnitude, valueBinCount: 0, defaultValue: 30, knobMapping: -1, midiCCMapping: 31}, 
-                                                           {name: "Ping Pong", valueType: ParameterValueType::Bool, valueBinCount: 0, defaultValue: 0, knobMapping: -1, midiCCMapping: 32},
-                                                           {name: "Dual Delay", valueType: ParameterValueType::Bool, valueBinCount: 0, defaultValue: 0, knobMapping: -1, midiCCMapping: 33},
-                                                           {name: "Mod Amt", valueType: ParameterValueType::FloatMagnitude, valueBinCount: 0, defaultValue: 1, knobMapping: -1, midiCCMapping: 34}, 
-                                                           {name: "Mod Rate", valueType: ParameterValueType::FloatMagnitude, valueBinCount: 0, defaultValue: 30, knobMapping: -1, midiCCMapping: 35}, 
-                                                           {name: "Mod Param", valueType: ParameterValueType::Binned, valueBinCount: 5, valueBinNames: s_modParamNames, defaultValue: 0, knobMapping: -1, midiCCMapping: 36},
-                                                           {name: "Mod Wave", valueType: ParameterValueType::Binned, valueBinCount: 5, valueBinNames: s_waveBinNames, defaultValue: 0, knobMapping: -1, midiCCMapping: 37},
-                                                           {name: "Sync Mod F", valueType: ParameterValueType::Bool, valueBinCount: 0, defaultValue: 0, knobMapping: -1, midiCCMapping: 38},
-                                                           {name: "Dotted 8th", valueType: ParameterValueType::Bool, valueBinCount: 0, defaultValue: 0, knobMapping: -1, midiCCMapping: 39},};
+                                                           {name: "Delay Mode", valueType: ParameterValueType::Binned, valueBinCount: 3, valueBinNames: s_delayModes, defaultValue: 0, knobMapping: -1, midiCCMapping: 27},
+                                                           {name: "Series D>R", valueType: ParameterValueType::Bool, valueBinCount: 0, defaultValue: 0, knobMapping: -1, midiCCMapping: 28},
+                                                           {name: "Reverse", valueType: ParameterValueType::Bool, valueBinCount: 0, defaultValue: 0, knobMapping: -1, midiCCMapping: 29},
+                                                           {name: "Octave", valueType: ParameterValueType::Bool, valueBinCount: 0, defaultValue: 0, knobMapping: -1, midiCCMapping: 30},
+                                                           {name: "Delay LPF", valueType: ParameterValueType::FloatMagnitude, valueBinCount: 0, defaultValue: 120, knobMapping: -1, midiCCMapping: 31},  //mod
+                                                  /*11*/   {name: "D Spread", valueType: ParameterValueType::FloatMagnitude, valueBinCount: 0, defaultValue: 30, knobMapping: -1, midiCCMapping: 32}, 
+                                                  /*12*/   {name: "Ping Pong", valueType: ParameterValueType::Bool, valueBinCount: 0, defaultValue: 0, knobMapping: -1, midiCCMapping: 33},
+                                                  /*13*/   {name: "Dual Delay", valueType: ParameterValueType::Bool, valueBinCount: 0, defaultValue: 0, knobMapping: -1, midiCCMapping: 34},
+                                                           {name: "Mod Amt", valueType: ParameterValueType::FloatMagnitude, valueBinCount: 0, defaultValue: 1, knobMapping: -1, midiCCMapping: 35}, 
+                                                           {name: "Mod Rate", valueType: ParameterValueType::FloatMagnitude, valueBinCount: 0, defaultValue: 30, knobMapping: -1, midiCCMapping: 36}, 
+                                                           {name: "Mod Param", valueType: ParameterValueType::Binned, valueBinCount: 5, valueBinNames: s_modParamNames, defaultValue: 40, knobMapping: -1, midiCCMapping: 37},
+                                                           {name: "Mod Wave", valueType: ParameterValueType::Binned, valueBinCount: 5, valueBinNames: s_waveBinNames, defaultValue: 0, knobMapping: -1, midiCCMapping: 38},
+                                                           {name: "Sync Mod F", valueType: ParameterValueType::Bool, valueBinCount: 0, defaultValue: 0, knobMapping: -1, midiCCMapping: 39}
+                                                           };
 
                                                            
 
@@ -143,7 +145,7 @@ void ReverbDelayModule::Init(float sample_rate)
 
     delayLineSpread.Init();
     delaySpread.del = &delayLineSpread;
-    delaySpread.delayTarget = 1000; // in samples
+    delaySpread.delayTarget = 1500; // in samples
     delaySpread.active = true; 
 
     m_reverbStereo.Init(sample_rate);
@@ -164,22 +166,38 @@ void ReverbDelayModule::Init(float sample_rate)
 
 void ReverbDelayModule::ParameterChanged(int parameter_id)
 {
-    if (parameter_id == 0) {
+    if (parameter_id == 0) {  // Delay Time
         UpdateLEDRate();
-    } else if (parameter_id == 2) {
+    } else if (parameter_id == 2) {  // Delay Mix
         CalculateDelayMix();
-    } else if (parameter_id == 5) {
+    } else if (parameter_id == 5) {  // Reverb Mix
         CalculateReverbMix();
-    } 
+    } else if (parameter_id == 6) {  // Delay Mode
+        int delay_mode_temp = (GetParameterAsBinnedValue(6) - 1);
+        if (delay_mode_temp > 0) {
+            delayLeft.secondTapOn = true; // triplett, dotted 8th
+            delayRight.secondTapOn = true; // triplett, dotted 8th
+            if (delay_mode_temp == 1) {
+                delayLeft.del->set2ndTapFraction(0.6666667); // triplett
+                delayRight.del->set2ndTapFraction(0.6666667); // triplett
+            } else if (delay_mode_temp == 2) {
+                delayLeft.del->set2ndTapFraction(0.75); // dotted eighth
+                delayRight.del->set2ndTapFraction(0.75); // dotted eighth
+            } 
+        } else {
+            delayLeft.secondTapOn = false;
+            delayRight.secondTapOn = false;   
+        }
+    }
 }
 
 void ReverbDelayModule::ProcessModulation()
 {
-    int modParam = (GetParameterAsBinnedValue(15) - 1);
+    int modParam = (GetParameterAsBinnedValue(16) - 1);
     // Calculate Modulation
-    modOsc.SetWaveform(GetParameterAsBinnedValue(16) - 1);  // For waveforms with sharp cutoffs (square, ramp, saw), getting harsh pop with level modulation, TODO fix
+    modOsc.SetWaveform(GetParameterAsBinnedValue(17) - 1);
    
-    if (GetParameterAsBool(17)) {  // If mod frequency synced to delay time, override mod rate setting
+    if (GetParameterAsBool(18)) {  // If mod frequency synced to delay time, override mod rate setting
         float dividor;
         if (modParam == 2 || modParam == 3) {
             dividor = 2.0; 
@@ -189,13 +207,13 @@ void ReverbDelayModule::ProcessModulation()
         float freq = (effect_samplerate / delayLeft.delayTarget) / dividor;
         modOsc.SetFreq(freq);
     } else {
-        modOsc.SetFreq(m_modOscFreqMin + (m_modOscFreqMax - m_modOscFreqMin) * GetParameterAsMagnitude(14));
+        modOsc.SetFreq(m_modOscFreqMin + (m_modOscFreqMax - m_modOscFreqMin) * GetParameterAsMagnitude(15));
     }
     
     // Ease the effect value into it's target to avoid clipping with square or sawtooth waves
     fonepole(m_currentMod, modOsc.Process(), .01f);
     float mod = m_currentMod;  // TODO experiment here
-    float mod_amount = GetParameterAsMagnitude(13);
+    float mod_amount = GetParameterAsMagnitude(14);
 
      // {"None", "DelayTime", "DelayLevel", "ReverbLevel", "DelayPan"};
     if (modParam == 1) {         
@@ -237,24 +255,22 @@ void ReverbDelayModule::ProcessMono(float in)
     delayLeft.feedback = GetParameterAsMagnitude(1);
     delayRight.feedback = GetParameterAsMagnitude(1);
 
-    delayLeft.reverseMode = GetParameterAsBool(7);
-    delayRight.reverseMode = GetParameterAsBool(7);
+    delayLeft.reverseMode = GetParameterAsBool(8);
+    delayRight.reverseMode = GetParameterAsBool(8);
 
-    delayLeft.del->setOctave(GetParameterAsBool(8)); 
-    delayRight.del->setOctave(GetParameterAsBool(8));
+    delayLeft.del->setOctave(GetParameterAsBool(9)); 
+    delayRight.del->setOctave(GetParameterAsBool(9));
 
-    delayLeft.dual_delay = GetParameterAsBool(12); 
-    delayRight.dual_delay = GetParameterAsBool(12);
+    delayLeft.dual_delay = GetParameterAsBool(13); 
+    delayRight.dual_delay = GetParameterAsBool(13);
 
-    delayLeft.dotted_eigth = GetParameterAsBool(18); // dotted 8th
-    delayRight.dotted_eigth = GetParameterAsBool(18); // dotted 8th
 
-    if (GetParameterAsMagnitude(12)) {       // If dual delay is turned on, spread controls the L/R panning of the two delays
-        delayLeft.level = GetParameterAsMagnitude(10) + 1.0;   // TODO Test, I think this will spread apart the delays to L/R
-        delayRight.level = 1.0 - GetParameterAsMagnitude(10);
+    if (GetParameterAsMagnitude(13)) {       // If dual delay is turned on, spread controls the L/R panning of the two delays
+        delayLeft.level = GetParameterAsMagnitude(11) + 1.0;
+        delayRight.level = 1.0 - GetParameterAsMagnitude(11);
 
-        delayLeft.level_reverse = 1.0 - GetParameterAsMagnitude(10); 
-        delayRight.level_reverse = GetParameterAsMagnitude(10) + 1.0;
+        delayLeft.level_reverse = 1.0 - GetParameterAsMagnitude(11); 
+        delayRight.level_reverse = GetParameterAsMagnitude(11) + 1.0;
 
     } else {  // If dual delay is off reset the levels to normal, spread controls the amount of additional delay applied to the right channel
         delayLeft.level = 1.0; 
@@ -279,14 +295,14 @@ void ReverbDelayModule::ProcessMono(float in)
     //float delRight_out = delLeft_out;
 
     // Calculate any delay spread or Ping Pong (ping pong overrides spread calculation)
-    if (GetParameterAsBool(11)) {
+    if (GetParameterAsBool(12)) {
         delaySpread.delayTarget = m_delayPPMin + (m_delayPPMax - m_delayPPMin) * timeParam; // This delays the right channel by half of the main delay time, resulting in a Ping Pong effect
         delRight_out = delaySpread.Process(delRight_out);
     } else {
-        delaySpread.delayTarget = m_delaySpreadMin + (m_delaySpreadMax - m_delaySpreadMin) * GetParameterAsMagnitude(10);
-        if (GetParameterAsMagnitude(10) > 0.01 && !GetParameterAsMagnitude(12)) {
-            delRight_out = delaySpread.Process(delRight_out);
-        }
+        delaySpread.delayTarget = m_delaySpreadMin + (m_delaySpreadMax - m_delaySpreadMin) * GetParameterAsMagnitude(11);
+        //if (GetParameterAsMagnitude(11) > 0.01 && !GetParameterAsBool(13)) {   // Seeing if commenting out these conditions fixes the bad sound on delaySpread starting
+        delRight_out = delaySpread.Process(delRight_out);                        //   TODO Test if Starting with Ping Pong ON from preset causes bad sound
+        //}
     }
 
     float delay_out_left = delLeft_out * delayWetMix + m_audioLeft * delayDryMix;
@@ -294,7 +310,7 @@ void ReverbDelayModule::ProcessMono(float in)
 
     // REVERB //////////////
     float sendl, sendr, wetl, wetr;  // Reverb Inputs/Outputs
-    if (GetParameterAsBool(6))
+    if (GetParameterAsBool(7))
     {
         sendl = delay_out_left;
         sendr = delay_out_right;
@@ -309,7 +325,7 @@ void ReverbDelayModule::ProcessMono(float in)
     m_audioLeft = wetl * reverbWetMix * reverb_level / 2.0 + m_audioLeft * reverbDryMix;    // divide by 2 for volume correction
     m_audioRight = wetr * reverbWetMix * reverb_level / 2.0 + m_audioRight * reverbDryMix;
 
-    if (!GetParameterAsBool(6)) { // If not series mode
+    if (!GetParameterAsBool(7)) { // If not series mode
         m_audioLeft = (m_audioLeft + delay_out_left) / 2.0;  // Dividing by 2 to compensate for double signal volume with both reverb and delay mix outputs
         m_audioRight = (m_audioRight + delay_out_right) / 2.0;
     }
@@ -336,24 +352,22 @@ void ReverbDelayModule::ProcessStereo(float inL, float inR)
     delayLeft.feedback = GetParameterAsMagnitude(1);
     delayRight.feedback = GetParameterAsMagnitude(1);
 
-    delayLeft.reverseMode = GetParameterAsBool(7);
-    delayRight.reverseMode = GetParameterAsBool(7);
+    delayLeft.reverseMode = GetParameterAsBool(8);
+    delayRight.reverseMode = GetParameterAsBool(8);
 
-    delayLeft.del->setOctave(GetParameterAsBool(8));
-    delayRight.del->setOctave(GetParameterAsBool(8));
+    delayLeft.del->setOctave(GetParameterAsBool(9));
+    delayRight.del->setOctave(GetParameterAsBool(9));
 
-    delayLeft.dual_delay = GetParameterAsBool(12); 
-    delayRight.dual_delay = GetParameterAsBool(12);
+    delayLeft.dual_delay = GetParameterAsBool(13); 
+    delayRight.dual_delay = GetParameterAsBool(13);
+    
 
-    delayLeft.dotted_eigth = GetParameterAsBool(18); // dotted 8th
-    delayRight.dotted_eigth = GetParameterAsBool(18); // dotted 8th
+    if (GetParameterAsMagnitude(13)) {       // If dual delay is turned on, spread controls the L/R panning of the two delays
+        delayLeft.level = GetParameterAsMagnitude(11) + 1.0;   // TODO Test, I think this will spread apart the delays to L/R
+        delayRight.level = 1.0 - GetParameterAsMagnitude(11);
 
-    if (GetParameterAsMagnitude(12)) {       // If dual delay is turned on, spread controls the L/R panning of the two delays
-        delayLeft.level = GetParameterAsMagnitude(10) + 1.0;   // TODO Test, I think this will spread apart the delays to L/R
-        delayRight.level = 1.0 - GetParameterAsMagnitude(10);
-
-        delayLeft.level_reverse = 1.0 - GetParameterAsMagnitude(10); 
-        delayRight.level_reverse = GetParameterAsMagnitude(10) + 1.0;
+        delayLeft.level_reverse = 1.0 - GetParameterAsMagnitude(11); 
+        delayRight.level_reverse = GetParameterAsMagnitude(11) + 1.0;
 
     } else {  // If dual delay is off reset the levels to normal, spread controls the amount of additional delay applied to the right channel
         delayLeft.level = 1.0; 
@@ -378,14 +392,14 @@ void ReverbDelayModule::ProcessStereo(float inL, float inR)
     //float delRight_out = delLeft_out;
 
     // Calculate any delay spread or Ping Pong (ping pong overrides spread calculation)
-    if (GetParameterAsBool(11)) {
+    if (GetParameterAsBool(12)) {
         delaySpread.delayTarget = m_delayPPMin + (m_delayPPMax - m_delayPPMin) * timeParam; // This delays the right channel by half of the main delay time, resulting in a Ping Pong effect
         delRight_out = delaySpread.Process(delRight_out);
     } else {
-        delaySpread.delayTarget = m_delaySpreadMin + (m_delaySpreadMax - m_delaySpreadMin) * GetParameterAsMagnitude(10);
-        if (GetParameterAsMagnitude(10) > 0.01 && !GetParameterAsMagnitude(12)) {
-            delRight_out = delaySpread.Process(delRight_out);
-        }
+        delaySpread.delayTarget = m_delaySpreadMin + (m_delaySpreadMax - m_delaySpreadMin) * GetParameterAsMagnitude(11);
+        //if (GetParameterAsMagnitude(11) > 0.01 && !GetParameterAsBool(13)) {   // Seeing if commenting out these conditions fixes the bad sound on delaySpread starting
+        delRight_out = delaySpread.Process(delRight_out);                        //   TODO Test if 
+        //}
     }
 
     float delay_out_left = delLeft_out * delayWetMix + m_audioLeft * delayDryMix;
@@ -393,7 +407,7 @@ void ReverbDelayModule::ProcessStereo(float inL, float inR)
 
     /// REVERB
     float sendl, sendr, wetl, wetr;  // Reverb Inputs/Outputs
-    if (GetParameterAsBool(6))
+    if (GetParameterAsBool(7))
     {
         sendl = delay_out_left;
         sendr = delay_out_right;
@@ -408,7 +422,7 @@ void ReverbDelayModule::ProcessStereo(float inL, float inR)
     m_audioLeft = wetl * reverbWetMix * reverb_level / 2.0 + m_audioLeft * reverbDryMix;
     m_audioRight = wetr * reverbWetMix * reverb_level / 2.0 + m_audioRight * reverbDryMix;
 
-    if (!GetParameterAsBool(6)) { // If not series mode
+    if (!GetParameterAsBool(7)) { // If not series mode
         m_audioLeft = (m_audioLeft + delay_out_left) / 2.0;
         m_audioRight = (m_audioRight + delay_out_right) / 2.0;
     }
