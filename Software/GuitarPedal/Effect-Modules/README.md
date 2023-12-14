@@ -7,7 +7,7 @@ Stereo Reverb and Delay effect with lots of options. <br>
 Capable of normal ethereal reverb and tap tempo delay (with triplett or dotted 8th), or get weird with reverse, octave (reverse octave!), stereo options, and modulation. <br>
 This module is compatible with bkshepherd/DaisySeedProjects 125B pedal with OLED Screen.
 <br><br>
-If you have a 125B OLED pedal, go to [Releases]() to download the compatible .bin containing this ReverbDelay module.
+If you have a 125B OLED pedal, go to [Releases](https://github.com/GuitarML/DaisySeedProjects/releases/tag/v1.0) to download the compatible .bin containing this ReverbDelay module.
 
 ## Controls
 
