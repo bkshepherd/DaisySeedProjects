@@ -1,5 +1,5 @@
 # GuitarML Modules
-Additional modules for bkshepherd framework
+Additional modules for bkshepherd's GuitarPedal framework
 
 # Verb Delay
 
