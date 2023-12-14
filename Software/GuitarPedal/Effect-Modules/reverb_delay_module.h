@@ -16,7 +16,7 @@ using namespace daisysp;
 // Delay Max Definitions (Assumes 48kHz samplerate)
 #define MAX_DELAY static_cast<size_t>(48000.0f * 8.f) // 4 second max delay // Increased the max to 8 seconds, got horrible pop noise when set to 4 seconds, increasing buffer size fixes it for some reason. TODO figure out why?
 #define MAX_DELAY_REV static_cast<size_t>(48000.0f * 8.f) // 8 second max delay (needs to be double for reverse, since read/write pointers are going opposite directions in the buffer)
-#define MAX_DELAY_SPREAD static_cast<size_t>(48000.0f * 4.f) // Up to 2 second for Ping Pong, or 50 ms for Spread effect // Got bad noise here too, upping to 4 seconds TODO didn't fix
+#define MAX_DELAY_SPREAD static_cast<size_t>(4800.0f) //  50 ms for Spread effect 
 
 // This is the core delay struct, which actually includes two delays, 
 // one for forwared/octave, and one for reverse. This is required
@@ -83,9 +83,9 @@ struct delay
     }
 };
 
-// For stereo spread setting (delay the right channel signal from 0 to 50ms)      // After adding delay modes, getting bad sound when this delayline is being used 12/12/23 FIX TODO CHECK ALL PARAM POINTER NUMBERS, might be wrong
+// For stereo spread setting (delay the right channel signal from 0 to 50ms)      
 //    A short, zero feedback (one repeat) delay for stereo spread
-// Also used for Ping Pong effect, by setting this delay to half the normal delay time setting and applying to right channel
+
 struct delay_spread
 {
     DelayLine<float, MAX_DELAY_SPREAD> *del;
@@ -143,8 +143,6 @@ class ReverbDelayModule : public BaseEffectModule
     float m_delaySamplesMax;
     float m_delaySpreadMin;
     float m_delaySpreadMax;
-    float m_delayPPMin;
-    float m_delayPPMax;
     float m_pdelRight_out;
     float m_currentMod;
 

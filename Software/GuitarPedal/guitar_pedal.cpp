@@ -460,7 +460,7 @@ void HandleMidiMessage(MidiEvent m)
 int main(void)
 {
     hardware.Init();
-    hardware.SetAudioBlockSize(32);  // KAB CHANGED FROM 4, was getting too slow in processing for reverb_delay effect, TODO optimize reverb/delay better
+    hardware.SetAudioBlockSize(48);  // KAB CHANGED FROM 4, was getting too slow in processing for reverb_delay effect, TODO optimize reverb/delay better
 
     float sample_rate = hardware.AudioSampleRate();
 
