@@ -38,8 +38,6 @@ This is where things get interesting..
 | Delay LPF | Internal Delay Low Pass Filter | Internal low pass filter, which is applied for each delay pass. Tames the harsh Octave sounds, or creates a "fading into the distance" effect |
 | D Spread | Delay Spread (Stereo) up to 50ms, or L/R separation for Dual Delay | Up to 50 ms of separation added to right delay channel, or amount of stereo separation with Dual Delay active  |
 | Dual Delay | Both Fwd and Reverse Delays activated (on/off) | Plays both forward and reverse delays (or fwd octave / reverse octave if Octave mode activated) |
-
-| --- | --- | --- |
 | Mod Amt | Modulation Amount/Depth | The amount of modulation applied |
 | Mod Rate | Modulation Rate (0 to 3 Hz) | Rate of modulation |
 | Mod Param | Parameter to Modulate | None / DelayTime / DelayLevel / ReverbLevel / DelayPan (Stereo) |
