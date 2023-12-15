@@ -18,10 +18,10 @@ https://electro-smith.github.io/libDaisy/index.html
 
 ### 2. Update Paths to your install of LibDaisy and DaisySP
 
+* Note - You shouldn't have to do this step if the project pulled down from GitHub with them already included as sub-modules.  You can check in your /DaisySeedProjects/Software/GuitarPedal/libDaisy and daisySP folders. If they have files in them, you can skip this step.  If they are empty, you can try pulling down the project from GitHub again (the desktop GUI client always should pull down submodules). If it still doesn't pull down and you have libDaisy and DaisySP installed somehwere else, you can follow the steps below: 
+
 You'll need to update the paths in the **Makefile**.
-
 You'll also need to update the paths in the **c_cpp_properties.json** file in the **.vscode/** folder.
-
 You'll also need to update the paths in the **task.json** file in the **.vscode/** folder.
 
 ### 3. Configure your specific Target Hardware
