@@ -56,7 +56,7 @@ static const int s_paramCount = 3;
 static const ParameterMetaData s_metaData[s_paramCount] = {
     {name : "Tempo", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 63, knobMapping : 0, midiCCMapping : 23},
     {name : "Mix", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 10, knobMapping : 1, midiCCMapping : 21},
-    {name : "Meter", valueType : ParameterValueType::Binned, valueBinCount : 3, defaultValue : 0, knobMapping : 2, midiCCMapping : -1}};
+    {name : "Meter", valueType : ParameterValueType::Binned, valueBinCount : 3,  valueBinNames: TimeSignatureLabels, defaultValue : 0, knobMapping : 2, midiCCMapping : -1}};
 
 // Default Constructor
 MetroModule::MetroModule() : BaseEffectModule(), m_tempoBpmMin(40), m_tempoBpmMax(200), m_levelMin(0.0f), m_levelMax(1.0f)
