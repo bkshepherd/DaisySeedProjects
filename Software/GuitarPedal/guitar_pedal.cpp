@@ -438,11 +438,11 @@ void HandleMidiMessage(MidiEvent m)
                     activeEffect->SetParameterRaw(effectParamID, p.value);
                     guitarPedalUI.UpdateActiveEffectParameterValue(effectParamID, activeEffect->GetParameterRaw(effectParamID));
                 }
-				else
-				{
-					// Notify the activeEffect, just in case there is custom handling for this midi cc / value
-					activeEffect->MidiCCValueNotification(p.control_number, p.value);
-				}
+                else
+                {
+                    // Notify the activeEffect, just in case there is custom handling for this midi cc / value
+                    activeEffect->MidiCCValueNotification(p.control_number, p.value);
+                }
             }
             break;
         }
@@ -656,15 +656,15 @@ int main(void)
         {
             if (needToSaveSettingsForActiveEffect)
             {
-				uint16_t tempPreset = activeEffect->GetCurrentPreset();
+                uint16_t tempPreset = activeEffect->GetCurrentPreset();
                 SaveEffectSettingsToPersitantStorageForEffectID(activeEffectID, tempPreset);
                 guitarPedalUI.ShowSavingSettingsScreen();
-				
+                
 
             }
-				storage.Save();
-				last_save_time = System::GetNow();
-				needToSaveSettingsForActiveEffect = false;
+                storage.Save();
+                last_save_time = System::GetNow();
+                needToSaveSettingsForActiveEffect = false;
 
         }
     }

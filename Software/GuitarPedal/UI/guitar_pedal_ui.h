@@ -61,7 +61,7 @@ class GuitarPedalUI
     FullScreenItemMenu m_mainMenu;
     FullScreenItemMenu m_activeEffectSettingsMenu;
     FullScreenItemMenu m_globalSettingsMenu;
-	FullScreenItemMenu m_presetsMenu;
+    FullScreenItemMenu m_presetsMenu;
     UiEventQueue       m_eventQueue;
 
     bool m_needToCloseActiveEffectSettingsMenu;
@@ -72,7 +72,7 @@ class GuitarPedalUI
     AbstractMenu::ItemConfig m_globalSettingsMenuItems[kNumGlobalSettingsMenuItems];
     AbstractMenu::ItemConfig m_presetsMenuItems[kNumPresetSettingsItems];
     int m_numActiveEffectSettingsItems;
-	uint32_t m_activePresetSelected;
+    uint32_t m_activePresetSelected;
     AbstractMenu::ItemConfig *m_activeEffectSettingsMenuItems;
     EffectModuleMenuItem m_effectModuleMenuItem;
 
@@ -81,7 +81,7 @@ class GuitarPedalUI
     MappedIntValue **m_activeEffectSettingIntValues;
     MappedIntValue m_activePresetSettingIntValue;
     MappedStringListValue **m_activeEffectSettingStringValues;
-	MyMappedFloatValue **m_activeEffectSettingFloatValues;
+    MyMappedFloatValue **m_activeEffectSettingFloatValues;
     bool *m_activeEffectSettingBoolValues;
     MappedIntValue m_midiChannelSettingValue;
 
