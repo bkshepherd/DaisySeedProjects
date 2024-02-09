@@ -5,7 +5,7 @@ using namespace bkshepherd;
 
 // Default Constructor
 BaseEffectModule::BaseEffectModule() : m_paramCount(0),
-										m_presetCount(0),
+										m_presetCount(1),
 										m_currentPreset(0),
                                         m_params(NULL),
                                         m_audioLeft(0.0f),
@@ -206,8 +206,7 @@ void BaseEffectModule::SetParameterAsFloat(int parameter_id, float f)
 	{
 		uint32_t tmp;
 		std::memcpy(&tmp, &f, sizeof(float));
-		//m_params[parameter_id] = f2s32(f);
-		    // Only update the value if it changed.
+		// Only update the value if it changed.
         if (tmp != m_params[parameter_id])
         {
             m_params[parameter_id] = tmp;
@@ -327,7 +326,7 @@ void BaseEffectModule::SetParameterRaw(int parameter_id, uint32_t value)
     }
 
     // Make sure the value is valid.
-    if (value < GetParameterMin(parameter_id) || value > GetParameterMax(parameter_id))
+    if (value < (uint32_t)GetParameterMin(parameter_id) || value > (uint32_t)GetParameterMax(parameter_id))
     {
         return;
     }
@@ -469,6 +468,11 @@ void BaseEffectModule::SetTempo(uint32_t bpm)
 void BaseEffectModule::ParameterChanged(int parameter_id)
 {
     // Do nothing.
+}
+
+void BaseEffectModule::MidiCCValueNotification(uint8_t control_num, uint8_t value)
+{
+	// Do nothing
 }
 
 void BaseEffectModule::UpdateUI(float elapsedTime)

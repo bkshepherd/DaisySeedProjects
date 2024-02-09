@@ -131,7 +131,7 @@ uint32_t ShiftSettingsToAddNewPreset(int effectID, uint32_t params, uint32_t shi
 		{
 			settings.globalEffectsSettings[i] = settings.globalEffectsSettings[i-diff];
 		}
-		for(uint32_t i = effectID + 1; i < availableEffectsCount; ++i)
+		for(uint32_t i = effectID + 1; i < (uint32_t)availableEffectsCount; ++i)
 		{
 			uint32_t tmp = availableEffects[i]->GetSettingsArrayStartIdx() + diff;
 			availableEffects[i]->SetSettingsArrayStartIdx(tmp);
@@ -150,7 +150,7 @@ void LoadPresetFromPersistentStorage(uint32_t effectID, uint32_t presetID)
 	uint32_t presetCount = availableEffects[effectID]->GetPresetCount();
 	// Get a handle to the persitance storage settings
     Settings &settings = storage.GetSettings();
-    if (effectID >= 0 && effectID < availableEffectsCount && presetID < presetCount)
+    if (effectID >= 0 && effectID < (uint32_t)availableEffectsCount && presetID < presetCount)
     {
 		int paramCount = availableEffects[effectID]->GetParameterCount();
 		uint32_t startIdx;
@@ -159,17 +159,7 @@ void LoadPresetFromPersistentStorage(uint32_t effectID, uint32_t presetID)
 
 		for (int paramID = 0; paramID < paramCount; paramID++)
 		{
-			if(availableEffects[effectID]->GetParameterType(paramID) == ParameterValueType::FloatMagnitude)
-			{
-				uint32_t tmp = settings.globalEffectsSettings[startIdx + paramID];
-				float f;
-				std::memcpy(&f, &tmp, sizeof(float));
-				availableEffects[effectID]->SetParameterAsFloat(paramID, f);
-			}
-			else
-			{
-				availableEffects[effectID]->SetParameterRaw(paramID, settings.globalEffectsSettings[startIdx + paramID]);
-			}
+			availableEffects[effectID]->SetParameterRaw(paramID, settings.globalEffectsSettings[startIdx + paramID]);
 		}
     }
 }
@@ -195,17 +185,7 @@ void LoadEffectSettingsFromPersistantStorage()
 			for (uint32_t paramID = 0; paramID < paramCount; paramID++)
 			{
 				uint32_t value = settings.globalEffectsSettings[globalEffectsSettingMemIdx];
-				if(availableEffects[effectID]->GetParameterType(paramID) == ParameterValueType::FloatMagnitude)
-				{
-					float tmp;
-					std::memcpy(&tmp, &value, sizeof(float));
-					availableEffects[effectID]->SetParameterAsFloat(paramID, tmp);
-				}
-				else
-				{
-					availableEffects[effectID]->SetParameterRaw(paramID, value);
-				}
-				
+				availableEffects[effectID]->SetParameterRaw(paramID, value);			
 				++globalEffectsSettingMemIdx;
 			}
 		}
@@ -216,16 +196,7 @@ void LoadEffectSettingsFromPersistantStorage()
 			for (uint32_t paramID = 0; paramID < prevParamCount; paramID++)
 			{
 				uint32_t value = settings.globalEffectsSettings[globalEffectsSettingMemIdx];
-				if(availableEffects[effectID]->GetParameterType(paramID) == ParameterValueType::FloatMagnitude)
-				{
-					float tmp;
-					std::memcpy(&tmp, &value, sizeof(float));
-					availableEffects[effectID]->SetParameterAsFloat(paramID, tmp);
-				}
-				else
-				{
-					availableEffects[effectID]->SetParameterRaw(paramID, value);
-				}
+				availableEffects[effectID]->SetParameterRaw(paramID, value);
 				++globalEffectsSettingMemIdx;
 			}
 			// Shift the array and then add the new values
@@ -291,17 +262,7 @@ void SaveEffectSettingsToPersitantStorageForEffectID(int effectID, uint32_t pres
 		{
 			for (int paramID = 0; paramID < paramCount; paramID++)
 			{
-				if(availableEffects[effectID]->GetParameterType(paramID) == ParameterValueType::FloatMagnitude)
-				{
-					uint32_t tmp;
-					float f = availableEffects[effectID]->GetParameterAsFloat(paramID);
-					std::memcpy(&tmp, &f, sizeof(float));
-					SetSettingsParameterValueForEffect(effectID, paramID, tmp , startIdx);
-				}
-				else
-				{
-					SetSettingsParameterValueForEffect(effectID, paramID, availableEffects[effectID]->GetParameterRaw(paramID), startIdx);
-				}
+				SetSettingsParameterValueForEffect(effectID, paramID, availableEffects[effectID]->GetParameterRaw(paramID), startIdx);
 			}
 			// Set the new maximum
 			settings.globalEffectsSettings[0U] = globalEffectsMaxIdx;
@@ -328,4 +289,9 @@ void SetSettingsParameterValueForEffect(int effectID, int paramID, uint32_t para
     // Get a handle to the persitance storage settings
     Settings &settings = storage.GetSettings();
     settings.globalEffectsSettings[startIdx + paramID] = paramValue;
+}
+
+void FactoryReset(void* context)
+{
+	storage.RestoreDefaults();
 }

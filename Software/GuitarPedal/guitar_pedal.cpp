@@ -9,6 +9,7 @@
 #include "Effect-Modules/chopper_module.h"
 #include "Effect-Modules/reverb_module.h"
 #include "Effect-Modules/metro_module.h"
+#include "Effect-Modules/multi_delay_module.h"
 
 #include "UI/guitar_pedal_ui.h"
 #include "Util/audio_utilities.h"
@@ -437,6 +438,11 @@ void HandleMidiMessage(MidiEvent m)
                     activeEffect->SetParameterRaw(effectParamID, p.value);
                     guitarPedalUI.UpdateActiveEffectParameterValue(effectParamID, activeEffect->GetParameterRaw(effectParamID));
                 }
+				else
+				{
+					// Notify the activeEffect, just in case there is custom handling for this midi cc / value
+					activeEffect->MidiCCValueNotification(p.control_number, p.value);
+				}
             }
             break;
         }
@@ -472,7 +478,7 @@ int main(void)
     availableEffects[0] = new ModulatedTremoloModule();
     availableEffects[1] = new OverdriveModule();
     availableEffects[2] = new AutoPanModule();
-    availableEffects[3] = new ChorusModule();
+    availableEffects[3] = new MultiDelayModule();
     
     for (int i = 0; i < availableEffectsCount; i++)
     {

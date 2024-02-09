@@ -36,8 +36,8 @@ GuitarPedalUI::GuitarPedalUI() : m_needToCloseActiveEffectSettingsMenu(false),
                                     m_paramIdToReturnTo(-1),
                                     m_numActiveEffectSettingsItems(0),
 									m_activePresetSelected(0),
-                                    m_midiChannelSettingValue(1,16,1,1,5),
 									m_activePresetSettingIntValue(0,255,0,1,1),
+                                    m_midiChannelSettingValue(1,16,1,1,5),
                                     m_displayingSaveSettingsNotification(false),
                                     m_secondsSinceLastActiveEffectSettingsSave(0.0f)
 
@@ -401,9 +401,14 @@ void GuitarPedalUI::InitGlobalSettingsUIPages()
 	m_presetsMenuItems[0].type = AbstractMenu::ItemType::valueItem;
 	m_presetsMenuItems[0].text = "Preset #";
     m_presetsMenuItems[0].asMappedValueItem.valueToModify = &m_activePresetSettingIntValue;
-	
-    m_presetsMenuItems[1].type = AbstractMenu::ItemType::closeMenuItem;
-    m_presetsMenuItems[1].text = "Back";
+
+	m_presetsMenuItems[1].type = AbstractMenu::ItemType::callbackFunctionItem;
+	m_presetsMenuItems[1].text = "Erase All";
+	m_presetsMenuItems[1].asCallbackFunctionItem.callbackFunction = &FactoryReset;	
+	m_presetsMenuItems[1].asCallbackFunctionItem.context = this;
+
+    m_presetsMenuItems[2].type = AbstractMenu::ItemType::closeMenuItem;
+    m_presetsMenuItems[2].text = "Back";
 
 	m_presetsMenu.Init(m_presetsMenuItems, kNumPresetSettingsItems);
 	

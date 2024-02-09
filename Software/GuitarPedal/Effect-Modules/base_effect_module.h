@@ -31,13 +31,12 @@ struct ParameterMetaData
   ParameterValueType valueType;    // The Type of this Parameter value.
   int valueBinCount;               // The number of distinct choices allowed for this parameter value
   const char** valueBinNames;      // The human readable display names for the bins
-  int defaultValue;            // The Default Value set for this parameter the first time the device is powered up
+  int defaultValue;                // The Default Value set for this parameter the first time the device is powered up
   int knobMapping;                 // The ID of the Physical Knob mapped to this Parameter. -1 if this Parameter is not controlled by a Knob
   int midiCCMapping;               // The Midi CC ID mapped to this Parameter. -1 of this Parameter is not controllable via Midi CC messages
-  uint8_t midiCCMappingsSize = 1;  // The number of consecutive MIDI CC IDs used for the parameter, e.g. CC ID is 30, Size is 2 means that CC 30/31 will be used
-  int minValue = 0;
-  int maxValue = 127;
-  float fineStepSize = 0.01f;
+  int minValue = 0;                // The minimum value of the parameter
+  int maxValue = 127;              // The maximum value of the parameter
+  float fineStepSize = 0.01f;      // For Float Parameters, this will set the fineStepSize multiple in the menu
 };
 
 class BaseEffectModule
@@ -239,8 +238,23 @@ class BaseEffectModule
     int GetParameterMax(int parameter_id);
 	
 	void SetParameterAsFloat(int parameter_id, float f);
+
+    /** Gets the parameter id as a float value
+        \param parameter_id Id of the parameter to set (0 .. m_paramCount - 1).
+        \return float value for given parameter.
+    */
 	float GetParameterAsFloat(int parameter_id);
+
+    /** Gets the Fine Step size for the parameter id as a float value
+        \param parameter_id Id of the parameter to set (0 .. m_paramCount - 1).
+        \return Fine step size for given parameter.
+    */
 	float GetParameterFineStepSize(int parameter_id);
+	/** This function gets called when the user defines a MIDI parameter to be handled by callback, rather than the default implementation
+		\param control_num, midicc number
+		\param value, midi value
+	*/
+	virtual void MidiCCValueNotification(uint8_t control_num, uint8_t value);
   protected:
     /** Initializes the Parameter Storage and creates space for the specified number of stored Effect Parameters
         \param count  The number of stored parameters
@@ -262,7 +276,7 @@ class BaseEffectModule
     const ParameterMetaData *m_paramMetaData;   // Dynamic Array of the Meta Data for each Effect Parameter
     float m_audioLeft;                          // Last Audio Sample value for the Left Stereo Channel (or Mono)
     float m_audioRight;                         // Last Audio Sample value for the Right Stereo Channel
-	uint32_t m_settingsArrayStartIdx;              // Start index of settings persistent storage struct
+	uint32_t m_settingsArrayStartIdx;           // Start index of settings persistent storage struct
   private:
     bool m_isEnabled;
     float m_sampleRate;                       // Current Sample Rate this Effect was initialized for.
