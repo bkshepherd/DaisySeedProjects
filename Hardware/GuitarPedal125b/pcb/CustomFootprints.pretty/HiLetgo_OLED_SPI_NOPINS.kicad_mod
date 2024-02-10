@@ -45,7 +45,7 @@
     (stroke (width 0.1) (type solid)) (layer "F.Fab") (tstamp 2c277f49-2229-493d-8d0d-96c8224309f0))
   (pad "" np_thru_hole circle (at -11.5 -11.5) (size 3 3) (drill 2) (layers "F&B.Cu" "*.Mask") (tstamp 44e19048-b52d-4deb-b845-6eaf2f0f458f))
   (pad "" np_thru_hole circle (at -11.5 12) (size 3 3) (drill 2) (layers "F&B.Cu" "*.Mask") (tstamp 2ca4311a-4672-4f0f-bcbd-6b4b7c0f9167))
-  (pad "" np_thru_hole oval (at 0 -11.176) (size 8 2.5) (drill oval 8 2.5) (layers "F&B.Cu" "*.Mask") (tstamp 56d89d32-114a-4168-91b4-6b62c21392cc))
+  (pad "" np_thru_hole oval (at 0 -9.652) (size 8 4) (drill oval 8 4) (layers "F&B.Cu" "*.Mask") (tstamp 56d89d32-114a-4168-91b4-6b62c21392cc))
   (pad "" np_thru_hole circle (at 11.5 -11.5) (size 3 3) (drill 2) (layers "F&B.Cu" "*.Mask") (tstamp a9f3c466-9511-4bb0-99c7-924d91a37f61))
   (pad "" np_thru_hole circle (at 11.5 12) (size 3 3) (drill 2) (layers "F&B.Cu" "*.Mask") (tstamp 6e465f44-2c24-486d-a845-47704a295f68))
 )
