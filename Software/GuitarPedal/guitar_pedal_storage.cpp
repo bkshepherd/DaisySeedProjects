@@ -143,7 +143,7 @@ uint32_t ShiftSettingsToAddNewPreset(int effectID, uint32_t params, uint32_t shi
 		{
 			settings.globalEffectsSettings[i] = settings.globalEffectsSettings[i-diff];
 		}
-		for(uint32_t i = effectID + 1; i < availableEffectsCount; ++i)
+		for(uint32_t i = effectID + 1; i < (uint32_t) availableEffectsCount; ++i)
 		{
 			uint32_t tmp = availableEffects[i]->GetSettingsArrayStartIdx() + diff;
 			availableEffects[i]->SetSettingsArrayStartIdx(tmp);
@@ -162,7 +162,7 @@ void LoadPresetFromPersistentStorage(uint32_t effectID, uint32_t presetID)
 	uint32_t presetCount = availableEffects[effectID]->GetPresetCount();
 	// Get a handle to the persitance storage settings
     Settings &settings = storage.GetSettings();
-    if (effectID >= 0 && effectID < availableEffectsCount && presetID < presetCount)
+    if (effectID >= 0 && effectID < (uint32_t) availableEffectsCount && presetID < presetCount)
     {
 		int paramCount = availableEffects[effectID]->GetParameterCount();
 		uint32_t startIdx;
