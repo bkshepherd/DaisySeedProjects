@@ -14,14 +14,6 @@ using namespace daisysp;
 namespace bkshepherd
 {
 
-/* enum DelayType
-{
-	D_MONO = 0,
-	D_STEREO = 1,
-	D_MONO_MULTI_TAP =2,
-	D_STEREO_MULTI_TAP=3
-}; */
-
 class MultiDelayModule : public BaseEffectModule
 {
   public:

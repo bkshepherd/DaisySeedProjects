@@ -5,8 +5,8 @@
 // Peristant Storage Settings
 #define SETTINGS_FILE_FORMAT_VERSION 2
 
-// Absolute maximum on current system, arbitrarily limiting this to 8KB
-#define SETTINGS_ABSOLUTE_MAX_PARAM_COUNT 2000
+// Absolute maximum on current system, arbitrarily limiting this to 64KB
+#define SETTINGS_ABSOLUTE_MAX_PARAM_COUNT 16000
 #define ERR_VALUE_MAX 0xffffffff
 // Save System Variables
 struct Settings
@@ -18,7 +18,7 @@ struct Settings
     int globalMidiChannel;
     bool globalRelayBypassEnabled;
     bool globalSplitMonoInputToStereo;
-    uint32_t globalEffectsSettings[SETTINGS_ABSOLUTE_MAX_PARAM_COUNT];     // Set aside a block of memory for individual effect params
+    uint32_t *globalEffectsSettings;     // Set aside a block of memory for individual effect params
 
     bool operator==(const Settings &rhs)
     {

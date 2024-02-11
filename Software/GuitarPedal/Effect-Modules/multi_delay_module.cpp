@@ -8,15 +8,14 @@ using namespace bkshepherd;
 
 PitchShifter DSY_SDRAM_BSS ps_taps[4];
 // Delay Max Definitions (Assumes 48kHz samplerate)
-#define MAX_DELAY static_cast<size_t>(48000.0f * 8.f)
-#define MAX_DELAY_REV static_cast<size_t>(48000.0f * 8.f)
-DelayLine<float, MAX_DELAY> DSY_SDRAM_BSS delayLineLeft0;
-DelayLine<float, MAX_DELAY> DSY_SDRAM_BSS delayLineRight0;
+#define MAX_DELAY_TAP static_cast<size_t>(48000.0f * 8.f)
+DelayLine<float, MAX_DELAY_TAP> DSY_SDRAM_BSS delayLineLeft0;
+DelayLine<float, MAX_DELAY_TAP> DSY_SDRAM_BSS delayLineRight0;
 
 float tap_delays[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 struct delay
 {
-    DelayLine<float, MAX_DELAY> *del;
+    DelayLine<float, MAX_DELAY_TAP> *del;
     float                        currentDelay;
     float                        delayTarget;
 
@@ -154,7 +153,9 @@ void MultiDelayModule::ProcessMono(float in)
     {
         PreProcessTaps(&tap_delays[i],m_tapTargetDelay[i]);
         taps[i] = delays[0].del->Read(tap_delays[i]);
-        taps[i] = ps_taps[i].Process(taps[i]);
+        // temporary workaround, only process one pitch shifter for now, using all 4 causes right channel to be silent.
+        if(i == 0)
+            taps[i] = ps_taps[i].Process(taps[i]);
     }
     
     sig += taps[0]/ 3.f + taps[1] /3.f;
@@ -176,7 +177,9 @@ void MultiDelayModule::ProcessStereo(float inL, float inR)
     {
         PreProcessTaps(&tap_delays[i+2],m_tapTargetDelay[i+2]);
         taps[i] = delays[1].del->Read(tap_delays[i+2]);
-        taps[i] = ps_taps[i+2].Process(taps[i]);
+        // temporary workaround, only process one pitch shifter for now, using all 4 causes right channel to be silent.
+        if(i == 0)
+            taps[i] = ps_taps[i+2].Process(taps[i]);
     }
     sig += taps[0]/ 3.f + taps[1] /3.f;
     

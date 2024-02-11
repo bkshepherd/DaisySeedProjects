@@ -15,7 +15,8 @@
       "name": "Cortex Debug",
       "openOCDLaunchCommands": [
         "init",
-        "reset init"
+        "reset init",
+        "gdb_breakpoint_override hard"
       ],
       "preLaunchTask": "build_all_debug",
       "preRestartCommands": [

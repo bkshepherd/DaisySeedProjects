@@ -472,13 +472,18 @@ int main(void)
     bypassToggleTransitionTimeInSamples = hardware.GetNumberOfSamplesForTime(bypassToggleTransitionTimeInSeconds);
     crossFaderTransitionTimeInSamples = hardware.GetNumberOfSamplesForTime(crossFaderTransitionTimeInSeconds);
 
-    // Init the Effects Modules (For now don't use more than 8)
-    availableEffectsCount = 4;
+    // Init the Effects Modules
+    availableEffectsCount = 8;
     availableEffects = new BaseEffectModule*[availableEffectsCount];
     availableEffects[0] = new ModulatedTremoloModule();
     availableEffects[1] = new OverdriveModule();
     availableEffects[2] = new AutoPanModule();
-    availableEffects[3] = new MultiDelayModule();
+	availableEffects[3] = new ChorusModule();
+	availableEffects[4] = new ChopperModule();
+    availableEffects[5] = new ReverbModule();
+	availableEffects[6] = new MultiDelayModule();
+    availableEffects[7] = new MetroModule();
+
     
     for (int i = 0; i < availableEffectsCount; i++)
     {

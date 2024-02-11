@@ -9,7 +9,7 @@ extern BaseEffectModule **availableEffects;
 extern int activeEffectID;
 extern BaseEffectModule *activeEffect;
 
-//uint32_t DSY_SDRAM_BSS globalEffectsSettings[SETTINGS_ABSOLUTE_MAX_PARAM_COUNT];
+uint32_t DSY_SDRAM_BSS globalEffectsSettings[SETTINGS_ABSOLUTE_MAX_PARAM_COUNT];
 
 uint32_t GetDefaultTotalIdxOfGlobalSettingsBlock()
 {
@@ -33,7 +33,7 @@ void InitPersistantStorage()
     defaultSettings.globalMidiThrough = true;
     defaultSettings.globalRelayBypassEnabled = false;
     defaultSettings.globalSplitMonoInputToStereo = true;
-
+	defaultSettings.globalEffectsSettings = globalEffectsSettings;
     // All Effect Params in the settings should be zero'd
     for (int i = 0; i < SETTINGS_ABSOLUTE_MAX_PARAM_COUNT; i++)
     {
