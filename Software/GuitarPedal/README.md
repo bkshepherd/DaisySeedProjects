@@ -11,6 +11,7 @@ Updates include:
 3. Reset All Presets button now located in the Preset Menu
 4. Changing Midi to call custom callback when a midi cc cannot be found.
 5. Added a NEW Multi tap delay Effect Module!
+6. The software is now configured to use the Boot Loader by default to allow for more memory usage.
 
 ## Getting Started
 Before you can use the software you'll need to do the following:
@@ -57,7 +58,19 @@ If you want to target the Pedal PCB hardware change the lines to:
 
 ### 4. Build and Deploy the Code
 
-Next you have to get the code onto your daisy seed based Guitar Pedal hardware using **task build_and_program_dfu**
+By Default this project is configured to use the custom Boot Loader. To get up and running you'll need to do the following:
+
+1. Put your Daisy Seed into DFU mode.
+2. From the terminal, in the GuitarPedal folder run "make program-boot"
+3. Once this finishes installing the custom boot loader on the Daisy Seed, press the Reset button. The led will temporary blink for about 3 second.
+4. While the LED is blinking run "make program-dfu"
+5. That's it!
+
+If you want to use built in flash memory only, you *can*, but it severely limits which effects you can use and how many you can have installed at once. I'd recommend editing the list of active effects in the guitar_pedal.cpp file to perhaps just 1 or 2. Then do the following to get running on internal flash:
+
+1. Remove the "APP_TYPE = BOOT_SRAM" line from the Make File:
+2. Put your Daisy Seed into DFU mode.
+3. make build-and-program-dfu
 
 ### 5. Connect your Guitar and Amp
 
