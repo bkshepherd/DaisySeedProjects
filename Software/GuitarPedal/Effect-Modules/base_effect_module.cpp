@@ -5,9 +5,12 @@ using namespace bkshepherd;
 
 // Default Constructor
 BaseEffectModule::BaseEffectModule() : m_paramCount(0),
+                    m_presetCount(1),
+                    m_currentPreset(0),
                                         m_params(NULL),
                                         m_audioLeft(0.0f),
                                         m_audioRight(0.0f),
+                    m_settingsArrayStartIdx(0),
                                         m_isEnabled(false)
 {
     m_name = "Base";
@@ -19,7 +22,7 @@ BaseEffectModule::~BaseEffectModule()
 {
     if (m_params != NULL) {
         delete [] m_params;
-	}
+  }
 }
 
 void BaseEffectModule::Init(float sample_rate)
@@ -38,7 +41,7 @@ void BaseEffectModule::InitParams(int count)
     if (m_params != NULL) {
         delete [] m_params;
         m_params = NULL;
-	}
+  }
 
     m_paramCount = 0;
 
@@ -46,26 +49,64 @@ void BaseEffectModule::InitParams(int count)
     {
         // Create new parameter storage
         m_paramCount = count;
-        m_params = new uint8_t[m_paramCount];
+        m_params = new uint32_t[m_paramCount];
 
         // Init all parameters to their default value or zero if there is no meta data
         for (int i = 0; i < m_paramCount; i++)
         {
             if (m_paramMetaData != NULL)
             {
-                m_params[i] = m_paramMetaData[i].defaultValue;
+        if(GetParameterType(i) == ParameterValueType::FloatMagnitude)
+        {
+          SetParameterAsFloat(i, (float)m_paramMetaData[i].defaultValue);
+        }
+        else
+        {
+          m_params[i] = m_paramMetaData[i].defaultValue;
+        }
+        
             }
             else
             {
                 m_params[i] = 0;
             }
         }
-	}
+  }
 }
 
-uint8_t BaseEffectModule::GetParameterCount()
+uint16_t BaseEffectModule::GetParameterCount()
 {
     return m_paramCount;
+}
+
+uint16_t BaseEffectModule::GetPresetCount()
+{
+    return m_presetCount;
+}
+
+void BaseEffectModule::SetPresetCount(uint16_t preset_count)
+{
+    m_presetCount = preset_count;
+}
+
+void BaseEffectModule::SetCurrentPreset(uint32_t preset)
+{
+  m_currentPreset = preset;
+}
+
+uint32_t BaseEffectModule::GetCurrentPreset()
+{
+  return m_currentPreset;
+}
+
+void BaseEffectModule::SetSettingsArrayStartIdx(uint32_t start_idx)
+{
+  m_settingsArrayStartIdx = start_idx;
+}
+
+uint32_t BaseEffectModule::GetSettingsArrayStartIdx()
+{
+  return m_settingsArrayStartIdx;
 }
 
 const char *BaseEffectModule::GetParameterName(int parameter_id)
@@ -137,7 +178,43 @@ uint8_t BaseEffectModule::GetParameterRaw(int parameter_id)
 
 float BaseEffectModule::GetParameterAsMagnitude(int parameter_id)
 {
-    return (float)GetParameterRaw(parameter_id) / 127.0f;
+  if(GetParameterType(parameter_id) == ParameterValueType::FloatMagnitude)
+  {
+    return GetParameterAsFloat(parameter_id) / (float)GetParameterMax(parameter_id);
+  }
+  else
+  {
+    return (float)GetParameterRaw(parameter_id) / ((float)GetParameterMax(parameter_id));
+  }
+}
+
+float BaseEffectModule::GetParameterAsFloat(int parameter_id)
+{
+  float ret;
+  uint32_t tmp = m_params[parameter_id];
+  if(parameter_id >= 0 || parameter_id < m_paramCount)
+  {
+    std::memcpy(&ret, &tmp, sizeof(float));
+    return ret;
+  }
+  return -1.0f;
+}
+
+void BaseEffectModule::SetParameterAsFloat(int parameter_id, float f)
+{
+  if(parameter_id >= 0 || parameter_id < m_paramCount)
+  {
+    uint32_t tmp;
+    std::memcpy(&tmp, &f, sizeof(float));
+    // Only update the value if it changed.
+        if (tmp != m_params[parameter_id])
+        {
+            m_params[parameter_id] = tmp;
+      
+            // Notify anyone listening if the parameter actually changed.
+            ParameterChanged(parameter_id);
+        }
+  }
 }
 
 bool BaseEffectModule::GetParameterAsBool(int parameter_id)
@@ -209,7 +286,38 @@ int BaseEffectModule::GetMappedParameterIDForMidiCC(int midiCC_id)
     return -1;
 }
 
-void BaseEffectModule::SetParameterRaw(int parameter_id, uint8_t value)
+
+int BaseEffectModule::GetParameterMin(int parameter_id)
+{
+    if (m_paramMetaData != NULL && parameter_id < m_paramCount)
+    {
+    return m_paramMetaData[parameter_id].minValue;
+    }
+
+    return -1;
+}
+
+
+int BaseEffectModule::GetParameterMax(int parameter_id)
+{
+    if (m_paramMetaData != NULL && parameter_id < m_paramCount)
+    {
+    return m_paramMetaData[parameter_id].maxValue;
+    }
+
+    return -1;
+}
+
+float BaseEffectModule::GetParameterFineStepSize(int parameter_id)
+{
+    if (m_paramMetaData != NULL && parameter_id < m_paramCount)
+    {
+    return m_paramMetaData[parameter_id].fineStepSize;
+    }
+  return 0.01f;
+}
+  
+void BaseEffectModule::SetParameterRaw(int parameter_id, uint32_t value)
 {
     // Make sure parameter_id is valid.
     if (m_params == NULL || parameter_id < 0 || parameter_id >= m_paramCount)
@@ -218,7 +326,7 @@ void BaseEffectModule::SetParameterRaw(int parameter_id, uint8_t value)
     }
 
     // Make sure the value is valid.
-    if (value < 0 || value > 127)
+    if (value < (uint32_t)GetParameterMin(parameter_id) || value > (uint32_t)GetParameterMax(parameter_id))
     {
         return;
     }
@@ -235,30 +343,39 @@ void BaseEffectModule::SetParameterRaw(int parameter_id, uint8_t value)
 
 void BaseEffectModule::SetParameterAsMagnitude(int parameter_id, float value)
 {
+  int min = GetParameterMin(parameter_id);
+  int max = GetParameterMax(parameter_id);
     // Make sure the value is in the valid range.
     if (value < 0.0f)
     {
-        SetParameterRaw(parameter_id, 0);
+        SetParameterRaw(parameter_id, min);
         return;
     }
     else if (value > 1.0f)
     {
-        SetParameterRaw(parameter_id, 127);
+        SetParameterRaw(parameter_id, max);
         return;
     }
-
-    SetParameterRaw(parameter_id, (uint8_t)((127.0f * value) + 0.35f)); 
+  if(GetParameterType(parameter_id) == ParameterValueType::FloatMagnitude)
+  {
+    float tmp = (value * ((float) max - (float)min) + (float)min);
+    SetParameterAsFloat(parameter_id, tmp);
+  }
+  else
+  {
+    SetParameterRaw(parameter_id, (uint32_t)(value * (max - min) + min)); 
+  }
 }
 
 void BaseEffectModule::SetParameterAsBool(int parameter_id, bool value)
 {
     if (value)
     {
-        SetParameterRaw(parameter_id, 127);
+        SetParameterRaw(parameter_id, GetParameterMin(parameter_id));
     }
     else
     {
-        SetParameterRaw(parameter_id, 0);
+        SetParameterRaw(parameter_id, GetParameterMax(parameter_id));
     }
     
 }
@@ -351,6 +468,11 @@ void BaseEffectModule::SetTempo(uint32_t bpm)
 void BaseEffectModule::ParameterChanged(int parameter_id)
 {
     // Do nothing.
+}
+
+void BaseEffectModule::MidiCCValueNotification(uint8_t control_num, uint8_t value)
+{
+  // Do nothing
 }
 
 void BaseEffectModule::UpdateUI(float elapsedTime)

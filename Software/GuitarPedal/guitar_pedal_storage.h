@@ -3,10 +3,11 @@
 #define GUITAR_PEDAL_STORAGE_H
 
 // Peristant Storage Settings
-#define SETTINGS_FILE_FORMAT_VERSION 1
-#define SETTINGS_MAX_EFFECT_COUNT 8
-#define SETTINGS_MAX_EFFECT_PARAM_COUNT 16
+#define SETTINGS_FILE_FORMAT_VERSION 2
 
+// Absolute maximum on current system, arbitrarily limiting this to 64KB
+#define SETTINGS_ABSOLUTE_MAX_PARAM_COUNT 16000
+#define ERR_VALUE_MAX 0xffffffff
 // Save System Variables
 struct Settings
 {
@@ -17,7 +18,7 @@ struct Settings
     int globalMidiChannel;
     bool globalRelayBypassEnabled;
     bool globalSplitMonoInputToStereo;
-    uint8_t globalEffectsSettings[SETTINGS_MAX_EFFECT_COUNT * SETTINGS_MAX_EFFECT_PARAM_COUNT];     // Set aside a block of memory for individual effect params
+    uint32_t *globalEffectsSettings;     // Set aside a block of memory for individual effect params
 
     bool operator==(const Settings &rhs)
     {
@@ -32,7 +33,7 @@ struct Settings
             return false;
         }
 
-        for (int i = 0; i < SETTINGS_MAX_EFFECT_COUNT * SETTINGS_MAX_EFFECT_PARAM_COUNT; i++)
+        for (uint32_t i = 0; i < globalEffectsSettings[0]; i++)
         {
             if (globalEffectsSettings[i] != rhs.globalEffectsSettings[i])
             {
@@ -51,8 +52,10 @@ struct Settings
 
 void InitPersistantStorage();
 void LoadEffectSettingsFromPersistantStorage();
-void SaveEffectSettingsToPersitantStorageForEffectID(int effectID);
-uint8_t GetSettingsParameterValueForEffect(int effectID, int paramID);
-void SetSettingsParameterValueForEffect(int effectID, int paramID, uint8_t paramValue);
+void SaveEffectSettingsToPersitantStorageForEffectID(int effectID, uint32_t presetID);
+uint32_t GetSettingsParameterValueForEffect(int effectID, int paramID);
+void SetSettingsParameterValueForEffect(int effectID, int paramID, uint32_t paramValue, uint32_t startIdx);
+void LoadPresetFromPersistentStorage(uint32_t effectID, uint32_t presetID);
+void FactoryReset(void* context);
 
 #endif

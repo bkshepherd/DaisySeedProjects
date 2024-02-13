@@ -26,7 +26,7 @@ class ReverbModule : public BaseEffectModule
     float GetBrightnessForLED(int led_id) override;
 
   private:
-    ReverbSc m_reverbStereo;
+    ReverbSc *m_reverbStereo;
     float m_timeMin;
     float m_timeMax;
     float m_lpFreqMin;

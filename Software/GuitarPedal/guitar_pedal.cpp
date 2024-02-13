@@ -9,6 +9,7 @@
 #include "Effect-Modules/chopper_module.h"
 #include "Effect-Modules/reverb_module.h"
 #include "Effect-Modules/metro_module.h"
+#include "Effect-Modules/multi_delay_module.h"
 
 #include "UI/guitar_pedal_ui.h"
 #include "Util/audio_utilities.h"
@@ -437,6 +438,11 @@ void HandleMidiMessage(MidiEvent m)
                     activeEffect->SetParameterRaw(effectParamID, p.value);
                     guitarPedalUI.UpdateActiveEffectParameterValue(effectParamID, activeEffect->GetParameterRaw(effectParamID));
                 }
+                else
+                {
+                    // Notify the activeEffect, just in case there is custom handling for this midi cc / value
+                    activeEffect->MidiCCValueNotification(p.control_number, p.value);
+                }
             }
             break;
         }
@@ -466,16 +472,18 @@ int main(void)
     bypassToggleTransitionTimeInSamples = hardware.GetNumberOfSamplesForTime(bypassToggleTransitionTimeInSeconds);
     crossFaderTransitionTimeInSamples = hardware.GetNumberOfSamplesForTime(crossFaderTransitionTimeInSeconds);
 
-    // Init the Effects Modules (For now don't use more than 8)
-    availableEffectsCount = 7;
+    // Init the Effects Modules
+    availableEffectsCount = 8;
     availableEffects = new BaseEffectModule*[availableEffectsCount];
     availableEffects[0] = new ModulatedTremoloModule();
     availableEffects[1] = new OverdriveModule();
     availableEffects[2] = new AutoPanModule();
-    availableEffects[3] = new ChorusModule();
-    availableEffects[4] = new ChopperModule();
+	availableEffects[3] = new ChorusModule();
+	availableEffects[4] = new ChopperModule();
     availableEffects[5] = new ReverbModule();
-    availableEffects[6] = new MetroModule();
+	availableEffects[6] = new MultiDelayModule();
+    availableEffects[7] = new MetroModule();
+
     
     for (int i = 0; i < availableEffectsCount; i++)
     {
@@ -653,13 +661,16 @@ int main(void)
         {
             if (needToSaveSettingsForActiveEffect)
             {
-                SaveEffectSettingsToPersitantStorageForEffectID(activeEffectID);
+                uint16_t tempPreset = activeEffect->GetCurrentPreset();
+                SaveEffectSettingsToPersitantStorageForEffectID(activeEffectID, tempPreset);
                 guitarPedalUI.ShowSavingSettingsScreen();
-            }
+                
 
-            storage.Save();
-            last_save_time = System::GetNow();
-            needToSaveSettingsForActiveEffect = false;
+            }
+                storage.Save();
+                last_save_time = System::GetNow();
+                needToSaveSettingsForActiveEffect = false;
+
         }
     }
 }

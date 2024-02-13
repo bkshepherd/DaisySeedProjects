@@ -4,11 +4,12 @@
 
 #include "daisy_seed.h"
 #include "effect_module_menu_item.h"
-
+#include "CustomMappedValues.h"
 using namespace daisy;
 
-const int kNumMainMenuItems = 2;
+const int kNumMainMenuItems = 3;
 const int kNumGlobalSettingsMenuItems = 7;
+const int kNumPresetSettingsItems = 3;
 
 namespace bkshepherd
 {
@@ -60,6 +61,7 @@ class GuitarPedalUI
     FullScreenItemMenu m_mainMenu;
     FullScreenItemMenu m_activeEffectSettingsMenu;
     FullScreenItemMenu m_globalSettingsMenu;
+    FullScreenItemMenu m_presetsMenu;
     UiEventQueue       m_eventQueue;
 
     bool m_needToCloseActiveEffectSettingsMenu;
@@ -68,14 +70,18 @@ class GuitarPedalUI
 
     AbstractMenu::ItemConfig m_mainMenuItems[kNumMainMenuItems];
     AbstractMenu::ItemConfig m_globalSettingsMenuItems[kNumGlobalSettingsMenuItems];
+    AbstractMenu::ItemConfig m_presetsMenuItems[kNumPresetSettingsItems];
     int m_numActiveEffectSettingsItems;
+    uint32_t m_activePresetSelected;
     AbstractMenu::ItemConfig *m_activeEffectSettingsMenuItems;
     EffectModuleMenuItem m_effectModuleMenuItem;
 
     const char** m_availableEffectNames;
     MappedStringListValue *m_availableEffectListMappedValues;
     MappedIntValue **m_activeEffectSettingIntValues;
+    MappedIntValue m_activePresetSettingIntValue;
     MappedStringListValue **m_activeEffectSettingStringValues;
+    MyMappedFloatValue **m_activeEffectSettingFloatValues;
     bool *m_activeEffectSettingBoolValues;
     MappedIntValue m_midiChannelSettingValue;
 
