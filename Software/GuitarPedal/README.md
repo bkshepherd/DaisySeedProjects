@@ -66,6 +66,8 @@ By Default this project is configured to use the custom Boot Loader. To get up a
 4. While the LED is blinking run "make program-dfu"
 5. That's it!
 
+If you run into trouble with the bootloader.  Electro-Smith has better documentation on how to get it working here: https://github.com/electro-smith/libDaisy/blob/master/doc/md/_a7_Getting-Started-Daisy-Bootloader.md
+
 If you want to use built in flash memory only, you *can*, but it severely limits which effects you can use and how many you can have installed at once. I'd recommend editing the list of active effects in the guitar_pedal.cpp file to perhaps just 1 or 2. Then do the following to get running on internal flash:
 
 1. Remove the "APP_TYPE = BOOT_SRAM" line from the Make File:
