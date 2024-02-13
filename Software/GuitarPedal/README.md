@@ -1,11 +1,16 @@
 # Multi-Effect Guitar Pedal Software
 This directory includes all the source code for my Multi-Effect Guitar Pedal that runs on various hardware platforms. 
 
-## Software Update - 11/11/2023
+## Software Update - 2/12/2024
+Big update to the handling of Persistant Storage.  Thank you @jaching!
+
 Updates include:
 
-1. Refactored the code to move Display UI handling and Persistent Storage out of the main class file.
-2. Added functionality to make it easy for an Effect Module to provide custom UI for the Display while the Effect is Active.
+1. Removed the hard limit the number of parameters stored per EffectModule.
+2. Ability to have multiple stored Presets for each EffectModule
+3. Reset All Presets button now located in the Preset Menu
+4. Changing Midi to call custom callback when a midi cc cannot be found.
+5. Added a NEW Multi tap delay Effect Module!
 
 ## Getting Started
 Before you can use the software you'll need to do the following:
@@ -62,6 +67,12 @@ Plug your guitar into the Input and connect the Output to your amp.
 
 ## Past Updates:
 
+### Software Update - 11/11/2023
+Updates include:
+
+1. Refactored the code to move Display UI handling and Persistent Storage out of the main class file.
+2. Added functionality to make it easy for an Effect Module to provide custom UI for the Display while the Effect is Active.
+   
 ### Software Update - 10/9/2023
 Updates Include:
 
