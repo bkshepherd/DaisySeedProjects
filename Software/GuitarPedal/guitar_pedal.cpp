@@ -465,7 +465,7 @@ void HandleMidiMessage(MidiEvent m)
 int main(void)
 {
     hardware.Init();
-    hardware.SetAudioBlockSize(48);  // KAB CHANGED FROM 4, was getting too slow in processing for reverb_delay effect, TODO optimize reverb/delay better
+    hardware.SetAudioBlockSize(4);
 
     float sample_rate = hardware.AudioSampleRate();
 
@@ -480,10 +480,10 @@ int main(void)
     availableEffects[0] = new ModulatedTremoloModule();
     availableEffects[1] = new OverdriveModule();
     availableEffects[2] = new AutoPanModule();
-	availableEffects[3] = new ChorusModule();
-	availableEffects[4] = new ChopperModule();
+    availableEffects[3] = new ChorusModule();
+    availableEffects[4] = new ChopperModule();
     availableEffects[5] = new ReverbModule();
-	availableEffects[6] = new MultiDelayModule();
+    availableEffects[6] = new MultiDelayModule();
     availableEffects[7] = new MetroModule();
 
     
