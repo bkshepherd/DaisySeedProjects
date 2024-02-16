@@ -5,6 +5,7 @@
 // Peristant Storage Settings
 #define SETTINGS_FILE_FORMAT_VERSION 2
 
+
 // Absolute maximum on current system, arbitrarily limiting this to 64KB
 #define SETTINGS_ABSOLUTE_MAX_PARAM_COUNT 16000
 #define ERR_VALUE_MAX 0xffffffff

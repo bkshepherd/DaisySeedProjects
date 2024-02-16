@@ -3,6 +3,7 @@
 #include "Hardware-Modules/guitar_pedal_125b.h"
 #include "guitar_pedal_storage.h"
 #include "Effect-Modules/modulated_tremolo_module.h"
+
 #include "Effect-Modules/overdrive_module.h"
 #include "Effect-Modules/autopan_module.h"
 #include "Effect-Modules/chorus_module.h"
@@ -10,6 +11,7 @@
 #include "Effect-Modules/reverb_module.h"
 #include "Effect-Modules/metro_module.h"
 #include "Effect-Modules/multi_delay_module.h"
+
 
 #include "UI/guitar_pedal_ui.h"
 #include "Util/audio_utilities.h"
@@ -463,7 +465,7 @@ void HandleMidiMessage(MidiEvent m)
 int main(void)
 {
     hardware.Init();
-    hardware.SetAudioBlockSize(4);
+    hardware.SetAudioBlockSize(48);  // KAB CHANGED FROM 4, was getting too slow in processing for reverb_delay effect, TODO optimize reverb/delay better
 
     float sample_rate = hardware.AudioSampleRate();
 

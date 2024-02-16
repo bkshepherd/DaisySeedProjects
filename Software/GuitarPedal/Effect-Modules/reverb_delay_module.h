@@ -16,7 +16,7 @@ using namespace daisysp;
 // Delay Max Definitions (Assumes 48kHz samplerate)
 #define MAX_DELAY static_cast<size_t>(48000.0f * 8.f) // 4 second max delay // Increased the max to 8 seconds, got horrible pop noise when set to 4 seconds, increasing buffer size fixes it for some reason. TODO figure out why?
 #define MAX_DELAY_REV static_cast<size_t>(48000.0f * 8.f) // 8 second max delay (needs to be double for reverse, since read/write pointers are going opposite directions in the buffer)
-#define MAX_DELAY_SPREAD static_cast<size_t>(48000.0f * 2.f) // Up to 2 second for Ping Pong, or 50 ms for Spread effect 
+#define MAX_DELAY_SPREAD static_cast<size_t>(4800.0f) //  50 ms for Spread effect 
 
 // This is the core delay struct, which actually includes two delays, 
 // one for forwared/octave, and one for reverse. This is required
@@ -41,6 +41,7 @@ struct delay
     float                        level = 1.0;      // Level multiplier of output, added for stereo modulation
     float                        level_reverse = 1.0;      // Level multiplier of output, added for stereo modulation
     bool                         dual_delay = false;
+    bool                         secondTapOn = false;
     
     float Process(float in)
     {
@@ -51,34 +52,40 @@ struct delay
 
         float del_read = del->Read();
 
-
         float read_reverse = delreverse->ReadRev(); // REVERSE
 
         float read = toneOctLP.Process(del_read);  // LP filter, tames harsh high frequencies on octave, has fading effect for normal/reverse
+
+        float secondTap = 0.0;
+        if (secondTapOn) {
+            secondTap = del->ReadSecondTap();
+        }
         //float read2 = delreverse->ReadFwd();
         if (active) {
             del->Write((feedback * read) + in);
-            delreverse->Write((feedback * read) + in);
-            //delreverse->Write((feedback * read2) + in);  // Writing the read from fwd/oct delay line allows for combining oct and rev for reverse octave!
+            delreverse->Write((feedback * read) + in);  // Writing the read from fwd/oct delay line allows for combining oct and rev for reverse octave!
+            //delreverse->Write((feedback * read2) + in); 
         } else {
             del->Write(feedback * read); // if not active, don't write any new sound to buffer
             delreverse->Write(feedback * read);
             //delreverse->Write((feedback * read2));
         }
 
+        // TODO Figure out how to do dotted eighth with reverse
+
         if (dual_delay) {
-            return read_reverse * level_reverse * 0.5 + read * level * 0.5; // Half the volume to keep total level consistent
+            return read_reverse * level_reverse * 0.5 + (read + secondTap) * level * 0.5; // Half the volume to keep total level consistent
         } else if (reverseMode) {
             return read_reverse * level_reverse;
         } else {
-            return read * level;
+            return (read + secondTap) * level;
         }
     }
 };
 
-// For stereo spread setting (delay the right channel signal from 0 to 50ms)
+// For stereo spread setting (delay the right channel signal from 0 to 50ms)      
 //    A short, zero feedback (one repeat) delay for stereo spread
-// Also used for Ping Pong effect, by setting this delay to half the normal delay time setting and applying to right channel
+
 struct delay_spread
 {
     DelayLine<float, MAX_DELAY_SPREAD> *del;
@@ -116,6 +123,7 @@ class ReverbDelayModule : public BaseEffectModule
     void CalculateDelayMix();
     void CalculateReverbMix();
     void ParameterChanged(int parameter_id) override;
+    void ProcessModulation();
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;
     void SetTempo(uint32_t bpm) override;
@@ -129,13 +137,18 @@ class ReverbDelayModule : public BaseEffectModule
     float m_timeMax;
     float m_lpFreqMin;
     float m_lpFreqMax;
+    float m_delaylpFreqMin;
+    float m_delaylpFreqMax;
     float m_delaySamplesMin;
     float m_delaySamplesMax;
     float m_delaySpreadMin;
     float m_delaySpreadMax;
-    float m_delayPPMin;
-    float m_delayPPMax;
     float m_pdelRight_out;
+    float m_currentMod;
+
+    Oscillator modOsc;
+    float m_modOscFreqMin;
+    float m_modOscFreqMax;
 
 
     // Delays
@@ -148,6 +161,8 @@ class ReverbDelayModule : public BaseEffectModule
     float delayDryMix = 0.5;
     float reverbWetMix = 0.5;
     float reverbDryMix = 0.5;
+
+    float reverb_level = 1.0;
 
     float effect_samplerate;
 
