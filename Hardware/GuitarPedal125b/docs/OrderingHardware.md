@@ -3,23 +3,10 @@ I get a lot of requests to buy kits or finished pedals based on my designs. This
 
 If you are interested, please message me through GitHub or you can find me on the Electro-Smith [Forums](https://forum.electro-smith.com/t/my-daisy-guitar-pedal-designs-on-github/3641) & [Discord](https://discord.gg/ByHBnMtQTR) as Kshep and can message me there.
 
-**SOLD OUT** - I'm currently sold out of everything, if you want to be added to the list for the next batch, please go ahead and reach out still. I ordered a few more units on 1/21/2024, they should be here soon.
-
 I also really can't supply much customer support on this stuff or offer any warranty on the hardware. I'm not really trying to start a pedal business. I'm doing this for fun and to learn new things, which is why I provide all these designs and documenation here on GitHub for free.
 
-## Option 1 - Complete PCB (without Daisy Seed)
-Price: $100 (USD) + Shipping & Handling
-
-This option gets you a fully assembled PCB, I'll even test it (briefly) to make sure it works. You will still need to get an Enclosure, get Knobs and other hardware for the Enclosure, get a Daisy Seed, and Assemble everything yourself.
-
-You'll basically be starting at [Step 7: Order the Enclosure and External Hardware](README.md#7-order-the-enclosure-and-external-hardware)
-
-![PCBs](images/CircuitBoard-Front.png)
-
-## Option 2 - Complete Pedal (without Daisy Seed)
+## Complete Pedal (without Daisy Seed)
 Price: $150 (USD) + Shipping & Handling
-
-I usually don't have extra Enclosures and Knobs around, so this might not always be an option. Plus picking a custom color and knobs for your pedal is half the fun! [Step 7: Order the Enclosure and External Hardware](README.md#7-order-the-enclosure-and-external-hardware) is so freaking easy, I highly recommend doing Option 1, instead of this one, if you are picky about aesthetics.
 
 This option is everything you need, except the Daisy Seed. Knobs and Enclosure colors are at my whim and may vary based on what I have lying around.
 
