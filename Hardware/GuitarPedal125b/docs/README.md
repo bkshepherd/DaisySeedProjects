@@ -93,26 +93,18 @@ Click Next.
 
 If it tells you any parts are missing, you may need to substitute. For instance, the parts you ordered from global parts sourcing may have ended up with a different JLCPCB Part number than the ones in the supplied files.  If that is the case you can click on the part in the list and search for the proper part and replace it.  Repeat this process until all parts are accounted for.
 15. Click Next.
-16. This next page allows you to view the placement of the Components.  Notice that a few of the parts of not placed or rotated properly. (this is due to differences in KiCad's footprint library and JLCPCB's library).
+16. This next page allows you to view the placement of the Components.  If you used the premade Gerbers and CPL files everything should be placed and rotated properly. If you generated your own, there may be some parts improperly rotated (this is due to differences in KiCad's footprint library and JLCPCB's library). You will have to manually fix them in this viewer. Simply click each part that is not properly placed, and use the buttons to rotate and move them until they are in place.
 
-![PCB Assembly Options](images/JLCPCB-AssemblyPlacement.png)
-
-17. You will have to manually fix them in this viewer.
-
-Simply click each part that is not properly placed, and use the buttons to rotate and move them until they are in place. The parts that need fixing are J1,J4,J5,U1,U3,U4,U5,U7,U8,K1,K2,Q1.
-
-* Note U2 (PDS1-S5-S5-M) will not show up as available to change placement / rotation.  JCLPCB doesn't have a 3D model for this part since it's from global sourcing. Don't worry that it's not shown on this screen.
-
-It should look like this when fixed.
+It should look like this when everything is placed properly.
 
 ![PCB Assembly Options](images/JLCPCB-AssemblyPlacementFixed.png)
 
-18. Click Next.
-19. Add the item to your cart, and order the PCB.
+17. Click Next.
+18. Add the item to your cart, and order the PCB.
 
 ![PCB Assembly Options](images/JLCPCB-AssemblyAddToCart.png)
 
-They will give you a price for ordering 5 assembled pcbs (that's their minimum order).  I think I paid ~$175 to have the PCB manufactured, assembled with additional parts we ordered, and shipped to my door. Keep an eye on your email to confirm the order at the various steps. It will take a week or two for it arrive and they look like this:
+They will give you a price for ordering 5 assembled pcbs (that's their minimum order).  Prices typically vary due to component costs, etc. So your prices may not matched this screenshot exactly, but it should be within the same ballpark. It will take a week or two for it arrive and they look like this (with slight variation, this picture is from a past revision):
 
 ![PCBs](images/PCBs.png)
 
@@ -122,7 +114,7 @@ There are a few parts that you will need to order yourself and solder on the PCB
 
 Here is a list of the additional parts to order for the PCB:
 
-1. 2 Headers 20-Pin Single Row for the Daisy Seed. I used these from [Amazon](https://www.amazon.com/dp/B09MYBZZKZ)
+1. 2 Headers 20-Pin Single Row (If you didn't have JLCPCB assemble them) for the Daisy Seed. I used these from [Amazon](https://www.amazon.com/dp/B09MYBZZKZ)
 2. 6 Pots. These are the ones I used [Alpha RD901F-40-15R1-B10K](https://www.taydaelectronics.com/10k-ohm-linear-taper-potentiometer-round-shaft-pcb-9mm.html).
 3. 1 Rotary Encoder. This is the one I used [PEC11R-4220K-S24](https://www.mouser.com/ProductDetail/652-PEC11R-4220K-S24)
 4. 1 OLED Screen. This is the one I used from [Amazon](https://www.amazon.com/dp/B01MQPQF24)
