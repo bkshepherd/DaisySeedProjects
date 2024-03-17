@@ -3,9 +3,7 @@ Some quick instructions for how to make the GuitarPedal125B Hardware.  This docu
 
 Quick note, I couldn't include some of the custom footprints for specific components due to licenses that wouldn't allow redistribution.  Here is a list of where you can find some of them:
 
-* PDS1-S5-S5-M - https://www.cui.com/product/dc-dc-converters/isolated/pds1-m-series (click on "all models" for downloadable footprints)
 * Neutrik NMJ6HCD2 - https://www.snapeda.com/parts/NMJ6HCD2/Neutrik/view-part/
-* PJ-320A - Footprint and STEP Model found on this repository https://github.com/keebio/Keebio-Parts.pretty
 
 Also, I just want to acknowledge that the schematics for the circuits were kit bashed together from the following sources with some additions of my own:
 
@@ -33,12 +31,11 @@ To use SMT Assemble service from JLCPCB, which you will want to do, the BOM and 
 
 ## 3. Pre-Order Parts for JLCPCB
 
-There are a few parts that JLCPCB doesn't stock normally.  You can either pre-order these parts through JLCPCB through their Global Sourcing Service so they can be assembled for you (recommended) of you can order the parts yourself and solder them yourself (advanced).
+There are a few parts that JLCPCB doesn't stock normally.  You can either pre-order these parts through JLCPCB so they can be assembled for you (recommended) of you can order the parts yourself and solder them yourself (advanced).
 
 The main parts they don't typically stock are:
 
-1. PDS1-S5-S5-M (JLCPCB Part #C5377809)
-2. CPC1018 This one is usually stocked these days. Probably good to double check though. (JLCPCB Part #C133069 or #C1558973), or as a substitute CPC1019 (JLCPCB Part #C1854946 or #C2760117) And of those work fine.
+1. CPC1018 This one is usually stocked these days. Probably good to double check though. (JLCPCB Part #C133069 or #C1558973), or as a substitute CPC1019 (JLCPCB Part #C1854946 or #C2760117) Any of those work fine.
 
 To order these parts through JLCPCB follow these instructions:
 
@@ -50,7 +47,7 @@ To order these parts through JLCPCB follow these instructions:
 6. If you can't find it there (sometimes the prices are crazy high, or the min quantity is a huge number), then try Global Parts Sourcing. 
 7. Search for the part by name in Global Part Sourcing.
 5. Find a supplier that lets you order a small quantity and double check the part name to make sure it's the right part.
-6. Order at least 5 parts. (Minimum PCB assembly order is 5, so you need 5 of each part).
+6. Order the appropriate number of parts.
 7. Repeat this process for both parts. 
 
 Please note, that it typically takes a week or two to get the parts ordered and into your parts library for use.  So I like to order these parts in batches enough to place a few orders. 
