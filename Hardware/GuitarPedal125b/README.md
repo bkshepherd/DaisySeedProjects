@@ -7,7 +7,8 @@ Updates include:
 2. Added a simple RC Low Pass filter immediately following the Daisy Seed audio outputs to help get rid of out of band noise caused by the Rev7 Daisy Seed.
 3. Updated a bunch of components to have footprints oriented the way JLCPCB expects them.  This reduces the need to "fix" the rotation of components when having JCLPCB manufacture the PCBs.
 4. Updated the design to include the 20pin headers for the Daisy Seed so that JLCPCB could also assemble these parts.  Saves a lot of time from having to solder 40 points on the PCB.
-5. Included exported Gerber and Assembly files to make it easy to order assembled PCBs from JCLPCB. Detailed instructions can be found on the [Build the Hardware](docs/README.md) page. This requires no knowledge of KiCad to get the PCBs made and mostly Assembled.
+5. Updated the design to use more commonly available and cheaper Alpha brand 9mm Pots.
+6. Included exported Gerber and Assembly files to make it easy to order assembled PCBs from JCLPCB. Detailed instructions can be found on the [Build the Hardware](docs/README.md) page. This requires no knowledge of KiCad to get the PCBs made and mostly Assembled.
 
 ### Overview
 
