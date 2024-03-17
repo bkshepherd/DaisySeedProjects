@@ -1,12 +1,13 @@
 # Guitar Pedal 125b
 
-### Rev 5 - 6/30/2023
+### Rev 6 - 3/17/2024
 
 Updates include:
-1. Updated placement of screen slightly to ease installation.
-2. Updated POT footprint mounting holes to be slightly larger.
-3. Properly grounded Audio TRS jacks when no cable is inserted.
-4. Included exported Gerber and Assembly files to make it easy to order assembled PCBs from JCLPCB. Detailed instructions can be found on the [Build the Hardware](docs/README.md) page. This requires no knowledge of KiCad to get the PCBs made and mostly Assembled.
+1. Removed the PDS1 DC-DC Isolator from the power supply design.  This part was quite expensive and hard to source and wasn't really doing anything valuable to help with the noise profile of the device (especially if you are using a good pedal board power source with isolated power).  This simplifies the power supply a bit.  
+2. Added a simple RC Low Pass filter immediately following the Daisy Seed audio outputs to help get rid of out of band noise caused by the Rev7 Daisy Seed.
+3. Updated a bunch of components to have footprints oriented the way JLCPCB expects them.  This reduces the need to "fix" the rotation of components when having JCLPCB manufacture the PCBs.
+4. Updated the design to include the 20pin headers for the Daisy Seed so that JLCPCB could also assemble these parts.  Saves a lot of time from having to solder 40 points on the PCB.
+5. Included exported Gerber and Assembly files to make it easy to order assembled PCBs from JCLPCB. Detailed instructions can be found on the [Build the Hardware](docs/README.md) page. This requires no knowledge of KiCad to get the PCBs made and mostly Assembled.
 
 ### Overview
 
@@ -43,6 +44,14 @@ Once you've built the hardware you can deploy the software from my Multi-Effect 
 This software provides a hardware abstraction layer as well as a few custom FX including Tremolo, Chorus, Overdrive, and Stereo Auto-Pan.
 
 ## Past Updates
+### Rev 5 - 6/30/2023
+
+Updates include:
+1. Updated placement of screen slightly to ease installation.
+2. Updated POT footprint mounting holes to be slightly larger.
+3. Properly grounded Audio TRS jacks when no cable is inserted.
+4. Included exported Gerber and Assembly files to make it easy to order assembled PCBs from JCLPCB. Detailed instructions can be found on the [Build the Hardware](docs/README.md) page. This requires no knowledge of KiCad to get the PCBs made and mostly Assembled.
+
 ### Rev 4 - 5/16/2023
 
 Updates include:
