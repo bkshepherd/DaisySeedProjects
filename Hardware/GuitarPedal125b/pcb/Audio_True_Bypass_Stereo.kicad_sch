@@ -6,8 +6,8 @@
 
   (title_block
     (title "Daisy Seed Guitar Pedal 125B")
-    (date "2023-06-30")
-    (rev "5")
+    (date "2024-02-25")
+    (rev "6")
     (company "Made by Keith Shepherd (kshep@mac.com)")
   )
 
@@ -777,6 +777,58 @@
         )
       )
     )
+    (symbol "power:+5V" (power) (pin_names (offset 0)) (in_bom yes) (on_board yes)
+      (property "Reference" "#PWR" (at 0 -3.81 0)
+        (effects (font (size 1.27 1.27)) hide)
+      )
+      (property "Value" "+5V" (at 0 3.556 0)
+        (effects (font (size 1.27 1.27)))
+      )
+      (property "Footprint" "" (at 0 0 0)
+        (effects (font (size 1.27 1.27)) hide)
+      )
+      (property "Datasheet" "" (at 0 0 0)
+        (effects (font (size 1.27 1.27)) hide)
+      )
+      (property "ki_keywords" "global power" (at 0 0 0)
+        (effects (font (size 1.27 1.27)) hide)
+      )
+      (property "ki_description" "Power symbol creates a global label with name \"+5V\"" (at 0 0 0)
+        (effects (font (size 1.27 1.27)) hide)
+      )
+      (symbol "+5V_0_1"
+        (polyline
+          (pts
+            (xy -0.762 1.27)
+            (xy 0 2.54)
+          )
+          (stroke (width 0) (type default))
+          (fill (type none))
+        )
+        (polyline
+          (pts
+            (xy 0 0)
+            (xy 0 2.54)
+          )
+          (stroke (width 0) (type default))
+          (fill (type none))
+        )
+        (polyline
+          (pts
+            (xy 0 2.54)
+            (xy 0.762 1.27)
+          )
+          (stroke (width 0) (type default))
+          (fill (type none))
+        )
+      )
+      (symbol "+5V_1_1"
+        (pin power_in line (at 0 0 90) (length 0) hide
+          (name "+5V" (effects (font (size 1.27 1.27))))
+          (number "1" (effects (font (size 1.27 1.27))))
+        )
+      )
+    )
     (symbol "power:GND" (power) (pin_names (offset 0)) (in_bom yes) (on_board yes)
       (property "Reference" "#PWR" (at 0 -6.35 0)
         (effects (font (size 1.27 1.27)) hide)
@@ -1101,18 +1153,36 @@
       (effects (font (size 1.27 1.27)) (justify right) hide)
     )
   )
-  (global_label "+5V_ISOLATED_POWER" (shape input) (at 135.89 40.64 90) (fields_autoplaced)
-    (effects (font (size 1.27 1.27)) (justify left))
-    (uuid cedb0f58-030e-4e42-a912-317c87c2aa6a)
-    (property "Intersheetrefs" "${INTERSHEET_REFS}" (at 135.89 16.8095 90)
-      (effects (font (size 1.27 1.27)) (justify left) hide)
-    )
-  )
   (global_label "BYPASS_RIGHT_SEND" (shape output) (at 101.6 130.81 180) (fields_autoplaced)
     (effects (font (size 1.27 1.27)) (justify right))
     (uuid f60ab37c-3d97-422d-a726-bd03a89b318b)
     (property "Intersheetrefs" "${INTERSHEET_REFS}" (at 79.7136 130.8894 0)
       (effects (font (size 1.27 1.27)) (justify right) hide)
+    )
+  )
+
+  (symbol (lib_id "power:+5V") (at 135.89 40.64 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
+    (uuid 0a22c679-b2d9-4c26-aa7e-25dc64ab9062)
+    (property "Reference" "#PWR041" (at 135.89 44.45 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "+5V" (at 135.89 35.56 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "" (at 135.89 40.64 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 135.89 40.64 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid dc06c58c-75be-4fc3-9cbd-3ca125af6974))
+    (instances
+      (project "DaisySeedPedal125b"
+        (path "/1d54e6f4-7c7a-4f03-b2db-a136bdff5b99/d5b1af0e-2179-4bcd-8e24-55fd6680ab7e"
+          (reference "#PWR041") (unit 1)
+        )
+      )
     )
   )
 
@@ -1204,7 +1274,7 @@
   (symbol (lib_id "power:GND") (at 140.97 128.27 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 5b5ea0ab-0bca-4119-a322-bf299087dbc7)
-    (property "Reference" "#PWR029" (at 140.97 134.62 0)
+    (property "Reference" "#PWR043" (at 140.97 134.62 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 140.97 133.35 0)
@@ -1220,7 +1290,7 @@
     (instances
       (project "DaisySeedPedal125b"
         (path "/1d54e6f4-7c7a-4f03-b2db-a136bdff5b99/d5b1af0e-2179-4bcd-8e24-55fd6680ab7e"
-          (reference "#PWR029") (unit 1)
+          (reference "#PWR043") (unit 1)
         )
       )
     )
@@ -1229,7 +1299,7 @@
   (symbol (lib_id "Relay_SolidState:CPC1017N") (at 90.17 160.02 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 66fdd762-ec7b-49f3-a50f-61965c6a63c7)
-    (property "Reference" "U7" (at 90.17 152.4 0)
+    (property "Reference" "U5" (at 90.17 152.4 0)
       (effects (font (size 1.27 1.27)))
     )
     (property "Value" "CPC1018N" (at 90.17 154.94 0)
@@ -1248,7 +1318,7 @@
     (instances
       (project "DaisySeedPedal125b"
         (path "/1d54e6f4-7c7a-4f03-b2db-a136bdff5b99/d5b1af0e-2179-4bcd-8e24-55fd6680ab7e"
-          (reference "U7") (unit 1)
+          (reference "U5") (unit 1)
         )
       )
     )
@@ -1283,7 +1353,7 @@
   (symbol (lib_id "power:GND") (at 97.79 162.56 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 8699bf5b-fda7-40e9-aca2-5926f74c74f6)
-    (property "Reference" "#PWR043" (at 97.79 168.91 0)
+    (property "Reference" "#PWR039" (at 97.79 168.91 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 97.79 167.64 0)
@@ -1299,7 +1369,7 @@
     (instances
       (project "DaisySeedPedal125b"
         (path "/1d54e6f4-7c7a-4f03-b2db-a136bdff5b99/d5b1af0e-2179-4bcd-8e24-55fd6680ab7e"
-          (reference "#PWR043") (unit 1)
+          (reference "#PWR039") (unit 1)
         )
       )
     )
@@ -1308,7 +1378,7 @@
   (symbol (lib_id "Device:R") (at 78.74 157.48 90) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 900e9288-44b5-4cd2-aa4a-7f550f95905a)
-    (property "Reference" "R24" (at 78.74 152.4 90)
+    (property "Reference" "R22" (at 78.74 152.4 90)
       (effects (font (size 1.27 1.27)))
     )
     (property "Value" "1K" (at 78.74 154.94 90)
@@ -1325,7 +1395,7 @@
     (instances
       (project "DaisySeedPedal125b"
         (path "/1d54e6f4-7c7a-4f03-b2db-a136bdff5b99/d5b1af0e-2179-4bcd-8e24-55fd6680ab7e"
-          (reference "R24") (unit 1)
+          (reference "R22") (unit 1)
         )
       )
     )
@@ -1334,7 +1404,7 @@
   (symbol (lib_id "power:GND") (at 40.64 95.25 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid a3c1bfd6-a3c0-479b-a82e-2d0c0dbae779)
-    (property "Reference" "#PWR018" (at 40.64 101.6 0)
+    (property "Reference" "#PWR036" (at 40.64 101.6 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 40.64 100.33 0)
@@ -1350,7 +1420,7 @@
     (instances
       (project "DaisySeedPedal125b"
         (path "/1d54e6f4-7c7a-4f03-b2db-a136bdff5b99/d5b1af0e-2179-4bcd-8e24-55fd6680ab7e"
-          (reference "#PWR018") (unit 1)
+          (reference "#PWR036") (unit 1)
         )
       )
     )
@@ -1391,7 +1461,7 @@
   (symbol (lib_id "power:GND") (at 82.55 162.56 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid c9f735af-e81e-4fc9-b085-2a78b816d134)
-    (property "Reference" "#PWR041" (at 82.55 168.91 0)
+    (property "Reference" "#PWR037" (at 82.55 168.91 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 82.55 167.64 0)
@@ -1407,7 +1477,7 @@
     (instances
       (project "DaisySeedPedal125b"
         (path "/1d54e6f4-7c7a-4f03-b2db-a136bdff5b99/d5b1af0e-2179-4bcd-8e24-55fd6680ab7e"
-          (reference "#PWR041") (unit 1)
+          (reference "#PWR037") (unit 1)
         )
       )
     )
@@ -1416,7 +1486,7 @@
   (symbol (lib_id "Relay_SolidState:CPC1017N") (at 90.17 187.96 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid d24f6213-e58f-4347-9a26-b9772e9a67f2)
-    (property "Reference" "U8" (at 90.17 180.34 0)
+    (property "Reference" "U6" (at 90.17 180.34 0)
       (effects (font (size 1.27 1.27)))
     )
     (property "Value" "CPC1018N" (at 90.17 182.88 0)
@@ -1435,7 +1505,7 @@
     (instances
       (project "DaisySeedPedal125b"
         (path "/1d54e6f4-7c7a-4f03-b2db-a136bdff5b99/d5b1af0e-2179-4bcd-8e24-55fd6680ab7e"
-          (reference "U8") (unit 1)
+          (reference "U6") (unit 1)
         )
       )
     )
@@ -1444,7 +1514,7 @@
   (symbol (lib_id "power:GND") (at 140.97 71.12 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid dc4c5c80-5582-4c94-ae39-7722bf858f6b)
-    (property "Reference" "#PWR020" (at 140.97 77.47 0)
+    (property "Reference" "#PWR042" (at 140.97 77.47 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 140.97 76.2 0)
@@ -1460,7 +1530,7 @@
     (instances
       (project "DaisySeedPedal125b"
         (path "/1d54e6f4-7c7a-4f03-b2db-a136bdff5b99/d5b1af0e-2179-4bcd-8e24-55fd6680ab7e"
-          (reference "#PWR020") (unit 1)
+          (reference "#PWR042") (unit 1)
         )
       )
     )
@@ -1469,7 +1539,7 @@
   (symbol (lib_id "power:GND") (at 97.79 190.5 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid e0886478-2414-415c-accd-0998be3f7497)
-    (property "Reference" "#PWR044" (at 97.79 196.85 0)
+    (property "Reference" "#PWR040" (at 97.79 196.85 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 97.79 195.58 0)
@@ -1485,7 +1555,7 @@
     (instances
       (project "DaisySeedPedal125b"
         (path "/1d54e6f4-7c7a-4f03-b2db-a136bdff5b99/d5b1af0e-2179-4bcd-8e24-55fd6680ab7e"
-          (reference "#PWR044") (unit 1)
+          (reference "#PWR040") (unit 1)
         )
       )
     )
@@ -1494,7 +1564,7 @@
   (symbol (lib_id "power:GND") (at 82.55 190.5 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid f303c97d-0f91-481e-9cac-33da70f49367)
-    (property "Reference" "#PWR042" (at 82.55 196.85 0)
+    (property "Reference" "#PWR038" (at 82.55 196.85 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 82.55 195.58 0)
@@ -1510,7 +1580,7 @@
     (instances
       (project "DaisySeedPedal125b"
         (path "/1d54e6f4-7c7a-4f03-b2db-a136bdff5b99/d5b1af0e-2179-4bcd-8e24-55fd6680ab7e"
-          (reference "#PWR042") (unit 1)
+          (reference "#PWR038") (unit 1)
         )
       )
     )
@@ -1519,7 +1589,7 @@
   (symbol (lib_id "Device:R") (at 78.74 185.42 90) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid f509e9d1-723a-495a-9ee6-6fff4c55bd24)
-    (property "Reference" "R25" (at 78.74 180.34 90)
+    (property "Reference" "R23" (at 78.74 180.34 90)
       (effects (font (size 1.27 1.27)))
     )
     (property "Value" "1K" (at 78.74 182.88 90)
@@ -1536,7 +1606,7 @@
     (instances
       (project "DaisySeedPedal125b"
         (path "/1d54e6f4-7c7a-4f03-b2db-a136bdff5b99/d5b1af0e-2179-4bcd-8e24-55fd6680ab7e"
-          (reference "R25") (unit 1)
+          (reference "R23") (unit 1)
         )
       )
     )

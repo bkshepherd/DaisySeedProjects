@@ -6,8 +6,8 @@
 
   (title_block
     (title "Daisy Seed Guitar Pedal 125B")
-    (date "2023-06-30")
-    (rev "5")
+    (date "2024-02-25")
+    (rev "6")
     (company "Made by Keith Shepherd (kshep@mac.com)")
   )
 
@@ -196,7 +196,7 @@
   (symbol (lib_id "power:GND") (at 138.43 113.03 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 3aa9de67-127e-4802-964b-8400714aa16b)
-    (property "Reference" "#PWR08" (at 138.43 119.38 0)
+    (property "Reference" "#PWR045" (at 138.43 119.38 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 138.43 118.11 0)
@@ -212,7 +212,7 @@
     (instances
       (project "DaisySeedPedal125b"
         (path "/1d54e6f4-7c7a-4f03-b2db-a136bdff5b99/05a79108-cb22-4356-96de-706d080a4feb"
-          (reference "#PWR08") (unit 1)
+          (reference "#PWR045") (unit 1)
         )
       )
     )
@@ -221,7 +221,7 @@
   (symbol (lib_id "GuitarPedal125B:OLED_DISPLAY_SSD1306_SPI") (at 138.43 102.87 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 77511a75-6963-4c15-828b-892802ff5e06)
-    (property "Reference" "U6" (at 137.16 100.33 0)
+    (property "Reference" "U7" (at 137.16 100.33 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "OLED_DISPLAY_SSD1306_SPI" (at 125.73 96.52 0)
@@ -243,7 +243,7 @@
     (instances
       (project "DaisySeedPedal125b"
         (path "/1d54e6f4-7c7a-4f03-b2db-a136bdff5b99/05a79108-cb22-4356-96de-706d080a4feb"
-          (reference "U6") (unit 1)
+          (reference "U7") (unit 1)
         )
       )
     )
@@ -252,7 +252,7 @@
   (symbol (lib_id "power:+3.3V") (at 138.43 83.82 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid e0767e73-b5ea-4d40-a272-d2a4b56cd9ea)
-    (property "Reference" "#PWR01" (at 138.43 87.63 0)
+    (property "Reference" "#PWR044" (at 138.43 87.63 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3.3V" (at 138.43 78.74 0)
@@ -268,7 +268,7 @@
     (instances
       (project "DaisySeedPedal125b"
         (path "/1d54e6f4-7c7a-4f03-b2db-a136bdff5b99/05a79108-cb22-4356-96de-706d080a4feb"
-          (reference "#PWR01") (unit 1)
+          (reference "#PWR044") (unit 1)
         )
       )
     )

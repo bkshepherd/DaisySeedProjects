@@ -22,7 +22,7 @@ Follow these steps to get the PCB made by JLCPCB:
 
 ## 1. Generate the Gerber & Drill Files
 
-The first step is to use KiCad to export the Gerber & Drill files for production like this: [JLCPCB Gerber and Drill File Generation](https://jlcpcb.com/help/article/16-How-to-generate-Gerber-and-Drill-files-in-KiCad-6). You can also skip this part and simply use the ready-made [JLCPCB Gerber Files](../pcb/JLCPCB-Gerbers/DaisySeedPedal125b-Rev5-gerbers.zip) for this project. (Keep the files zipped)
+The first step is to use KiCad to export the Gerber & Drill files for production like this: [JLCPCB Gerber and Drill File Generation](https://jlcpcb.com/help/article/16-How-to-generate-Gerber-and-Drill-files-in-KiCad-6). You can also skip this part and simply use the ready-made [JLCPCB Gerber Files](../pcb/JLCPCB-Gerbers/DaisySeedPedal125b-Rev6-gerbers.zip) for this project. (Keep the files zipped)
 
 ## 2. Generate BOM and Centroid Files
 
