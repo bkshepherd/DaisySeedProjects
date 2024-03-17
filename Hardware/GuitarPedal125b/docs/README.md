@@ -43,7 +43,7 @@ To order these parts through JLCPCB follow these instructions:
 2. Go to the [Parts Manager Page](https://jlcpcb.com/user-center/smtPrivateLibrary/).
 3. Click on Order Parts ![Processed Gerbers](images/JLCPCB-OrderParts.png)
 4. There are two options for ordering parts JLCPCB Parts and Global Parts Sourcing.  I always try to use JLCPCB Parts ordering first, but sometimes you have to use Global Parts Sourcing.
-5. First try looking in JLCPCB Parts and search using the above JLCPCB Part #s.  If you can order it there, great, do so.  You'll need to order at least 5 of each part.
+5. First try looking in JLCPCB Parts and search using the above JLCPCB Part #s.  If you can order it there, great, do so.
 6. If you can't find it there (sometimes the prices are crazy high, or the min quantity is a huge number), then try Global Parts Sourcing. 
 7. Search for the part by name in Global Part Sourcing.
 5. Find a supplier that lets you order a small quantity and double check the part name to make sure it's the right part.
