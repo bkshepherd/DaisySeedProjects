@@ -12,7 +12,7 @@ extern BaseEffectModule **availableEffects;
 extern int activeEffectID;
 extern BaseEffectModule *activeEffect;
 
-// These will be called from the UI system. @see InitUi() in UiSystemDemo.cpp
+// These will be called from the UI system. @see InitUi()
 void FlushCanvas(const UiCanvasDescriptor& canvasDescriptor)
 {
     if(canvasDescriptor.id_ == 0)
