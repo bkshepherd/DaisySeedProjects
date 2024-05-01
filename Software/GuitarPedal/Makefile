@@ -14,6 +14,8 @@ APP_TYPE = BOOT_SRAM
 DAISYSP_DIR ?= DaisySP
 LIBDAISY_DIR ?= libDaisy
 
+USE_DAISYSP_LGPL=1
+
 # Core location, and generic Makefile.
 SYSTEM_FILES_DIR = $(LIBDAISY_DIR)/core
 include $(SYSTEM_FILES_DIR)/Makefile
