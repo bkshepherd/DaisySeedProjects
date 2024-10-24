@@ -148,7 +148,9 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
     }
 
     //If both footswitches are down, save the parameters for this effect to persistant storage
-    if (hardware.switches[1].TimeHeldMs() > 2000 && !guitarPedalUI.IsShowingSavingSettingsScreen())
+    if (hardware.switches[0].TimeHeldMs() > 2000 &&
+        hardware.switches[1].TimeHeldMs() > 2000 &&
+        !guitarPedalUI.IsShowingSavingSettingsScreen())
     {
         needToSaveSettingsForActiveEffect = true;
     }
