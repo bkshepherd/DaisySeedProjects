@@ -160,6 +160,19 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
     for (int i = 0; i < hardware.GetSwitchCount(); i++)
     {
         bool switchPressed = hardware.switches[i].RisingEdge();
+        if (switchPressed && i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)) {
+          activeEffect->AlternateFootswitchPressed();
+        }
+
+        bool switchReleased = hardware.switches[i].FallingEdge();
+        if (switchReleased && i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)) {
+          activeEffect->AlternateFootswitchReleased();
+        }
+
+        bool switchHeld = hardware.switches[i].TimeHeldMs() >= 1000.f;
+        if (switchHeld && i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)) {
+          activeEffect->AlternateFootswitchHeldFor1Second();
+        }
 
         // Find which hardware switch is mapped to the Effect On/Off Bypass function
         if (i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Bypass))
@@ -195,7 +208,7 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
                 switchDoubleEnabledCache[i] = true;
 
                 // Register as Tap Tempo if Switch ID matched preferred mapping for TapTempo
-                if (i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::TapTempo))
+                if (!activeEffect->AlternateFootswitchForTempo() && i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate))
                 {
                     needToChangeTempo = true;
                     float timeBetweenPresses = hardware.GetTimeForNumberOfSamples(switchEnabledIdleTimeInSamples - switchEnabledSamplesTilIdle[i]);

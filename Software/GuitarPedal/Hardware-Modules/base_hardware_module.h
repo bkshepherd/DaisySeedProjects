@@ -21,7 +21,7 @@ namespace bkshepherd {
 enum SpecialFunctionType
 {
    Bypass,                    // Bypass
-   TapTempo,                  // TapTempo
+   Alternate,                 // Alternate footswitch for effects to use (by default it is tap tempo if an effect doesn't change it)
    SpecialFunctionType_LAST,  // Last enum item
 };
 
@@ -156,7 +156,7 @@ class BaseHardwareModule
     int GetLedCount();
 
     /**
-       Gets the ID of the Switch this hardware would prefer is used for a specific special function such as Bypass or TapTempo.
+       Gets the ID of the Switch this hardware would prefer is used for a specific special function such as Bypass or TapTempo(Alternate).
        \param sfType The type of special function
        \return The preferred SwitchID for this function. -1 if there is no available switch for this function on this hardware
      */
