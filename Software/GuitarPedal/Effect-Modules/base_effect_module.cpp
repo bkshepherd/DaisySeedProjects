@@ -371,11 +371,11 @@ void BaseEffectModule::SetParameterAsBool(int parameter_id, bool value)
 {
     if (value)
     {
-        SetParameterRaw(parameter_id, GetParameterMin(parameter_id));
+        SetParameterRaw(parameter_id, GetParameterMax(parameter_id));
     }
     else
     {
-        SetParameterRaw(parameter_id, GetParameterMax(parameter_id));
+        SetParameterRaw(parameter_id, GetParameterMin(parameter_id));
     }
     
 }
