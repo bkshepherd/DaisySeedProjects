@@ -108,7 +108,7 @@ void TunerModule::DrawUI(OneBitGraphicsDisplay& display, int currentIndex,
 
   // Thresholds for tuning accuracy mapping to blocks
   const float closeThreshold = 1.0f;
-  const float farLimit = 10.0f;
+  const float farLimit = 45.0f;
 
   // 0 is in tune, 1.0f is max out of tune we display, cents sign is used to
   // determine sharp or flat
@@ -169,7 +169,7 @@ void TunerModule::DrawUI(OneBitGraphicsDisplay& display, int currentIndex,
   }
 
   char strbuffFreq[64];
-  sprintf(strbuffFreq, "%.2f", m_currentFrequency);
+  sprintf(strbuffFreq, "%d", static_cast<int>(m_currentFrequency));
   display.WriteStringAligned(strbuffFreq, Font_7x10, boundsToDrawIn,
                              Alignment::bottomCentered, true);
 }
