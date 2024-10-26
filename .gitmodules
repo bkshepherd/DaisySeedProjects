@@ -4,3 +4,9 @@
 [submodule "Software/GuitarPedal/libDaisy"]
 	path = Software/GuitarPedal/libDaisy
 	url = https://github.com/electro-smith/libDaisy.git
+[submodule "Software/GuitarPedal/infra"]
+	path = Software/GuitarPedal/q/infra
+	url = git@github.com:cycfi/infra.git
+[submodule "Software/GuitarPedal/q"]
+	path = Software/GuitarPedal/q/q
+	url = git@github.com:cycfi/q.git
