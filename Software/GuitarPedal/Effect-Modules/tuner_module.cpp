@@ -169,7 +169,7 @@ void TunerModule::DrawUI(OneBitGraphicsDisplay& display, int currentIndex,
   }
 
   char strbuffFreq[64];
-  sprintf(strbuffFreq, "%d", static_cast<int>(m_currentFrequency));
+  sprintf(strbuffFreq, FLT_FMT(2), FLT_VAR(2, m_currentFrequency));
   display.WriteStringAligned(strbuffFreq, Font_7x10, boundsToDrawIn,
                              Alignment::bottomCentered, true);
 }
