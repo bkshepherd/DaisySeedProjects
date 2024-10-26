@@ -255,6 +255,18 @@ class BaseEffectModule
         \param value, midi value
     */
     virtual void MidiCCValueNotification(uint8_t control_num, uint8_t value);
+
+    /** Effect can override this and return false to disable the tap tempo functionality to utilize the switch (loopers, momentary effects, etc)
+     *  \return Value True if the Effect uses the alternate footswitch for tap tempo
+    */
+    virtual bool AlternateFootswitchForTempo() const { return true; };
+    /** Overridable callback when alternate footswitch is pressed */
+    virtual void AlternateFootswitchPressed() {};
+    /** Overridable callback when alternate footswitch is released */
+    virtual void AlternateFootswitchReleased() {};
+    /** Overridable callback when alternate footswitch is held for 1 second */
+    virtual void AlternateFootswitchHeldFor1Second() {};
+
   protected:
     /** Initializes the Parameter Storage and creates space for the specified number of stored Effect Parameters
         \param count  The number of stored parameters
