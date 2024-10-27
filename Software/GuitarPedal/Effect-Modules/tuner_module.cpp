@@ -1,15 +1,23 @@
 #include "tuner_module.h"
 
-#include <q/fx/lowpass.hpp>
 #include <q/fx/signal_conditioner.hpp>
 #include <q/pitch/pitch_detector.hpp>
 #include <q/support/pitch_names.hpp>
+
+#include "../Util/1efilter.hpp"
 
 using namespace bkshepherd;
 
 using namespace daisy;
 using namespace daisysp;
 using namespace cycfi::q;
+
+// Inputs:
+// Estimated frequency: Overwritten by timestamps at runtime and not used
+// Cutoff Freq
+// Beta: 0.0f disables it entirely, but used for scaling cutoff frequency
+// Derivative cutoff freq: used when beta is > 0
+one_euro_filter<float, float> smoothingFilter{48000, 0.5f, 0.05f, 1.0f};
 
 const char k_notes[12][3] = {"C",  "C#", "D",  "D#", "E",  "F",
                              "F#", "G",  "G#", "A",  "A#", "B"};
@@ -24,7 +32,7 @@ TunerModule::TunerModule() : BaseEffectModule() {
   // Initialize Parameters for this Effect
   this->InitParams(0);
 
-  m_name = "TuneQ";
+  m_name = "Tuner";
 }
 
 // Destructor
@@ -34,9 +42,6 @@ TunerModule::~TunerModule() {
 
   delete m_preProcessor;
   m_preProcessor = nullptr;
-
-  delete m_smoothingFilter;
-  m_smoothingFilter = nullptr;
 }
 
 void TunerModule::Init(float sample_rate) {
@@ -52,8 +57,6 @@ void TunerModule::Init(float sample_rate) {
   signal_conditioner::config preprocessor_config;
   m_preProcessor = new signal_conditioner{preprocessor_config, lowest_frequency,
                                           highest_frequency, sample_rate};
-
-  m_smoothingFilter = new dynamic_smoother{20, sample_rate};
 }
 
 float Pitch(uint8_t note) { return 440.0f * pow(2.0f, (note - 'E') / 12.0f); }
@@ -77,10 +80,12 @@ void TunerModule::ProcessMono(float in) {
 
   // If result is ready, get the detected frequency
   if (ready) {
-    m_currentFrequency = m_pitchDetector->get_frequency();
+    const float freq = m_pitchDetector->get_frequency();
 
     // Run a smoothing filter on the detected frequency
-    m_currentFrequency = m_smoothingFilter->operator()(m_currentFrequency);
+    const float currentTimeInSeconds =
+        static_cast<float>(System::GetNow()) / 1000.f;
+    m_currentFrequency = smoothingFilter(freq, currentTimeInSeconds);
   }
 
   m_note = Note(m_currentFrequency);
@@ -93,13 +98,17 @@ void TunerModule::ProcessStereo(float inL, float inR) { ProcessMono(inL); }
 void TunerModule::DrawUI(OneBitGraphicsDisplay& display, int currentIndex,
                          int numItemsTotal, Rectangle boundsToDrawIn,
                          bool isEditing) {
-  char currentNote[12];
-  sprintf(currentNote, "%s", k_notes[m_note % 12]);
+  const bool displayTuning = m_currentFrequency > 0;
 
-  char strbuffNote[64];
-  sprintf(strbuffNote, "%s", currentNote);
-  display.WriteStringAligned(strbuffNote, Font_16x26, boundsToDrawIn,
-                             Alignment::topCentered, true);
+  if (displayTuning) {
+    char currentNote[12];
+    sprintf(currentNote, "%s", k_notes[m_note % 12]);
+
+    char strbuffNote[64];
+    sprintf(strbuffNote, "%s", currentNote);
+    display.WriteStringAligned(strbuffNote, Font_16x26, boundsToDrawIn,
+                               Alignment::topCentered, true);
+  }
 
   // This has to be an odd number so the middle block is "in tune"
   const uint8_t blockCount = 15;
@@ -108,6 +117,9 @@ void TunerModule::DrawUI(OneBitGraphicsDisplay& display, int currentIndex,
 
   // Thresholds for tuning accuracy mapping to blocks
   const float closeThreshold = 1.0f;
+
+  // Nearly half a semitone so that it switches to the sharp or flat version of
+  // the next note after the last block is active
   const float farLimit = 45.0f;
 
   // 0 is in tune, 1.0f is max out of tune we display, cents sign is used to
@@ -124,38 +136,40 @@ void TunerModule::DrawUI(OneBitGraphicsDisplay& display, int currentIndex,
 
   bool blockActive[blockCount] = {false};
 
-  // The center block is always active
-  blockActive[inTuneBlockIndex] = true;
+  if (displayTuning) {
+    // The center block is always active
+    blockActive[inTuneBlockIndex] = true;
 
-  // Counter used to set the blocks (gets decremented as we set them active)
-  // We cap this to always show at least 1, and we will remove that 1 in the
-  // next step if our tuning threshold is met
-  uint8_t blockChangeCount =
-      std::max(numBlocksOutOfTuneToDisplay, static_cast<uint8_t>(1));
+    // Counter used to set the blocks (gets decremented as we set them active)
+    // We cap this to always show at least 1, and we will remove that 1 in the
+    // next step if our tuning threshold is met
+    uint8_t blockChangeCount =
+        std::max(numBlocksOutOfTuneToDisplay, static_cast<uint8_t>(1));
 
-  // Only show no blocks out of tune if we are within the close threshold
-  if (std::abs(m_cents) < closeThreshold) {
-    blockChangeCount = 0;
-  }
-
-  if (m_cents < 0) {
-    // Set the flat blocks state
-    for (int i = inTuneBlockIndex - 1; i >= 0; i--) {
-      if (blockChangeCount > 0) {
-        blockActive[i] = true;
-        blockChangeCount--;
-      } else {
-        break;
-      }
+    // Only show no blocks out of tune if we are within the close threshold
+    if (std::abs(m_cents) < closeThreshold) {
+      blockChangeCount = 0;
     }
-  } else {
-    // Set the sharp blocks state
-    for (int i = inTuneBlockIndex + 1; i < blockCount; i++) {
-      if (blockChangeCount > 0) {
-        blockActive[i] = true;
-        blockChangeCount--;
-      } else {
-        break;
+
+    if (m_cents < 0) {
+      // Set the flat blocks state
+      for (int i = inTuneBlockIndex - 1; i >= 0; i--) {
+        if (blockChangeCount > 0) {
+          blockActive[i] = true;
+          blockChangeCount--;
+        } else {
+          break;
+        }
+      }
+    } else {
+      // Set the sharp blocks state
+      for (int i = inTuneBlockIndex + 1; i < blockCount; i++) {
+        if (blockChangeCount > 0) {
+          blockActive[i] = true;
+          blockChangeCount--;
+        } else {
+          break;
+        }
       }
     }
   }
@@ -168,8 +182,10 @@ void TunerModule::DrawUI(OneBitGraphicsDisplay& display, int currentIndex,
     x += blockWidth;
   }
 
-  char strbuffFreq[64];
-  sprintf(strbuffFreq, FLT_FMT(2), FLT_VAR(2, m_currentFrequency));
-  display.WriteStringAligned(strbuffFreq, Font_7x10, boundsToDrawIn,
-                             Alignment::bottomCentered, true);
+  if (displayTuning) {
+    char strbuffFreq[64];
+    sprintf(strbuffFreq, FLT_FMT(2), FLT_VAR(2, m_currentFrequency));
+    display.WriteStringAligned(strbuffFreq, Font_7x10, boundsToDrawIn,
+                               Alignment::bottomCentered, true);
+  }
 }

@@ -16,7 +16,6 @@ namespace cycfi {
 namespace q {
 class pitch_detector;
 class signal_conditioner;
-class dynamic_smoother;
 }  // namespace q
 }  // namespace cycfi
 
@@ -43,7 +42,6 @@ class TunerModule : public BaseEffectModule {
 
   cycfi::q::pitch_detector* m_pitchDetector = nullptr;
   cycfi::q::signal_conditioner* m_preProcessor = nullptr;
-  cycfi::q::dynamic_smoother* m_smoothingFilter = nullptr;
 };
 }  // namespace bkshepherd
 #endif
