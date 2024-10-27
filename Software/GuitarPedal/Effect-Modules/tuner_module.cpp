@@ -94,7 +94,7 @@ void TunerModule::DrawUI(OneBitGraphicsDisplay& display, int currentIndex,
                          int numItemsTotal, Rectangle boundsToDrawIn,
                          bool isEditing) {
   char currentNote[12];
-  sprintf(currentNote, "%s%u", k_notes[m_note % 12], m_octave);
+  sprintf(currentNote, "%s", k_notes[m_note % 12]);
 
   char strbuffNote[64];
   sprintf(strbuffNote, "%s", currentNote);
