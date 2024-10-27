@@ -128,13 +128,13 @@ void LooperModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex,
   // merged
 
   // clang-format off
-//    float percentageDone = 100.0 * (m_looperL.GetPos() / m_looperL.GetRecSize());
-//    char strbuff[64];
-//    if (m_looperL.Recording()) {
-//      sprintf(strbuff, "R %.2f  ", percentageDone);
-//    } else {
-//      sprintf(strbuff, "  %.2f  ", percentageDone);
-//    }
+  //  float percentageDone = 100.0 * (m_looperL.GetPos() / m_looperL.GetRecSize());
+  //  char strbuff[64];
+  //  if (m_looperL.Recording()) {
+  //    sprintf(strbuff, "R" FLT_FMT(1), FLT_VAR(1, percentageDone));
+  //  } else {
+  //    sprintf(strbuff, FLT_FMT(1), FLT_VAR(1, percentageDone));
+  //  }
   // clang-format on
 
   char strbuff[64];
