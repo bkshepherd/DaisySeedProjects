@@ -8,6 +8,7 @@
 #include "Effect-Modules/autopan_module.h"
 #include "Effect-Modules/chorus_module.h"
 #include "Effect-Modules/chopper_module.h"
+#include "Effect-Modules/compressor_module.h"
 #include "Effect-Modules/reverb_module.h"
 #include "Effect-Modules/metro_module.h"
 #include "Effect-Modules/multi_delay_module.h"
@@ -501,6 +502,7 @@ int main(void)
     availableEffects[5] = new ReverbModule();
     availableEffects[6] = new MultiDelayModule();
     availableEffects[7] = new MetroModule();
+    availableEffects[8] = new CompressorModule();
 
     
     for (int i = 0; i < availableEffectsCount; i++)
