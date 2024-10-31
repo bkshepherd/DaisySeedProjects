@@ -149,7 +149,9 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
     }
 
     //If both footswitches are down, save the parameters for this effect to persistant storage
-    if (hardware.switches[1].TimeHeldMs() > 2000 && !guitarPedalUI.IsShowingSavingSettingsScreen())
+    if (hardware.switches[0].TimeHeldMs() > 2000 &&
+        hardware.switches[1].TimeHeldMs() > 2000 &&
+        !guitarPedalUI.IsShowingSavingSettingsScreen())
     {
         needToSaveSettingsForActiveEffect = true;
     }
@@ -166,6 +168,20 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
         if (i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Bypass))
         {
              effectOn ^= switchPressed;
+        }
+
+        if (switchPressed && i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)) {
+          activeEffect->AlternateFootswitchPressed();
+        }
+
+        bool switchReleased = hardware.switches[i].FallingEdge();
+        if (switchReleased && i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)) {
+          activeEffect->AlternateFootswitchReleased();
+        }
+
+        bool switchHeld = hardware.switches[i].TimeHeldMs() >= 1000.f;
+        if (switchHeld && i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)) {
+          activeEffect->AlternateFootswitchHeldFor1Second();
         }
 
         if (switchEnabledCache[i] == true)
@@ -196,7 +212,7 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
                 switchDoubleEnabledCache[i] = true;
 
                 // Register as Tap Tempo if Switch ID matched preferred mapping for TapTempo
-                if (i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::TapTempo))
+                if (!activeEffect->AlternateFootswitchForTempo() && i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate))
                 {
                     needToChangeTempo = true;
                     float timeBetweenPresses = hardware.GetTimeForNumberOfSamples(switchEnabledIdleTimeInSamples - switchEnabledSamplesTilIdle[i]);

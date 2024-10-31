@@ -4,7 +4,7 @@ using namespace bkshepherd;
 
 static const int s_switchParamCount = 2;
 static const PreferredSwitchMetaData s_switchMetaData[s_switchParamCount] = {{sfType: SpecialFunctionType::Bypass, switchMapping: 0},
-                                                                            {sfType: SpecialFunctionType::TapTempo, switchMapping: 1}}; 
+                                                                            {sfType: SpecialFunctionType::Alternate, switchMapping: 1}};
 
 GuitarPedal1590B::GuitarPedal1590B() : BaseHardwareModule()
 {
