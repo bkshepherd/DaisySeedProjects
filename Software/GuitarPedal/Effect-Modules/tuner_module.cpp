@@ -22,7 +22,16 @@ one_euro_filter<float, float> smoothingFilter{48000, 0.5f, 0.05f, 1.0f};
 const char k_notes[12][3] = {"C",  "C#", "D",  "D#", "E",  "F",
                              "F#", "G",  "G#", "A",  "A#", "B"};
 
-static const ParameterMetaData s_metaData[0] = {};
+static const int s_paramCount = 1;
+static const ParameterMetaData s_metaData[s_paramCount] = {
+    {
+      name : "Mute",
+      valueType : ParameterValueType::Bool,
+      defaultValue : 127,
+      knobMapping : 0,
+      midiCCMapping : -1
+    },
+};
 
 // Default Constructor
 TunerModule::TunerModule() : BaseEffectModule() {
@@ -30,7 +39,7 @@ TunerModule::TunerModule() : BaseEffectModule() {
   m_paramMetaData = s_metaData;
 
   // Initialize Parameters for this Effect
-  this->InitParams(0);
+  this->InitParams(s_paramCount);
 
   m_name = "Tuner";
 }
@@ -57,6 +66,8 @@ void TunerModule::Init(float sample_rate) {
   signal_conditioner::config preprocessor_config;
   m_preProcessor = new signal_conditioner{preprocessor_config, lowest_frequency,
                                           highest_frequency, sample_rate};
+
+  m_muteOutput = GetParameterAsBool(0);
 }
 
 float Pitch(uint8_t note) { return 440.0f * pow(2.0f, (note - 'E') / 12.0f); }
@@ -70,6 +81,12 @@ uint8_t Note(float frequency) {
 }
 
 uint8_t Octave(float frequency) { return Note(frequency) / 12.0f - 1.0f; }
+
+void TunerModule::ParameterChanged(int parameter_id) {
+  if (parameter_id == 0) {
+    m_muteOutput = GetParameterAsBool(0);
+  }
+}
 
 void TunerModule::ProcessMono(float in) {
   // Pre-process the signal for pitch detection
@@ -91,11 +108,15 @@ void TunerModule::ProcessMono(float in) {
   m_note = Note(m_currentFrequency);
   m_octave = Octave(m_currentFrequency);
   m_cents = Cents(m_currentFrequency, m_note);
+
+  if (!m_muteOutput) {
+    m_audioLeft = m_audioRight = in;
+  }
 }
 
 void TunerModule::ProcessStereo(float inL, float inR) { ProcessMono(inL); }
 
-void TunerModule::DrawUI(OneBitGraphicsDisplay& display, int currentIndex,
+void TunerModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex,
                          int numItemsTotal, Rectangle boundsToDrawIn,
                          bool isEditing) {
   const bool displayTuning = m_currentFrequency > 0;
@@ -108,10 +129,15 @@ void TunerModule::DrawUI(OneBitGraphicsDisplay& display, int currentIndex,
     sprintf(strbuffNote, "%s", currentNote);
     display.WriteStringAligned(strbuffNote, Font_16x26, boundsToDrawIn,
                                Alignment::topCentered, true);
+
+    char strbuffOctave[12];
+    sprintf(strbuffOctave, "%d", m_octave);
+    display.WriteStringAligned(strbuffOctave, Font_11x18, boundsToDrawIn,
+                               Alignment::topRight, true);
   }
 
   // This has to be an odd number so the middle block is "in tune"
-  const uint8_t blockCount = 15;
+  const uint8_t blockCount = 21;
   const uint8_t inTuneBlockIndex = (blockCount - 1) / 2;
   const uint8_t numBlocksOutOfTune = (blockCount - 1) / 2;
 
