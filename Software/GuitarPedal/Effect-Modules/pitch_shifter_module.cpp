@@ -7,8 +7,8 @@
 
 using namespace bkshepherd;
 
-static const char *s_semitoneBinNames[8] = {"0", "1", "2", "3",
-                                            "4", "5", "6", "7"};
+static const char *s_semitoneBinNames[8] = {"1", "2", "3", "4",
+                                            "5", "6", "7", "OCT"};
 static const char *s_directionBinNames[2] = {"DOWN", "UP"};
 static const char *s_modeBinNames[2] = {"LATCH", "MOMENT"};
 
@@ -24,7 +24,7 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
       valueType : ParameterValueType::Binned,
       valueBinCount : 8,
       valueBinNames : s_semitoneBinNames,
-      defaultValue : (127 / 8) * 2,
+      defaultValue : 0,
       knobMapping : 0,
       midiCCMapping : -1
     },
@@ -83,6 +83,20 @@ PitchShifterModule::PitchShifterModule() : BaseEffectModule() {
 // Destructor
 PitchShifterModule::~PitchShifterModule() {}
 
+void PitchShifterModule::ProcessSemitoneTargetChange() {
+  int semitoneNum = GetParameterAsBinnedValue(0);
+
+  // If this is the last semitone option, convert it to be a full octave
+  if (semitoneNum == 8) {
+    semitoneNum = 12;
+  }
+
+  m_semitoneTarget = semitoneNum;
+  if (m_directionDown) {
+    m_semitoneTarget *= -1.0f;
+  }
+}
+
 void PitchShifterModule::Init(float sample_rate) {
   BaseEffectModule::Init(sample_rate);
 
@@ -94,11 +108,9 @@ void PitchShifterModule::Init(float sample_rate) {
   m_latching = GetParameterAsBinnedValue(3) == 1;
 
   m_directionDown = GetParameterAsBinnedValue(2) == 1;
-  if (m_directionDown) {
-    m_semitoneTarget = (GetParameterAsBinnedValue(0) - 1) * -1.0f;
-  } else {
-    m_semitoneTarget = (GetParameterAsBinnedValue(0) - 1);
-  }
+
+  ProcessSemitoneTargetChange();
+
   pitchShifter.SetTransposition(m_semitoneTarget);
 
   m_delayValue = GetParameterAsMagnitude(4);
@@ -106,13 +118,10 @@ void PitchShifterModule::Init(float sample_rate) {
 
 void PitchShifterModule::ParameterChanged(int parameter_id) {
   if (parameter_id == 0 || parameter_id == 2) {
-    // Change semitone when semitone knob is turned or direction is changed
     m_directionDown = GetParameterAsBinnedValue(2) == 1;
-    if (m_directionDown) {
-      m_semitoneTarget = (GetParameterAsBinnedValue(0) - 1) * -1.0f;
-    } else {
-      m_semitoneTarget = (GetParameterAsBinnedValue(0) - 1);
-    }
+
+    // Change semitone when semitone knob is turned or direction is changed
+    ProcessSemitoneTargetChange();
   } else if (parameter_id == 1) {
     pitchCrossfade.SetPos(GetParameterAsMagnitude(1));
   } else if (parameter_id == 3) {
@@ -208,12 +217,13 @@ float PitchShifterModule::ProcessMomentaryMode(float in) {
   // ---- Process ramp up/ramp down transition ----
 
   // Clamp just to make sure we don't overshoot the semitone just in case
-  const float percentageComplete = clamp(
+  m_percentageTransitionComplete = clamp(
       static_cast<float>(m_sampleCounter) / static_cast<float>(samplesToDelay),
       0.0f, 1.0f);
 
   // Perform the pitch shift
-  pitchShifter.SetTransposition(m_semitoneTarget * percentageComplete);
+  pitchShifter.SetTransposition(m_semitoneTarget *
+                                m_percentageTransitionComplete);
   float shifted = pitchShifter.Process(in);
   float pitchOut = pitchCrossfade.Process(in, shifted);
 
@@ -228,4 +238,41 @@ float PitchShifterModule::ProcessMomentaryMode(float in) {
   }
 
   return pitchOut;
+}
+
+void PitchShifterModule::DrawUI(OneBitGraphicsDisplay &display,
+                                int currentIndex, int numItemsTotal,
+                                Rectangle boundsToDrawIn, bool isEditing) {
+  BaseEffectModule::DrawUI(display, currentIndex, numItemsTotal, boundsToDrawIn,
+                           isEditing);
+
+  // Only add a UI for when we are in momentary mode
+  if (m_latching) {
+    return;
+  }
+
+  int width = boundsToDrawIn.GetWidth();
+  int numBlocks = 20;
+  int blockWidth = width / numBlocks;
+  int top = 30;
+  int x = 0;
+  const bool transitioning = m_sampleCounter > 0 && m_delayValue > 0;
+  for (int block = 0; block < numBlocks; block++) {
+    Rectangle r(x, top, blockWidth, blockWidth);
+
+    bool active = false;
+    if (transitioning) {
+      if ((static_cast<float>(block) / static_cast<float>(numBlocks)) <=
+          m_percentageTransitionComplete) {
+        active = true;
+      }
+    } else {
+      if (m_alternateFootswitchPressed) {
+        active = true;
+      }
+    }
+
+    display.DrawRect(r, true, active);
+    x += blockWidth;
+  }
 }
