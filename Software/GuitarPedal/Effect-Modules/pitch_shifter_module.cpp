@@ -17,7 +17,7 @@ static const char *s_modeBinNames[2] = {"LATCH", "MOMENT"};
 // transition when in momentary mode. Has no effect on latching mode
 const uint32_t k_maxSamplesMaxTime = 48000 * 2;
 
-static const int s_paramCount = 5;
+static const int s_paramCount = 6;
 static const ParameterMetaData s_metaData[s_paramCount] = {
     {
       name : "Semitone",
@@ -55,11 +55,19 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
       midiCCMapping : -1
     },
     {
-      name : "Delay",
+      name : "Shift",
       valueType : ParameterValueType::FloatMagnitude,
       valueBinCount : 0,
       defaultValue : 0,
       knobMapping : 4,
+      midiCCMapping : -1
+    },
+    {
+      name : "Return",
+      valueType : ParameterValueType::FloatMagnitude,
+      valueBinCount : 0,
+      defaultValue : 0,
+      knobMapping : 5,
       midiCCMapping : -1
     },
 };
@@ -113,7 +121,10 @@ void PitchShifterModule::Init(float sample_rate) {
 
   pitchShifter.SetTransposition(m_semitoneTarget);
 
-  m_delayValue = GetParameterAsMagnitude(4);
+  m_samplesToDelayShift = static_cast<uint32_t>(
+      static_cast<float>(k_maxSamplesMaxTime) * GetParameterAsMagnitude(4));
+  m_samplesToDelayReturn = static_cast<uint32_t>(
+      static_cast<float>(k_maxSamplesMaxTime) * GetParameterAsMagnitude(5));
 }
 
 void PitchShifterModule::ParameterChanged(int parameter_id) {
@@ -127,7 +138,11 @@ void PitchShifterModule::ParameterChanged(int parameter_id) {
   } else if (parameter_id == 3) {
     m_latching = GetParameterAsBinnedValue(3) == 1;
   } else if (parameter_id == 4) {
-    m_delayValue = GetParameterAsMagnitude(4);
+    m_samplesToDelayShift = static_cast<uint32_t>(
+        static_cast<float>(k_maxSamplesMaxTime) * GetParameterAsMagnitude(4));
+  } else if (parameter_id == 5) {
+    m_samplesToDelayReturn = static_cast<uint32_t>(
+        static_cast<float>(k_maxSamplesMaxTime) * GetParameterAsMagnitude(5));
   }
 
   // Parameters changed, reset the transposition target just in case (mostly
@@ -138,18 +153,38 @@ void PitchShifterModule::ParameterChanged(int parameter_id) {
 void PitchShifterModule::AlternateFootswitchPressed() {
   m_alternateFootswitchPressed = true;
 
-  if (!m_latching && m_sampleCounter == 0) {
+  if (!m_latching) {
     // Initiate the ramp up transition for momentary mode
-    m_sampleCounter += 1;
+    m_transitioningShift = true;
+
+    // We were in the middle of a return so reset for shifting
+    if (m_transitioningReturn) {
+      // Calculate sample counter to maintain the exact transpose/percentage we
+      // are currently at to avoid it "starting from the beginning of the
+      // transition"
+      m_sampleCounter =
+          (1.0f - m_percentageTransitionComplete) * m_samplesToDelayShift;
+      m_transitioningReturn = false;
+    }
   }
 }
 
 void PitchShifterModule::AlternateFootswitchReleased() {
   m_alternateFootswitchPressed = false;
 
-  if (!m_latching && m_sampleCounter > 0) {
+  if (!m_latching) {
     // Initiate the ramp down transition for momentary mode
-    m_sampleCounter -= 1;
+    m_transitioningReturn = true;
+
+    // We were in the middle of a shift so reset for return
+    if (m_transitioningShift) {
+      // Calculate sample counter to maintain the exact transpose/percentage we
+      // are currently at to avoid it "starting from the beginning of the
+      // transition"
+      m_sampleCounter =
+          (1.0f - m_percentageTransitionComplete) * m_samplesToDelayReturn;
+      m_transitioningShift = false;
+    }
   }
 }
 
@@ -177,64 +212,67 @@ float clamp(float v, float min, float max) {
 }
 
 float PitchShifterModule::ProcessMomentaryMode(float in) {
-  // When in momentary mode, there is a ramp up(pressed)/ramp down(released)
-  // transition of the semitone based on the "delay" parameter
-  const uint32_t samplesToDelay = static_cast<uint32_t>(
-      static_cast<float>(k_maxSamplesMaxTime) * m_delayValue);
-
-  // Are we still in the middle or starting a "ramp up/ramp down
-  // period" where we are transitioning to/from a target semitone
-  const bool transitioning = m_sampleCounter > 0 && samplesToDelay > 0;
-
   // ---- Process when NOT in a ramp up/ramp down state ----
-  if (!transitioning) {
-    if (m_alternateFootswitchPressed) {
-      // If the footswitch IS pressed, we maintain the m_sampleCounter value
-      // where it was to use for the ramp down
+  if (!m_transitioningShift && !m_transitioningReturn) {
+    // Make sure the the sample counter is ready for the next ramp up/down
+    // transition time
+    m_sampleCounter = 0;
 
-      // Process the pitch shift for completely active to the target
-      pitchShifter.SetTransposition(m_semitoneTarget);
-      float shifted = pitchShifter.Process(in);
-      float out = pitchCrossfade.Process(in, shifted);
-      return out;
-    } else {
-      // If the footswitch isn't pressed, reset values for next ramp up
-      // Make sure the crossfader is initialized and the sample counter is
-      // ready for the next ramp up transition time
-      m_sampleCounter = 0;
-
-      // Return the input directly since the switch isn't pressed and we aren't
-      // ramping down
-
+    // Process the pitch shift for completely active to the target by default
+    float semitone = m_semitoneTarget;
+    if (!m_alternateFootswitchPressed) {
       // Process the pitch shift for completely inactive (0)
-      pitchShifter.SetTransposition(0);
-      float shifted = pitchShifter.Process(in);
-      float out = pitchCrossfade.Process(in, shifted);
-      return out;
+      semitone = 0.0f;
     }
+
+    // Process the pitch shift for completely active to the target
+    pitchShifter.SetTransposition(semitone);
+    float shifted = pitchShifter.Process(in);
+    float out = pitchCrossfade.Process(in, shifted);
+    return out;
   }
 
   // ---- Process ramp up/ramp down transition ----
 
-  // Clamp just to make sure we don't overshoot the semitone just in case
-  m_percentageTransitionComplete = clamp(
-      static_cast<float>(m_sampleCounter) / static_cast<float>(samplesToDelay),
-      0.0f, 1.0f);
+  // When in momentary mode, there is a ramp up(pressed [shift])/ramp
+  // down(released [return]) transition of the semitone based on the "delay"
+  // parameter
+  uint32_t samplesToDelay = 0;
+  if (m_transitioningShift) {
+    samplesToDelay = m_samplesToDelayShift;
+  } else if (m_transitioningReturn) {
+    samplesToDelay = m_samplesToDelayReturn;
+  }
+
+  if (samplesToDelay != 0) {
+    // Clamp just to make sure we don't overshoot the goal just in case
+    m_percentageTransitionComplete =
+        clamp(static_cast<float>(m_sampleCounter) /
+                  static_cast<float>(samplesToDelay),
+              0.0f, 1.0f);
+  } else {
+    m_percentageTransitionComplete = 1.0f;
+  }
 
   // Perform the pitch shift
-  pitchShifter.SetTransposition(m_semitoneTarget *
-                                m_percentageTransitionComplete);
+  if (m_transitioningShift) {
+    pitchShifter.SetTransposition(m_semitoneTarget *
+                                  m_percentageTransitionComplete);
+  } else if (m_transitioningReturn) {
+    pitchShifter.SetTransposition(m_semitoneTarget *
+                                  (1.0f - m_percentageTransitionComplete));
+  }
+
   float shifted = pitchShifter.Process(in);
   float pitchOut = pitchCrossfade.Process(in, shifted);
 
-  const bool transitioningTowardsSemitoneTarget = m_alternateFootswitchPressed;
-
-  // Increment or decrement the counter for the next pass through based on if
-  // we are ramping up or ramping down and complete or not
-  if (transitioningTowardsSemitoneTarget && m_sampleCounter < samplesToDelay) {
+  // Increment the counter for the next pass
+  if (m_sampleCounter < samplesToDelay) {
     m_sampleCounter += 1;
-  } else if (!transitioningTowardsSemitoneTarget && m_sampleCounter > 0) {
-    m_sampleCounter -= 1;
+  } else {
+    // Transition is complete
+    m_transitioningShift = false;
+    m_transitioningReturn = false;
   }
 
   return pitchOut;
@@ -256,14 +294,18 @@ void PitchShifterModule::DrawUI(OneBitGraphicsDisplay &display,
   int blockWidth = width / numBlocks;
   int top = 30;
   int x = 0;
-  const bool transitioning = m_sampleCounter > 0 && m_delayValue > 0;
   for (int block = 0; block < numBlocks; block++) {
     Rectangle r(x, top, blockWidth, blockWidth);
 
     bool active = false;
-    if (transitioning) {
+    if (m_transitioningShift) {
       if ((static_cast<float>(block) / static_cast<float>(numBlocks)) <=
           m_percentageTransitionComplete) {
+        active = true;
+      }
+    } else if (m_transitioningReturn) {
+      if (static_cast<float>(block) / static_cast<float>(numBlocks) <=
+          (1.0f - m_percentageTransitionComplete)) {
         active = true;
       }
     } else {

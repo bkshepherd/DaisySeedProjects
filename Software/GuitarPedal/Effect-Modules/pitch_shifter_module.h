@@ -38,8 +38,12 @@ class PitchShifterModule : public BaseEffectModule {
 
   float m_semitoneTarget = 0;
 
-  float m_delayValue = 0;
   uint32_t m_sampleCounter = 0;
+  uint32_t m_samplesToDelayShift = 0;
+  uint32_t m_samplesToDelayReturn = 0;
+
+  bool m_transitioningShift = false;
+  bool m_transitioningReturn = false;
 
   float m_percentageTransitionComplete = 0.0;
 };
