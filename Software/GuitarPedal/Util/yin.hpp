@@ -13,20 +13,26 @@
 
 namespace yin {
 
+// Length of audio sample to use for pitch detection/sending to the yin
+// algorithm
+constexpr uint16_t audioBufferLength = 2048;
+/**< Half the buffer length */
+constexpr uint16_t halfBufferLength = audioBufferLength / 2;
+
 /**
  * @struct  Yin
  * @brief   Object to encapsulate the parameters for the Yin pitch detection
  * algorithm
  */
 typedef struct _Yin {
-  int16_t bufferSize;     /**< Size of the audio buffer to be analysed */
-  int16_t halfBufferSize; /**< Half the buffer length */
-  float *yinBuffer;  /**< Buffer that stores the results of the intermediate
-                        processing steps of the algorithm */
-  float probability; /**< Probability that the pitch found is correct as a
-                        decimal (i.e 0.85 is 85%) */
-  float threshold; /**< Allowed uncertainty in the result as a decimal (i.e 0.15
-                      is 15%) */
+  /**< Buffer that stores the results of the intermediate processing steps of
+   * the algorithm */
+  float yinBuffer[halfBufferLength];
+  /**< Probability that the pitch found is correct as a decimal (i.e 0.85 is
+   * 85%) */
+  float probability;
+  /**< Allowed uncertainty in the result as a decimal (i.e 0.15 is 15%) */
+  float threshold;
 } Yin;
 
 /**
@@ -45,10 +51,10 @@ void difference(Yin *yin, float *buffer) {
 
   /* Calculate the difference for difference shift values (tau) for the half of
    * the samples */
-  for (tau = 0; tau < yin->halfBufferSize; tau++) {
+  for (tau = 0; tau < halfBufferLength; tau++) {
     /* Take the difference of the signal with a shifted version of itself, then
      * square it. (This is the Yin algorithm's tweak on autocorellation) */
-    for (i = 0; i < yin->halfBufferSize; i++) {
+    for (i = 0; i < halfBufferLength; i++) {
       delta = buffer[i] - buffer[i + tau];
       yin->yinBuffer[tau] += delta * delta;
     }
@@ -71,7 +77,7 @@ void cumulativeMeanNormalizedDifference(Yin *yin) {
   /* Sum all the values in the autocorellation buffer and nomalise the result,
    * replacing the value in the autocorellation buffer with a cumulative mean of
    * the normalised difference */
-  for (tau = 1; tau < yin->halfBufferSize; tau++) {
+  for (tau = 1; tau < halfBufferLength; tau++) {
     runningSum += yin->yinBuffer[tau];
     yin->yinBuffer[tau] *= tau / runningSum;
   }
@@ -89,9 +95,9 @@ int16_t absoluteThreshold(Yin *yin) {
   /* Search through the array of cumulative mean values, and look for ones that
    * are over the threshold The first two positions in yinBuffer are always so
    * start at the third (index 2) */
-  for (tau = 2; tau < yin->halfBufferSize; tau++) {
+  for (tau = 2; tau < halfBufferLength; tau++) {
     if (yin->yinBuffer[tau] < yin->threshold) {
-      while (tau + 1 < yin->halfBufferSize &&
+      while (tau + 1 < halfBufferLength &&
              yin->yinBuffer[tau + 1] < yin->yinBuffer[tau]) {
         tau++;
       }
@@ -110,7 +116,7 @@ int16_t absoluteThreshold(Yin *yin) {
   }
 
   /* if no pitch found, tau => -1 */
-  if (tau == yin->halfBufferSize || yin->yinBuffer[tau] >= yin->threshold) {
+  if (tau == halfBufferLength || yin->yinBuffer[tau] >= yin->threshold) {
     tau = -1;
     yin->probability = 0;
   }
@@ -143,7 +149,7 @@ float parabolicInterpolation(Yin *yin, int16_t tauEstimate) {
 
   /* Calculate the second polynomial coeffcient based on the current estimate of
    * tau */
-  if (tauEstimate + 1 < yin->halfBufferSize) {
+  if (tauEstimate + 1 < halfBufferLength) {
     x2 = tauEstimate + 1;
   } else {
     x2 = tauEstimate;
@@ -179,23 +185,17 @@ float parabolicInterpolation(Yin *yin, int16_t tauEstimate) {
 /**
  * Initialise the Yin pitch detection object
  * @param yin        Yin pitch detection object to initialise
- * @param internalBuffer Pointer to the internal buffer to use, to prevent
- * dynamic allocation
  * @param bufferSize Length of the audio buffer to analyse
  * @param threshold  Allowed uncertainty (e.g 0.05 will return a pitch with ~95%
  * probability)
  */
-void init(Yin *yin, float *internalBuffer, int16_t bufferSize,
-          float threshold) {
+void init(Yin *yin, float threshold) {
   /* Initialise the fields of the Yin structure passed in */
-  yin->bufferSize = bufferSize;
-  yin->halfBufferSize = bufferSize / 2;
   yin->probability = 0.0;
   yin->threshold = threshold;
-  yin->yinBuffer = internalBuffer;
 
   int16_t i;
-  for (i = 0; i < yin->halfBufferSize; i++) {
+  for (i = 0; i < halfBufferLength; i++) {
     yin->yinBuffer[i] = 0;
   }
 }

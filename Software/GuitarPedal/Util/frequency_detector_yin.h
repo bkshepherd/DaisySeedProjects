@@ -13,9 +13,9 @@ class FrequencyDetectorYin : public FrequencyDetectorInterface {
   float Process(float in) override;
 
  private:
-  float m_cachedFrequency;
-  int m_bufferIndex;
-  uint32_t m_sampleRate;
+  float m_cachedFrequency = 0.0f;
+  uint32_t m_bufferIndex = 0;
+  uint32_t m_sampleRate = 0;
 
   // inputs:
   // estimated frequency: overwritten by timestamps at runtime and not used
