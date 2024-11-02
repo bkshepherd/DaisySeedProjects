@@ -233,14 +233,6 @@ float getPitch(Yin *yin, float *buffer, uint32_t sampleRate) {
   return pitchInHertz;
 }
 
-/**
- * Certainty of the pitch found
- * @param  yin Yin object that has been run over a buffer
- * @return     Returns the certainty of the note found as a decimal (i.e 0.3 is
- * 30%)
- */
-float getProbability(Yin *yin) { return yin->probability; }
-
 }  // namespace yin
 
 #endif
