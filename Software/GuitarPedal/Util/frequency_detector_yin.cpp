@@ -3,15 +3,16 @@
 #include <cmath>
 
 #include "daisy.h"
-#include "yin.h"
+#include "yin.hpp"
 
 static uint32_t bufferIndex = 0;
-const float yinThreshold = 0.15;
-constexpr int yinBufferLength = 2048;
-static float buffer[yinBufferLength];
-static float internalYinBuffer[yinBufferLength / 2];
-static Yin yin{yinBufferLength, yinBufferLength / 2, &internalYinBuffer[0], 0.f,
-               yinThreshold};
+constexpr int bufferLength = 2048;
+static float buffer[bufferLength];
+
+const float yinThreshold = 0.15f;
+const float yinProbabilityAllowed = 0.90f;
+static float internalYinBuffer[bufferLength / 2];
+static yin::Yin yinData;
 
 FrequencyDetectorYin::FrequencyDetectorYin() : FrequencyDetectorInterface() {
   //
@@ -24,7 +25,8 @@ FrequencyDetectorYin::~FrequencyDetectorYin() {
 void FrequencyDetectorYin::Init(float sampleRate) {
   m_sampleRate = static_cast<uint32_t>(sampleRate);
 
-  for (int i = 0; i < yinBufferLength; i++) {
+  // Initialize buffer just in case
+  for (int i = 0; i < bufferLength; i++) {
     buffer[i] = 0.0f;
   }
 
@@ -34,22 +36,16 @@ void FrequencyDetectorYin::Init(float sampleRate) {
 float FrequencyDetectorYin::Process(float in) {
   buffer[bufferIndex++] = in;
 
-  if (bufferIndex > yinBufferLength) {
+  if (bufferIndex > bufferLength) {
     bufferIndex = 0;
 
-    // Reinitialize yin struct
-    yin.probability = 0.0f;
-    yin.threshold = yinThreshold;
-    yin.bufferSize = yinBufferLength;
-    yin.halfBufferSize = yinBufferLength / 2;
-    for (int i = 0; i < yin.halfBufferSize; i++) {
-      yin.yinBuffer[i] = 0.0f;
-    }
+    // Reinitialize yin
+    yin::init(&yinData, internalYinBuffer, bufferLength, yinThreshold);
 
     // Get pitch
-    const float freq = Yin_getPitch(&yin, &buffer[0], m_sampleRate);
+    const float freq = yin::getPitch(&yinData, &buffer[0], m_sampleRate);
 
-    if (yin.probability > 0.90) {
+    if (yinData.probability > yinProbabilityAllowed) {
       // Run a smoothing filter on the detected frequency
       const float currentTimeInSeconds =
           static_cast<float>(daisy::System::GetNow()) / 1000.f;
