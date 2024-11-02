@@ -1,19 +1,11 @@
 #include "tuner_module.h"
 
-#include "../Util/1efilter.hpp"
 #include "../Util/frequency_detector_yin.h"
 
 using namespace bkshepherd;
 
 using namespace daisy;
 using namespace daisysp;
-
-// Inputs:
-// Estimated frequency: Overwritten by timestamps at runtime and not used
-// Cutoff Freq
-// Beta: 0.0f disables it entirely, but used for scaling cutoff frequency
-// Derivative cutoff freq: used when beta is > 0
-one_euro_filter<float, float> smoothingFilter{48000, 0.5f, 0.05f, 1.0f};
 
 const char k_notes[12][3] = {"C",  "C#", "D",  "D#", "E",  "F",
                              "F#", "G",  "G#", "A",  "A#", "B"};
@@ -54,7 +46,6 @@ void TunerModule::Init(float sample_rate) {
   m_muteOutput = GetParameterAsBool(0);
 
   m_frequencyDetector->Init(sample_rate);
-  smoothingFilter.setSampleRate(sample_rate);
 }
 
 float Pitch(uint8_t note) { return 440.0f * pow(2.0f, (note - 'E') / 12.0f); }
@@ -76,13 +67,7 @@ void TunerModule::ParameterChanged(int parameter_id) {
 }
 
 void TunerModule::ProcessMono(float in) {
-  m_frequencyDetector->Process(in);
-  const float freq = m_frequencyDetector->GetFrequency();
-
-  // Run a smoothing filter on the detected frequency
-  const float currentTimeInSeconds =
-      static_cast<float>(System::GetNow()) / 1000.f;
-  m_currentFrequency = smoothingFilter(freq, currentTimeInSeconds);
+  m_currentFrequency = m_frequencyDetector->Process(in);
 
   m_note = Note(m_currentFrequency);
   m_octave = Octave(m_currentFrequency);

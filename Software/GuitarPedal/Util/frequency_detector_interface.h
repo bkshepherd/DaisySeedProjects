@@ -5,7 +5,6 @@ class FrequencyDetectorInterface {
   FrequencyDetectorInterface() {};
   virtual ~FrequencyDetectorInterface() {};
   virtual void Init(float sampleRate);
-  virtual void Process(float in);
-  virtual float GetFrequency() const;
+  virtual float Process(float in);
 };
 #endif

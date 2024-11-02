@@ -1,3 +1,6 @@
+#pragma once
+#ifndef ONE_E_FILTER_H
+#define ONE_E_FILTER_H
 /*(utf8)
 1€ Filter, template-compliant version
 
@@ -89,3 +92,5 @@ struct one_euro_filter {
   timestamp_t last_time_;
   low_pass_filter<T> xfilt_, dxfilt_;
 };
+
+#endif

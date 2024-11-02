@@ -2,6 +2,7 @@
 
 #include <cmath>
 
+#include "daisy.h"
 #include "yin.h"
 
 static uint32_t bufferIndex = 0;
@@ -26,9 +27,11 @@ void FrequencyDetectorYin::Init(float sampleRate) {
   for (int i = 0; i < yinBufferLength; i++) {
     buffer[i] = 0.0f;
   }
+
+  m_smoothingFilter.setSampleRate(sampleRate);
 }
 
-void FrequencyDetectorYin::Process(float in) {
+float FrequencyDetectorYin::Process(float in) {
   buffer[bufferIndex++] = in;
 
   if (bufferIndex > yinBufferLength) {
@@ -47,7 +50,12 @@ void FrequencyDetectorYin::Process(float in) {
     const float freq = Yin_getPitch(&yin, &buffer[0], m_sampleRate);
 
     if (yin.probability > 0.90) {
-      m_cachedFrequency = freq;
+      // Run a smoothing filter on the detected frequency
+      const float currentTimeInSeconds =
+          static_cast<float>(daisy::System::GetNow()) / 1000.f;
+      m_cachedFrequency = m_smoothingFilter(freq, currentTimeInSeconds);
     }
   }
+
+  return m_cachedFrequency;
 }
