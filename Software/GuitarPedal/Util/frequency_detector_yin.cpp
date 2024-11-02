@@ -39,8 +39,6 @@ void FrequencyDetectorYin::Init(float sampleRate) {
   for (int i = 0; i < bufferLength; i++) {
     buffer[i] = 0.0f;
   }
-
-  m_smoothingFilter.setSampleRate(sampleRate);
 }
 
 float FrequencyDetectorYin::Process(float in) {

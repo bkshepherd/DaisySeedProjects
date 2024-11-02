@@ -62,8 +62,6 @@ struct one_euro_filter {
         dcutoff(_dcutoff),
         last_time_(-1) {}
 
-  void setSampleRate(double sampleRate) { freq = sampleRate; }
-
   T operator()(T x, timestamp_t t = -1) {
     T dx = 0;
 
