@@ -5,13 +5,23 @@
 #include "daisy.h"
 #include "yin.hpp"
 
-static uint32_t bufferIndex = 0;
+// Length of audio sample to use for pitch detection/sending to the yin
+// algorithm
 constexpr int bufferLength = 2048;
+// Buffer used to store the audio samples that get sent to the yin algorithm
 static float buffer[bufferLength];
 
+// Allowed uncertainty in the result (0.0f to 1.0f)
 const float yinThreshold = 0.15f;
+
+// Probability cutoff for valid detections (0.0f to 1.0f)
 const float yinProbabilityAllowed = 0.90f;
+
+// Buffer used internally to the yin algorithm to avoid dynamic allocations
+// during runtime
 static float internalYinBuffer[bufferLength / 2];
+// Structure used for sending data to the yin algorithm, processing, and getting
+// results
 static yin::Yin yinData;
 
 FrequencyDetectorYin::FrequencyDetectorYin() : FrequencyDetectorInterface() {
@@ -34,10 +44,10 @@ void FrequencyDetectorYin::Init(float sampleRate) {
 }
 
 float FrequencyDetectorYin::Process(float in) {
-  buffer[bufferIndex++] = in;
+  buffer[m_bufferIndex++] = in;
 
-  if (bufferIndex > bufferLength) {
-    bufferIndex = 0;
+  if (m_bufferIndex > bufferLength) {
+    m_bufferIndex = 0;
 
     // Reinitialize yin
     yin::init(&yinData, internalYinBuffer, bufferLength, yinThreshold);
