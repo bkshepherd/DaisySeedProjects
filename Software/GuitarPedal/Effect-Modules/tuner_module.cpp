@@ -1,23 +1,12 @@
 #include "tuner_module.h"
 
-#include <q/fx/signal_conditioner.hpp>
-#include <q/pitch/pitch_detector.hpp>
-#include <q/support/pitch_names.hpp>
-
-#include "../Util/1efilter.hpp"
+#include "../Util/frequency_detector_q.h"
+#include "../Util/frequency_detector_yin.h"
 
 using namespace bkshepherd;
 
 using namespace daisy;
 using namespace daisysp;
-using namespace cycfi::q;
-
-// Inputs:
-// Estimated frequency: Overwritten by timestamps at runtime and not used
-// Cutoff Freq
-// Beta: 0.0f disables it entirely, but used for scaling cutoff frequency
-// Derivative cutoff freq: used when beta is > 0
-one_euro_filter<float, float> smoothingFilter{48000, 0.5f, 0.05f, 1.0f};
 
 const char k_notes[12][3] = {"C",  "C#", "D",  "D#", "E",  "F",
                              "F#", "G",  "G#", "A",  "A#", "B"};
@@ -42,32 +31,22 @@ TunerModule::TunerModule() : BaseEffectModule() {
   this->InitParams(s_paramCount);
 
   m_name = "Tuner";
+
+  m_frequencyDetector = new FrequencyDetectorQ();
 }
 
 // Destructor
 TunerModule::~TunerModule() {
-  delete m_pitchDetector;
-  m_pitchDetector = nullptr;
-
-  delete m_preProcessor;
-  m_preProcessor = nullptr;
+  delete m_frequencyDetector;
+  m_frequencyDetector = nullptr;
 }
 
 void TunerModule::Init(float sample_rate) {
   BaseEffectModule::Init(sample_rate);
 
-  // The frequency detection bounds;
-  frequency lowest_frequency = pitch_names::C[2];
-  frequency highest_frequency = pitch_names::C[5];
-
-  m_pitchDetector = new pitch_detector{lowest_frequency, highest_frequency,
-                                       sample_rate, lin_to_db(0)};
-
-  signal_conditioner::config preprocessor_config;
-  m_preProcessor = new signal_conditioner{preprocessor_config, lowest_frequency,
-                                          highest_frequency, sample_rate};
-
   m_muteOutput = GetParameterAsBool(0);
+
+  m_frequencyDetector->Init(sample_rate);
 }
 
 float Pitch(uint8_t note) { return 440.0f * pow(2.0f, (note - 'E') / 12.0f); }
@@ -89,21 +68,7 @@ void TunerModule::ParameterChanged(int parameter_id) {
 }
 
 void TunerModule::ProcessMono(float in) {
-  // Pre-process the signal for pitch detection
-  float preProcessedSignal = m_preProcessor->operator()(in);
-
-  // Send the processed sample through the pitch detector
-  const bool ready = m_pitchDetector->operator()(preProcessedSignal);
-
-  // If result is ready, get the detected frequency
-  if (ready) {
-    const float freq = m_pitchDetector->get_frequency();
-
-    // Run a smoothing filter on the detected frequency
-    const float currentTimeInSeconds =
-        static_cast<float>(System::GetNow()) / 1000.f;
-    m_currentFrequency = smoothingFilter(freq, currentTimeInSeconds);
-  }
+  m_currentFrequency = m_frequencyDetector->Process(in);
 
   m_note = Note(m_currentFrequency);
   m_octave = Octave(m_currentFrequency);
@@ -115,6 +80,10 @@ void TunerModule::ProcessMono(float in) {
 }
 
 void TunerModule::ProcessStereo(float inL, float inR) { ProcessMono(inL); }
+
+float clamp(float v, float min, float max) {
+  return std::min(max, std::max(min, v));
+}
 
 void TunerModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex,
                          int numItemsTotal, Rectangle boundsToDrawIn,
@@ -151,7 +120,7 @@ void TunerModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex,
   // 0 is in tune, 1.0f is max out of tune we display, cents sign is used to
   // determine sharp or flat
   float percentage = std::abs(m_cents) / farLimit;
-  percentage = std::clamp(percentage, 0.0f, 1.0f);
+  percentage = clamp(percentage, 0.0f, 1.0f);
 
   const uint8_t numBlocksOutOfTuneToDisplay =
       static_cast<float>(numBlocksOutOfTune) * std::abs(percentage);

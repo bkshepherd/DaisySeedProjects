@@ -4,6 +4,7 @@
 
 #include <stdint.h>
 
+#include "../Util/frequency_detector_interface.h"
 #include "base_effect_module.h"
 #include "daisysp.h"
 #ifdef __cplusplus
@@ -11,13 +12,6 @@
 /** @file tuner_module.h */
 
 using namespace daisysp;
-
-namespace cycfi {
-namespace q {
-class pitch_detector;
-class signal_conditioner;
-}  // namespace q
-}  // namespace cycfi
 
 namespace bkshepherd {
 
@@ -43,8 +37,7 @@ class TunerModule : public BaseEffectModule {
 
   bool m_muteOutput;
 
-  cycfi::q::pitch_detector *m_pitchDetector = nullptr;
-  cycfi::q::signal_conditioner *m_preProcessor = nullptr;
+  FrequencyDetectorInterface *m_frequencyDetector = nullptr;
 };
 }  // namespace bkshepherd
 #endif
