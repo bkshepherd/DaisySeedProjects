@@ -12,6 +12,7 @@
 #include "Effect-Modules/reverb_module.h"
 #include "Effect-Modules/metro_module.h"
 #include "Effect-Modules/multi_delay_module.h"
+#include "Effect-Modules/looper_module.h"
 
 
 #include "UI/guitar_pedal_ui.h"
@@ -502,8 +503,8 @@ int main(void)
     availableEffects[5] = new ReverbModule();
     availableEffects[6] = new MultiDelayModule();
     availableEffects[7] = new MetroModule();
-    availableEffects[8] = new CompressorModule();
-
+    //availableEffects[8] = new CompressorModule();
+    //availableEffects[8] = new LooperModule();
     
     for (int i = 0; i < availableEffectsCount; i++)
     {
