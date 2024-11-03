@@ -1,7 +1,6 @@
 #include "tuner_module.h"
 
 #include "../Util/frequency_detector_q.h"
-#include "../Util/frequency_detector_yin.h"
 
 using namespace bkshepherd;
 
