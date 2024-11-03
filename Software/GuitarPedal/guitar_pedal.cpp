@@ -8,11 +8,13 @@
 #include "Effect-Modules/autopan_module.h"
 #include "Effect-Modules/chorus_module.h"
 #include "Effect-Modules/chopper_module.h"
+#include "Effect-Modules/compressor_module.h"
 #include "Effect-Modules/reverb_module.h"
 #include "Effect-Modules/metro_module.h"
 #include "Effect-Modules/multi_delay_module.h"
 #include "Effect-Modules/tuner_module.h"
-
+#include "Effect-Modules/pitch_shifter_module.h"
+#include "Effect-Modules/looper_module.h"
 
 #include "UI/guitar_pedal_ui.h"
 #include "Util/audio_utilities.h"
@@ -492,7 +494,7 @@ int main(void)
     crossFaderTransitionTimeInSamples = hardware.GetNumberOfSamplesForTime(crossFaderTransitionTimeInSeconds);
 
     // Init the Effects Modules
-    availableEffectsCount = 9;
+    availableEffectsCount = 12;
     availableEffects = new BaseEffectModule*[availableEffectsCount];
     availableEffects[0] = new ModulatedTremoloModule();
     availableEffects[1] = new OverdriveModule();
@@ -503,7 +505,9 @@ int main(void)
     availableEffects[6] = new MultiDelayModule();
     availableEffects[7] = new MetroModule();
     availableEffects[8] = new TunerModule();
-
+    availableEffects[9] = new PitchShifterModule();
+    availableEffects[10] = new CompressorModule();
+    availableEffects[11] = new LooperModule();
     
     for (int i = 0; i < availableEffectsCount; i++)
     {
