@@ -167,8 +167,14 @@ void TunerModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex,
   // Display all of the blocks
   int x = 0;
   for (int block = 0; block < blockCount; block++) {
-    Rectangle r(x, top, blockWidth, blockWidth);
-    display.DrawRect(r, true, blockActive[block]);
+    if (block == inTuneBlockIndex) {
+      const int height = 20;
+      Rectangle r(x, top - 5, blockWidth, height);
+      display.DrawRect(r, true, blockActive[block]);
+    } else {
+      Rectangle r(x, top, blockWidth, blockWidth);
+      display.DrawRect(r, true, blockActive[block]);
+    }
     x += blockWidth;
   }
 
