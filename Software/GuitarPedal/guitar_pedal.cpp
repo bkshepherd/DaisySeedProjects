@@ -637,7 +637,7 @@ int main(void)
             encoderIncrement != 0 && System::GetNow() - last_effect_change_time >= 10)
         {
             int desiredIndex = activeEffectID - encoderIncrement;
-            if (desiredIndex >= availableEffectsCount - 1)
+            if (desiredIndex > availableEffectsCount - 1)
             {
                 desiredIndex = 0;
             }
