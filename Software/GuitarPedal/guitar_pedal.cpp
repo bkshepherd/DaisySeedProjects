@@ -58,6 +58,8 @@ float secondsSinceStartup = 0.0f;
 bool needToSaveSettingsForActiveEffect = false;
 uint32_t last_save_time;        // Time we last set it
 
+uint32_t last_effect_change_time; // Time we last changed effect
+
 // Pot Monitoring Variables
 bool knobValuesInitialized = false;
 float knobValueChangeTolerance = 1.0f / 256.0f;
@@ -379,6 +381,8 @@ void SetActiveEffect(int effectID)
 
         // Update the persistant storage setting
         settings.globalActiveEffectID = effectID;
+
+        last_effect_change_time = System::GetNow();
     }
 }
 
@@ -624,6 +628,24 @@ int main(void)
 
             // Update the effect parameters on the menu system to reflect any changes
             guitarPedalUI.UpdateActiveEffectParameterValues();
+        }
+
+        // If alt footswitch held AND encoder turned, iterate to next/previous effect, also throttle the changes
+        const int encoderIncrement = hardware.encoders[0].Increment();
+        if (hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)]
+                .Pressed() &&
+            encoderIncrement != 0 && System::GetNow() - last_effect_change_time >= 10)
+        {
+            int desiredIndex = activeEffectID - encoderIncrement;
+            if (desiredIndex > availableEffectsCount - 1)
+            {
+                desiredIndex = 0;
+            }
+            else if (desiredIndex < 0)
+            {
+                desiredIndex = availableEffectsCount - 1;
+            }
+            SetActiveEffect(desiredIndex);
         }
 
         if (hardware.SupportsDisplay())

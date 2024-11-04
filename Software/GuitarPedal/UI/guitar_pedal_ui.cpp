@@ -434,7 +434,11 @@ void GuitarPedalUI::GenerateUIEvents()
 
     const auto increments = hardware.encoders[0].Increment();
 
-    if(increments != 0)
+    // Process the encoder increment for the UI ONLY if the alternate footswitch
+    // is not pressed, because that is used for quick effect switching
+    if (increments != 0 &&
+        !hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)]
+             .Pressed())
     {
         m_eventQueue.AddEncoderTurned(0, increments, 12);
     }
