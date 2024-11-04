@@ -1,7 +1,6 @@
 #include "tuner_module.h"
 
 #include "../Util/frequency_detector_q.h"
-#include "../Util/frequency_detector_yin.h"
 
 using namespace bkshepherd;
 
@@ -81,10 +80,6 @@ void TunerModule::ProcessMono(float in) {
 
 void TunerModule::ProcessStereo(float inL, float inR) { ProcessMono(inL); }
 
-float clamp(float v, float min, float max) {
-  return std::min(max, std::max(min, v));
-}
-
 void TunerModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex,
                          int numItemsTotal, Rectangle boundsToDrawIn,
                          bool isEditing) {
@@ -120,7 +115,7 @@ void TunerModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex,
   // 0 is in tune, 1.0f is max out of tune we display, cents sign is used to
   // determine sharp or flat
   float percentage = std::abs(m_cents) / farLimit;
-  percentage = clamp(percentage, 0.0f, 1.0f);
+  percentage = std::clamp(percentage, 0.0f, 1.0f);
 
   const uint8_t numBlocksOutOfTuneToDisplay =
       static_cast<float>(numBlocksOutOfTune) * std::abs(percentage);
@@ -172,8 +167,14 @@ void TunerModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex,
   // Display all of the blocks
   int x = 0;
   for (int block = 0; block < blockCount; block++) {
-    Rectangle r(x, top, blockWidth, blockWidth);
-    display.DrawRect(r, true, blockActive[block]);
+    if (block == inTuneBlockIndex) {
+      const int height = 20;
+      Rectangle r(x, top - 5, blockWidth, height);
+      display.DrawRect(r, true, blockActive[block]);
+    } else {
+      Rectangle r(x, top, blockWidth, blockWidth);
+      display.DrawRect(r, true, blockActive[block]);
+    }
     x += blockWidth;
   }
 
