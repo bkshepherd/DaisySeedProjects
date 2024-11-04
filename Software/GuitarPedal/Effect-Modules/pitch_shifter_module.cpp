@@ -207,10 +207,6 @@ void PitchShifterModule::ProcessStereo(float inL, float inR) {
   ProcessMono(inL);
 }
 
-float clamp(float v, float min, float max) {
-  return std::min(max, std::max(min, v));
-}
-
 float PitchShifterModule::ProcessMomentaryMode(float in) {
   // ---- Process when NOT in a ramp up/ramp down state ----
   if (!m_transitioningShift && !m_transitioningReturn) {
@@ -247,9 +243,9 @@ float PitchShifterModule::ProcessMomentaryMode(float in) {
   if (samplesToDelay != 0) {
     // Clamp just to make sure we don't overshoot the goal just in case
     m_percentageTransitionComplete =
-        clamp(static_cast<float>(m_sampleCounter) /
-                  static_cast<float>(samplesToDelay),
-              0.0f, 1.0f);
+        std::clamp(static_cast<float>(m_sampleCounter) /
+                       static_cast<float>(samplesToDelay),
+                   0.0f, 1.0f);
   } else {
     m_percentageTransitionComplete = 1.0f;
   }
