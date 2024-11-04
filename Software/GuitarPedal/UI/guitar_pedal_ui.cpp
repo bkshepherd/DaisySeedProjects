@@ -434,7 +434,9 @@ void GuitarPedalUI::GenerateUIEvents()
 
     const auto increments = hardware.encoders[0].Increment();
 
-    if(increments != 0)
+    if (increments != 0 &&
+        !hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)]
+             .Pressed())
     {
         m_eventQueue.AddEncoderTurned(0, increments, 12);
     }
