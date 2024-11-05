@@ -82,8 +82,6 @@ public:
   inline TimeSignature GetTimeSignature() { return m_timeSignature; }
 
 private:
-  uint32_t m_tempoBpmMin;
-  uint32_t m_tempoBpmMax;
   float m_levelMin;
   float m_levelMax;
 

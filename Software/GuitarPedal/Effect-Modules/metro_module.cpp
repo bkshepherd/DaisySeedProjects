@@ -52,8 +52,8 @@ uint16_t Metronome::GetQuadrant16()
 static const char *TimeSignatureLabels[3] = {"4/4", "3/4", "2/4"};
 static const uint16_t TimeSignatureBase[3] = {4, 3, 2};
 
-constexpr uint16_t minTempo = 35;
-constexpr uint16_t maxTempo = 250;
+constexpr uint32_t minTempo = 35;
+constexpr uint32_t maxTempo = 250;
 
 static const int s_paramCount = 3;
 static const ParameterMetaData s_metaData[s_paramCount] = {
@@ -84,7 +84,7 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
     }};
 
 // Default Constructor
-MetroModule::MetroModule() : BaseEffectModule(), m_tempoBpmMin(minTempo), m_tempoBpmMax(maxTempo), m_levelMin(0.0f), m_levelMax(1.0f)
+MetroModule::MetroModule() : BaseEffectModule(), m_levelMin(0.0f), m_levelMax(1.0f)
 {
   // Set the name of the effect
   m_name = "Metronome";
@@ -130,8 +130,7 @@ void MetroModule::Init(float sample_rate)
 
 void MetroModule::ParameterChanged(int parameter_id) {
   if (parameter_id == 0) {
-    m_bpm = m_tempoBpmMin +
-            GetParameterAsMagnitude(0) * (m_tempoBpmMax - m_tempoBpmMin);
+    m_bpm = minTempo + GetParameterAsMagnitude(0) * static_cast<float>(maxTempo - minTempo);
   }
 }
 
@@ -179,7 +178,9 @@ void MetroModule::ProcessStereo(float inL, float inR)
   m_audioRight = sig * level + inR * (1.0f - level);
 }
 
-void MetroModule::SetTempo(uint32_t bpm) { m_bpm = bpm; }
+void MetroModule::SetTempo(uint32_t bpm) {
+  m_bpm = std::clamp(bpm, minTempo, maxTempo);
+}
 
 float MetroModule::GetBrightnessForLED(int led_id)
 {
