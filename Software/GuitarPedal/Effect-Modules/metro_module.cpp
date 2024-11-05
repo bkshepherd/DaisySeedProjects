@@ -59,7 +59,7 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
     {name : "Meter", valueType : ParameterValueType::Binned, valueBinCount : 3,  valueBinNames: TimeSignatureLabels, defaultValue : 0, knobMapping : 2, midiCCMapping : -1}};
 
 // Default Constructor
-MetroModule::MetroModule() : BaseEffectModule(), m_tempoBpmMin(40), m_tempoBpmMax(200), m_levelMin(0.0f), m_levelMax(1.0f)
+MetroModule::MetroModule() : BaseEffectModule(), m_tempoBpmMin(35), m_tempoBpmMax(250), m_levelMin(0.0f), m_levelMax(1.0f)
 {
   // Set the name of the effect
   m_name = "Metronome";
@@ -149,7 +149,7 @@ void MetroModule::ProcessStereo(float inL, float inR)
   m_audioRight = sig * level + inR * (1.0f - level);
 }
 
-void MetroModule::SetTempo(uint32_t bpm) { SetParameterRaw(1, bpm_tempo_to_raw(bpm)); }
+void MetroModule::SetTempo(uint32_t bpm) { SetParameterRaw(0, bpm_tempo_to_raw(bpm)); }
 
 float MetroModule::GetBrightnessForLED(int led_id)
 {
@@ -171,8 +171,8 @@ uint8_t MetroModule::bpm_tempo_to_raw(uint16_t bpm)
   else if (bpm < m_tempoBpmMin)
     bpm = m_tempoBpmMin;
 
-  float normalized = (bpm - m_tempoBpmMin) / (m_tempoBpmMax - m_tempoBpmMin);
-  uint8_t raw = normalized * 127;
+  float normalized = static_cast<float>(bpm - m_tempoBpmMin) / static_cast<float>(m_tempoBpmMax - m_tempoBpmMin);
+  uint8_t raw = std::round(normalized * 127.0f);
   return raw;
 }
 

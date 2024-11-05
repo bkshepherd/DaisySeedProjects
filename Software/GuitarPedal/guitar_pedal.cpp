@@ -174,18 +174,24 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
              effectOn ^= switchPressed;
         }
 
-        if (switchPressed && i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)) {
-          activeEffect->AlternateFootswitchPressed();
+        if (effectOn && switchPressed &&
+            i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate))
+        {
+            activeEffect->AlternateFootswitchPressed();
         }
 
         bool switchReleased = hardware.switches[i].FallingEdge();
-        if (switchReleased && i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)) {
-          activeEffect->AlternateFootswitchReleased();
+        if (effectOn && switchReleased &&
+            i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate))
+        {
+            activeEffect->AlternateFootswitchReleased();
         }
 
         bool switchHeld = hardware.switches[i].TimeHeldMs() >= 1000.f;
-        if (switchHeld && i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)) {
-          activeEffect->AlternateFootswitchHeldFor1Second();
+        if (effectOn && switchHeld &&
+            i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate))
+        {
+            activeEffect->AlternateFootswitchHeldFor1Second();
         }
 
         if (switchEnabledCache[i] == true)
@@ -216,7 +222,7 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
                 switchDoubleEnabledCache[i] = true;
 
                 // Register as Tap Tempo if Switch ID matched preferred mapping for TapTempo
-                if (!activeEffect->AlternateFootswitchForTempo() && i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate))
+                if (activeEffect->AlternateFootswitchForTempo() && i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate))
                 {
                     needToChangeTempo = true;
                     float timeBetweenPresses = hardware.GetTimeForNumberOfSamples(switchEnabledIdleTimeInSamples - switchEnabledSamplesTilIdle[i]);
