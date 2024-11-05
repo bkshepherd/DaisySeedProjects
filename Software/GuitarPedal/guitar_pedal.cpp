@@ -522,10 +522,10 @@ int main(void)
     availableEffects[5] = new ReverbModule();
     availableEffects[6] = new MultiDelayModule();
     availableEffects[7] = new MetroModule();
-    availableEffects[8] = new PitchShifterModule();
-    availableEffects[9] = new CompressorModule();
-    availableEffects[10] = new LooperModule();
-    availableEffects[11] = new TunerModule();
+    availableEffects[8] = new TunerModule();
+    availableEffects[9] = new PitchShifterModule();
+    availableEffects[10] = new CompressorModule();
+    availableEffects[11] = new LooperModule();
 
     for (int i = 0; i < availableEffectsCount; i++)
     {
@@ -686,7 +686,7 @@ int main(void)
           }
           quickSwitchAvailable = false;
         }
-        
+
         // Disable quick switching until the footswitch is released to prevent
         // infinite switching
         if (!quickSwitchAvailable &&
