@@ -129,32 +129,39 @@ void LooperModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex,
                           bool isEditing) {
   BaseEffectModule::DrawUI(display, currentIndex, numItemsTotal, boundsToDrawIn,
                            isEditing);
-  float percentageDone = 100.0 * (m_looper.GetPos() / m_looper.GetRecSize());
 
   int width = boundsToDrawIn.GetWidth();
-  int numBlocks = 20;
-  int blockWidth = width / numBlocks;
-  int top = 30;
-  int x = 0;
-  for (int block = 0; block < numBlocks; block++) {
-    Rectangle r(x, top, blockWidth, blockWidth);
 
-    bool active = false;
-    if ((static_cast<float>(block) / static_cast<float>(numBlocks) * 100.0f) <=
-        percentageDone) {
-      active = true;
+  if (m_looper.GetRecSize() > 0) {
+    float percentageDone = 100.0 * (m_looper.GetPos() / m_looper.GetRecSize());
+    int numBlocks = 20;
+    int blockWidth = width / numBlocks;
+    int top = 30;
+    int x = 0;
+    for (int block = 0; block < numBlocks; block++) {
+      Rectangle r(x, top, blockWidth, blockWidth);
+
+      bool active = false;
+      if ((static_cast<float>(block) / static_cast<float>(numBlocks) *
+           100.0f) <= percentageDone) {
+        active = true;
+      }
+      display.DrawRect(r, true, active);
+      x += blockWidth;
     }
-    display.DrawRect(r, true, active);
-    x += blockWidth;
-  }
 
-  char strbuff[64];
-  if (m_looper.Recording()) {
-    sprintf(strbuff, "R " FLT_FMT(1), FLT_VAR(1, percentageDone));
+    char strbuff[64];
+    if (m_looper.Recording()) {
+      sprintf(strbuff, "R " FLT_FMT(1), FLT_VAR(1, percentageDone));
+    } else {
+      sprintf(strbuff, FLT_FMT(1), FLT_VAR(1, percentageDone));
+    }
+    display.WriteStringAligned(strbuff, Font_11x18, boundsToDrawIn,
+                               Alignment::bottomCentered, true);
   } else {
-    sprintf(strbuff, FLT_FMT(1), FLT_VAR(1, percentageDone));
+    char strbuff[64];
+    sprintf(strbuff, "Empty");
+    display.WriteStringAligned(strbuff, Font_11x18, boundsToDrawIn,
+                               Alignment::bottomCentered, true);
   }
-
-  display.WriteStringAligned(strbuff, Font_11x18, boundsToDrawIn,
-                             Alignment::bottomCentered, true);
 }
