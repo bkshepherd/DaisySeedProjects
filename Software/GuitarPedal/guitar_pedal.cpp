@@ -34,6 +34,7 @@ int availableEffectsCount = 0;
 BaseEffectModule **availableEffects = NULL;
 int activeEffectID = 0;
 int prevActiveEffectID = 0;
+int tunerModuleIndex = -1;
 BaseEffectModule *activeEffect = NULL;
 
 // UI Related Variables
@@ -511,7 +512,7 @@ int main(void)
     crossFaderTransitionTimeInSamples = hardware.GetNumberOfSamplesForTime(crossFaderTransitionTimeInSeconds);
 
     // Init the Effects Modules
-    availableEffectsCount = 11;
+    availableEffectsCount = 12;
     availableEffects = new BaseEffectModule*[availableEffectsCount];
     availableEffects[0] = new ModulatedTremoloModule();
     availableEffects[1] = new OverdriveModule();
@@ -524,19 +525,17 @@ int main(void)
     availableEffects[8] = new PitchShifterModule();
     availableEffects[9] = new CompressorModule();
     availableEffects[10] = new LooperModule();
-    /*
-      Most modules should go here and availableEffectsCount should be updated accordingly
-    */
+    availableEffects[11] = new TunerModule();
 
-    // Tuner should be last so that it is easy to keep a static index for it, we
-    // can then use the "last index" to quick
-    // switch between the last used effect and the tuner when we want to, also this can be commented out easily to remove the tuner
-    availableEffectsCount += 1;
-    availableEffects[availableEffectsCount - 1] = new TunerModule();
-    
     for (int i = 0; i < availableEffectsCount; i++)
     {
         availableEffects[i]->Init(sample_rate);
+
+        if (availableEffects[i]->GetName() == "Tuner") {
+          // Store the index for the tuner module so that we can quickswitch
+          // to/from it
+          tunerModuleIndex = i;
+        }
     }
 
     // Initalize Persistance Storage
@@ -669,30 +668,33 @@ int main(void)
             SetActiveEffect(desiredIndex);
         }
 
-        // If bypass is held for 2 seconds and alternate footswitch is not pressed (not trying to save) then quick
-        // switch to/from the tuner
-        if (quickSwitchAvailable &&
-            hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Bypass)]
+        // If bypass is held for 2 seconds and alternate footswitch is not
+        // pressed (not trying to save) then quick switch to/from the tuner
+        if (tunerModuleIndex > 0 && quickSwitchAvailable &&
+            hardware.switches[hardware
+                                  .GetPreferredSwitchIDForSpecialFunctionType(
+                                      SpecialFunctionType::Bypass)]
                     .TimeHeldMs() > 2000 &&
-            !hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)]
-                 .Pressed())
-        {
-            if (activeEffectID == availableEffectsCount - 1)
-            {
-                SetActiveEffect(prevActiveEffectID);
-            }
-            else
-            {
-                SetActiveEffect(availableEffectsCount - 1);
-            }
-            quickSwitchAvailable = false;
+            !hardware
+                 .switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(
+                     SpecialFunctionType::Alternate)]
+                 .Pressed()) {
+          if (activeEffectID == tunerModuleIndex) {
+            SetActiveEffect(prevActiveEffectID);
+          } else {
+            SetActiveEffect(tunerModuleIndex);
+          }
+          quickSwitchAvailable = false;
         }
-        // Disable quick switching until the footswitch is released to prevent infinite switching
+        
+        // Disable quick switching until the footswitch is released to prevent
+        // infinite switching
         if (!quickSwitchAvailable &&
-            !hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Bypass)]
-                 .Pressed())
-        {
-            quickSwitchAvailable = true;
+            !hardware
+                 .switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(
+                     SpecialFunctionType::Bypass)]
+                 .Pressed()) {
+          quickSwitchAvailable = true;
         }
 
         if (hardware.SupportsDisplay())
