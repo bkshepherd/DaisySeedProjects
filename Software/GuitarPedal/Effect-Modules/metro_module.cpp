@@ -52,14 +52,39 @@ uint16_t Metronome::GetQuadrant16()
 static const char *TimeSignatureLabels[3] = {"4/4", "3/4", "2/4"};
 static const uint16_t TimeSignatureBase[3] = {4, 3, 2};
 
+constexpr uint16_t minTempo = 35;
+constexpr uint16_t maxTempo = 250;
+
 static const int s_paramCount = 3;
 static const ParameterMetaData s_metaData[s_paramCount] = {
-    {name : "Tempo", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 63, knobMapping : 0, midiCCMapping : 23},
-    {name : "Mix", valueType : ParameterValueType::FloatMagnitude, valueBinCount : 0, defaultValue : 10, knobMapping : 1, midiCCMapping : 21},
-    {name : "Meter", valueType : ParameterValueType::Binned, valueBinCount : 3,  valueBinNames: TimeSignatureLabels, defaultValue : 0, knobMapping : 2, midiCCMapping : -1}};
+    {
+      name : "Tempo",
+      valueType : ParameterValueType::FloatMagnitude,
+      valueBinCount : 0,
+      defaultValue : 63,
+      knobMapping : 0,
+      midiCCMapping : 23
+    },
+    {
+      name : "Mix",
+      valueType : ParameterValueType::FloatMagnitude,
+      valueBinCount : 0,
+      defaultValue : 10,
+      knobMapping : 1,
+      midiCCMapping : 21
+    },
+    {
+      name : "Meter",
+      valueType : ParameterValueType::Binned,
+      valueBinCount : 3,
+      valueBinNames : TimeSignatureLabels,
+      defaultValue : 0,
+      knobMapping : 2,
+      midiCCMapping : -1
+    }};
 
 // Default Constructor
-MetroModule::MetroModule() : BaseEffectModule(), m_tempoBpmMin(35), m_tempoBpmMax(250), m_levelMin(0.0f), m_levelMax(1.0f)
+MetroModule::MetroModule() : BaseEffectModule(), m_tempoBpmMin(minTempo), m_tempoBpmMax(maxTempo), m_levelMin(0.0f), m_levelMax(1.0f)
 {
   // Set the name of the effect
   m_name = "Metronome";
@@ -103,11 +128,16 @@ void MetroModule::Init(float sample_rate)
   m_metro.Init(freq, sample_rate);
 }
 
+void MetroModule::ParameterChanged(int parameter_id) {
+  if (parameter_id == 0) {
+    m_bpm = m_tempoBpmMin +
+            GetParameterAsMagnitude(0) * (m_tempoBpmMax - m_tempoBpmMin);
+  }
+}
+
 float MetroModule::Process()
 {
-  const int tempoRaw = GetParameterRaw(0);
-  const uint16_t tempo = raw_tempo_to_bpm(tempoRaw);
-  const float freq = tempo_to_freq(tempo);
+  const float freq = tempo_to_freq(m_bpm);
 
   uint16_t tsig = GetParameterAsBinnedValue(2) - 1;
   if (tsig != m_timeSignature)
@@ -149,7 +179,7 @@ void MetroModule::ProcessStereo(float inL, float inR)
   m_audioRight = sig * level + inR * (1.0f - level);
 }
 
-void MetroModule::SetTempo(uint32_t bpm) { SetParameterRaw(0, bpm_tempo_to_raw(bpm)); }
+void MetroModule::SetTempo(uint32_t bpm) { m_bpm = bpm; }
 
 float MetroModule::GetBrightnessForLED(int led_id)
 {
@@ -162,20 +192,6 @@ float MetroModule::GetBrightnessForLED(int led_id)
   return value;
 }
 
-uint16_t MetroModule::raw_tempo_to_bpm(uint8_t value) { return m_tempoBpmMin + (value * (m_tempoBpmMax - m_tempoBpmMin) / 127); }
-
-uint8_t MetroModule::bpm_tempo_to_raw(uint16_t bpm)
-{
-  if (bpm > m_tempoBpmMax)
-    bpm = m_tempoBpmMax;
-  else if (bpm < m_tempoBpmMin)
-    bpm = m_tempoBpmMin;
-
-  float normalized = static_cast<float>(bpm - m_tempoBpmMin) / static_cast<float>(m_tempoBpmMax - m_tempoBpmMin);
-  uint8_t raw = std::round(normalized * 127.0f);
-  return raw;
-}
-
 void MetroModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int numItemsTotal, Rectangle boundsToDrawIn, bool isEditing)
 {
   BaseEffectModule::DrawUI(display, currentIndex, numItemsTotal, boundsToDrawIn, isEditing);
@@ -183,10 +199,8 @@ void MetroModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int n
   // Show tempo in BPM
   char strbuff[64];
   int topRowHeight = boundsToDrawIn.GetHeight() / 2;
-  int tempoRaw = GetParameterRaw(0);
-  int tempo = raw_tempo_to_bpm(tempoRaw);
 
-  sprintf(strbuff, "%s %d BPM", TimeSignatureLabels[static_cast<uint16_t>(m_timeSignature)], tempo);
+  sprintf(strbuff, "%s %lu BPM", TimeSignatureLabels[static_cast<uint16_t>(m_timeSignature)], m_bpm);
   boundsToDrawIn.RemoveFromTop(topRowHeight);
   display.WriteStringAligned(strbuff, Font_11x18, boundsToDrawIn, Alignment::centered, true);
 

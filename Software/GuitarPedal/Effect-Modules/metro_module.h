@@ -73,6 +73,7 @@ public:
   void ProcessStereo(float inL, float inR) override;
   float Process();
 
+  void ParameterChanged(int parameter_id) override;
   void SetTempo(uint32_t bpm) override;
   float GetBrightnessForLED(int led_id) override;
   void DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int numItemsTotal, Rectangle boundsToDrawIn, bool isEditing) override;
@@ -81,8 +82,8 @@ public:
   inline TimeSignature GetTimeSignature() { return m_timeSignature; }
 
 private:
-  uint16_t m_tempoBpmMin;
-  uint16_t m_tempoBpmMax;
+  uint32_t m_tempoBpmMin;
+  uint32_t m_tempoBpmMax;
   float m_levelMin;
   float m_levelMax;
 
@@ -97,9 +98,7 @@ private:
   daisysp::Oscillator m_osc;
   daisysp::Adsr m_env;
 
-  // Utility methods
-  uint16_t raw_tempo_to_bpm(uint8_t value);
-  uint8_t bpm_tempo_to_raw(uint16_t bpm);
+  uint32_t m_bpm;
 };
 } // namespace bkshepherd
 #endif
