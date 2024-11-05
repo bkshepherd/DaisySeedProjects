@@ -74,7 +74,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
     },
 };
 
-static daisysp_modified::PitchShifter DSY_SDRAM_BSS pitchShifter;
+// TODO: move this to SDRAM, I experience a bad sound at startup sometimes when
+// I use DSY_SDRAM_BSS and I haven't been able to pin down the cause yet
+static daisysp_modified::PitchShifter pitchShifter;
 static daisysp::CrossFade pitchCrossfade;
 
 // Default Constructor
