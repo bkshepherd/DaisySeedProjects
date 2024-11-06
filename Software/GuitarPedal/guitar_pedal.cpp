@@ -175,8 +175,6 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
     // Process the switches
     for (int i = 0; i < hardware.GetSwitchCount(); i++)
     {
-        bool switchPressed = hardware.switches[i].RisingEdge();
-
         // If bypass is held for 2 seconds and alternate footswitch is not
         // pressed (not trying to save) then quick switch to/from the tuner
         if (tunerModuleIndex > 0 && !ignoreBypassSwitchUntilNextActuation &&
@@ -219,11 +217,13 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
           ignoreBypassSwitchUntilNextActuation = false;
         }
 
+        bool switchPressed = hardware.switches[i].RisingEdge();
+
         // Find which hardware switch is mapped to the Effect On/Off Bypass function
         if (!ignoreBypassSwitchUntilNextActuation &&
             i == hardware.GetPreferredSwitchIDForSpecialFunctionType(
                      SpecialFunctionType::Bypass)) {
-          effectOn ^= switchPressed;
+            effectOn ^= switchPressed;
         }
 
         if (effectOn && switchPressed &&
@@ -714,7 +714,6 @@ int main(void)
             }
             SetActiveEffect(desiredIndex);
         }
-
 
         if (hardware.SupportsDisplay())
         {
