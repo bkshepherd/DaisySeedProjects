@@ -33,6 +33,8 @@ PersistentStorage<Settings> storage(hardware.seed.qspi);
 int availableEffectsCount = 0;
 BaseEffectModule **availableEffects = NULL;
 int activeEffectID = 0;
+int prevActiveEffectID = 0;
+int tunerModuleIndex = -1;
 BaseEffectModule *activeEffect = NULL;
 
 // UI Related Variables
@@ -58,7 +60,12 @@ float secondsSinceStartup = 0.0f;
 bool needToSaveSettingsForActiveEffect = false;
 uint32_t last_save_time;        // Time we last set it
 
-uint32_t last_effect_change_time; // Time we last changed effect
+// Used to debounce quick switching to/from the tuner
+bool ignoreBypassSwitchUntilNextActuation = false;
+bool effectActiveBeforeQuickSwitch = false;
+
+// Time we last changed effect
+uint32_t last_effect_change_time;
 
 // Pot Monitoring Variables
 bool knobValuesInitialized = false;
@@ -86,6 +93,8 @@ CrossFade crossFaderLeft, crossFaderRight;
 float crossFaderTransitionTimeInSeconds = 0.1f;
 int crossFaderTransitionTimeInSamples;
 int samplesTilCrossFadingComplete;
+
+void SetActiveEffect(int effectID);
 
 static void AudioCallback(AudioHandle::InputBuffer  in,
                      AudioHandle::OutputBuffer out,
@@ -166,12 +175,55 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
     // Process the switches
     for (int i = 0; i < hardware.GetSwitchCount(); i++)
     {
+        // If bypass is held for 2 seconds and alternate footswitch is not
+        // pressed (not trying to save) then quick switch to/from the tuner
+        if (tunerModuleIndex > 0 && !ignoreBypassSwitchUntilNextActuation &&
+            hardware.switches[hardware
+                                  .GetPreferredSwitchIDForSpecialFunctionType(
+                                      SpecialFunctionType::Bypass)]
+                    .TimeHeldMs() > 2000 &&
+            !hardware
+                 .switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(
+                     SpecialFunctionType::Alternate)]
+                 .Pressed()) {
+          if (activeEffectID == tunerModuleIndex) {
+            // Set back the active effect before the quick switch
+            SetActiveEffect(prevActiveEffectID);
+
+            // Restore the effect state from when we quick switched, this is an
+            // inverse because the act of holding the switch caused the state to
+            // chnage due to the rising edge being detected
+            effectOn = !effectActiveBeforeQuickSwitch;
+            activeEffect->SetEnabled(effectOn);
+          } else {
+            // Store if effect is on or not when quick switching
+            effectActiveBeforeQuickSwitch = effectOn;
+
+            // Switch to tuner and force it to be enabled
+            SetActiveEffect(tunerModuleIndex);
+            effectOn = true;
+            activeEffect->SetEnabled(effectOn);
+          }
+          ignoreBypassSwitchUntilNextActuation = true;
+        }
+
+        // Disable quick switching until the footswitch is released to prevent
+        // infinite switching
+        if (ignoreBypassSwitchUntilNextActuation &&
+            !hardware
+                 .switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(
+                     SpecialFunctionType::Bypass)]
+                 .Pressed()) {
+          ignoreBypassSwitchUntilNextActuation = false;
+        }
+
         bool switchPressed = hardware.switches[i].RisingEdge();
 
         // Find which hardware switch is mapped to the Effect On/Off Bypass function
-        if (i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Bypass))
-        {
-             effectOn ^= switchPressed;
+        if (!ignoreBypassSwitchUntilNextActuation &&
+            i == hardware.GetPreferredSwitchIDForSpecialFunctionType(
+                     SpecialFunctionType::Bypass)) {
+            effectOn ^= switchPressed;
         }
 
         if (effectOn && switchPressed &&
@@ -374,6 +426,9 @@ void SetActiveEffect(int effectID)
 {
     if (effectID >= 0 && effectID < availableEffectsCount)
     {
+        // Store the last used effect
+        prevActiveEffectID = activeEffectID;
+
         // Update the ID cache
         activeEffectID = effectID;
 
@@ -518,10 +573,16 @@ int main(void)
     availableEffects[9] = new PitchShifterModule();
     availableEffects[10] = new CompressorModule();
     availableEffects[11] = new LooperModule();
-    
+
     for (int i = 0; i < availableEffectsCount; i++)
     {
         availableEffects[i]->Init(sample_rate);
+
+        if (std::string(availableEffects[i]->GetName()) == std::string("Tuner")) {
+          // Store the index for the tuner module so that we can quickswitch
+          // to/from it
+          tunerModuleIndex = i;
+        }
     }
 
     // Initalize Persistance Storage
