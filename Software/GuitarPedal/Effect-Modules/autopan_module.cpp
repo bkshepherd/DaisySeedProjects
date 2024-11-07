@@ -38,6 +38,8 @@ void AutoPanModule::Init(float sample_rate)
     BaseEffectModule::Init(sample_rate);
 
     m_freqOsc.Init(sample_rate);
+    m_freqOsc.SetFreq(m_freqOscFreqMin +
+                      (GetParameterAsMagnitude(2) * m_freqOscFreqMax));
 }
 
 void AutoPanModule::ProcessMono(float in)
@@ -47,7 +49,6 @@ void AutoPanModule::ProcessMono(float in)
     // Calculate Pan Oscillation 
     m_freqOsc.SetWaveform(GetParameterAsBinnedValue(1) - 1);
     m_freqOsc.SetAmp(0.5f);
-    m_freqOsc.SetFreq(m_freqOscFreqMin + (GetParameterAsMagnitude(2) * m_freqOscFreqMax));
     float mod = 0.5f + m_freqOsc.Process();
 
     if (GetParameterRaw(2) == 0) {
@@ -97,6 +98,13 @@ void AutoPanModule::ProcessStereo(float inL, float inR)
     m_audioRight = audioRightWet * GetParameterAsMagnitude(0) + m_audioRight * (1.0f - GetParameterAsMagnitude(0));
 }
 
+void AutoPanModule::ParameterChanged(int parameter_id) {
+  if (parameter_id == 2) {
+    m_freqOsc.SetFreq(m_freqOscFreqMin +
+                      (GetParameterAsMagnitude(2) * m_freqOscFreqMax));
+  }
+}
+
 void AutoPanModule::SetTempo(uint32_t bpm)
 {
     float freq = tempo_to_freq(bpm);
@@ -104,19 +112,10 @@ void AutoPanModule::SetTempo(uint32_t bpm)
     // Adjust the frequency into a range that makes sense for the effect
     freq = freq / 4.0f;
 
-    if (freq <= m_freqOscFreqMin)
-    {
-        SetParameterRaw(2, 0);
-    }
-    else if (freq >= m_freqOscFreqMax)
-    {
-        SetParameterRaw(2, 127);
-    }
-    else 
-    {
-        // Get the parameter as close as we can to target tempo
-        SetParameterRaw(2, ((freq - m_freqOscFreqMin) / (m_freqOscFreqMax - m_freqOscFreqMin)) * 128);
-    }
+    std::clamp(freq, m_freqOscFreqMin, m_freqOscFreqMax);
+
+    // Get the parameter as close as we can to target tempo
+    m_freqOsc.SetFreq(m_freqOscFreqMin + (freq * m_freqOscFreqMax));
 }
 
 float AutoPanModule::GetBrightnessForLED(int led_id)
