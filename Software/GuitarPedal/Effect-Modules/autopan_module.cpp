@@ -114,7 +114,6 @@ void AutoPanModule::SetTempo(uint32_t bpm)
 
     std::clamp(freq, m_freqOscFreqMin, m_freqOscFreqMax);
 
-    // Get the parameter as close as we can to target tempo
     m_freqOsc.SetFreq(m_freqOscFreqMin + (freq * m_freqOscFreqMax));
 }
 
