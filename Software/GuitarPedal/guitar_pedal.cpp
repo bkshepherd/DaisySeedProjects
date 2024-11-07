@@ -79,7 +79,7 @@ bool *knobValueCacheChanged = NULL;
 float *knobValueCache = NULL;
 int *knobValueSamplesTilIdle = NULL;
 
-// Switch Monitorying Variables
+// Switch Monitoring Variables
 float switchEnabledIdleTimeInSeconds = 2.0f;
 int switchEnabledIdleTimeInSamples;
 bool *switchEnabledCache = NULL;
@@ -243,11 +243,14 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
     {
         bool switchPressed = hardware.switches[i].RisingEdge();
 
-        // Find which hardware switch is mapped to the Effect On/Off Bypass function
-        if (!ignoreBypassSwitchUntilNextActuation &&
+        // If this is the bypass switch, check for a bypass transition already
+        // in progress (isCrossFading), and toggle the effect if the switch is
+        // pressed
+        if (!ignoreBypassSwitchUntilNextActuation && !isCrossFading &&
             i == hardware.GetPreferredSwitchIDForSpecialFunctionType(
-                     SpecialFunctionType::Bypass)) {
-            effectOn ^= switchPressed;
+                     SpecialFunctionType::Bypass) &&
+            switchPressed) {
+          effectOn = !effectOn;
         }
 
         if (effectOn && switchPressed &&
