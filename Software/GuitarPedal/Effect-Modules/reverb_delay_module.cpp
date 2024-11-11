@@ -521,13 +521,13 @@ void ReverbDelayModule::SetTempo(uint32_t bpm) {
     float delay_in_samples = effect_samplerate / freq;
 
     if (delay_in_samples <= m_delaySamplesMin) {
-        SetParameterRaw(0, 0);
+        SetParameterAsMagnitude(0, 0.0f);
     } else if (delay_in_samples >= m_delaySamplesMax) {
-        SetParameterRaw(0, 127);
+        SetParameterAsMagnitude(0, 1.0f);
     } else {
-        // Get the parameter as close as we can to target tempo
-        SetParameterRaw(0, ((delay_in_samples - m_delaySamplesMin) / (m_delaySamplesMax - m_delaySamplesMin)) *
-                               127); // TODO This was "* 128", verify
+        float magnitude =
+            static_cast<float>(delay_in_samples - m_delaySamplesMin) / static_cast<float>(m_delaySamplesMax - m_delaySamplesMin);
+        SetParameterAsMagnitude(0, magnitude);
     }
     UpdateLEDRate();
 }

@@ -106,12 +106,12 @@ void ChopperModule::SetTempo(uint32_t bpm) {
     freq = freq / 4.0f;
 
     if (freq <= m_tempoFreqMin) {
-        SetParameterRaw(1, 0);
+        SetParameterAsMagnitude(1, 0.0f);
     } else if (freq >= m_tempoFreqMax) {
-        SetParameterRaw(1, 127);
+        SetParameterAsMagnitude(1, 1.0f);
     } else {
-        // Get the parameter as close as we can to target tempo
-        SetParameterRaw(1, ((freq - m_tempoFreqMin) / (m_tempoFreqMax - m_tempoFreqMin)) * 128);
+        float magnitude = static_cast<float>(freq - m_tempoFreqMin) / static_cast<float>(m_tempoFreqMax - m_tempoFreqMin);
+        SetParameterAsMagnitude(1, magnitude);
     }
 }
 

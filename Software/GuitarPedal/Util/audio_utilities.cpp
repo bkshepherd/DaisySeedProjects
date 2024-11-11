@@ -1,6 +1,6 @@
 #include "audio_utilities.h"
 
-float tempo_to_freq(uint32_t tempo) { return tempo / 60.0f; }
+float tempo_to_freq(uint32_t tempo) { return static_cast<float>(tempo) / 60.0f; }
 
 uint32_t freq_to_tempo(float freq) { return freq * 60.0f; }
 
