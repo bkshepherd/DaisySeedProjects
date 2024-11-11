@@ -111,12 +111,12 @@ void AutoPanModule::SetTempo(uint32_t bpm) {
     freq = freq / 4.0f;
 
     if (freq <= m_freqOscFreqMin) {
-        SetParameterRaw(2, 0);
+        SetParameterAsMagnitude(2, 0.0f);
     } else if (freq >= m_freqOscFreqMax) {
-        SetParameterRaw(2, 127);
+        SetParameterAsMagnitude(2, 1.0f);
     } else {
-        // Get the parameter as close as we can to target tempo
-        SetParameterRaw(2, ((freq - m_freqOscFreqMin) / (m_freqOscFreqMax - m_freqOscFreqMin)) * 128);
+        float magnitude = static_cast<float>(freq - m_freqOscFreqMin) / static_cast<float>(m_freqOscFreqMax - m_freqOscFreqMin);
+        SetParameterAsMagnitude(2, magnitude);
     }
 }
 

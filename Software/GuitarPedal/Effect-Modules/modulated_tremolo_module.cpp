@@ -95,12 +95,12 @@ void ModulatedTremoloModule::SetTempo(uint32_t bpm) {
     float freq = tempo_to_freq(bpm);
 
     if (freq <= m_tremoloFreqMin) {
-        SetParameterRaw(2, 0);
+        SetParameterAsMagnitude(2, 0.0f);
     } else if (freq >= m_tremoloFreqMax) {
-        SetParameterRaw(2, 127);
+        SetParameterAsMagnitude(2, 1.0f);
     } else {
-        // Get the parameter as close as we can to target tempo
-        SetParameterRaw(2, ((freq - m_tremoloFreqMin) / (m_tremoloFreqMax - m_tremoloFreqMin)) * 128);
+        float magnitude = static_cast<float>(freq - m_tremoloFreqMin) / static_cast<float>(m_tremoloFreqMax - m_tremoloFreqMin);
+        SetParameterAsMagnitude(2, magnitude);
     }
 }
 
