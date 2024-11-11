@@ -3,7 +3,8 @@
 
 using namespace bkshepherd;
 
-static const ParameterMetaData s_metaData[0] = {};
+static const int s_paramCount = 0;
+static const ParameterMetaData s_metaData[s_paramCount] = {};
 
 // Default Constructor
 ScopeModule::ScopeModule() : BaseEffectModule() {
@@ -14,7 +15,7 @@ ScopeModule::ScopeModule() : BaseEffectModule() {
     m_paramMetaData = s_metaData;
 
     // Initialize Parameters for this Effect
-    this->InitParams(0);
+    this->InitParams(s_paramCount);
 }
 
 // Destructor

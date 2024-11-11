@@ -1,6 +1,7 @@
 #pragma once
 #ifndef AUDIO_UTILITIES_H
 #define AUDIO_UTILITIES_H
+#include <stdint.h>
 
 /** Converts Tempo to Frequency
      \param tempo the Tempo in Beats Per Minute (BPM)
