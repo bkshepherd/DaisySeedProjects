@@ -2,20 +2,18 @@
 #ifndef REVERB_MODULE_H
 #define REVERB_MODULE_H
 
-#include <stdint.h>
-#include "daisysp.h"
 #include "base_effect_module.h"
+#include "daisysp.h"
+#include <stdint.h>
 #ifdef __cplusplus
 
 /** @file reverb_module.h */
 
 using namespace daisysp;
 
-namespace bkshepherd
-{
+namespace bkshepherd {
 
-class ReverbModule : public BaseEffectModule
-{
+class ReverbModule : public BaseEffectModule {
   public:
     ReverbModule();
     ~ReverbModule();

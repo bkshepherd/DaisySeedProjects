@@ -2,20 +2,18 @@
 #ifndef MODULATED_TREMOLO_MODULE_H
 #define MODULATED_TREMOLO_MODULE_H
 
-#include <stdint.h>
-#include "daisysp.h"
 #include "base_effect_module.h"
+#include "daisysp.h"
+#include <stdint.h>
 #ifdef __cplusplus
 
 /** @file modulated_tremolo_module.h */
 
 using namespace daisysp;
 
-namespace bkshepherd
-{
+namespace bkshepherd {
 
-class ModulatedTremoloModule : public BaseEffectModule
-{
+class ModulatedTremoloModule : public BaseEffectModule {
   public:
     ModulatedTremoloModule();
     ~ModulatedTremoloModule();

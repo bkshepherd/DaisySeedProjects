@@ -15,8 +15,7 @@ namespace bkshepherd {
 /**
    @brief Helpers and hardware definitions for a 125B sized Guitar Pedal based on the Daisy Seed.
 */
-class GuitarPedal125B : public BaseHardwareModule
-{
+class GuitarPedal125B : public BaseHardwareModule {
   public:
     GuitarPedal125B();
     ~GuitarPedal125B();

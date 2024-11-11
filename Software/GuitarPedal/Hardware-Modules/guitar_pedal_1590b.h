@@ -15,8 +15,7 @@ namespace bkshepherd {
 /**
    @brief Helpers and hardware definitions for a 1590B sized Guitar Pedal based on the Daisy Seed.
 */
-class GuitarPedal1590B : public BaseHardwareModule
-{
+class GuitarPedal1590B : public BaseHardwareModule {
   public:
     GuitarPedal1590B();
     ~GuitarPedal1590B();

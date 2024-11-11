@@ -47,8 +47,7 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
 };
 
 // Default Constructor
-CompressorModule::CompressorModule() : BaseEffectModule()
-{
+CompressorModule::CompressorModule() : BaseEffectModule() {
     // Set the name of the effect
     m_name = "Comp";
 
@@ -60,22 +59,18 @@ CompressorModule::CompressorModule() : BaseEffectModule()
 }
 
 // Destructor
-CompressorModule::~CompressorModule()
-{
+CompressorModule::~CompressorModule() {
     // No Code Needed
 }
 
-void CompressorModule::Init(float sample_rate)
-{
+void CompressorModule::Init(float sample_rate) {
     BaseEffectModule::Init(sample_rate);
 
     m_compressor.Init(sample_rate);
 }
 
-void CompressorModule::ParameterChanged(int parameter_id)
-{
-    switch (parameter_id)
-    {
+void CompressorModule::ParameterChanged(int parameter_id) {
+    switch (parameter_id) {
     case 1: {
         const float ratioMin = 1.0f;
         const float ratioMax = 40.0f;
@@ -108,8 +103,7 @@ void CompressorModule::ParameterChanged(int parameter_id)
     }
 }
 
-void CompressorModule::ProcessMono(float in)
-{
+void CompressorModule::ProcessMono(float in) {
     const float compressor_out = m_compressor.Process(in);
 
     const float level = m_levelMin + (GetParameterAsMagnitude(0) * (m_levelMax - m_levelMin));
@@ -118,14 +112,12 @@ void CompressorModule::ProcessMono(float in)
     m_audioRight = m_audioLeft;
 }
 
-void CompressorModule::ProcessStereo(float inL, float inR)
-{
+void CompressorModule::ProcessStereo(float inL, float inR) {
     // Calculate the mono effect
     ProcessMono(inL);
 }
 
-float CompressorModule::GetBrightnessForLED(int led_id)
-{
+float CompressorModule::GetBrightnessForLED(int led_id) {
     float value = BaseEffectModule::GetBrightnessForLED(led_id);
 
     // TODO: Use gain for the LED

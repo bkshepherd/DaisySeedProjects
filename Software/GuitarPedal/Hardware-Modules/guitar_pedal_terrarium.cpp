@@ -3,23 +3,18 @@
 using namespace bkshepherd;
 
 static const int s_switchParamCount = 2;
-static const PreferredSwitchMetaData s_switchMetaData[s_switchParamCount] = {{sfType: SpecialFunctionType::Bypass, switchMapping: 0},
-                                                                            {sfType: SpecialFunctionType::Alternate, switchMapping: 1}};
+static const PreferredSwitchMetaData s_switchMetaData[s_switchParamCount] = {
+    {sfType : SpecialFunctionType::Bypass, switchMapping : 0}, {sfType : SpecialFunctionType::Alternate, switchMapping : 1}};
 
-GuitarPedalTerrarium::GuitarPedalTerrarium() : BaseHardwareModule()
-{
+GuitarPedalTerrarium::GuitarPedalTerrarium() : BaseHardwareModule() {
     // Setup the Switch Meta Data for this hardware
     m_switchMetaDataParamCount = s_switchParamCount;
     m_switchMetaData = s_switchMetaData;
 }
 
-GuitarPedalTerrarium::~GuitarPedalTerrarium()
-{
+GuitarPedalTerrarium::~GuitarPedalTerrarium() {}
 
-}
-
-void GuitarPedalTerrarium::Init(bool boost)
-{
+void GuitarPedalTerrarium::Init(bool boost) {
     BaseHardwareModule::Init(boost);
 
     Pin knobPins[] = {seed::D16, seed::D17, seed::D18, seed::D19, seed::D20, seed::D21};

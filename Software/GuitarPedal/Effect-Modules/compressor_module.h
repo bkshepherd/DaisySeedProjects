@@ -13,11 +13,9 @@
 
 using namespace daisysp;
 
-namespace bkshepherd
-{
+namespace bkshepherd {
 
-class CompressorModule : public BaseEffectModule
-{
+class CompressorModule : public BaseEffectModule {
   public:
     CompressorModule();
     ~CompressorModule();

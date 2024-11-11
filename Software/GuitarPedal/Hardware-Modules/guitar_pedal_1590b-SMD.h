@@ -15,8 +15,7 @@ namespace bkshepherd {
 /**
    @brief Helpers and hardware definitions for the SMD version of my 1590B sized Guitar Pedal based on the Daisy Seed.
 */
-class GuitarPedal1590BSMD : public BaseHardwareModule
-{
+class GuitarPedal1590BSMD : public BaseHardwareModule {
   public:
     GuitarPedal1590BSMD();
     ~GuitarPedal1590BSMD();

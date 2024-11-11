@@ -12,42 +12,41 @@
 namespace bkshepherd {
 
 class PitchShifterModule : public BaseEffectModule {
- public:
-  PitchShifterModule();
-  ~PitchShifterModule();
+  public:
+    PitchShifterModule();
+    ~PitchShifterModule();
 
-  void Init(float sample_rate) override;
-  void ProcessMono(float in) override;
-  void ProcessStereo(float inL, float inR) override;
-  void ParameterChanged(int parameter_id) override;
+    void Init(float sample_rate) override;
+    void ProcessMono(float in) override;
+    void ProcessStereo(float inL, float inR) override;
+    void ParameterChanged(int parameter_id) override;
 
-  bool AlternateFootswitchForTempo() const override { return false; }
-  void AlternateFootswitchPressed() override;
-  void AlternateFootswitchReleased() override;
-  void DrawUI(OneBitGraphicsDisplay &display, int currentIndex,
-              int numItemsTotal, Rectangle boundsToDrawIn,
-              bool isEditing) override;
+    bool AlternateFootswitchForTempo() const override { return false; }
+    void AlternateFootswitchPressed() override;
+    void AlternateFootswitchReleased() override;
+    void DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int numItemsTotal, Rectangle boundsToDrawIn,
+                bool isEditing) override;
 
- private:
-  void SetTranspose(float semitone);
-  float ProcessMomentaryMode(float in);
-  void ProcessSemitoneTargetChange();
+  private:
+    void SetTranspose(float semitone);
+    float ProcessMomentaryMode(float in);
+    void ProcessSemitoneTargetChange();
 
-  bool m_latching = true;
-  bool m_directionDown = true;
-  bool m_alternateFootswitchPressed = false;
+    bool m_latching = true;
+    bool m_directionDown = true;
+    bool m_alternateFootswitchPressed = false;
 
-  float m_semitoneTarget = 0;
+    float m_semitoneTarget = 0;
 
-  uint32_t m_sampleCounter = 0;
-  uint32_t m_samplesToDelayShift = 0;
-  uint32_t m_samplesToDelayReturn = 0;
+    uint32_t m_sampleCounter = 0;
+    uint32_t m_samplesToDelayShift = 0;
+    uint32_t m_samplesToDelayReturn = 0;
 
-  bool m_transitioningShift = false;
-  bool m_transitioningReturn = false;
+    bool m_transitioningShift = false;
+    bool m_transitioningReturn = false;
 
-  float m_percentageTransitionComplete = 0.0;
+    float m_percentageTransitionComplete = 0.0;
 };
-}  // namespace bkshepherd
+} // namespace bkshepherd
 #endif
 #endif

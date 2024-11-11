@@ -2,42 +2,39 @@
 #ifndef BASE_HARDWARE_MODULE_H
 #define BASE_HARDWARE_MODULE_H /**< & */
 
-#include <vector>
 #include "daisy_seed.h"
 #include "dev/oled_ssd130x.h"
+#include <vector>
 
 using namespace daisy;
 
-/** Typedef the OledDisplay to make syntax cleaner below 
+/** Typedef the OledDisplay to make syntax cleaner below
  *  This is a 4Wire SPI Transport controlling an 128x64 sized SSDD1306
- * 
- *  There are several other premade test 
-*/
+ *
+ *  There are several other premade test
+ */
 using MyOledDisplay = OledDisplay<SSD130x4WireSpi128x64Driver>;
 
 namespace bkshepherd {
 
 /** Special Function Types */
-enum SpecialFunctionType
-{
-   Bypass,                    // Bypass
-   Alternate,                 // Alternate footswitch for effects to use (by default it is tap tempo if an effect doesn't change it)
-   SpecialFunctionType_LAST,  // Last enum item
+enum SpecialFunctionType {
+    Bypass,                   // Bypass
+    Alternate,                // Alternate footswitch for effects to use (by default it is tap tempo if an effect doesn't change it)
+    SpecialFunctionType_LAST, // Last enum item
 };
 
 // Meta data for mapping preferred switch ids to special function types
-struct PreferredSwitchMetaData
-{
-   SpecialFunctionType sfType;   // The Special Function Type
-   int switchMapping;            // The ID of the Physical Switch mapped to this SpecialFunctionType.
-};   
+struct PreferredSwitchMetaData {
+    SpecialFunctionType sfType; // The Special Function Type
+    int switchMapping;          // The ID of the Physical Switch mapped to this SpecialFunctionType.
+};
 
 /**
    @brief Helpers and hardware definitions for a 125B sized Guitar Pedal based on the Daisy Seed.
 */
-class BaseHardwareModule
-{
-   public:       
+class BaseHardwareModule {
+  public:
     /** Constructor */
     BaseHardwareModule();
     /** Destructor */
@@ -51,7 +48,6 @@ class BaseHardwareModule
        \param del Delay time in ms.
      */
     void DelayMs(size_t del);
-
 
     /** Starts the callback
     \param cb Interleaved callback function
@@ -111,8 +107,7 @@ class BaseHardwareModule
     void ProcessDigitalControls();
 
     /** Process Analog and Digital Controls */
-    inline void ProcessAllControls()
-    {
+    inline void ProcessAllControls() {
         ProcessAnalogControls();
         ProcessDigitalControls();
     }
@@ -149,16 +144,16 @@ class BaseHardwareModule
     \return Number of Encoders.
     */
     int GetEncoderCount();
-    
+
     /** Get number of LEDs.
     \return Number of LEDs.
     */
     int GetLedCount();
 
     /**
-       Gets the ID of the Switch this hardware would prefer is used for a specific special function such as Bypass or TapTempo(Alternate).
-       \param sfType The type of special function
-       \return The preferred SwitchID for this function. -1 if there is no available switch for this function on this hardware
+       Gets the ID of the Switch this hardware would prefer is used for a specific special function such as Bypass or
+       TapTempo(Alternate). \param sfType The type of special function \return The preferred SwitchID for this function. -1 if there is
+       no available switch for this function on this hardware
      */
     int GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType sfType);
 
@@ -172,7 +167,7 @@ class BaseHardwareModule
     /** Updates all the LEDs based on their values */
     void UpdateLeds();
 
-        /** Toggle the Hardware Audio Bypass (if applicable) */
+    /** Toggle the Hardware Audio Bypass (if applicable) */
     void SetAudioBypass(bool enabled);
 
     /** Toggle the Hardware Audio Mute (if applicable) */
@@ -197,7 +192,6 @@ class BaseHardwareModule
     std::vector<Encoder> encoders;
     std::vector<Led> leds;
 
-    
     MidiUartHandler midi;
     MyOledDisplay display;
     GPIO audioBypassTrigger;
@@ -210,7 +204,7 @@ class BaseHardwareModule
     bool m_supportsTrueBypass;
     bool m_audioBypass;
     bool m_audioMute;
-    int m_switchMetaDataParamCount;                           // Number of Switch Meta Data Parameters
+    int m_switchMetaDataParamCount; // Number of Switch Meta Data Parameters
     const PreferredSwitchMetaData *m_switchMetaData;
 
     void SetHidUpdateRates();
@@ -223,7 +217,7 @@ class BaseHardwareModule
     void InitDisplay(Pin dcPin, Pin resetPin);
     void InitTrueBypass(Pin relayPin, Pin mutePin);
 
-    inline uint16_t* adc_ptr(const uint8_t chn) { return seed.adc.GetPtr(chn); }
+    inline uint16_t *adc_ptr(const uint8_t chn) { return seed.adc.GetPtr(chn); }
 };
 } // namespace bkshepherd
 #endif

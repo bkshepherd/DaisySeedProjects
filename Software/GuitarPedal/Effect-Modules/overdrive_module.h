@@ -2,20 +2,18 @@
 #ifndef OVERDRIVE_MODULE_H
 #define OVERDRIVE_MODULE_H
 
-#include <stdint.h>
-#include "daisysp.h"
 #include "base_effect_module.h"
+#include "daisysp.h"
+#include <stdint.h>
 #ifdef __cplusplus
 
 /** @file overdrive_module.h */
 
 using namespace daisysp;
 
-namespace bkshepherd
-{
+namespace bkshepherd {
 
-class OverdriveModule : public BaseEffectModule
-{
+class OverdriveModule : public BaseEffectModule {
   public:
     OverdriveModule();
     ~OverdriveModule();
