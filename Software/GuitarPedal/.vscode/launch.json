@@ -15,7 +15,7 @@
       "preLaunchTask": "build_all_debug",
       "preRestartCommands": ["load", "enable breakpoint", "monitor reset"],
       "request": "launch",
-      "runToMain": true,
+      "runToEntryPoint": "main",
       "servertype": "openocd",
       "showDevDebugOutput": "parsed",
       "svdFile": "${workspaceRoot}/.vscode/STM32H750x.svd",
