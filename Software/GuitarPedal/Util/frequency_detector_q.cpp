@@ -20,7 +20,7 @@ FrequencyDetectorQ::~FrequencyDetectorQ() {
 
 void FrequencyDetectorQ::Init(float sampleRate) {
     // The frequency detection bounds;
-    frequency lowest_frequency = cycfi::q::pitch_names::C[2];
+    frequency lowest_frequency = cycfi::q::pitch_names::C[1];
     frequency highest_frequency = cycfi::q::pitch_names::C[5];
 
     m_pitchDetector = new pitch_detector{lowest_frequency, highest_frequency, sampleRate, lin_to_db(0)};
