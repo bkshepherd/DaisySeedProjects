@@ -1,34 +1,6 @@
 # Multi-Effect Guitar Pedal Software
 This directory includes all the source code for my Multi-Effect Guitar Pedal that runs on various hardware platforms. 
 
-## Software Updates 
-### November 2024
-
-1. New Effect Modules:
-     - Compressor
-     - Chromatic Tuner
-     - Looper
-     - Pitch Shifter (similar to digitech drop/ricochet)
-2. Fixes to tap tempo across several effects
-3. Quick-switch to tuner by press-and-hold bypass switch
-4. Allow effects to utilize alternate footswitch (looper, pitch shifter)
-5. Adjusts saving to require both footswitches to be held if the hw has 2 footswitches
-6. Updated to C++20, updated dependencies, added code formatting with clang-format
-7. Added a compile-time boolean flag if hardware only has 1 footswitch
-8. Adjusted bypass logic to try and mitigate double activations
-   
-### February 2024
-Big update to the handling of Persistant Storage.  Thank you @jaching!
-
-Updates include:
-
-1. Removed the hard limit the number of parameters stored per EffectModule.
-2. Ability to have multiple stored Presets for each EffectModule
-3. Reset All Presets button now located in the Preset Menu
-4. Changing Midi to call custom callback when a midi cc cannot be found.
-5. Added a NEW Multi tap delay Effect Module!
-6. The software is now configured to use the Boot Loader by default to allow for more memory usage.
-
 ## Getting Started
 Before you can use the software you'll need to do the following:
 
@@ -103,7 +75,34 @@ Plug your guitar into the Input and connect the Output to your amp.
 
 ### 6. Enjoy!!!
 
-## Past Updates:
+## Software Updates 
+
+### Software Update - November 2024
+
+1. New Effect Modules:
+     - Compressor
+     - Chromatic Tuner
+     - Looper
+     - Pitch Shifter (similar to digitech drop/ricochet)
+2. Fixes to tap tempo across several effects
+3. Quick-switch to tuner by press-and-hold bypass switch
+4. Allow effects to utilize alternate footswitch (looper, pitch shifter)
+5. Adjusts saving to require both footswitches to be held if the hw has 2 footswitches
+6. Updated to C++20, updated dependencies, added code formatting with clang-format
+7. Added a compile-time boolean flag if hardware only has 1 footswitch
+8. Adjusted bypass logic to try and mitigate double activations
+   
+### Software Update - February 2024
+Big update to the handling of Persistant Storage.  Thank you @jaching!
+
+Updates include:
+
+1. Removed the hard limit the number of parameters stored per EffectModule.
+2. Ability to have multiple stored Presets for each EffectModule
+3. Reset All Presets button now located in the Preset Menu
+4. Changing Midi to call custom callback when a midi cc cannot be found.
+5. Added a NEW Multi tap delay Effect Module!
+6. The software is now configured to use the Boot Loader by default to allow for more memory usage.
 
 ### Software Update - 11/11/2023
 Updates include:
