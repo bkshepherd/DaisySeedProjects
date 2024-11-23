@@ -1,7 +1,23 @@
 # Multi-Effect Guitar Pedal Software
 This directory includes all the source code for my Multi-Effect Guitar Pedal that runs on various hardware platforms. 
 
-## Software Update - 2/12/2024
+## Software Updates 
+### November 2024
+
+1. New Effect Modules:
+     - Compressor
+     - Chromatic Tuner
+     - Looper
+     - Pitch Shifter (similar to digitech drop/ricochet)
+2. Fixes to tap tempo across several effects
+3. Quick-switch to tuner by press-and-hold bypass switch
+4. Allow effects to utilize alternate footswitch (looper, pitch shifter)
+5. Adjusts saving to require both footswitches to be held if the hw has 2 footswitches
+6. Updated to C++20, updated dependencies, added code formatting with clang-format
+7. Added a compile-time boolean flag if hardware only has 1 footswitch
+8. Adjusted bypass logic to try and mitigate double activations
+   
+### February 2024
 Big update to the handling of Persistant Storage.  Thank you @jaching!
 
 Updates include:
