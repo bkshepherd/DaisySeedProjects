@@ -48,7 +48,14 @@ You'll also need to update the paths in the **task.json** file in the **.vscode/
 
 ### 3. Configure your specific Target Hardware
 
-You'll need to open the guitar_pedal.cpp file and edit two lines to configure which hardware you are targetting.
+If you only have 1 footswitch, you will need to set the following line in guitar_pedal.cpp appropriately (1 switch = false, 2 switches = true (default))
+
+```
+// This can be set to false if your HW only has a single footswitch.
+constexpr bool has_alternate_footswitch = false;
+```
+
+You'll also need to open the guitar_pedal.cpp file and edit two lines to configure which hardware you are targetting. 
 
 ![HardwareConfiguration](images/configure_hardware.png)
 
