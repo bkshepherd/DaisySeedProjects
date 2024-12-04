@@ -36,7 +36,7 @@ This project is an evolution of my [1590B sized Pedal](https://github.com/bkshep
 9. Standard 9v center pin negative power jack
 10. Easy access to the Daisy Seed USB port and reset buttons for updating the firmware
 11. Primarily SMD parts for easy assembly by your PCB provider
-12. Easily order a custom drilled enclosure from Tayda! [Template Here](https://drill.taydakits.com/box-designs/new?public_key=ZXRnaU9PaWx0b1hNa3VxeTJua3d2dz09Cg==)
+12. Easily order a custom drilled enclosure from Tayda! [Template Here](https://drill.taydakits.com/box-designs/new?public_key=MlRHaUhqaEVXOVVFZ1ErV1FiTXlrQT09Cg==)
 
 This project includes a KiCad project with the necessary schematics and PCB layout files to create everything you need to build the hardware. The included exported Gerber and Assembly files make it easy to order PCBs from JCLPCB. Detailed instructions can be found on the [Build the Hardware](docs/README.md) page. This requires no knowledge of KiCad to get the PCBs made.
 
