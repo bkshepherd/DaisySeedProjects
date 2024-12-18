@@ -1,5 +1,4 @@
 #include "Effect-Modules/modulated_tremolo_module.h"
-#include "Hardware-Modules/guitar_pedal_125b.h"
 #include "daisysp.h"
 #include "guitar_pedal_storage.h"
 #include <string.h>
@@ -23,11 +22,31 @@ using namespace daisy;
 using namespace daisysp;
 using namespace bkshepherd;
 
-// This can be set to false if your HW only has a single footswitch.
-constexpr bool has_alternate_footswitch = true;
+// Uncomment the version you are trying to use, by default (and if nothing is
+// uncommented), the 125B with 2 footswitch variant will be used
 
-// Hardware Interface
+// #define VARIANT_125B
+// #define VARIANT_1590B
+// #define VARIANT_1590B_SMD
+// #define VARIANT_TERRARIUM
+
+#if defined(VARIANT_TERRARIUM)
+#include "Hardware-Modules/guitar_pedal_terrarium.h"
+constexpr bool has_alternate_footswitch = true;
+GuitarPedalTerrarium hardware;
+#elif defined(VARIANT_1590B)
+#include "Hardware-Modules/guitar_pedal_1590b.h"
+constexpr bool has_alternate_footswitch = false;
+GuitarPedal1590B hardware;
+#elif defined(VARIANT_1590B_SMD)
+#include "Hardware-Modules/guitar_pedal_1590b-SMD.h"
+constexpr bool has_alternate_footswitch = false;
+GuitarPedal1590BSMD hardware;
+#else
+#include "Hardware-Modules/guitar_pedal_125b.h"
+constexpr bool has_alternate_footswitch = true;
 GuitarPedal125B hardware;
+#endif
 
 // Persistant Storage
 PersistentStorage<Settings> storage(hardware.seed.qspi);

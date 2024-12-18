@@ -1,7 +1,9 @@
 # Multi-Effect Guitar Pedal Software
-This directory includes all the source code for my Multi-Effect Guitar Pedal that runs on various hardware platforms. 
+
+This directory includes all the source code for my Multi-Effect Guitar Pedal that runs on various hardware platforms.
 
 ## Getting Started
+
 Before you can use the software you'll need to do the following:
 
 ### 1. Setup your Development Environment
@@ -12,7 +14,7 @@ https://electro-smith.github.io/libDaisy/index.html
 
 ### 2. Update Paths to your install of LibDaisy and DaisySP
 
-* Note - You shouldn't have to do this step if the project pulled down from GitHub with them already included as sub-modules.  You can check in your /DaisySeedProjects/Software/GuitarPedal/libDaisy and daisySP folders. If they have files in them, you can skip this step.  If they are empty, you can try pulling down the project from GitHub again (the desktop GUI client always should pull down submodules). If it still doesn't pull down and you have libDaisy and DaisySP installed somehwere else, you can follow the steps below: 
+- Note - You shouldn't have to do this step if the project pulled down from GitHub with them already included as sub-modules. You can check in your /DaisySeedProjects/Software/GuitarPedal/libDaisy and daisySP folders. If they have files in them, you can skip this step. If they are empty, you can try pulling down the project from GitHub again (the desktop GUI client always should pull down submodules). If it still doesn't pull down and you have libDaisy and DaisySP installed somehwere else, you can follow the steps below:
 
 You'll need to update the paths in the **Makefile**.
 You'll also need to update the paths in the **c_cpp_properties.json** file in the **.vscode/** folder.
@@ -20,36 +22,55 @@ You'll also need to update the paths in the **task.json** file in the **.vscode/
 
 ### 3. Configure your specific Target Hardware
 
-If you only have 1 footswitch, you will need to set the following line in guitar_pedal.cpp appropriately (1 switch = false, 2 switches = true (default))
+You'll need to open the guitar_pedal.cpp file and uncomment a line to configure which hardware you are targetting. If you don't do this, it will build for the 125B variant.
 
+In guitar_pedal.cpp:
+
+```cpp
+// Uncomment the version you are trying to use, by default (and if nothing is
+// uncommented), the 125B with 2 footswitch variant will be used
+
+// #define VARIANT_125B
+// #define VARIANT_1590B
+// #define VARIANT_1590B_SMD
+// #define VARIANT_TERRARIUM
 ```
-// This can be set to false if your HW only has a single footswitch.
-constexpr bool has_alternate_footswitch = false;
-```
-
-You'll also need to open the guitar_pedal.cpp file and edit two lines to configure which hardware you are targetting. 
-
-![HardwareConfiguration](images/configure_hardware.png)
 
 If you want to target the GuitarPedal125B hardware change the lines to:
 
-* #include "Hardware-Modules/guitar_pedal_125b.h"
-* GuitarPedal125B hardware;
+```cpp
+#define VARIANT_125B
+// #define VARIANT_1590B
+// #define VARIANT_1590B_SMD
+// #define VARIANT_TERRARIUM
+```
 
 If you want to target the GuitarPedal1590B hardware change the lines to:
 
-* #include "Hardware-Modules/guitar_pedal_1590b.h"
-* GuitarPedal1590B hardware;
+```cpp
+// #define VARIANT_125B
+#define VARIANT_1590B
+// #define VARIANT_1590B_SMD
+// #define VARIANT_TERRARIUM
+```
 
 If you want to target the GuitarPedal1590B-SMD hardware change the lines to:
 
-* #include "Hardware-Modules/guitar_pedal_1590b-SMD.h"
-* GuitarPedal1590B-SMD hardware;
+```cpp
+// #define VARIANT_125B
+// #define VARIANT_1590B
+#define VARIANT_1590B_SMD
+// #define VARIANT_TERRARIUM
+```
 
 If you want to target the Pedal PCB hardware change the lines to:
 
-* #include "Hardware-Modules/guitar_pedal_terrarium.h"
-* GuitarPedalTerrarium hardware;
+```cpp
+// #define VARIANT_125B
+// #define VARIANT_1590B
+// #define VARIANT_1590B_SMD
+#define VARIANT_TERRARIUM
+```
 
 ### 4. Build and Deploy the Code
 
@@ -61,9 +82,9 @@ By Default this project is configured to use the custom Boot Loader. To get up a
 4. While the LED is blinking run "make program-dfu"
 5. That's it!
 
-If you run into trouble with the bootloader.  Electro-Smith has better documentation on how to get it working here: https://github.com/electro-smith/libDaisy/blob/master/doc/md/_a7_Getting-Started-Daisy-Bootloader.md
+If you run into trouble with the bootloader. Electro-Smith has better documentation on how to get it working here: https://github.com/electro-smith/libDaisy/blob/master/doc/md/_a7_Getting-Started-Daisy-Bootloader.md
 
-If you want to use built in flash memory only, you *can*, but it severely limits which effects you can use and how many you can have installed at once. I'd recommend editing the list of active effects in the guitar_pedal.cpp file to perhaps just 1 or 2. Then do the following to get running on internal flash:
+If you want to use built in flash memory only, you _can_, but it severely limits which effects you can use and how many you can have installed at once. I'd recommend editing the list of active effects in the guitar_pedal.cpp file to perhaps just 1 or 2. Then do the following to get running on internal flash:
 
 1. Remove the "APP_TYPE = BOOT_SRAM" line from the Make File:
 2. Put your Daisy Seed into DFU mode.
@@ -105,15 +126,17 @@ Updates include:
 6. The software is now configured to use the Boot Loader by default to allow for more memory usage.
 
 ### Software Update - 11/11/2023
+
 Updates include:
 
 1. Refactored the code to move Display UI handling and Persistent Storage out of the main class file.
 2. Added functionality to make it easy for an Effect Module to provide custom UI for the Display while the Effect is Active.
-   
+
 ### Software Update - 10/9/2023
+
 Updates Include:
 
-1. Added support for multiple effects.  Included are a simple tremolo, chorus, overdrive, and stereo auto-panning effects.
+1. Added support for multiple effects. Included are a simple tremolo, chorus, overdrive, and stereo auto-panning effects.
 2. Created a Hardware Abstraction Layer allowing this software to run on different Daisy seed based hardware targets including my custom hardware as well as the Pedal PCB Terrarium.
 3. Updated the menu system to support multiple effects each with their own settings and global hardware settings. Parameters can be updated directly through the menu UI or using the pots on the device.
 4. All settings / parameters are now saved to the device memory and restored when the device powers up.

@@ -1,0 +1,62 @@
+name: Build All
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: "recursive"
+      - name: Install Arm GNU Toolchain (arm-none-eabi-gcc)
+        uses: carlosperate/arm-none-eabi-gcc-action@v1
+        with:
+          release: "latest"
+      - name: Build Libraries
+        working-directory: Software/GuitarPedal/
+        run: ./ci/build_libs.sh
+      - name: Build GuitarPedal firmware 125B
+        working-directory: Software/GuitarPedal/
+        run: ./ci/build_app.sh VARIANT=125B
+      - name: Archive 125B .bin
+        uses: actions/upload-artifact@v4
+        with:
+          name: 125B Firmware
+          path: |
+            Software/GuitarPedal/build/guitarpedal.bin
+          if-no-files-found: error
+      - name: Build GuitarPedal firmware Terrarium
+        working-directory: Software/GuitarPedal/
+        run: ./ci/build_app.sh VARIANT=TERRARIUM
+      - name: Archive Terrarium .bin
+        uses: actions/upload-artifact@v4
+        with:
+          name: Terrarium Firmware
+          path: |
+            Software/GuitarPedal/build/guitarpedal.bin
+          if-no-files-found: error
+      - name: Build GuitarPedal firmware 1590B
+        working-directory: Software/GuitarPedal/
+        run: ./ci/build_app.sh VARIANT=1590B
+      - name: Archive 1590B .bin
+        uses: actions/upload-artifact@v4
+        with:
+          name: 1590B Firmware
+          path: |
+            Software/GuitarPedal/build/guitarpedal.bin
+          if-no-files-found: error
+      - name: Build GuitarPedal firmware 1590B-SMD
+        working-directory: Software/GuitarPedal/
+        run: ./ci/build_app.sh VARIANT=1590B_SMD
+      - name: Archive 1590B-SMD .bin
+        uses: actions/upload-artifact@v4
+        with:
+          name: 1590B-SMD Firmware
+          path: |
+            Software/GuitarPedal/build/guitarpedal.bin
+          if-no-files-found: error
