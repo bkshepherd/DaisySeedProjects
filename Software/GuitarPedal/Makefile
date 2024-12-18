@@ -23,3 +23,14 @@ SYSTEM_FILES_DIR = $(LIBDAISY_DIR)/core
 include $(SYSTEM_FILES_DIR)/Makefile
 
 C_INCLUDES += -I./q/q/q_lib/include -I./q/infra/include
+
+# Parse variants from argument to make, if none is supplied, will build for 125B
+# options:
+# make -j8 VARIANT=125B
+# make -j8 VARIANT=1590B
+# make -j8 VARIANT=1590B_SMD
+# make -j8 VARIANT=TERRARIUM
+ifdef VARIANT
+   CFLAGS += -DVARIANT_$(VARIANT)
+   $(info VARIANT=$(VARIANT))
+endif
