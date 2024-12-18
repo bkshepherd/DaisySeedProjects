@@ -4,7 +4,7 @@ This directory includes all the source code for my Multi-Effect Guitar Pedal tha
 
 ## Getting Started
 
-Before you can use the software you'll need to do the following:
+Before you can use the software you'll need to do the following steps. There is an option [down below](#using-pre-compiled-releases) to skip setup of a development environment and use a pre-compiled .bin file, however this means you can't make any changes which can be limiting! It is recommended to try to setup your local development environment first.
 
 ### 1. Setup your Development Environment
 
@@ -12,13 +12,32 @@ The code in this project is supplied with a Microsoft Visual Code project and de
 
 https://electro-smith.github.io/libDaisy/index.html
 
-### 2. Update Paths to your install of LibDaisy and DaisySP
+### 2. Setup libDaisy, DaisySP, and q dependencies
 
-- Note - You shouldn't have to do this step if the project pulled down from GitHub with them already included as sub-modules. You can check in your /DaisySeedProjects/Software/GuitarPedal/libDaisy and daisySP folders. If they have files in them, you can skip this step. If they are empty, you can try pulling down the project from GitHub again (the desktop GUI client always should pull down submodules). If it still doesn't pull down and you have libDaisy and DaisySP installed somehwere else, you can follow the steps below:
+Check to make sure that the following directories have files in them:
 
-You'll need to update the paths in the **Makefile**.
-You'll also need to update the paths in the **c_cpp_properties.json** file in the **.vscode/** folder.
-You'll also need to update the paths in the **task.json** file in the **.vscode/** folder.
+1. `Software/GuitarPedal/libDaisy`
+1. `Software/GuitarPedal/DaisySP`
+1. `Software/GuitarPedal/q/q`
+1. `Software/GuitarPedal/q/infra`
+
+If they do not have anything in them, you may need to do a `git pull --recurse-submodules`.
+
+Once those directories exist and have files in them, you should build libDaisy and DaisySP. This can be done with the following commands:
+
+1. `cd libDaisy`
+1. `make clean && make -j4`
+1. `cd ..`
+1. `cd DaisySP`
+1. `make clean && make -j4`
+
+#### Additional information for this step:
+
+- Note - You may not need to do all parts of this step if the project pulled down from GitHub with the dependencies already included as sub-modules. The desktop GUI client always should pull down submodules. If it still doesn't pull down and you have libDaisy and DaisySP installed somehwere else, you can follow the steps below, (note that you will still need to setup cycfi/q and cycfi/infra dependencies separately so the submodule way should be preferred):
+
+  - You'll need to update the paths in the **Makefile**.
+  - You'll also need to update the paths in the **c_cpp_properties.json** file in the **.vscode/** folder.
+  - You'll also need to update the paths in the **task.json** file in the **.vscode/** folder.
 
 ### 3. Configure your specific Target Hardware
 
@@ -74,13 +93,15 @@ If you want to target the Pedal PCB hardware change the lines to:
 
 ### 4. Build and Deploy the Code
 
-By Default this project is configured to use the custom Boot Loader. To get up and running you'll need to do the following:
+By default this project is configured to use the custom Boot Loader. To get up and running you'll need to do the following:
 
+1. Build the software with `make -j4`, confirm that `build/guitarpedal.bin` exists
 1. Put your Daisy Seed into DFU mode.
-2. From the terminal, in the GuitarPedal folder run "make program-boot"
-3. Once this finishes installing the custom boot loader on the Daisy Seed, press the Reset button. The led will temporary blink for about 3 second.
-4. While the LED is blinking run "make program-dfu"
-5. That's it!
+1. From the terminal, in the GuitarPedal folder run "make program-boot"
+1. Once this finishes installing the custom boot loader on the Daisy Seed, press the Reset button. The led will temporary blink for about 3 second.
+1. While the LED is blinking run "make program-dfu"
+1. That's it!
+1. If you make code changes, you can simply run `make -j4` to rebuild them, and then rerun the previous 2 steps (reset button + `make program-dfu`)
 
 If you run into trouble with the bootloader. Electro-Smith has better documentation on how to get it working here: https://github.com/electro-smith/libDaisy/blob/master/doc/md/_a7_Getting-Started-Daisy-Bootloader.md
 
@@ -96,15 +117,23 @@ Plug your guitar into the Input and connect the Output to your amp.
 
 ### 6. Enjoy!!!
 
-## Software Updates 
+## Using pre-compiled releases
+
+1. Download the .zip for the hardware variant you have built from the latest release https://github.com/bkshepherd/DaisySeedProjects/releases
+1. Unzip it so that you have a guitarpedal.bin
+1. Follow the instructions on https://electro-smith.github.io/Programmer/
+   - Once connected, select the file with the `Or select a file from your computer` option
+   - Click Advanced -> Flash Bootloader Image
+
+## Software Updates
 
 ### Software Update - November 2024
 
 1. New Effect Modules:
-     - Compressor
-     - Chromatic Tuner
-     - Looper
-     - Pitch Shifter (similar to digitech drop/ricochet)
+   - Compressor
+   - Chromatic Tuner
+   - Looper
+   - Pitch Shifter (similar to digitech drop/ricochet)
 2. Fixes to tap tempo across several effects
 3. Quick-switch to tuner by press-and-hold bypass switch
 4. Allow effects to utilize alternate footswitch (looper, pitch shifter)
@@ -112,9 +141,10 @@ Plug your guitar into the Input and connect the Output to your amp.
 6. Updated to C++20, updated dependencies, added code formatting with clang-format
 7. Added a compile-time boolean flag if hardware only has 1 footswitch
 8. Adjusted bypass logic to try and mitigate double activations
-   
+
 ### Software Update - February 2024
-Big update to the handling of Persistant Storage.  Thank you @jaching!
+
+Big update to the handling of Persistant Storage. Thank you @jaching!
 
 Updates include:
 
