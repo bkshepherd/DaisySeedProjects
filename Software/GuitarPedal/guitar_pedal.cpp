@@ -187,17 +187,21 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
         // persistant storage If there is only one footswitch, it will do
         // parameter saving here when held instead of tuner quick switching later
         if (hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Bypass)].TimeHeldMs() > 2000 &&
-            hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)].TimeHeldMs() >
-                2000 &&
-            !guitarPedalUI.IsShowingSavingSettingsScreen()) {
+            hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)].TimeHeldMs() > 2000 &&
+            !guitarPedalUI.IsShowingSavingSettingsScreen() &&
+            !ignoreBypassSwitchUntilNextActuation) {
+
             needToSaveSettingsForActiveEffect = true;
+            ignoreBypassSwitchUntilNextActuation = true;
         }
 
         // If bypass is held for 2 seconds and alternate footswitch is not
         // pressed (not trying to save) then quick switch to/from the tuner
-        if (tunerModuleIndex > 0 && !ignoreBypassSwitchUntilNextActuation &&
+        if (tunerModuleIndex > 0 &&
             hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Bypass)].TimeHeldMs() > 2000 &&
-            !hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)].Pressed()) {
+            !hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)].Pressed() &&
+            !ignoreBypassSwitchUntilNextActuation) {
+
             if (activeEffectID == tunerModuleIndex) {
                 // Set back the active effect before the quick switch
                 SetActiveEffect(prevActiveEffectID);
@@ -219,8 +223,8 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
             ignoreBypassSwitchUntilNextActuation = true;
         }
 
-        // Disable quick switching until the footswitch is released to prevent
-        // infinite switching
+        // Disable quick switching until the footswitch is released to prevent infinite switching
+        // also prevents saving from toggling quick switch.
         if (ignoreBypassSwitchUntilNextActuation &&
             !hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Bypass)].Pressed()) {
             ignoreBypassSwitchUntilNextActuation = false;
