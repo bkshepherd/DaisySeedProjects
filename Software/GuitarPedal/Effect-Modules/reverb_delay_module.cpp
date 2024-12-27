@@ -167,7 +167,7 @@ ReverbDelayModule::ReverbDelayModule()
       m_delaySpreadMax(2400.0f),
       // m_delayPPMin(1200.0f),
       // m_delayPPMax(96000.0f),
-      m_pdelRight_out(0.0), m_modOscFreqMin(0.0), m_modOscFreqMax(3.0), m_currentMod(1.0), m_LEDValue(1.0f) {
+      m_pdelRight_out(0.0), m_currentMod(1.0), m_modOscFreqMin(0.0), m_modOscFreqMax(3.0), m_LEDValue(1.0f) {
     // Set the name of the effect
     m_name = "Verb Delay";
 
@@ -290,7 +290,7 @@ void ReverbDelayModule::ParameterChanged(int parameter_id) {
             delayLeft.secondTapOn = false;
             delayRight.secondTapOn = false;
         }
-    } else if (parameter_id = 10) {
+    } else if (parameter_id == 10) {
         delayLeft.toneOctLP.SetFreq(m_delaylpFreqMin + (m_delaylpFreqMax - m_delaylpFreqMin) * GetParameterAsMagnitude(10));
         delayRight.toneOctLP.SetFreq(m_delaylpFreqMin + (m_delaylpFreqMax - m_delaylpFreqMin) * GetParameterAsMagnitude(10));
     }
