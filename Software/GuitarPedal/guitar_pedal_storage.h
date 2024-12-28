@@ -3,11 +3,15 @@
 #define GUITAR_PEDAL_STORAGE_H
 
 // Peristant Storage Settings
-#define SETTINGS_FILE_FORMAT_VERSION 2
+#define SETTINGS_FILE_FORMAT_VERSION 3
 
-// Absolute maximum on current system, arbitrarily limiting this to 64KB
-#define SETTINGS_ABSOLUTE_MAX_PARAM_COUNT 16000
+// Arbitrarily limiting this to 4KB of stored presets since this sits in DTCMRAM which is limited to 128KB.
+// TODO: In the future it would be better if this worked with the QSPI directly instead of using
+// the PersistentStorage class as an abstraction since that only lets you store a fixed struct size.
+// then it would be possible to not have to pre-allocate a fixed size in DTCMRAM for the preset save data.
+#define SETTINGS_ABSOLUTE_MAX_PARAM_COUNT 1024
 #define ERR_VALUE_MAX 0xffffffff
+
 // Save System Variables
 struct Settings {
     int fileFormatVersion;
@@ -17,7 +21,12 @@ struct Settings {
     int globalMidiChannel;
     bool globalRelayBypassEnabled;
     bool globalSplitMonoInputToStereo;
-    uint32_t *globalEffectsSettings; // Set aside a block of memory for individual effect params
+
+    // Set aside a block of memory for individual effect params. 
+    // Please note this MUST be a fixed amount of memory in the struct and cannot be a pointer to dynamic memory!
+    // If you try to use a pointer it will only save the pointer address to QSPI storage and not any of the contents
+    // of that dynamic memory.  This is a limitation of the way the PersistantStorage helper class works.
+    uint32_t globalEffectsSettings[SETTINGS_ABSOLUTE_MAX_PARAM_COUNT];
 
     bool operator==(const Settings &rhs) {
         if (fileFormatVersion != rhs.fileFormatVersion || globalActiveEffectID != rhs.globalActiveEffectID ||
@@ -27,7 +36,7 @@ struct Settings {
             return false;
         }
 
-        for (uint32_t i = 0; i < globalEffectsSettings[0]; i++) {
+        for (uint32_t i = 0; i < SETTINGS_ABSOLUTE_MAX_PARAM_COUNT; i++) {
             if (globalEffectsSettings[i] != rhs.globalEffectsSettings[i]) {
                 return false;
             }
@@ -42,7 +51,6 @@ struct Settings {
 void InitPersistantStorage();
 void LoadEffectSettingsFromPersistantStorage();
 void SaveEffectSettingsToPersitantStorageForEffectID(int effectID, uint32_t presetID);
-uint32_t GetSettingsParameterValueForEffect(int effectID, int paramID);
 void SetSettingsParameterValueForEffect(int effectID, int paramID, uint32_t paramValue, uint32_t startIdx);
 void LoadPresetFromPersistentStorage(uint32_t effectID, uint32_t presetID);
 void FactoryReset(void *context);

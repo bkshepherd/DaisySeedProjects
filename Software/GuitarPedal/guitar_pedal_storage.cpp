@@ -9,8 +9,6 @@ extern BaseEffectModule **availableEffects;
 extern int activeEffectID;
 extern BaseEffectModule *activeEffect;
 
-uint32_t DSY_SDRAM_BSS globalEffectsSettings[SETTINGS_ABSOLUTE_MAX_PARAM_COUNT];
-
 uint32_t GetDefaultTotalIdxOfGlobalSettingsBlock() {
     uint32_t tempSize = 0;
 
@@ -30,7 +28,7 @@ void InitPersistantStorage() {
     defaultSettings.globalMidiThrough = true;
     defaultSettings.globalRelayBypassEnabled = false;
     defaultSettings.globalSplitMonoInputToStereo = true;
-    defaultSettings.globalEffectsSettings = globalEffectsSettings;
+
     // All Effect Params in the settings should be zero'd
     for (int i = 0; i < SETTINGS_ABSOLUTE_MAX_PARAM_COUNT; i++) {
         defaultSettings.globalEffectsSettings[i] = 0;
@@ -39,6 +37,7 @@ void InitPersistantStorage() {
     uint32_t globalEffectsSettingMemIdx = 0U;
     defaultSettings.globalEffectsSettings[globalEffectsSettingMemIdx] = GetDefaultTotalIdxOfGlobalSettingsBlock();
     ++globalEffectsSettingMemIdx;
+
     // Override any defaults with effect specific default settings
     for (int effectID = 0; effectID < availableEffectsCount; effectID++) {
         int paramCount = availableEffects[effectID]->GetParameterCount();
@@ -46,6 +45,7 @@ void InitPersistantStorage() {
         // Default value: 1
         defaultSettings.globalEffectsSettings[globalEffectsSettingMemIdx] = 1U;
         ++globalEffectsSettingMemIdx;
+
         // Next word is going to be the number of parameters
         defaultSettings.globalEffectsSettings[globalEffectsSettingMemIdx] = paramCount;
         ++globalEffectsSettingMemIdx;
@@ -55,14 +55,13 @@ void InitPersistantStorage() {
 
             if (availableEffects[effectID]->GetParameterType(paramID) == ParameterValueType::FloatMagnitude) {
                 uint32_t tmp;
-                float f = defaultSettings.globalEffectsSettings[globalEffectsSettingMemIdx] =
-                    availableEffects[effectID]->GetParameterAsFloat(paramID);
+                float f = defaultSettings.globalEffectsSettings[globalEffectsSettingMemIdx] = availableEffects[effectID]->GetParameterAsFloat(paramID);
                 std::memcpy(&tmp, &f, sizeof(float));
                 defaultSettings.globalEffectsSettings[globalEffectsSettingMemIdx] = tmp;
             } else {
-                defaultSettings.globalEffectsSettings[globalEffectsSettingMemIdx] =
-                    availableEffects[effectID]->GetParameterRaw(paramID);
+                defaultSettings.globalEffectsSettings[globalEffectsSettingMemIdx] = availableEffects[effectID]->GetParameterRaw(paramID);
             }
+
             ++globalEffectsSettingMemIdx;
         }
     }
@@ -230,6 +229,7 @@ void SaveEffectSettingsToPersitantStorageForEffectID(int effectID, uint32_t pres
     bool canWriteNewPreset = true;
     Settings &settings = storage.GetSettings();
     uint32_t globalEffectsMaxIdx = settings.globalEffectsSettings[0U];
+    
     // Save Effect Parameters to Persistant Storage based on values from the specified active effect
     if (effectID >= 0 && effectID < availableEffectsCount) {
         int paramCount = availableEffects[effectID]->GetParameterCount();
