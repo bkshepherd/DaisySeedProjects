@@ -22,6 +22,7 @@ constexpr size_t MAX_DELAY_REV =
                                          // opposite directions in the buffer)
 constexpr size_t MAX_DELAY_SPREAD = static_cast<size_t>(4800.0f); //  50 ms for Spread effect
 
+namespace {
 // This is the core delay struct, which actually includes two delays,
 // one for forwared/octave, and one for reverse. This is required
 // because the reverse delayline needs to be double the size of the
@@ -32,7 +33,7 @@ constexpr size_t MAX_DELAY_SPREAD = static_cast<size_t>(4800.0f); //  50 ms for 
 // octave delay, or create a "fading into the distance" effect for the
 // forward and reverse delays. A "level" param is included for modulation
 // of the output volume, for stereo panning.
-struct delay_reverb {
+struct delay {
     DelayLineRevOct<float, MAX_DELAY> *del;
     DelayLineReverse<float, MAX_DELAY_REV> *delreverse;
     float currentDelay;
@@ -110,6 +111,7 @@ struct delay_spread {
         return read;
     }
 };
+} // namespace
 
 namespace bkshepherd {
 
@@ -149,8 +151,8 @@ class ReverbDelayModule : public BaseEffectModule {
     float m_modOscFreqMax;
 
     // Delays
-    delay_reverb delayLeft;
-    delay_reverb delayRight;
+    delay delayLeft;
+    delay delayRight;
     delay_spread delaySpread;
 
     // Mix params

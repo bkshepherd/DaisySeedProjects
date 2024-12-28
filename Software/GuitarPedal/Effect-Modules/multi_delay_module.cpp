@@ -13,7 +13,8 @@ DelayLine<float, MAX_DELAY_TAP> DSY_SDRAM_BSS delayLineLeft0;
 DelayLine<float, MAX_DELAY_TAP> DSY_SDRAM_BSS delayLineRight0;
 
 float tap_delays[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-struct delay_multi {
+namespace {
+struct delay {
     DelayLine<float, MAX_DELAY_TAP> *del;
     float currentDelay;
     float delayTarget;
@@ -29,7 +30,8 @@ struct delay_multi {
         return read;
     }
 };
-delay_multi delays[2];
+} // namespace
+delay delays[2];
 
 static const char *s_typeBinNames[] = {"Follower", "Time"};
 static const int s_paramCount = 13;
