@@ -8,12 +8,12 @@ using namespace bkshepherd;
 
 PitchShifter DSY_SDRAM_BSS ps_taps[4];
 // Delay Max Definitions (Assumes 48kHz samplerate)
-#define MAX_DELAY_TAP static_cast<size_t>(48000.0f * 8.f)
+constexpr size_t MAX_DELAY_TAP = static_cast<size_t>(48000.0f * 8.f);
 DelayLine<float, MAX_DELAY_TAP> DSY_SDRAM_BSS delayLineLeft0;
 DelayLine<float, MAX_DELAY_TAP> DSY_SDRAM_BSS delayLineRight0;
 
 float tap_delays[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-struct delay {
+struct delay_multi {
     DelayLine<float, MAX_DELAY_TAP> *del;
     float currentDelay;
     float delayTarget;
@@ -29,7 +29,7 @@ struct delay {
         return read;
     }
 };
-delay delays[2];
+delay_multi delays[2];
 
 static const char *s_typeBinNames[] = {"Follower", "Time"};
 static const int s_paramCount = 13;
