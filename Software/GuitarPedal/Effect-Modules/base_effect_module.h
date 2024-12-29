@@ -161,10 +161,15 @@ class BaseEffectModule {
     */
     void SetParameterRaw(int parameter_id, uint32_t value);
 
-    /** Sets the Value for a Particular Effect Parameter using a float magnitude (0..1).  If the Parameter ID isn't valid, there is no
-       effect.
-       \param parameter_id Id of the parameter to set.
-       \param value the float magnitude value to set the parameter to.
+    /** Sets the Value for a Particular Effect Parameter using a float magnitude value ranging from 0.0f to 1.0f.
+     * If the Parameter ID isn't valid or if the Parameter Type is RAW, there is no effect. This function map the float
+     * magnitude value onto the underlying Parameter Type in the following ways:
+     * RAW Parameters - NOT SUPPORTED, there will be no effect.
+     * Bool Parameters - values < 0.5f are mapped to False, values >= 0.5 are mapped to True.
+     * Float Parameters - values between 0.0f and 1.0f are mapped to a float value between the Min and Max Parameter values
+     * Binned Parameters - values between 0.0f and 1.0f are divided equally between the total number of Bins available and mapped
+     accordingly.
+        \param parameter_id Id of the parameter to set. \param value the float magnitude value to set the parameter to.
     */
     void SetParameterAsMagnitude(int parameter_id, float value);
 
@@ -257,9 +262,12 @@ class BaseEffectModule {
         \return Fine step size for given parameter.
     */
     float GetParameterFineStepSize(int parameter_id);
-    /** This function gets called when the user defines a MIDI parameter to be handled by callback, rather than the default
-       implementation \param control_num, midicc number \param value, midi value
-    */
+
+    /** This function gets called when a MIDI CC message is received by the pedal when this effect is active.  The default
+     * implementation checks to see if any Midi Parameters on this Effect map to the midi CC number and then it maps the Midi Values
+     * 0..127 to a float 0.0f - 1.0f and then calls the SetParameterAsMagnitude helper function to handle how the midi values should
+     * map to the underlying parameter type. \param control_num, midicc number \param value, midi value
+     */
     virtual void MidiCCValueNotification(uint8_t control_num, uint8_t value);
 
     /** Effect can override this and return false to disable the tap tempo functionality to utilize the switch (loopers, momentary
