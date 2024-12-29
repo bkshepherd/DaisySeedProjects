@@ -91,6 +91,7 @@ uint32_t last_effect_change_time;
 
 // Pot Monitoring Variables
 bool knobValuesInitialized = false;
+float knobValueDeadZone = 0.05f; // Dead zone on both ends of the raw knob range
 float knobValueChangeTolerance = 1.0f / 256.0f;
 float knobValueIdleTimeInSeconds = 1.0f;
 int knobValueIdleTimeInSamples;
@@ -140,6 +141,17 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
 
     for (int i = 0; i < hardware.GetKnobCount(); i++) {
         knobValueRaw = hardware.GetKnobValue(i);
+
+        // Knobs don't perfectly return values in the 0.0f - 1.0f range
+        // so we will add some deadzone to either end of the knob and remap values into
+        // a full 0.0f - 1.0f range.
+        if (knobValueRaw < knobValueDeadZone) {
+            knobValueRaw = 0.0f;
+        } else if (knobValueRaw > (1.0f - knobValueDeadZone)) {
+            knobValueRaw = 1.0f;
+        } else {
+            knobValueRaw = (knobValueRaw - knobValueDeadZone) / (1.0f - (2.0f * knobValueDeadZone));
+        }
 
         if (!knobValuesInitialized) {
             // Initialize the knobs for the first time to whatever the current knob placements are
