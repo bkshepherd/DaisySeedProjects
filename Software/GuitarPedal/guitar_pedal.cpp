@@ -504,7 +504,7 @@ void HandleMidiMessage(MidiEvent m) {
             int effectParamID = activeEffect->GetMappedParameterIDForMidiCC(p.control_number);
 
             if (effectParamID != -1) {
-                guitarPedalUI.UpdateActiveEffectParameterValue(effectParamID, false);
+                guitarPedalUI.UpdateActiveEffectParameterValue(effectParamID, true);
             }
         }
         break;
