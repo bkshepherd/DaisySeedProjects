@@ -43,7 +43,7 @@ static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                                knobMapping : 0,
                                                                midiCCMapping : 20,
                                                                minValue : 0,
-                                                               maxValue : 100
+                                                               maxValue : 1
                                                            },
                                                            {
                                                                name : "Delay L ms",
@@ -75,7 +75,7 @@ static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                                knobMapping : 3,
                                                                midiCCMapping : 31,
                                                                minValue : 0,
-                                                               maxValue : 100,
+                                                               maxValue : 1,
                                                            },
                                                            {
                                                                name : "Tap Mode",

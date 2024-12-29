@@ -406,7 +406,7 @@ void ReverbDelayModule::ProcessMono(float in) {
     // Calculate any delay spread
     delaySpread.delayTarget = m_delaySpreadMin + (m_delaySpreadMax - m_delaySpreadMin) * GetParameterAsFloat(11);
     float delSpread_out = delaySpread.Process(delRight_out);
-    if (GetParameterRaw(11) > 0 && !GetParameterAsBool(12)) {
+    if (GetParameterAsFloat(11) > 0.0f && !GetParameterAsBool(12)) {
         delRight_out = delSpread_out;
     }
 
@@ -494,7 +494,7 @@ void ReverbDelayModule::ProcessStereo(float inL, float inR) {
     // Calculate any delay spread
     delaySpread.delayTarget = m_delaySpreadMin + (m_delaySpreadMax - m_delaySpreadMin) * GetParameterAsFloat(11);
     float delSpread_out = delaySpread.Process(delRight_out);
-    if (GetParameterRaw(11) > 0 && !GetParameterAsBool(12)) { // If spread > 0 and dual delay isn't on
+    if (GetParameterAsFloat(11) > 0.0f && !GetParameterAsBool(12)) { // If spread > 0 and dual delay isn't on
         delRight_out = delSpread_out;
     }
 

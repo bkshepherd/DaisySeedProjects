@@ -65,7 +65,7 @@ void AutoPanModule::ProcessMono(float in) {
     m_freqOsc.SetFreq(m_freqOscFreqMin + (GetParameterAsFloat(2) * m_freqOscFreqMax));
     float mod = 0.5f + m_freqOsc.Process();
 
-    if (GetParameterRaw(2) == 0) {
+    if (GetParameterAsFloat(2) <= 0.01f) {
         mod = 0.5f;
         m_pan = mod;
     }
