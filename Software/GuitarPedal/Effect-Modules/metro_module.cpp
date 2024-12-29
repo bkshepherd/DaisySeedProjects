@@ -55,9 +55,11 @@ static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                                name : "Tempo",
                                                                valueType : ParameterValueType::Float,
                                                                valueBinCount : 0,
-                                                               defaultValue : {.float_value = 0.5f},
+                                                               defaultValue : {.float_value = 165.f},
                                                                knobMapping : 0,
-                                                               midiCCMapping : 23
+                                                               midiCCMapping : 23,
+                                                               minValue : minTempo,
+                                                               maxValue : maxTempo
                                                            },
                                                            {
                                                                name : "Mix",
@@ -115,13 +117,14 @@ void MetroModule::Init(float sample_rate) {
     m_env.SetSustainLevel(.5);
 
     // Set metronome
-    const float freq = tempo_to_freq(DefaultTempoBpm);
+    m_bpm = static_cast<uint32_t>(GetParameterAsFloat(0));
+    const float freq = tempo_to_freq(m_bpm);
     m_metro.Init(freq, sample_rate);
 }
 
 void MetroModule::ParameterChanged(int parameter_id) {
     if (parameter_id == 0) {
-        m_bpm = minTempo + GetParameterAsFloat(0) * static_cast<float>(maxTempo - minTempo);
+        m_bpm = static_cast<uint32_t>(GetParameterAsFloat(0));
     }
 }
 

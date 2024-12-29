@@ -58,7 +58,6 @@ class Metronome {
 };
 
 enum TimeSignature { meter4x4 = 0, meter3x4 = 1, meter2x4 = 2 };
-const uint16_t DefaultTempoBpm = 120;
 
 class MetroModule : public BaseEffectModule {
   public:
