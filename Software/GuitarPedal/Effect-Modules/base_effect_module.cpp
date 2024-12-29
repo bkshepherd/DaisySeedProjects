@@ -241,14 +241,8 @@ void BaseEffectModule::SetParameterAsMagnitude(int parameter_id, float value) {
     ParameterValueType paramType = (ParameterValueType)GetParameterType(parameter_id);
 
     if (paramType == ParameterValueType::Raw) {
-        // Make sure the value is in the valid range.
-        if (value < 0.0f) {
-            SetParameterRaw(parameter_id, min);
-            return;
-        } else if (value > 1.0f) {
-            SetParameterRaw(parameter_id, max);
-            return;
-        }
+        // This is an unsupported operation, so do nothing.
+        return;
     } else if (paramType == ParameterValueType::Float) {
         // Make sure the value is in the valid range.
         if (value < 0.0f) {
@@ -366,7 +360,17 @@ void BaseEffectModule::ParameterChanged(int parameter_id) {
 }
 
 void BaseEffectModule::MidiCCValueNotification(uint8_t control_num, uint8_t value) {
-    // Do nothing
+    // Handle the incoming Midi CC Value Notification if needed
+    int effectParamID = GetMappedParameterIDForMidiCC(control_num);
+
+    // If there is a param mapped to this CC value we need to handle it appropriately
+    if (effectParamID != -1) {
+        // Midi Value gets mapped into a 0.0-1.0 float and the sets the parameter value using the SetParameterAsMagnitude function
+        // Essentially Midi values 0..127 will behave the same was as turning a Pot on the guitar pedal from full off to full on.
+        // This works for all parameter types except RAW.
+        float mag = (float)value / 127.0f;
+        SetParameterAsMagnitude(effectParamID, mag);
+    }
 }
 
 void BaseEffectModule::UpdateUI(float elapsedTime) {

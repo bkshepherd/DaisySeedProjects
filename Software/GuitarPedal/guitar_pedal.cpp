@@ -187,9 +187,9 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
         // persistant storage If there is only one footswitch, it will do
         // parameter saving here when held instead of tuner quick switching later
         if (hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Bypass)].TimeHeldMs() > 2000 &&
-            hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)].TimeHeldMs() > 2000 &&
-            !guitarPedalUI.IsShowingSavingSettingsScreen() &&
-            !ignoreBypassSwitchUntilNextActuation) {
+            hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)].TimeHeldMs() >
+                2000 &&
+            !guitarPedalUI.IsShowingSavingSettingsScreen() && !ignoreBypassSwitchUntilNextActuation) {
 
             needToSaveSettingsForActiveEffect = true;
             ignoreBypassSwitchUntilNextActuation = true;
@@ -496,14 +496,15 @@ void HandleMidiMessage(MidiEvent m) {
     case ControlChange: {
         if (activeEffect != NULL) {
             ControlChangeEvent p = m.AsControlChange();
+
+            // Notify the activeEffect to handle this midi cc / value
+            activeEffect->MidiCCValueNotification(p.control_number, p.value);
+
+            // Notify the UI to update if this CC message was mapped to an EffectParameter
             int effectParamID = activeEffect->GetMappedParameterIDForMidiCC(p.control_number);
 
             if (effectParamID != -1) {
-                activeEffect->SetParameterRaw(effectParamID, p.value);
-                guitarPedalUI.UpdateActiveEffectParameterValue(effectParamID, activeEffect->GetParameterRaw(effectParamID));
-            } else {
-                // Notify the activeEffect, just in case there is custom handling for this midi cc / value
-                activeEffect->MidiCCValueNotification(p.control_number, p.value);
+                guitarPedalUI.UpdateActiveEffectParameterValue(effectParamID, false);
             }
         }
         break;
