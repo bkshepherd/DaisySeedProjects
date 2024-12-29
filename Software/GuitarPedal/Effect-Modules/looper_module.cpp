@@ -15,17 +15,17 @@ static const int s_paramCount = 3;
 static const ParameterMetaData s_metaData[s_paramCount] = {
     {
         name : "Input Level",
-        valueType : ParameterValueType::FloatMagnitude,
+        valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : 64,
+        defaultValue : {.float_value = 0.5f},
         knobMapping : 0,
         midiCCMapping : -1
     },
     {
         name : "Loop Level",
-        valueType : ParameterValueType::FloatMagnitude,
+        valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : 64,
+        defaultValue : {.float_value = 0.5f},
         knobMapping : 1,
         midiCCMapping : -1
     },
@@ -34,7 +34,7 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         valueType : ParameterValueType::Binned,
         valueBinCount : 4,
         valueBinNames : s_loopModeNames,
-        defaultValue : 0,
+        defaultValue : {.uint_value = 0},
         knobMapping : 2,
         midiCCMapping : -1
     },
@@ -88,9 +88,9 @@ void LooperModule::AlternateFootswitchHeldFor1Second() {
 void LooperModule::ProcessMono(float in) {
     BaseEffectModule::ProcessMono(in);
 
-    const float inputLevel = m_inputLevelMin + (GetParameterAsMagnitude(0) * (m_inputLevelMax - m_inputLevelMin));
+    const float inputLevel = m_inputLevelMin + (GetParameterAsFloat(0) * (m_inputLevelMax - m_inputLevelMin));
 
-    const float loopLevel = m_loopLevelMin + (GetParameterAsMagnitude(1) * (m_loopLevelMax - m_loopLevelMin));
+    const float loopLevel = m_loopLevelMin + (GetParameterAsFloat(1) * (m_loopLevelMax - m_loopLevelMin));
 
     float input = in * inputLevel;
 

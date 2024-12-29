@@ -37,9 +37,9 @@ static const char *s_typeBinNames[] = {"Follower", "Time"};
 static const int s_paramCount = 13;
 static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                                name : "Wet %",
-                                                               valueType : ParameterValueType::FloatMagnitude,
+                                                               valueType : ParameterValueType::Float,
                                                                valueBinCount : 0,
-                                                               defaultValue : 0,
+                                                               defaultValue : {.float_value = 0.0f},
                                                                knobMapping : 0,
                                                                midiCCMapping : 20,
                                                                minValue : 0,
@@ -47,9 +47,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                            },
                                                            {
                                                                name : "Delay L ms",
-                                                               valueType : ParameterValueType::FloatMagnitude,
+                                                               valueType : ParameterValueType::Float,
                                                                valueBinCount : 0,
-                                                               defaultValue : 0,
+                                                               defaultValue : {.float_value = 0.0f},
                                                                knobMapping : 1,
                                                                midiCCMapping : 21,
                                                                minValue : 0,
@@ -58,9 +58,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                            },
                                                            {
                                                                name : "Delay R ms",
-                                                               valueType : ParameterValueType::FloatMagnitude,
+                                                               valueType : ParameterValueType::Float,
                                                                valueBinCount : 0,
-                                                               defaultValue : 0,
+                                                               defaultValue : {.float_value = 0.0f},
                                                                knobMapping : 2,
                                                                midiCCMapping : 22,
                                                                minValue : 0,
@@ -69,9 +69,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                            },
                                                            {
                                                                name : "Feedback",
-                                                               valueType : ParameterValueType::FloatMagnitude,
+                                                               valueType : ParameterValueType::Float,
                                                                valueBinCount : 0,
-                                                               defaultValue : 0,
+                                                               defaultValue : {.float_value = 0.0f},
                                                                knobMapping : 3,
                                                                midiCCMapping : 31,
                                                                minValue : 0,
@@ -82,15 +82,15 @@ static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                                valueType : ParameterValueType::Binned,
                                                                valueBinCount : 2,
                                                                valueBinNames : s_typeBinNames,
-                                                               defaultValue : 0,
+                                                               defaultValue : {.uint_value = 0},
                                                                knobMapping : 1,
                                                                midiCCMapping : 20
                                                            },
                                                            {
                                                                name : "Shift Tap 1",
-                                                               valueType : ParameterValueType::FloatMagnitude,
+                                                               valueType : ParameterValueType::Float,
                                                                valueBinCount : 0,
-                                                               defaultValue : 0,
+                                                               defaultValue : {.float_value = 0.0f},
                                                                knobMapping : -1,
                                                                midiCCMapping : 27,
                                                                minValue : -12,
@@ -99,9 +99,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                            },
                                                            {
                                                                name : "Shift Tap 2",
-                                                               valueType : ParameterValueType::FloatMagnitude,
+                                                               valueType : ParameterValueType::Float,
                                                                valueBinCount : 0,
-                                                               defaultValue : 0,
+                                                               defaultValue : {.float_value = 0.0f},
                                                                knobMapping : -1,
                                                                midiCCMapping : 28,
                                                                minValue : -12,
@@ -110,9 +110,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                            },
                                                            {
                                                                name : "Shift Tap 3",
-                                                               valueType : ParameterValueType::FloatMagnitude,
+                                                               valueType : ParameterValueType::Float,
                                                                valueBinCount : 0,
-                                                               defaultValue : 0,
+                                                               defaultValue : {.float_value = 0.0f},
                                                                knobMapping : -1,
                                                                midiCCMapping : 29,
                                                                minValue : -12,
@@ -121,9 +121,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                            },
                                                            {
                                                                name : "Shift Tap 4",
-                                                               valueType : ParameterValueType::FloatMagnitude,
+                                                               valueType : ParameterValueType::Float,
                                                                valueBinCount : 0,
-                                                               defaultValue : 0,
+                                                               defaultValue : {.float_value = 0.0f},
                                                                knobMapping : -1,
                                                                midiCCMapping : 30,
                                                                minValue : -12,
@@ -132,9 +132,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                            },
                                                            {
                                                                name : "Delay Tap 1",
-                                                               valueType : ParameterValueType::FloatMagnitude,
+                                                               valueType : ParameterValueType::Float,
                                                                valueBinCount : 0,
-                                                               defaultValue : 0,
+                                                               defaultValue : {.float_value = 0.0f},
                                                                knobMapping : -1,
                                                                midiCCMapping : 23,
                                                                minValue : 0,
@@ -143,9 +143,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                            },
                                                            {
                                                                name : "Delay Tap 2",
-                                                               valueType : ParameterValueType::FloatMagnitude,
+                                                               valueType : ParameterValueType::Float,
                                                                valueBinCount : 0,
-                                                               defaultValue : 0,
+                                                               defaultValue : {.float_value = 0.0f},
                                                                knobMapping : -1,
                                                                midiCCMapping : 24,
                                                                minValue : 0,
@@ -154,9 +154,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                            },
                                                            {
                                                                name : "Delay Tap 3",
-                                                               valueType : ParameterValueType::FloatMagnitude,
+                                                               valueType : ParameterValueType::Float,
                                                                valueBinCount : 0,
-                                                               defaultValue : 0,
+                                                               defaultValue : {.float_value = 0.0f},
                                                                knobMapping : -1,
                                                                midiCCMapping : 25,
                                                                minValue : 0,
@@ -165,9 +165,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                            },
                                                            {
                                                                name : "Delay Tap 4",
-                                                               valueType : ParameterValueType::FloatMagnitude,
+                                                               valueType : ParameterValueType::Float,
                                                                valueBinCount : 0,
-                                                               defaultValue : 0,
+                                                               defaultValue : {.float_value = 0.0f},
                                                                knobMapping : -1,
                                                                midiCCMapping : 26,
                                                                minValue : 0,
@@ -201,9 +201,9 @@ void MultiDelayModule::Init(float sample_rate) {
     delayLineLeft0.Init();
     delayLineRight0.Init();
     delays[0].del = &delayLineLeft0;
-    delays[0].currentDelay = GetParameterAsMagnitude(1);
+    delays[0].currentDelay = GetParameterAsFloat(1);
     delays[1].del = &delayLineRight0;
-    delays[1].currentDelay = GetParameterAsMagnitude(2);
+    delays[1].currentDelay = GetParameterAsFloat(2);
 
     for (int i = 0; i < 4; ++i) {
         ps_taps[i].Init(sample_rate);
@@ -232,7 +232,7 @@ void MultiDelayModule::ParameterChanged(int parameter_id) {
         }
     } else if (parameter_id > 4 && parameter_id < 9 && m_isInitialized == true) {
         ps_taps[parameter_id - 5].SetTransposition(m_pitchShiftMin +
-                                                   (m_pitchShiftMax - m_pitchShiftMin) * GetParameterAsMagnitude(parameter_id));
+                                                   (m_pitchShiftMax - m_pitchShiftMin) * GetParameterAsFloat(parameter_id));
     } else if (parameter_id > 8 && parameter_id < 11) {
         m_tapTargetDelay[parameter_id - 9] = 48.0f * GetParameterAsFloat(parameter_id);
     }
@@ -248,7 +248,7 @@ void MultiDelayModule::ProcessMono(float in) {
     BaseEffectModule::ProcessMono(in);
 
     float taps[2];
-    float sig = delays[0].Process(GetParameterAsMagnitude(3), m_audioLeft) / 3.f;
+    float sig = delays[0].Process(GetParameterAsFloat(3), m_audioLeft) / 3.f;
     for (int i = 0; i < 2; ++i) {
         PreProcessTaps(&tap_delays[i], m_tapTargetDelay[i]);
         taps[i] = delays[0].del->Read(tap_delays[i]);
@@ -259,7 +259,7 @@ void MultiDelayModule::ProcessMono(float in) {
 
     sig += taps[0] / 3.f + taps[1] / 3.f;
 
-    m_audioLeft = sig * GetParameterAsMagnitude(0) + m_audioLeft * (1.0f - GetParameterAsMagnitude(0));
+    m_audioLeft = sig * GetParameterAsFloat(0) + m_audioLeft * (1.0f - GetParameterAsFloat(0));
     m_audioRight = m_audioLeft;
 }
 
@@ -270,7 +270,7 @@ void MultiDelayModule::ProcessStereo(float inL, float inR) {
     // Do the base stereo calculation (which resets the right signal to be the inputR instead of combined mono)
     BaseEffectModule::ProcessStereo(m_audioLeft, inR);
     float taps[2];
-    float sig = delays[1].Process(GetParameterAsMagnitude(3), m_audioRight) / 3.f;
+    float sig = delays[1].Process(GetParameterAsFloat(3), m_audioRight) / 3.f;
     for (int i = 0; i < 2; ++i) {
         PreProcessTaps(&tap_delays[i + 2], m_tapTargetDelay[i + 2]);
         taps[i] = delays[1].del->Read(tap_delays[i + 2]);
@@ -280,7 +280,7 @@ void MultiDelayModule::ProcessStereo(float inL, float inR) {
     }
     sig += taps[0] / 3.f + taps[1] / 3.f;
 
-    m_audioRight = sig * GetParameterAsMagnitude(0) + m_audioRight * (1.0f - GetParameterAsMagnitude(0));
+    m_audioRight = sig * GetParameterAsFloat(0) + m_audioRight * (1.0f - GetParameterAsFloat(0));
 }
 
 void MultiDelayModule::SetTempo(uint32_t bpm) {

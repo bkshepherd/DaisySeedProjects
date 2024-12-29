@@ -6,41 +6,41 @@ static const int s_paramCount = 5;
 static const ParameterMetaData s_metaData[s_paramCount] = {
     {
         name : "Level",
-        valueType : ParameterValueType::FloatMagnitude,
+        valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : 64,
+        defaultValue : {.float_value = 0.5f},
         knobMapping : 0,
         midiCCMapping : -1
     },
     {
         name : "Ratio",
-        valueType : ParameterValueType::FloatMagnitude,
+        valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : 64,
+        defaultValue : {.float_value = 0.5f},
         knobMapping : 1,
         midiCCMapping : -1
     },
     {
         name : "Thresh",
-        valueType : ParameterValueType::FloatMagnitude,
+        valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : 64,
+        defaultValue : {.float_value = 0.5f},
         knobMapping : 2,
         midiCCMapping : -1
     },
     {
         name : "Attack",
-        valueType : ParameterValueType::FloatMagnitude,
+        valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : 64,
+        defaultValue : {.float_value = 0.5f},
         knobMapping : 3,
         midiCCMapping : -1
     },
     {
         name : "Release",
-        valueType : ParameterValueType::FloatMagnitude,
+        valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : 64,
+        defaultValue : {.float_value = 0.5f},
         knobMapping : 4,
         midiCCMapping : -1
     },
@@ -74,14 +74,14 @@ void CompressorModule::ParameterChanged(int parameter_id) {
     case 1: {
         const float ratioMin = 1.0f;
         const float ratioMax = 40.0f;
-        float ratio = ratioMin + (GetParameterAsMagnitude(1) * (ratioMax - ratioMin));
+        float ratio = ratioMin + (GetParameterAsFloat(1) * (ratioMax - ratioMin));
         m_compressor.SetRatio(ratio);
         break;
     }
     case 2: {
         const float thresholdMin = 0.0f;
         const float thresholdMax = 80.0f;
-        float threshold = thresholdMin + (GetParameterAsMagnitude(2) * (thresholdMax - thresholdMin));
+        float threshold = thresholdMin + (GetParameterAsFloat(2) * (thresholdMax - thresholdMin));
         // This is in dB so it is supposed to be 0dB to -80dB
         m_compressor.SetThreshold(-threshold);
         break;
@@ -89,14 +89,14 @@ void CompressorModule::ParameterChanged(int parameter_id) {
     case 3: {
         const float attackMin = 0.001f;
         const float attackMax = 10.0f;
-        float attack = attackMin + (GetParameterAsMagnitude(3) * (attackMax - attackMin));
+        float attack = attackMin + (GetParameterAsFloat(3) * (attackMax - attackMin));
         m_compressor.SetAttack(attack);
         break;
     }
     case 4: {
         const float releaseMin = 0.001f;
         const float releaseMax = 10.0f;
-        float release = releaseMin + (GetParameterAsMagnitude(4) * (releaseMax - releaseMin));
+        float release = releaseMin + (GetParameterAsFloat(4) * (releaseMax - releaseMin));
         m_compressor.SetRelease(release);
         break;
     }
@@ -106,7 +106,7 @@ void CompressorModule::ParameterChanged(int parameter_id) {
 void CompressorModule::ProcessMono(float in) {
     const float compressor_out = m_compressor.Process(in);
 
-    const float level = m_levelMin + (GetParameterAsMagnitude(0) * (m_levelMax - m_levelMin));
+    const float level = m_levelMin + (GetParameterAsFloat(0) * (m_levelMax - m_levelMin));
 
     m_audioLeft = compressor_out * level;
     m_audioRight = m_audioLeft;

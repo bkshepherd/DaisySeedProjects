@@ -5,41 +5,41 @@ using namespace bkshepherd;
 static const int s_paramCount = 5;
 static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                                name : "Wet",
-                                                               valueType : ParameterValueType::FloatMagnitude,
+                                                               valueType : ParameterValueType::Float,
                                                                valueBinCount : 0,
-                                                               defaultValue : 83,
+                                                               defaultValue : {.float_value = 0.65f},
                                                                knobMapping : 0,
                                                                midiCCMapping : 20
                                                            },
                                                            {
                                                                name : "Delay",
-                                                               valueType : ParameterValueType::FloatMagnitude,
+                                                               valueType : ParameterValueType::Float,
                                                                valueBinCount : 0,
-                                                               defaultValue : 64,
+                                                               defaultValue : {.float_value = 0.5f},
                                                                knobMapping : 1,
                                                                midiCCMapping : 21
                                                            },
                                                            {
                                                                name : "LFO Freq",
-                                                               valueType : ParameterValueType::FloatMagnitude,
+                                                               valueType : ParameterValueType::Float,
                                                                valueBinCount : 0,
-                                                               defaultValue : 35,
+                                                               defaultValue : {.float_value = 0.25f},
                                                                knobMapping : 2,
                                                                midiCCMapping : 22
                                                            },
                                                            {
                                                                name : "LFO Depth",
-                                                               valueType : ParameterValueType::FloatMagnitude,
+                                                               valueType : ParameterValueType::Float,
                                                                valueBinCount : 0,
-                                                               defaultValue : 40,
+                                                               defaultValue : {.float_value = 0.3f},
                                                                knobMapping : 3,
                                                                midiCCMapping : 23
                                                            },
                                                            {
                                                                name : "Feedback",
-                                                               valueType : ParameterValueType::FloatMagnitude,
+                                                               valueType : ParameterValueType::Float,
                                                                valueBinCount : 0,
-                                                               defaultValue : 30,
+                                                               defaultValue : {.float_value = 0.25f},
                                                                knobMapping : 4,
                                                                midiCCMapping : 24
                                                            }};
@@ -74,15 +74,15 @@ void ChorusModule::ProcessMono(float in) {
     BaseEffectModule::ProcessMono(in);
 
     // Calculate the effect
-    m_chorus.SetDelay(GetParameterAsMagnitude(1));
-    m_chorus.SetLfoFreq(m_lfoFreqMin + (GetParameterAsMagnitude(2) * GetParameterAsMagnitude(2) * (m_lfoFreqMax - m_lfoFreqMin)));
-    m_chorus.SetLfoDepth(GetParameterAsMagnitude(3));
-    m_chorus.SetFeedback(GetParameterAsMagnitude(4));
+    m_chorus.SetDelay(GetParameterAsFloat(1));
+    m_chorus.SetLfoFreq(m_lfoFreqMin + (GetParameterAsFloat(2) * GetParameterAsFloat(2) * (m_lfoFreqMax - m_lfoFreqMin)));
+    m_chorus.SetLfoDepth(GetParameterAsFloat(3));
+    m_chorus.SetFeedback(GetParameterAsFloat(4));
 
     m_chorus.Process(m_audioLeft);
 
-    m_audioLeft = m_chorus.GetLeft() * GetParameterAsMagnitude(0) + m_audioLeft * (1.0f - GetParameterAsMagnitude(0));
-    m_audioRight = m_chorus.GetRight() * GetParameterAsMagnitude(0) + m_audioRight * (1.0f - GetParameterAsMagnitude(0));
+    m_audioLeft = m_chorus.GetLeft() * GetParameterAsFloat(0) + m_audioLeft * (1.0f - GetParameterAsFloat(0));
+    m_audioRight = m_chorus.GetRight() * GetParameterAsFloat(0) + m_audioRight * (1.0f - GetParameterAsFloat(0));
 }
 
 void ChorusModule::ProcessStereo(float inL, float inR) {
@@ -93,14 +93,14 @@ void ChorusModule::ProcessStereo(float inL, float inR) {
     BaseEffectModule::ProcessStereo(m_audioLeft, inR);
 
     // Calculate the effect
-    m_audioRight = m_chorus.GetRight() * GetParameterAsMagnitude(0) + m_audioRight * (1.0f - GetParameterAsMagnitude(0));
+    m_audioRight = m_chorus.GetRight() * GetParameterAsFloat(0) + m_audioRight * (1.0f - GetParameterAsFloat(0));
 }
 
 float ChorusModule::GetBrightnessForLED(int led_id) {
     float value = BaseEffectModule::GetBrightnessForLED(led_id);
 
     if (led_id == 1) {
-        return value * GetParameterAsMagnitude(0);
+        return value * GetParameterAsFloat(0);
     }
 
     return value;

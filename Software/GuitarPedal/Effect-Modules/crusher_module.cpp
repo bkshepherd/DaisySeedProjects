@@ -5,9 +5,9 @@ using namespace bkshepherd;
 static const int s_paramCount = 3;
 static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                                name : "Level",
-                                                               valueType : ParameterValueType::FloatMagnitude,
+                                                               valueType : ParameterValueType::Float,
                                                                valueBinCount : 0,
-                                                               defaultValue : 40,
+                                                               defaultValue : {.float_value = 0.3f},
                                                                knobMapping : 0,
                                                                midiCCMapping : -1
                                                            },
@@ -15,15 +15,15 @@ static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                                name : "Bits",
                                                                valueType : ParameterValueType::Binned,
                                                                valueBinCount : 32,
-                                                               defaultValue : 32,
+                                                               defaultValue : {.uint_value = 32},
                                                                knobMapping : 1,
                                                                midiCCMapping : -1
                                                            },
                                                            {
                                                                name : "Cutoff",
-                                                               valueType : ParameterValueType::FloatMagnitude,
+                                                               valueType : ParameterValueType::Float,
                                                                valueBinCount : 0,
-                                                               defaultValue : 64,
+                                                               defaultValue : {.float_value = 0.5f},
                                                                knobMapping : 2,
                                                                midiCCMapping : -1
                                                            }};
@@ -55,8 +55,8 @@ void CrusherModule::Init(float sample_rate) {
 void CrusherModule::ProcessMono(float in) {
     BaseEffectModule::ProcessMono(in);
 
-    float level = m_levelMin + (GetParameterAsMagnitude(0) * (m_levelMax - m_levelMin));
-    float cutoff = m_cutoffMin + GetParameterAsMagnitude(2) * (m_cutoffMax - m_cutoffMin);
+    float level = m_levelMin + (GetParameterAsFloat(0) * (m_levelMax - m_levelMin));
+    float cutoff = m_cutoffMin + GetParameterAsFloat(2) * (m_cutoffMax - m_cutoffMin);
     float bits = (float)GetParameterAsBinnedValue(1);
 
     m_tone.SetFreq(cutoff);
@@ -69,8 +69,8 @@ void CrusherModule::ProcessMono(float in) {
 void CrusherModule::ProcessStereo(float inL, float inR) {
     BaseEffectModule::ProcessStereo(inL, inR);
 
-    float level = m_levelMin + (GetParameterAsMagnitude(0) * (m_levelMax - m_levelMin));
-    float cutoff = m_cutoffMin + GetParameterAsMagnitude(2) * (m_cutoffMax - m_cutoffMin);
+    float level = m_levelMin + (GetParameterAsFloat(0) * (m_levelMax - m_levelMin));
+    float cutoff = m_cutoffMin + GetParameterAsFloat(2) * (m_cutoffMax - m_cutoffMin);
     float bits = (float)GetParameterAsBinnedValue(1);
 
     m_tone.SetFreq(cutoff);

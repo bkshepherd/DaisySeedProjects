@@ -3,7 +3,7 @@
 #define GUITAR_PEDAL_STORAGE_H
 
 // Peristant Storage Settings
-#define SETTINGS_FILE_FORMAT_VERSION 3
+#define SETTINGS_FILE_FORMAT_VERSION 4
 
 // Arbitrarily limiting this to 4KB of stored presets since this sits in DTCMRAM which is limited to 128KB.
 // TODO: In the future it would be better if this worked with the QSPI directly instead of using
@@ -22,7 +22,7 @@ struct Settings {
     bool globalRelayBypassEnabled;
     bool globalSplitMonoInputToStereo;
 
-    // Set aside a block of memory for individual effect params. 
+    // Set aside a block of memory for individual effect params.
     // Please note this MUST be a fixed amount of memory in the struct and cannot be a pointer to dynamic memory!
     // If you try to use a pointer it will only save the pointer address to QSPI storage and not any of the contents
     // of that dynamic memory.  This is a limitation of the way the PersistantStorage helper class works.

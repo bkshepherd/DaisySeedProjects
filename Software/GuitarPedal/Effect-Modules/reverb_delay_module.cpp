@@ -20,49 +20,49 @@ static const int s_paramCount =
 static const ParameterMetaData s_metaData[s_paramCount] = {
     {
         name : "Delay Time",
-        valueType : ParameterValueType::FloatMagnitude,
+        valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : 57,
+        defaultValue : {.float_value = 0.45f},
         knobMapping : 0,
         midiCCMapping : 1
     }, // mod
     {
         name : "D Feedback",
-        valueType : ParameterValueType::FloatMagnitude,
+        valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : 57,
+        defaultValue : {.float_value = 0.45f},
         knobMapping : 1,
         midiCCMapping : 22
     },
     {
         name : "Delay Mix",
-        valueType : ParameterValueType::FloatMagnitude,
+        valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : 57,
+        defaultValue : {.float_value = 0.45f},
         knobMapping : 2,
         midiCCMapping : 23
     },
     {
         name : "Reverb Time",
-        valueType : ParameterValueType::FloatMagnitude,
+        valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : 57,
+        defaultValue : {.float_value = 0.45f},
         knobMapping : 3,
         midiCCMapping : 24
     },
     {
         name : "Reverb Damp",
-        valueType : ParameterValueType::FloatMagnitude,
+        valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : 40,
+        defaultValue : {.float_value = 0.4f},
         knobMapping : 4,
         midiCCMapping : 25
     }, // mod
     {
         name : "Reverb Mix",
-        valueType : ParameterValueType::FloatMagnitude,
+        valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : 57,
+        defaultValue : {.float_value = 0.45f},
         knobMapping : 5,
         midiCCMapping : 26
     },
@@ -71,7 +71,7 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         valueType : ParameterValueType::Binned,
         valueBinCount : 3,
         valueBinNames : s_delayModes,
-        defaultValue : 0,
+        defaultValue : {.uint_value = 0},
         knobMapping : -1,
         midiCCMapping : 27
     },
@@ -79,7 +79,7 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         name : "Series D>R",
         valueType : ParameterValueType::Bool,
         valueBinCount : 0,
-        defaultValue : 0,
+        defaultValue : {.uint_value = 0},
         knobMapping : -1,
         midiCCMapping : 28
     },
@@ -87,24 +87,31 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         name : "Reverse",
         valueType : ParameterValueType::Bool,
         valueBinCount : 0,
-        defaultValue : 0,
+        defaultValue : {.uint_value = 0},
         knobMapping : -1,
         midiCCMapping : 29
     },
-    {name : "Octave", valueType : ParameterValueType::Bool, valueBinCount : 0, defaultValue : 0, knobMapping : -1, midiCCMapping : 30},
+    {
+        name : "Octave",
+        valueType : ParameterValueType::Bool,
+        valueBinCount : 0,
+        defaultValue : {.uint_value = 0},
+        knobMapping : -1,
+        midiCCMapping : 30
+    },
     {
         name : "Delay LPF",
-        valueType : ParameterValueType::FloatMagnitude,
+        valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : 120,
+        defaultValue : {.float_value = 0.95f},
         knobMapping : -1,
         midiCCMapping : 31
     }, // mod
     /*11*/ {
         name : "D Spread",
-        valueType : ParameterValueType::FloatMagnitude,
+        valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : 30,
+        defaultValue : {.float_value = 0.25f},
         knobMapping : -1,
         midiCCMapping : 32
     },
@@ -113,23 +120,23 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         name : "Dual Delay",
         valueType : ParameterValueType::Bool,
         valueBinCount : 0,
-        defaultValue : 0,
+        defaultValue : {.uint_value = 0},
         knobMapping : -1,
         midiCCMapping : 33
     },
     {
         name : "Mod Amt",
-        valueType : ParameterValueType::FloatMagnitude,
+        valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : 20,
+        defaultValue : {.float_value = 0.15f},
         knobMapping : -1,
         midiCCMapping : 34
     },
     {
         name : "Mod Rate",
-        valueType : ParameterValueType::FloatMagnitude,
+        valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : 30,
+        defaultValue : {.float_value = 0.25f},
         knobMapping : -1,
         midiCCMapping : 35
     },
@@ -138,7 +145,7 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         valueType : ParameterValueType::Binned,
         valueBinCount : 5,
         valueBinNames : s_modParamNames,
-        defaultValue : 0,
+        defaultValue : {.uint_value = 0},
         knobMapping : -1,
         midiCCMapping : 36
     },
@@ -147,7 +154,7 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         valueType : ParameterValueType::Binned,
         valueBinCount : 5,
         valueBinNames : s_waveBinNames,
-        defaultValue : 0,
+        defaultValue : {.uint_value = 0},
         knobMapping : -1,
         midiCCMapping : 37
     },
@@ -155,7 +162,7 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         name : "Sync Mod F",
         valueType : ParameterValueType::Bool,
         valueBinCount : 0,
-        defaultValue : 0,
+        defaultValue : {.uint_value = 0},
         knobMapping : -1,
         midiCCMapping : 38
     }};
@@ -185,7 +192,7 @@ ReverbDelayModule::~ReverbDelayModule() {
 
 void ReverbDelayModule::UpdateLEDRate() {
     // Update the LED oscillator frequency based on the current timeParam
-    float timeParam = GetParameterAsMagnitude(0);
+    float timeParam = GetParameterAsFloat(0);
     float delaySamples = m_delaySamplesMin + (m_delaySamplesMax - m_delaySamplesMin) * timeParam;
     float delayFreq = effect_samplerate / delaySamples;
     led_osc.SetFreq(delayFreq / 2.0);
@@ -196,7 +203,7 @@ void ReverbDelayModule::CalculateDelayMix() {
     //    A computationally cheap mostly energy constant crossfade from SignalSmith Blog
     //    https://signalsmith-audio.co.uk/writing/2021/cheap-energy-crossfade/
 
-    float delMixKnob = GetParameterAsMagnitude(2);
+    float delMixKnob = GetParameterAsFloat(2);
     float x2 = 1.0 - delMixKnob;
     float A = delMixKnob * x2;
     float B = A * (1.0 + 1.4186 * A);
@@ -212,7 +219,7 @@ void ReverbDelayModule::CalculateReverbMix() {
     //    A computationally cheap mostly energy constant crossfade from SignalSmith Blog
     //    https://signalsmith-audio.co.uk/writing/2021/cheap-energy-crossfade/
 
-    float revMixKnob = GetParameterAsMagnitude(5);
+    float revMixKnob = GetParameterAsFloat(5);
     float x2 = 1.0 - revMixKnob;
     float A = revMixKnob * x2;
     float B = A * (1.0 + 1.4186 * A);
@@ -291,8 +298,8 @@ void ReverbDelayModule::ParameterChanged(int parameter_id) {
             delayRight.secondTapOn = false;
         }
     } else if (parameter_id == 10) {
-        delayLeft.toneOctLP.SetFreq(m_delaylpFreqMin + (m_delaylpFreqMax - m_delaylpFreqMin) * GetParameterAsMagnitude(10));
-        delayRight.toneOctLP.SetFreq(m_delaylpFreqMin + (m_delaylpFreqMax - m_delaylpFreqMin) * GetParameterAsMagnitude(10));
+        delayLeft.toneOctLP.SetFreq(m_delaylpFreqMin + (m_delaylpFreqMax - m_delaylpFreqMin) * GetParameterAsFloat(10));
+        delayRight.toneOctLP.SetFreq(m_delaylpFreqMin + (m_delaylpFreqMax - m_delaylpFreqMin) * GetParameterAsFloat(10));
     }
 }
 
@@ -311,17 +318,17 @@ void ReverbDelayModule::ProcessModulation() {
         float freq = (effect_samplerate / delayLeft.delayTarget) / dividor;
         modOsc.SetFreq(freq);
     } else {
-        modOsc.SetFreq(m_modOscFreqMin + (m_modOscFreqMax - m_modOscFreqMin) * GetParameterAsMagnitude(14));
+        modOsc.SetFreq(m_modOscFreqMin + (m_modOscFreqMax - m_modOscFreqMin) * GetParameterAsFloat(14));
     }
 
     // Ease the effect value into it's target to avoid clipping with square or sawtooth waves
     fonepole(m_currentMod, modOsc.Process(), .01f);
     float mod = m_currentMod;
-    float mod_amount = GetParameterAsMagnitude(13);
+    float mod_amount = GetParameterAsFloat(13);
 
     // {"None", "DelayTime", "DelayLevel", "ReverbLevel", "DelayPan"};
     if (modParam == 1) {
-        float timeParam = GetParameterAsMagnitude(0);
+        float timeParam = GetParameterAsFloat(0);
         delayLeft.delayTarget = m_delaySamplesMin + (m_delaySamplesMax - m_delaySamplesMin) * timeParam + mod * mod_amount * 500;
         delayRight.delayTarget = m_delaySamplesMin + (m_delaySamplesMax - m_delaySamplesMin) * timeParam + mod * mod_amount * 500;
 
@@ -348,13 +355,13 @@ void ReverbDelayModule::ProcessMono(float in) {
     BaseEffectModule::ProcessMono(in);
 
     // Calculate the effect
-    float timeParam = GetParameterAsMagnitude(0);
+    float timeParam = GetParameterAsFloat(0);
 
     delayLeft.delayTarget = m_delaySamplesMin + (m_delaySamplesMax - m_delaySamplesMin) * timeParam;
     delayRight.delayTarget = m_delaySamplesMin + (m_delaySamplesMax - m_delaySamplesMin) * timeParam;
 
-    delayLeft.feedback = GetParameterAsMagnitude(1);
-    delayRight.feedback = GetParameterAsMagnitude(1);
+    delayLeft.feedback = GetParameterAsFloat(1);
+    delayRight.feedback = GetParameterAsFloat(1);
 
     delayLeft.reverseMode = GetParameterAsBool(8);
     delayRight.reverseMode = GetParameterAsBool(8);
@@ -365,12 +372,12 @@ void ReverbDelayModule::ProcessMono(float in) {
     delayLeft.dual_delay = GetParameterAsBool(12);
     delayRight.dual_delay = GetParameterAsBool(12);
 
-    if (GetParameterAsMagnitude(12)) { // If dual delay is turned on, spread controls the L/R panning of the two delays
-        delayLeft.level = GetParameterAsMagnitude(11) + 1.0;
-        delayRight.level = 1.0 - GetParameterAsMagnitude(11);
+    if (GetParameterAsFloat(12)) { // If dual delay is turned on, spread controls the L/R panning of the two delays
+        delayLeft.level = GetParameterAsFloat(11) + 1.0;
+        delayRight.level = 1.0 - GetParameterAsFloat(11);
 
-        delayLeft.level_reverse = 1.0 - GetParameterAsMagnitude(11);
-        delayRight.level_reverse = GetParameterAsMagnitude(11) + 1.0;
+        delayLeft.level_reverse = 1.0 - GetParameterAsFloat(11);
+        delayRight.level_reverse = GetParameterAsFloat(11) + 1.0;
 
     } else { // If dual delay is off reset the levels to normal, spread controls the amount of additional delay applied to the right
              // channel
@@ -382,9 +389,9 @@ void ReverbDelayModule::ProcessMono(float in) {
 
     // Calculate Reverb Params
     reverb_level = 1.0;
-    m_reverbStereo.SetFeedback(m_timeMin + GetParameterAsMagnitude(3) * (m_timeMax - m_timeMin));
+    m_reverbStereo.SetFeedback(m_timeMin + GetParameterAsFloat(3) * (m_timeMax - m_timeMin));
     float invertedFreq =
-        1.0 - GetParameterAsMagnitude(4); // Invert the damping param so that knob left is less dampening, knob right is more dampening
+        1.0 - GetParameterAsFloat(4); // Invert the damping param so that knob left is less dampening, knob right is more dampening
     invertedFreq = invertedFreq * invertedFreq; // also square it for exponential taper (more control over lower frequencies)
     m_reverbStereo.SetLpFreq(m_lpFreqMin + invertedFreq * (m_lpFreqMax - m_lpFreqMin));
 
@@ -397,7 +404,7 @@ void ReverbDelayModule::ProcessMono(float in) {
     // float delRight_out = delLeft_out;
 
     // Calculate any delay spread
-    delaySpread.delayTarget = m_delaySpreadMin + (m_delaySpreadMax - m_delaySpreadMin) * GetParameterAsMagnitude(11);
+    delaySpread.delayTarget = m_delaySpreadMin + (m_delaySpreadMax - m_delaySpreadMin) * GetParameterAsFloat(11);
     float delSpread_out = delaySpread.Process(delRight_out);
     if (GetParameterRaw(11) > 0 && !GetParameterAsBool(12)) {
         delRight_out = delSpread_out;
@@ -438,13 +445,13 @@ void ReverbDelayModule::ProcessStereo(float inL, float inR) {
     ProcessModulation();
 
     // Calculate the effect
-    float timeParam = GetParameterAsMagnitude(0);
+    float timeParam = GetParameterAsFloat(0);
 
     delayLeft.delayTarget = m_delaySamplesMin + (m_delaySamplesMax - m_delaySamplesMin) * timeParam;
     delayRight.delayTarget = m_delaySamplesMin + (m_delaySamplesMax - m_delaySamplesMin) * timeParam;
 
-    delayLeft.feedback = GetParameterAsMagnitude(1);
-    delayRight.feedback = GetParameterAsMagnitude(1);
+    delayLeft.feedback = GetParameterAsFloat(1);
+    delayRight.feedback = GetParameterAsFloat(1);
 
     delayLeft.reverseMode = GetParameterAsBool(8);
     delayRight.reverseMode = GetParameterAsBool(8);
@@ -455,12 +462,12 @@ void ReverbDelayModule::ProcessStereo(float inL, float inR) {
     delayLeft.dual_delay = GetParameterAsBool(12);
     delayRight.dual_delay = GetParameterAsBool(12);
 
-    if (GetParameterAsMagnitude(12)) { // If dual delay is turned on, spread controls the L/R panning of the two delays
-        delayLeft.level = GetParameterAsMagnitude(11) + 1.0;
-        delayRight.level = 1.0 - GetParameterAsMagnitude(11);
+    if (GetParameterAsFloat(12)) { // If dual delay is turned on, spread controls the L/R panning of the two delays
+        delayLeft.level = GetParameterAsFloat(11) + 1.0;
+        delayRight.level = 1.0 - GetParameterAsFloat(11);
 
-        delayLeft.level_reverse = 1.0 - GetParameterAsMagnitude(11);
-        delayRight.level_reverse = GetParameterAsMagnitude(11) + 1.0;
+        delayLeft.level_reverse = 1.0 - GetParameterAsFloat(11);
+        delayRight.level_reverse = GetParameterAsFloat(11) + 1.0;
 
     } else { // If dual delay is off reset the levels to normal, spread controls the amount of additional delay applied to the right
              // channel
@@ -472,9 +479,9 @@ void ReverbDelayModule::ProcessStereo(float inL, float inR) {
 
     // Calculate Reverb Params
     reverb_level = 1.0;
-    m_reverbStereo.SetFeedback(m_timeMin + GetParameterAsMagnitude(3) * (m_timeMax - m_timeMin));
+    m_reverbStereo.SetFeedback(m_timeMin + GetParameterAsFloat(3) * (m_timeMax - m_timeMin));
     float invertedFreq =
-        1.0 - GetParameterAsMagnitude(4); // Invert the damping param so that knob left is less dampening, knob right is more dampening
+        1.0 - GetParameterAsFloat(4); // Invert the damping param so that knob left is less dampening, knob right is more dampening
     invertedFreq = invertedFreq * invertedFreq; // also square it for exponential taper (more control over lower frequencies)
     m_reverbStereo.SetLpFreq(m_lpFreqMin + invertedFreq * (m_lpFreqMax - m_lpFreqMin));
 
@@ -485,7 +492,7 @@ void ReverbDelayModule::ProcessStereo(float inL, float inR) {
     float delRight_out = delayRight.Process(m_audioRight);
 
     // Calculate any delay spread
-    delaySpread.delayTarget = m_delaySpreadMin + (m_delaySpreadMax - m_delaySpreadMin) * GetParameterAsMagnitude(11);
+    delaySpread.delayTarget = m_delaySpreadMin + (m_delaySpreadMax - m_delaySpreadMin) * GetParameterAsFloat(11);
     float delSpread_out = delaySpread.Process(delRight_out);
     if (GetParameterRaw(11) > 0 && !GetParameterAsBool(12)) { // If spread > 0 and dual delay isn't on
         delRight_out = delSpread_out;

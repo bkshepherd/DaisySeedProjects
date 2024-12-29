@@ -12,22 +12,28 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         valueType : ParameterValueType::Binned,
         valueBinCount : 8,
         valueBinNames : s_waveBinNames,
-        defaultValue : 0,
+        defaultValue : {.uint_value = 0},
         knobMapping : 3,
         midiCCMapping : 20
     },
-    {name : "Depth", valueType : ParameterValueType::FloatMagnitude, defaultValue : 74, knobMapping : 1, midiCCMapping : 21},
-    {name : "Freq", valueType : ParameterValueType::FloatMagnitude, defaultValue : 67, knobMapping : 0, midiCCMapping : 1},
+    {name : "Depth", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 1, midiCCMapping : 21},
+    {name : "Freq", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 0, midiCCMapping : 1},
     {
         name : "Osc Wave",
         valueType : ParameterValueType::Binned,
         valueBinCount : 8,
         valueBinNames : s_waveBinNames,
-        defaultValue : 0,
+        defaultValue : {.uint_value = 0},
         knobMapping : 4,
         midiCCMapping : 23
     },
-    {name : "Osc Freq", valueType : ParameterValueType::FloatMagnitude, defaultValue : 12, knobMapping : 2, midiCCMapping : 24}};
+    {
+        name : "Osc Freq",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.1f},
+        knobMapping : 2,
+        midiCCMapping : 24
+    }};
 
 // Default Constructor
 ModulatedTremoloModule::ModulatedTremoloModule()
@@ -61,17 +67,17 @@ void ModulatedTremoloModule::ProcessMono(float in) {
     // Calculate Tremolo Frequency Oscillation
     m_freqOsc.SetWaveform(GetParameterAsBinnedValue(3) - 1);
     m_freqOsc.SetAmp(0.5f);
-    m_freqOsc.SetFreq(m_freqOscFreqMin + (GetParameterAsMagnitude(4) * m_freqOscFreqMax));
+    m_freqOsc.SetFreq(m_freqOscFreqMin + (GetParameterAsFloat(4) * m_freqOscFreqMax));
     float mod = 0.5f + m_freqOsc.Process();
 
-    if (GetParameterRaw(4) == 0) {
+    if (GetParameterAsFloat(4) <= 0.01f) {
         mod = 1.0f;
     }
 
     // Calculate the effect
     m_tremolo.SetWaveform(GetParameterAsBinnedValue(0) - 1);
-    m_tremolo.SetDepth(GetParameterAsMagnitude(1));
-    m_tremolo.SetFreq(m_tremoloFreqMin + ((GetParameterAsMagnitude(2) * m_tremoloFreqMax) * mod));
+    m_tremolo.SetDepth(GetParameterAsFloat(1));
+    m_tremolo.SetFreq(m_tremoloFreqMin + ((GetParameterAsFloat(2) * m_tremoloFreqMax) * mod));
 
     // Ease the effect value into it's target to avoid clipping with square or sawtooth waves
     fonepole(m_cachedEffectMagnitudeValue, m_tremolo.Process(1.0f), .01f);

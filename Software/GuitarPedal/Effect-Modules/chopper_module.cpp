@@ -6,25 +6,25 @@ using namespace bkshepherd;
 static const int s_paramCount = 4;
 static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                                name : "Wet",
-                                                               valueType : ParameterValueType::FloatMagnitude,
+                                                               valueType : ParameterValueType::Float,
                                                                valueBinCount : 0,
-                                                               defaultValue : 63,
+                                                               defaultValue : {.float_value = 0.5f},
                                                                knobMapping : 0,
                                                                midiCCMapping : 20
                                                            },
                                                            {
                                                                name : "Tempo",
-                                                               valueType : ParameterValueType::FloatMagnitude,
+                                                               valueType : ParameterValueType::Float,
                                                                valueBinCount : 0,
-                                                               defaultValue : 63,
+                                                               defaultValue : {.float_value = 0.5f},
                                                                knobMapping : 1,
                                                                midiCCMapping : 23
                                                            },
                                                            {
                                                                name : "Duty",
-                                                               valueType : ParameterValueType::FloatMagnitude,
+                                                               valueType : ParameterValueType::Float,
                                                                valueBinCount : 0,
-                                                               defaultValue : 38,
+                                                               defaultValue : {.float_value = 0.25f},
                                                                knobMapping : 2,
                                                                midiCCMapping : 24
                                                            },
@@ -32,7 +32,7 @@ static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                                name : "Pattern",
                                                                valueType : ParameterValueType::Binned,
                                                                valueBinCount : 14,
-                                                               defaultValue : 0,
+                                                               defaultValue : {.uint_value = 0},
                                                                knobMapping : 3,
                                                                midiCCMapping : 25
                                                            }};
@@ -68,9 +68,9 @@ void ChopperModule::ProcessMono(float in) {
     BaseEffectModule::ProcessMono(in);
 
     // Setup the Effect
-    m_chopper.SetFreq(m_tempoFreqMin + (GetParameterAsMagnitude(1) * (m_tempoFreqMax - m_tempoFreqMin)));
+    m_chopper.SetFreq(m_tempoFreqMin + (GetParameterAsFloat(1) * (m_tempoFreqMax - m_tempoFreqMin)));
     m_chopper.SetAmp(1.0f);
-    m_chopper.SetPw(m_pulseWidthMin + (GetParameterAsMagnitude(2) * (m_pulseWidthMax - m_pulseWidthMin)));
+    m_chopper.SetPw(m_pulseWidthMin + (GetParameterAsFloat(2) * (m_pulseWidthMax - m_pulseWidthMin)));
     m_chopper.SetPattern(GetParameterAsBinnedValue(3) - 1);
 
     // Calculate the Effect
@@ -80,7 +80,7 @@ void ChopperModule::ProcessMono(float in) {
     float audioLeftWet = m_cachedEffectMagnitudeValue * m_audioLeft;
 
     // Handle the wet / dry mix
-    m_audioLeft = audioLeftWet * GetParameterAsMagnitude(0) + m_audioLeft * (1.0f - GetParameterAsMagnitude(0));
+    m_audioLeft = audioLeftWet * GetParameterAsFloat(0) + m_audioLeft * (1.0f - GetParameterAsFloat(0));
     m_audioRight = m_audioLeft;
 }
 
@@ -96,7 +96,7 @@ void ChopperModule::ProcessStereo(float inL, float inR) {
     float audioRightWet = m_cachedEffectMagnitudeValue * m_audioRight;
 
     // Handle the wet / dry mix
-    m_audioRight = audioRightWet * GetParameterAsMagnitude(0) + m_audioRight * (1.0f - GetParameterAsMagnitude(0));
+    m_audioRight = audioRightWet * GetParameterAsFloat(0) + m_audioRight * (1.0f - GetParameterAsFloat(0));
 }
 
 void ChopperModule::SetTempo(uint32_t bpm) {

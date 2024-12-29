@@ -11,7 +11,7 @@ const char k_notes[12][3] = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A
 
 static const int s_paramCount = 1;
 static const ParameterMetaData s_metaData[s_paramCount] = {
-    {name : "Mute", valueType : ParameterValueType::Bool, defaultValue : 127, knobMapping : 0, midiCCMapping : -1},
+    {name : "Mute", valueType : ParameterValueType::Bool, defaultValue : {.uint_value = 1}, knobMapping : 0, midiCCMapping : -1},
 };
 
 // Default Constructor

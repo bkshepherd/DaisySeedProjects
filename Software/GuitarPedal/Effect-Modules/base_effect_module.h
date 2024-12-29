@@ -14,11 +14,16 @@ namespace bkshepherd {
 
 /** Parameter Value Types */
 enum ParameterValueType {
-    Raw,                     // Raw Parameter Value (0 .. 127)
-    FloatMagnitude,          // Float Magnitude Value (0.0f - 1.0f)
+    Raw,                     // Raw 32bit Unsigned Int Parameter Value
+    Float,                   // Float Value
     Bool,                    // Boolean Value
     Binned,                  // Binned Value (1 to valueBinCount)
     ParameterValueType_LAST, // Last enum item
+};
+
+union ParameterValue {
+    uint32_t uint_value;
+    float float_value;
 };
 
 // Meta data for an individual Effect Parameter.  Effects may have zero or more Parameters.
@@ -28,11 +33,11 @@ struct ParameterMetaData {
     ParameterValueType valueType; // The Type of this Parameter value.
     int valueBinCount;            // The number of distinct choices allowed for this parameter value
     const char **valueBinNames;   // The human readable display names for the bins
-    int defaultValue;             // The Default Value set for this parameter the first time the device is powered up
-    int knobMapping;    // The ID of the Physical Knob mapped to this Parameter. -1 if this Parameter is not controlled by a Knob
-    int midiCCMapping;  // The Midi CC ID mapped to this Parameter. -1 of this Parameter is not controllable via Midi CC messages
-    int minValue = 0;   // The minimum value of the parameter
-    int maxValue = 127; // The maximum value of the parameter
+    ParameterValue defaultValue;  // The Raw Default Value set for this parameter the first time the device is powered up
+    int knobMapping;   // The ID of the Physical Knob mapped to this Parameter. -1 if this Parameter is not controlled by a Knob
+    int midiCCMapping; // The Midi CC ID mapped to this Parameter. -1 of this Parameter is not controllable via Midi CC messages
+    int minValue = 0;  // The minimum value of the parameter
+    int maxValue = 1;  // The maximum value of the parameter
     float fineStepSize = 0.01f; // For Float Parameters, this will set the fineStepSize multiple in the menu
 };
 
@@ -92,13 +97,13 @@ class BaseEffectModule {
     const char *GetParameterName(int parameter_id);
 
     /** Gets the Type of an Effect Parameter
-     \return an int representing Type of the Effect Parameter. 0 is raw u_int8_t, 1 is Float Magnitude, 2 is Bool, 3 is Binned Int
+     \return an int representing Type of the Effect Parameter. 0 is raw u_int32_t, 1 is Float, 2 is Bool, 3 is Binned Int
      (return -1 is this is unknown)
     */
     int GetParameterType(int parameter_id);
 
     /** Gets the Bin Count of a Binned Int Effect Parameter
-     \return the number of Bins for this Binned Int type Efffect Parameter or -1 if this isn't a Binned Int type parameter
+     \return the number of Bins for this Binned Int type Effect Parameter or -1 if this isn't a Binned Int type parameter
     */
     int GetParameterBinCount(int parameter_id);
 
@@ -108,17 +113,23 @@ class BaseEffectModule {
     */
     const char **GetParameterBinNames(int parameter_id);
 
-    /** Gets the Raw uint8_t value of an Effect Parameter
+    /** Gets the Default Value for an Effect Parameter as a Float value
      \param parameter_id Id of the parameter to retrieve.
-     \return the Value (0..127) of the specified parameter.
+     \return the float Value of the specified parameter.
     */
-    uint8_t GetParameterRaw(int parameter_id);
+    const float GetParameterDefaultValueAsFloat(int parameter_id);
 
-    /** Gets the value of an Effect Parameter as a magnitude mapped to a float 0..1
+    /** Gets the Raw uint32_t value of an Effect Parameter
      \param parameter_id Id of the parameter to retrieve.
-     \return the Value of the specified parameter mapped to a float (0..1)
+     \return the raw Value of the specified parameter.
     */
-    float GetParameterAsMagnitude(int parameter_id);
+    uint32_t GetParameterRaw(int parameter_id);
+
+    /** Gets the value of an Effect Parameter as a float
+        \param parameter_id Id of the parameter to retrieve.
+        \return the float Value for given parameter.
+    */
+    float GetParameterAsFloat(int parameter_id);
 
     /** Gets the value of an Effect Parameter as a bool (True of False)
      \param parameter_id Id of the parameter to retrieve.
@@ -146,14 +157,22 @@ class BaseEffectModule {
 
     /** Sets the Raw Value for a Particular Effect Parameter.  If the Parameter ID isn't valid, there is no effect.
         \param parameter_id Id of the parameter to set (0 .. m_paramCount - 1).
-        \param value Value to set on the parameter.
+        \param value the uint32_t Value to set on the parameter.
     */
     void SetParameterRaw(int parameter_id, uint32_t value);
 
     /** Sets the Value for a Particular Effect Parameter using a float magnitude (0..1).  If the Parameter ID isn't valid, there is no
-       effect. \param parameter_id Id of the parameter to set. \param value the float magnitude value to set the parameter to.
+       effect.
+       \param parameter_id Id of the parameter to set.
+       \param value the float magnitude value to set the parameter to.
     */
     void SetParameterAsMagnitude(int parameter_id, float value);
+
+    /** Sets the Value for a Particular Effect Parameter using a float.  If the Parameter ID isn't valid, there is no effect.
+        \param parameter_id Id of the parameter to set.
+        \param value the Float value to set the paramter to.
+    */
+    void SetParameterAsFloat(int parameter_id, float value);
 
     /** Sets the Value for a Particular Effect Parameter using a bool.  If the Parameter ID isn't valid, there is no effect.
         \param parameter_id Id of the parameter to set.
@@ -165,7 +184,7 @@ class BaseEffectModule {
         \param parameter_id Id of the parameter to set.
         \param value the int value (1..Bin Count) of the bin to set the paramter to.
     */
-    void SetParameterAsBinnedValue(int parameter_id, u_int8_t bin);
+    void SetParameterAsBinnedValue(int parameter_id, int value);
 
     /** Processes the Effect in Mono for a single sample.  This should only be called once per sample. Also, if this is called, don't
      call ProcessStereo too. \param in Input sample.
@@ -233,14 +252,6 @@ class BaseEffectModule {
     */
     int GetParameterMax(int parameter_id);
 
-    void SetParameterAsFloat(int parameter_id, float f);
-
-    /** Gets the parameter id as a float value
-        \param parameter_id Id of the parameter to set (0 .. m_paramCount - 1).
-        \return float value for given parameter.
-    */
-    float GetParameterAsFloat(int parameter_id);
-
     /** Gets the Fine Step size for the parameter id as a float value
         \param parameter_id Id of the parameter to set (0 .. m_paramCount - 1).
         \return Fine step size for given parameter.
@@ -256,11 +267,11 @@ class BaseEffectModule {
      */
     virtual bool AlternateFootswitchForTempo() const { return true; };
     /** Overridable callback when alternate footswitch is pressed */
-    virtual void AlternateFootswitchPressed(){};
+    virtual void AlternateFootswitchPressed() {};
     /** Overridable callback when alternate footswitch is released */
-    virtual void AlternateFootswitchReleased(){};
+    virtual void AlternateFootswitchReleased() {};
     /** Overridable callback when alternate footswitch is held for 1 second */
-    virtual void AlternateFootswitchHeldFor1Second(){};
+    virtual void AlternateFootswitchHeldFor1Second() {};
 
   protected:
     /** Initializes the Parameter Storage and creates space for the specified number of stored Effect Parameters

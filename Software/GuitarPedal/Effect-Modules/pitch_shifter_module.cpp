@@ -25,15 +25,15 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         valueType : ParameterValueType::Binned,
         valueBinCount : 8,
         valueBinNames : s_semitoneBinNames,
-        defaultValue : 0,
+        defaultValue : {.uint_value = 0},
         knobMapping : 0,
         midiCCMapping : -1
     },
     {
         name : "Crossfade",
-        valueType : ParameterValueType::FloatMagnitude,
+        valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : 127,
+        defaultValue : {.float_value = 1.0f},
         knobMapping : 1,
         midiCCMapping : -1
     },
@@ -42,7 +42,7 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         valueType : ParameterValueType::Binned,
         valueBinCount : 2,
         valueBinNames : s_directionBinNames,
-        defaultValue : 0,
+        defaultValue : {.uint_value = 0},
         knobMapping : 2,
         midiCCMapping : -1
     },
@@ -51,23 +51,23 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         valueType : ParameterValueType::Binned,
         valueBinCount : 2,
         valueBinNames : s_modeBinNames,
-        defaultValue : 0,
+        defaultValue : {.uint_value = 0},
         knobMapping : 3,
         midiCCMapping : -1
     },
     {
         name : "Shift",
-        valueType : ParameterValueType::FloatMagnitude,
+        valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : 0,
+        defaultValue : {.float_value = 0.0f},
         knobMapping : 4,
         midiCCMapping : -1
     },
     {
         name : "Return",
-        valueType : ParameterValueType::FloatMagnitude,
+        valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : 0,
+        defaultValue : {.float_value = 0.0f},
         knobMapping : 5,
         midiCCMapping : -1
     },
@@ -142,7 +142,7 @@ void PitchShifterModule::Init(float sample_rate) {
     pitchShifter.SetDelSize(k_defaultSamplesDelayPitchShifter);
 
     pitchCrossfade.Init(CROSSFADE_CPOW);
-    pitchCrossfade.SetPos(GetParameterAsMagnitude(1));
+    pitchCrossfade.SetPos(GetParameterAsFloat(1));
 
     m_latching = GetParameterAsBinnedValue(3) == 1;
 
@@ -152,8 +152,8 @@ void PitchShifterModule::Init(float sample_rate) {
 
     SetTranspose(m_semitoneTarget);
 
-    m_samplesToDelayShift = static_cast<uint32_t>(static_cast<float>(k_maxSamplesMaxTime) * GetParameterAsMagnitude(4));
-    m_samplesToDelayReturn = static_cast<uint32_t>(static_cast<float>(k_maxSamplesMaxTime) * GetParameterAsMagnitude(5));
+    m_samplesToDelayShift = static_cast<uint32_t>(static_cast<float>(k_maxSamplesMaxTime) * GetParameterAsFloat(4));
+    m_samplesToDelayReturn = static_cast<uint32_t>(static_cast<float>(k_maxSamplesMaxTime) * GetParameterAsFloat(5));
 }
 
 void PitchShifterModule::ParameterChanged(int parameter_id) {
@@ -163,16 +163,16 @@ void PitchShifterModule::ParameterChanged(int parameter_id) {
         // Change semitone when semitone knob is turned or direction is changed
         ProcessSemitoneTargetChange();
     } else if (parameter_id == 1) {
-        pitchCrossfade.SetPos(GetParameterAsMagnitude(1));
+        pitchCrossfade.SetPos(GetParameterAsFloat(1));
     } else if (parameter_id == 3) {
         m_latching = GetParameterAsBinnedValue(3) == 1;
         if (!m_latching) {
             pitchShifter.SetDelSize(k_defaultSamplesDelayPitchShifter);
         }
     } else if (parameter_id == 4) {
-        m_samplesToDelayShift = static_cast<uint32_t>(static_cast<float>(k_maxSamplesMaxTime) * GetParameterAsMagnitude(4));
+        m_samplesToDelayShift = static_cast<uint32_t>(static_cast<float>(k_maxSamplesMaxTime) * GetParameterAsFloat(4));
     } else if (parameter_id == 5) {
-        m_samplesToDelayReturn = static_cast<uint32_t>(static_cast<float>(k_maxSamplesMaxTime) * GetParameterAsMagnitude(5));
+        m_samplesToDelayReturn = static_cast<uint32_t>(static_cast<float>(k_maxSamplesMaxTime) * GetParameterAsFloat(5));
     }
 
     // Parameters changed, reset the transposition target just in case (mostly

@@ -37,7 +37,7 @@ class MyMappedFloatValue : public MappedValue {
      *                      even for positive numbers
      */
     MyMappedFloatValue(float min, float max, float defaultValue, Mapping mapping = Mapping::lin, const char *unitStr = "",
-                       uint8_t numDecimals = 1, bool forceSign = false, float coarseStepSize0to1_ = 0.05f,
+                       uint8_t numDecimals = 2, bool forceSign = false, float coarseStepSize0to1_ = 0.05f,
                        float fineStepSize0to1_ = 0.01f);
 
     ~MyMappedFloatValue() override {}
