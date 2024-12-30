@@ -21,6 +21,8 @@ class ParametricEQModule : public BaseEffectModule {
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;
     void ParameterChanged(int parameter_id) override;
+    void DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int numItemsTotal, Rectangle boundsToDrawIn,
+                bool isEditing) override;
 };
 } // namespace bkshepherd
 #endif

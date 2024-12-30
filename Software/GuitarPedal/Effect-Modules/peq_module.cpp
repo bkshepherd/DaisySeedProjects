@@ -7,10 +7,13 @@ namespace {
 const float minGain = -15.f;
 const float maxGain = 15.f;
 
-constexpr uint8_t NUM_FILTERS = 3;
-const float q[NUM_FILTERS] = {0.7f, 1.4f, 1.8f};
+const float qLows = 0.7f;
+const float qMids = 1.4f;
+const float qHighs = 1.8f;
 
-cycfi::q::peaking filter[NUM_FILTERS] = {{0, 100, 48000, q[0]}, {0, 800, 48000, q[1]}, {0, 4000, 48000, q[2]}};
+cycfi::q::peaking filterLows = {0, 100, 48000, qLows};
+cycfi::q::peaking filterMids = {0, 800, 48000, qMids};
+cycfi::q::peaking filterHighs = {0, 4000, 48000, qHighs};
 } // namespace
 
 static constexpr uint8_t s_paramCount = 9;
@@ -95,17 +98,17 @@ ParametricEQModule::~ParametricEQModule() {
 void ParametricEQModule::Init(float sample_rate) {
     BaseEffectModule::Init(sample_rate);
 
-    filter[0].config(GetParameterAsFloat(3), GetParameterAsFloat(0), sample_rate, q[0]);
-    filter[1].config(GetParameterAsFloat(4), GetParameterAsFloat(1), sample_rate, q[1]);
-    filter[2].config(GetParameterAsFloat(5), GetParameterAsFloat(2), sample_rate, q[2]);
+    filterLows.config(GetParameterAsFloat(3), GetParameterAsFloat(0), sample_rate, qLows);
+    filterMids.config(GetParameterAsFloat(4), GetParameterAsFloat(1), sample_rate, qMids);
+    filterHighs.config(GetParameterAsFloat(5), GetParameterAsFloat(2), sample_rate, qHighs);
 }
 
 void ParametricEQModule::ProcessMono(float in) {
     float out = in;
 
-    for (uint8_t i = 0; i < NUM_FILTERS; i++) {
-        out = filter[i](out);
-    }
+    out = filterLows(out);
+    out = filterMids(out);
+    out = filterHighs(out);
 
     m_audioLeft = out;
     m_audioRight = m_audioLeft;
@@ -120,15 +123,39 @@ void ParametricEQModule::ParameterChanged(int parameter_id) {
     switch (parameter_id) {
     case 0:
     case 3:
-        filter[0].config(GetParameterAsFloat(3), GetParameterAsFloat(0), GetSampleRate(), q[0]);
+        filterLows.config(GetParameterAsFloat(3), GetParameterAsFloat(0), GetSampleRate(), qLows);
         break;
     case 1:
     case 4:
-        filter[1].config(GetParameterAsFloat(4), GetParameterAsFloat(1), GetSampleRate(), q[1]);
+        filterMids.config(GetParameterAsFloat(4), GetParameterAsFloat(1), GetSampleRate(), qMids);
         break;
     case 2:
     case 5:
-        filter[2].config(GetParameterAsFloat(5), GetParameterAsFloat(2), GetSampleRate(), q[2]);
+        filterHighs.config(GetParameterAsFloat(5), GetParameterAsFloat(2), GetSampleRate(), qHighs);
         break;
+    }
+}
+
+void ParametricEQModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int numItemsTotal, Rectangle boundsToDrawIn,
+                                bool isEditing) {
+
+    const int width = boundsToDrawIn.GetWidth();
+    const int barWidth = 10;
+
+    const int stepWidth = (width / 3);
+
+    int top = 30;
+
+    int x = 0;
+    for (int i = 0; i < 3; i++) {
+        const int gainParamId = i + 3;
+
+        const bool positive = GetParameterAsFloat(gainParamId) > 0.0f;
+        const float magnitude = std::abs(GetParameterAsFloat(gainParamId));
+        const int y = positive ? top - magnitude : top;
+
+        Rectangle r(x, y, barWidth, magnitude);
+        display.DrawRect(r, true, true);
+        x += stepWidth;
     }
 }
