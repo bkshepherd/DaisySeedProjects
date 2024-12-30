@@ -294,6 +294,8 @@ class BaseEffectModule {
      */
     virtual void ParameterChanged(int parameter_id);
 
+    float GetSampleRate() const { return m_sampleRate; }
+
     const char *m_name;                       // Name of the Effect
     int m_paramCount;                         // Number of Effect Parameters
     int m_presetCount;                        // Number of Stored Presets
