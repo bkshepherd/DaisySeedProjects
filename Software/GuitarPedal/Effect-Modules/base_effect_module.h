@@ -30,6 +30,7 @@ union ParameterValue {
 enum ParameterValueCurve {
     Linear,
     Log,
+    InverseLog,
     ParameterValueCurve_LAST, // Last enum item
 };
 

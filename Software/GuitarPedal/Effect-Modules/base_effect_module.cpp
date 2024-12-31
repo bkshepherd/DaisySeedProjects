@@ -247,7 +247,7 @@ void BaseEffectModule::SetParameterAsMagnitude(int parameter_id, float value) {
     int max = GetParameterMax(parameter_id);
 
     // Handle different ParameterValueTypes Correctly
-    ParameterValueType paramType = (ParameterValueType)GetParameterType(parameter_id);
+    ParameterValueType paramType = GetParameterType(parameter_id);
 
     if (paramType == ParameterValueType::Raw) {
         // This is an unsupported operation, so do nothing.
@@ -262,11 +262,29 @@ void BaseEffectModule::SetParameterAsMagnitude(int parameter_id, float value) {
             return;
         }
 
-        // TODO: if param curve is log apply it here
-
-        // Use the 0..1 magnitue to set the underlying value to between min..max
-        float tmp = (value * ((float)max - (float)min) + (float)min);
-        SetParameterAsFloat(parameter_id, tmp);
+        // Set the scaled parameter using the magnitude and the curve type
+        switch (GetParameterValueCurve(parameter_id)) {
+        case ParameterValueCurve::Log: {
+            // Logarithmic scaling: interpolate in the log domain
+            const float tmp = std::pow(10.0, std::log10((float)min) + value * (std::log10((float)max) - std::log10((float)min)));
+            SetParameterAsFloat(parameter_id, tmp);
+            break;
+        }
+        case ParameterValueCurve::InverseLog: {
+            // Inverse Logarithmic scaling: reverse the mapping
+            const float tmp =
+                std::pow(10.0, std::log10((float)min) + (1.0f - value) * (std::log10((float)max) - std::log10((float)min)));
+            SetParameterAsFloat(parameter_id, tmp);
+            break;
+        }
+        case ParameterValueCurve::Linear:
+        default: {
+            // Linear scaling: simple interpolation
+            const float tmp = (value * ((float)max - (float)min) + (float)min);
+            SetParameterAsFloat(parameter_id, tmp);
+            break;
+        }
+        }
     } else if (paramType == ParameterValueType::Bool) {
         // Set the Bool Value to False if the magnitude is less then 0.5f, true otherwise
         if (value < 0.5f) {
