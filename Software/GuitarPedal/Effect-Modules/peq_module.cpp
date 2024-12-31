@@ -23,7 +23,7 @@ cycfi::q::peaking filterHighs = {0, defaultHighFreq, 48000, qHigh[1]};
 
 static const char *s_qBinNames[3] = {"Narrow", "Medium", "Wide"};
 
-static constexpr uint8_t s_paramCount = 12;
+static constexpr uint8_t s_paramCount = 9;
 static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                                name : "Low Freq",
                                                                valueType : ParameterValueType::Float,

@@ -210,10 +210,12 @@ void GuitarPedalUI::InitEffectUiPages() {
     // Initialize the param value stores to a known state.
     for (int i = 0; i < m_numActiveEffectSettingsItems; ++i) {
         m_activeEffectSettingIntValues[i] = NULL;
+        m_activeEffectSettingFloatValues[i] = NULL;
         m_activeEffectSettingStringValues[i] = NULL;
         m_activeEffectSettingBoolValues[i] = false;
     }
 
+    // Add 1 additional item  on top of m_numActiveEffectSettingsItems for exiting
     m_activeEffectSettingsMenuItems = new AbstractMenu::ItemConfig[m_numActiveEffectSettingsItems + 1];
 
     for (int i = 0; i < m_numActiveEffectSettingsItems; i++) {
@@ -259,6 +261,7 @@ void GuitarPedalUI::InitEffectUiPages() {
         }
     }
 
+    // Setup the final, exit item for the menu
     m_activeEffectSettingsMenuItems[m_numActiveEffectSettingsItems].type = AbstractMenu::ItemType::closeMenuItem;
     m_activeEffectSettingsMenuItems[m_numActiveEffectSettingsItems].text = "Back";
 
