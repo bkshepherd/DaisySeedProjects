@@ -1,6 +1,6 @@
 #pragma once
-#ifndef EQ_MODULE_H
-#define EQ_MODULE_H
+#ifndef GEQ_MODULE_H
+#define GEQ_MODULE_H
 
 #include <stdint.h>
 
@@ -8,14 +8,14 @@
 
 #ifdef __cplusplus
 
-/** @file eq_module.h */
+/** @file geq_module.h */
 
 namespace bkshepherd {
 
-class EQModule : public BaseEffectModule {
+class GraphicEQModule : public BaseEffectModule {
   public:
-    EQModule();
-    ~EQModule();
+    GraphicEQModule();
+    ~GraphicEQModule();
 
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;
