@@ -128,25 +128,30 @@ void GraphicEQModule::ParameterChanged(int parameter_id) {
 
 void GraphicEQModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int numItemsTotal, Rectangle boundsToDrawIn,
                              bool isEditing) {
+    display.WriteStringAligned(m_name, Font_7x10, boundsToDrawIn, Alignment::topCentered, true);
 
     const int width = boundsToDrawIn.GetWidth();
     const int barWidth = 10;
 
     const int stepWidth = (width / NUM_FILTERS);
 
+    // This is used to help the "max" gain take up the full vertical amount of the screen
+    const float magnitudeMultiplier = 1.4f;
+
     int top = 30;
+
+    // Draw centerline
+    display.DrawLine(0, top, width, top, true);
 
     int x = 0;
     for (int i = 0; i < NUM_FILTERS; i++) {
-        bool positive = GetParameterAsFloat(i) > 0.0f;
-        float magnitude = std::abs(GetParameterAsFloat(i));
-        if (positive) {
-            Rectangle r(x, top - magnitude, barWidth, magnitude);
-            display.DrawRect(r, true, true);
-        } else {
-            Rectangle r(x, top, barWidth, magnitude);
-            display.DrawRect(r, true, true);
-        }
+        const int gainParamId = i;
+        const bool positive = GetParameterAsFloat(gainParamId) > 0.0f;
+        const float magnitude = std::abs(GetParameterAsFloat(gainParamId)) * magnitudeMultiplier;
+        const int y = positive ? top - magnitude : top;
+
+        Rectangle r(x, y, barWidth, magnitude);
+        display.DrawRect(r, true, true);
         x += stepWidth;
     }
 }

@@ -548,7 +548,7 @@ int main(void) {
     crossFaderTransitionTimeInSamples = hardware.GetNumberOfSamplesForTime(crossFaderTransitionTimeInSeconds);
 
     // Init the Effects Modules
-    availableEffectsCount = 13;
+    availableEffectsCount = 14;
     availableEffects = new BaseEffectModule *[availableEffectsCount];
     availableEffects[0] = new ModulatedTremoloModule();
     availableEffects[1] = new OverdriveModule();
@@ -563,7 +563,7 @@ int main(void) {
     availableEffects[10] = new CompressorModule();
     availableEffects[11] = new LooperModule();
     availableEffects[12] = new GraphicEQModule();
-    availableEffects[12] = new ParametricEQModule();
+    availableEffects[13] = new ParametricEQModule();
 
     for (int i = 0; i < availableEffectsCount; i++) {
         availableEffects[i]->Init(sample_rate);

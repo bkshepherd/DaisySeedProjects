@@ -11,9 +11,13 @@ const float qLows = 0.7f;
 const float qMids = 1.4f;
 const float qHighs = 1.8f;
 
-cycfi::q::peaking filterLows = {0, 100, 48000, qLows};
-cycfi::q::peaking filterMids = {0, 800, 48000, qMids};
-cycfi::q::peaking filterHighs = {0, 4000, 48000, qHighs};
+const float defaultLowFreq = 100.f;
+const float defaultMidFreq = 800.f;
+const float defaultHighFreq = 4000.f;
+
+cycfi::q::peaking filterLows = {0, defaultLowFreq, 48000, qLows};
+cycfi::q::peaking filterMids = {0, defaultMidFreq, 48000, qMids};
+cycfi::q::peaking filterHighs = {0, defaultHighFreq, 48000, qHighs};
 } // namespace
 
 static constexpr uint8_t s_paramCount = 9;
@@ -21,31 +25,31 @@ static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                                name : "Low Freq",
                                                                valueType : ParameterValueType::Float,
                                                                valueBinCount : 0,
-                                                               defaultValue : {.float_value = 100.0f},
+                                                               defaultValue : {.float_value = defaultLowFreq},
                                                                knobMapping : 0,
                                                                midiCCMapping : -1,
-                                                               minValue : 35,
-                                                               maxValue : 500
+                                                               minValue : static_cast<int>(defaultLowFreq - 80.f),
+                                                               maxValue : static_cast<int>(defaultLowFreq + 80.f)
                                                            },
                                                            {
                                                                name : "Mid Freq",
                                                                valueType : ParameterValueType::Float,
                                                                valueBinCount : 0,
-                                                               defaultValue : {.float_value = 800.0f},
+                                                               defaultValue : {.float_value = defaultMidFreq},
                                                                knobMapping : 1,
                                                                midiCCMapping : -1,
-                                                               minValue : 250,
-                                                               maxValue : 5000
+                                                               minValue : static_cast<int>(defaultMidFreq - 550.f),
+                                                               maxValue : static_cast<int>(defaultMidFreq + 550.f)
                                                            },
                                                            {
                                                                name : "High Freq",
                                                                valueType : ParameterValueType::Float,
                                                                valueBinCount : 0,
-                                                               defaultValue : {.float_value = 4000.0f},
+                                                               defaultValue : {.float_value = defaultHighFreq},
                                                                knobMapping : 2,
                                                                midiCCMapping : -1,
-                                                               minValue : 1000,
-                                                               maxValue : 20000
+                                                               minValue : static_cast<int>(defaultHighFreq - 3000.f),
+                                                               maxValue : static_cast<int>(defaultHighFreq + 3000.f)
                                                            },
                                                            {
                                                                name : "Low Gain",
@@ -138,20 +142,28 @@ void ParametricEQModule::ParameterChanged(int parameter_id) {
 
 void ParametricEQModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int numItemsTotal, Rectangle boundsToDrawIn,
                                 bool isEditing) {
+    display.WriteStringAligned(m_name, Font_7x10, boundsToDrawIn, Alignment::topCentered, true);
 
     const int width = boundsToDrawIn.GetWidth();
     const int barWidth = 10;
 
     const int stepWidth = (width / 3);
 
+    // This is used to help the "max" gain take up the full vertical amount of the screen
+    const float magnitudeMultiplier = 1.4f;
+
     int top = 30;
 
-    int x = 0;
+    // Draw centerline
+    display.DrawLine(0, top, width, top, true);
+
+    // Don't default this to 0 so that the "3" bars stay centered
+    int x = stepWidth / 2;
     for (int i = 0; i < 3; i++) {
         const int gainParamId = i + 3;
 
         const bool positive = GetParameterAsFloat(gainParamId) > 0.0f;
-        const float magnitude = std::abs(GetParameterAsFloat(gainParamId));
+        const float magnitude = std::abs(GetParameterAsFloat(gainParamId)) * magnitudeMultiplier;
         const int y = positive ? top - magnitude : top;
 
         Rectangle r(x, y, barWidth, magnitude);
