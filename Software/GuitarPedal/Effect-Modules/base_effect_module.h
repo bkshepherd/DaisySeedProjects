@@ -111,6 +111,11 @@ class BaseEffectModule {
     */
     ParameterValueType GetParameterType(int parameter_id) const;
 
+    /** Gets the curve of an Effect Parameter
+     \return a ParameterValueType representing curve of the Effect Parameter.
+    */
+    ParameterValueCurve GetParameterValueCurve(int parameter_id) const;
+
     /** Gets the Bin Count of a Binned Int Effect Parameter
      \return the number of Bins for this Binned Int type Effect Parameter or -1 if this isn't a Binned Int type parameter
     */

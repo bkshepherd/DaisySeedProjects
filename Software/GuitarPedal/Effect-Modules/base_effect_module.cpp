@@ -87,6 +87,15 @@ ParameterValueType BaseEffectModule::GetParameterType(int parameter_id) const {
     return m_paramMetaData[parameter_id].valueType;
 }
 
+ParameterValueCurve BaseEffectModule::GetParameterValueCurve(int parameter_id) const {
+    // Make sure parameter_id is valid.
+    if (m_params == NULL || parameter_id < 0 || parameter_id >= m_paramCount || m_paramMetaData == NULL) {
+        return ParameterValueCurve::Linear;
+    }
+
+    return m_paramMetaData[parameter_id].valueCurve;
+}
+
 int BaseEffectModule::GetParameterBinCount(int parameter_id) const {
     // Make sure parameter_id is valid.
     if (m_params == NULL || parameter_id < 0 || parameter_id >= m_paramCount || m_paramMetaData == NULL) {
