@@ -24,7 +24,7 @@ class CompressorModule : public BaseEffectModule {
     void ParameterChanged(int parameter_id) override;
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;
-    float GetBrightnessForLED(int led_id) override;
+    float GetBrightnessForLED(int led_id) const override;
 
   private:
     float m_levelMin = 0.0f;

@@ -110,7 +110,7 @@ void ModulatedTremoloModule::SetTempo(uint32_t bpm) {
     }
 }
 
-float ModulatedTremoloModule::GetBrightnessForLED(int led_id) {
+float ModulatedTremoloModule::GetBrightnessForLED(int led_id) const {
     float value = BaseEffectModule::GetBrightnessForLED(led_id);
 
     if (led_id == 1) {

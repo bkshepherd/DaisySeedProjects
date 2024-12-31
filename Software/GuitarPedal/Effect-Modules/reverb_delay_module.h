@@ -127,7 +127,7 @@ class ReverbDelayModule : public BaseEffectModule {
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;
     void SetTempo(uint32_t bpm) override;
-    float GetBrightnessForLED(int led_id) override;
+    float GetBrightnessForLED(int led_id) const override;
 
   private:
     ReverbSc m_reverbStereo;
@@ -164,8 +164,7 @@ class ReverbDelayModule : public BaseEffectModule {
     float effect_samplerate;
 
     // Oscillator for blinking tempo LED
-    Oscillator led_osc;
-    float m_LEDValue;
+    mutable Oscillator led_osc;
 };
 } // namespace bkshepherd
 #endif

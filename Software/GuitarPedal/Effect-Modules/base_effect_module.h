@@ -14,11 +14,11 @@ namespace bkshepherd {
 
 /** Parameter Value Types */
 enum ParameterValueType {
-    Raw,                     // Raw 32bit Unsigned Int Parameter Value
-    Float,                   // Float Value
-    Bool,                    // Boolean Value
-    Binned,                  // Binned Value (1 to valueBinCount)
-    ParameterValueType_LAST, // Last enum item
+    Raw,    // Raw 32bit Unsigned Int Parameter Value
+    Float,  // Float Value
+    Bool,   // Boolean Value
+    Binned, // Binned Value (1 to valueBinCount)
+    Unknown,
 };
 
 union ParameterValue {
@@ -26,14 +26,22 @@ union ParameterValue {
     float float_value;
 };
 
+enum ParameterValueCurve {
+    Linear,
+    Log,
+    InverseLog,
+};
+
 // Meta data for an individual Effect Parameter.  Effects may have zero or more Parameters.
 // This data structure contains information about the Effect Parameter.
 struct ParameterMetaData {
     const char *name;             // The Name of this Parameter that gets displayed on the Screen when editing the parameters value
     ParameterValueType valueType; // The Type of this Parameter value.
-    int valueBinCount;            // The number of distinct choices allowed for this parameter value
-    const char **valueBinNames;   // The human readable display names for the bins
-    ParameterValue defaultValue;  // The Raw Default Value set for this parameter the first time the device is powered up
+    ParameterValueCurve valueCurve =
+        ParameterValueCurve::Linear; // The curve used to move between the min and max value for this parameter
+    int valueBinCount;               // The number of distinct choices allowed for this parameter value
+    const char **valueBinNames;      // The human readable display names for the bins
+    ParameterValue defaultValue;     // The Raw Default Value set for this parameter the first time the device is powered up
     int knobMapping;   // The ID of the Physical Knob mapped to this Parameter. -1 if this Parameter is not controlled by a Knob
     int midiCCMapping; // The Midi CC ID mapped to this Parameter. -1 of this Parameter is not controllable via Midi CC messages
     int minValue = 0;  // The minimum value of the parameter
@@ -59,12 +67,12 @@ class BaseEffectModule {
     /** Gets the total number of Effect Parameters
      \return the number of parameters for this effect.
     */
-    uint16_t GetParameterCount();
+    uint16_t GetParameterCount() const;
 
     /** Gets the total number of stored presets for this effect
      \return the number of presets for this effect.
     */
-    uint16_t GetPresetCount();
+    uint16_t GetPresetCount() const;
 
     /** Sets the total number of stored presets for this effect, called by guitar_pedal_storage
      \param the number of presets for this effect.
@@ -79,7 +87,7 @@ class BaseEffectModule {
     /** Gets the start position in settings for this effect
      \return the the start position in settings array for this effect.
     */
-    uint32_t GetSettingsArrayStartIdx();
+    uint32_t GetSettingsArrayStartIdx() const;
 
     /** Sets the start index of the Settings Array
      \param the array index where settings for the effect start
@@ -89,71 +97,76 @@ class BaseEffectModule {
     /** Gets the start position in settings for this effect
      \return the the start position in settings array for this effect.
     */
-    uint32_t GetCurrentPreset();
+    uint32_t GetCurrentPreset() const;
 
     /** Gets the Name of an Effect Parameter
      \return Value Name of the Effect Parameter
     */
-    const char *GetParameterName(int parameter_id);
+    const char *GetParameterName(int parameter_id) const;
 
     /** Gets the Type of an Effect Parameter
-     \return an int representing Type of the Effect Parameter. 0 is raw u_int32_t, 1 is Float, 2 is Bool, 3 is Binned Int
-     (return -1 is this is unknown)
+     \return a ParameterValueType representing Type of the Effect Parameter. 0 is raw u_int32_t, 1 is Float, 2 is Bool, 3 is Binned Int
+     (return "ParameterValueType::Unknown" is this is unknown)
     */
-    int GetParameterType(int parameter_id);
+    ParameterValueType GetParameterType(int parameter_id) const;
+
+    /** Gets the curve of an Effect Parameter
+     \return a ParameterValueType representing curve of the Effect Parameter.
+    */
+    ParameterValueCurve GetParameterValueCurve(int parameter_id) const;
 
     /** Gets the Bin Count of a Binned Int Effect Parameter
      \return the number of Bins for this Binned Int type Effect Parameter or -1 if this isn't a Binned Int type parameter
     */
-    int GetParameterBinCount(int parameter_id);
+    int GetParameterBinCount(int parameter_id) const;
 
     /** Gets the Bin Name of a Binned Int Effect Parameter
      \param parameter_id Id of the parameter to retrieve.
      \return the Names of the Bins for this Binned Int type Efffect Parameter or NULL if there aren't any specified
     */
-    const char **GetParameterBinNames(int parameter_id);
+    const char **GetParameterBinNames(int parameter_id) const;
 
     /** Gets the Default Value for an Effect Parameter as a Float value
      \param parameter_id Id of the parameter to retrieve.
      \return the float Value of the specified parameter.
     */
-    const float GetParameterDefaultValueAsFloat(int parameter_id);
+    const float GetParameterDefaultValueAsFloat(int parameter_id) const;
 
     /** Gets the Raw uint32_t value of an Effect Parameter
      \param parameter_id Id of the parameter to retrieve.
      \return the raw Value of the specified parameter.
     */
-    uint32_t GetParameterRaw(int parameter_id);
+    uint32_t GetParameterRaw(int parameter_id) const;
 
     /** Gets the value of an Effect Parameter as a float
         \param parameter_id Id of the parameter to retrieve.
         \return the float Value for given parameter.
     */
-    float GetParameterAsFloat(int parameter_id);
+    float GetParameterAsFloat(int parameter_id) const;
 
     /** Gets the value of an Effect Parameter as a bool (True of False)
      \param parameter_id Id of the parameter to retrieve.
      \return the Value of the specified parameter mapped to True / False
     */
-    bool GetParameterAsBool(int parameter_id);
+    bool GetParameterAsBool(int parameter_id) const;
 
     /** Gets the value of an Effect Parameter as a Binned Integer Value (1..Bin Count)
      \param parameter_id Id of the parameter to retrieve.
      \return the bin number as an int value (1..Bin Count) of the specified parameter
     */
-    int GetParameterAsBinnedValue(int parameter_id);
+    int GetParameterAsBinnedValue(int parameter_id) const;
 
     /** Gets the Parameter ID of the Effect Parameter mapped to Knob.
      \param knob_id Id of the Knob to retrieve.
      \return the Parameter ID mapped to the specified knob, or -1 if no Parameter is Mapped to that Knob
     */
-    int GetMappedParameterIDForKnob(int knob_id);
+    int GetMappedParameterIDForKnob(int knob_id) const;
 
     /** Gets the Parameter ID of the Effect Parameter mapped to this Midi CC ID.
      \param midiCC_id Id of the MidiCC to retrieve.
      \return the Parameter ID mapped to the specified MidiCC, or -1 if no Parameter is Mapped to that Midi CC
     */
-    int GetMappedParameterIDForMidiCC(int midiCC_id);
+    int GetMappedParameterIDForMidiCC(int midiCC_id) const;
 
     /** Sets the Raw Value for a Particular Effect Parameter.  If the Parameter ID isn't valid, there is no effect.
         \param parameter_id Id of the parameter to set (0 .. m_paramCount - 1).
@@ -204,17 +217,17 @@ class BaseEffectModule {
     /**  Gets the most recently calculated Sample Value for the Left Stereo Channel (or Mono)
      \return Last floating point sample for the left channel.
     */
-    float GetAudioLeft();
+    float GetAudioLeft() const;
 
     /** Gets the most recently calculated Sample Value for the Right Stereo Channel
      \return Last floating point sample for the right channel.
     */
-    float GetAudioRight();
+    float GetAudioRight() const;
 
     /** Returns a value that can be used to drive the Effect LED brightness for a specific led.
      \return float value 0..1 for the intended LED brightness.
     */
-    virtual float GetBrightnessForLED(int led_id);
+    virtual float GetBrightnessForLED(int led_id) const;
 
     /** Sets the state of this Effect
      * @param isEnabled True for Enabled, False for Bypassed.
@@ -224,7 +237,7 @@ class BaseEffectModule {
     /** Returns the status of the Effect
      \return Value True if the Effect is Enabled and False if the Effect is Bypassed
     */
-    bool IsEnabled();
+    bool IsEnabled() const;
 
     /** Sets the Tempo of this Effect
      * @param bpm the Tempo in Beats Per Minute (BPM) as a uint32_t
@@ -249,19 +262,19 @@ class BaseEffectModule {
         \param parameter_id Id of the parameter to set (0 .. m_paramCount - 1).
         \return int value for minimum parameter value.
     */
-    int GetParameterMin(int parameter_id);
+    int GetParameterMin(int parameter_id) const;
 
     /** Gets the maximum value for the parameter
         \param parameter_id Id of the parameter to set (0 .. m_paramCount - 1).
         \return int value for maximum parameter value.
     */
-    int GetParameterMax(int parameter_id);
+    int GetParameterMax(int parameter_id) const;
 
     /** Gets the Fine Step size for the parameter id as a float value
         \param parameter_id Id of the parameter to set (0 .. m_paramCount - 1).
         \return Fine step size for given parameter.
     */
-    float GetParameterFineStepSize(int parameter_id);
+    float GetParameterFineStepSize(int parameter_id) const;
 
     /** This function gets called when a MIDI CC message is received by the pedal when this effect is active.  The default
      * implementation checks to see if any Midi Parameters on this Effect map to the midi CC number and then it maps the Midi Values

@@ -22,7 +22,7 @@ class MultiDelayModule : public BaseEffectModule {
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;
     void SetTempo(uint32_t bpm) override;
-    float GetBrightnessForLED(int led_id) override;
+    float GetBrightnessForLED(int led_id) const override;
     void SetDelayTime(uint8_t index, float delay);
     void ParameterChanged(int parameter_id);
     void SetTargetTapDelayTime(uint8_t index, float value, float multiplier);

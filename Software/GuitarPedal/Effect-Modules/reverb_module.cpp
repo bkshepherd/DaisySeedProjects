@@ -94,7 +94,7 @@ void ReverbModule::ProcessStereo(float inL, float inR) {
     m_audioRight = wetr * GetParameterAsFloat(2) + inR * (1.0 - GetParameterAsFloat(2));
 }
 
-float ReverbModule::GetBrightnessForLED(int led_id) {
+float ReverbModule::GetBrightnessForLED(int led_id) const {
     float value = BaseEffectModule::GetBrightnessForLED(led_id);
 
     if (led_id == 1) {

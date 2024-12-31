@@ -287,7 +287,7 @@ void MultiDelayModule::SetTempo(uint32_t bpm) {
     // TODO: Add Tempo handling
 }
 
-float MultiDelayModule::GetBrightnessForLED(int led_id) {
+float MultiDelayModule::GetBrightnessForLED(int led_id) const {
     float value = BaseEffectModule::GetBrightnessForLED(led_id);
 
     if (led_id == 1) {

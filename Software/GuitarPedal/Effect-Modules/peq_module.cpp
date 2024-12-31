@@ -7,13 +7,13 @@ namespace {
 const float minGain = -15.f;
 const float maxGain = 15.f;
 
-const float qLows = 2.0f;
-const float qMids = 2.0f;
-const float qHighs = 2.0f;
+const float qLows = 2.5f;
+const float qMids = 2.5f;
+const float qHighs = 2.5f;
 
-const float defaultLowFreq = 100.f;
-const float defaultMidFreq = 800.f;
-const float defaultHighFreq = 4000.f;
+const float defaultLowFreq = 130.f;
+const float defaultMidFreq = 1100.f;
+const float defaultHighFreq = 4400.f;
 
 cycfi::q::peaking filterLows = {0, defaultLowFreq, 48000, qLows};
 cycfi::q::peaking filterMids = {0, defaultMidFreq, 48000, qMids};
@@ -24,32 +24,35 @@ static constexpr uint8_t s_paramCount = 9;
 static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                                name : "Low Freq",
                                                                valueType : ParameterValueType::Float,
+                                                               valueCurve : ParameterValueCurve::Log,
                                                                valueBinCount : 0,
                                                                defaultValue : {.float_value = defaultLowFreq},
                                                                knobMapping : 0,
                                                                midiCCMapping : -1,
-                                                               minValue : static_cast<int>(defaultLowFreq - 80.f),
-                                                               maxValue : static_cast<int>(defaultLowFreq + 80.f)
+                                                               minValue : 35,
+                                                               maxValue : 500
                                                            },
                                                            {
                                                                name : "Mid Freq",
                                                                valueType : ParameterValueType::Float,
+                                                               valueCurve : ParameterValueCurve::Log,
                                                                valueBinCount : 0,
                                                                defaultValue : {.float_value = defaultMidFreq},
                                                                knobMapping : 1,
                                                                midiCCMapping : -1,
-                                                               minValue : static_cast<int>(defaultMidFreq - 550.f),
-                                                               maxValue : static_cast<int>(defaultMidFreq + 550.f)
+                                                               minValue : 250,
+                                                               maxValue : 5000
                                                            },
                                                            {
                                                                name : "High Freq",
                                                                valueType : ParameterValueType::Float,
+                                                               valueCurve : ParameterValueCurve::Log,
                                                                valueBinCount : 0,
                                                                defaultValue : {.float_value = defaultHighFreq},
                                                                knobMapping : 2,
                                                                midiCCMapping : -1,
-                                                               minValue : static_cast<int>(defaultHighFreq - 3000.f),
-                                                               maxValue : static_cast<int>(defaultHighFreq + 3000.f)
+                                                               minValue : 1000,
+                                                               maxValue : 20000
                                                            },
                                                            {
                                                                name : "Low Gain",

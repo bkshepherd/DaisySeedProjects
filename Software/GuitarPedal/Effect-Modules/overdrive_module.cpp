@@ -74,7 +74,7 @@ void OverdriveModule::ProcessStereo(float inL, float inR) {
     m_audioRight = m_audioRight * (m_levelMin + (GetParameterAsFloat(1) * (m_levelMax - m_levelMin)));
 }
 
-float OverdriveModule::GetBrightnessForLED(int led_id) {
+float OverdriveModule::GetBrightnessForLED(int led_id) const {
     float value = BaseEffectModule::GetBrightnessForLED(led_id);
 
     if (led_id == 1) {

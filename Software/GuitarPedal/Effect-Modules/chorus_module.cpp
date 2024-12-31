@@ -96,7 +96,7 @@ void ChorusModule::ProcessStereo(float inL, float inR) {
     m_audioRight = m_chorus.GetRight() * GetParameterAsFloat(0) + m_audioRight * (1.0f - GetParameterAsFloat(0));
 }
 
-float ChorusModule::GetBrightnessForLED(int led_id) {
+float ChorusModule::GetBrightnessForLED(int led_id) const {
     float value = BaseEffectModule::GetBrightnessForLED(led_id);
 
     if (led_id == 1) {

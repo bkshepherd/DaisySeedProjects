@@ -105,7 +105,7 @@ void LooperModule::ProcessStereo(float inL, float inR) {
     ProcessMono(inL);
 }
 
-float LooperModule::GetBrightnessForLED(int led_id) {
+float LooperModule::GetBrightnessForLED(int led_id) const {
     float value = BaseEffectModule::GetBrightnessForLED(led_id);
 
     if (led_id == 1) {
