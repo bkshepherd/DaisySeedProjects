@@ -7,9 +7,9 @@ namespace {
 const float minGain = -15.f;
 const float maxGain = 15.f;
 
-const float qLows = 2.0f;
-const float qMids = 2.0f;
-const float qHighs = 2.0f;
+const float qLows = 2.5f;
+const float qMids = 2.5f;
+const float qHighs = 2.5f;
 
 const float defaultLowFreq = 130.f;
 const float defaultMidFreq = 1100.f;
