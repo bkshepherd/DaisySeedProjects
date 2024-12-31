@@ -7,20 +7,23 @@ namespace {
 const float minGain = -15.f;
 const float maxGain = 15.f;
 
-const float qLows = 2.5f;
-const float qMids = 2.5f;
-const float qHighs = 2.5f;
+// Q values for narrow, medium, wide
+const float qLow[3] = {4.0f, 2.5f, 1.0f};
+const float qMid[3] = {4.0f, 2.5f, 1.0f};
+const float qHigh[3] = {4.0f, 2.5f, 1.0f};
 
 const float defaultLowFreq = 130.f;
 const float defaultMidFreq = 1100.f;
 const float defaultHighFreq = 4400.f;
 
-cycfi::q::peaking filterLows = {0, defaultLowFreq, 48000, qLows};
-cycfi::q::peaking filterMids = {0, defaultMidFreq, 48000, qMids};
-cycfi::q::peaking filterHighs = {0, defaultHighFreq, 48000, qHighs};
+cycfi::q::peaking filterLows = {0, defaultLowFreq, 48000, qLow[1]};
+cycfi::q::peaking filterMids = {0, defaultMidFreq, 48000, qMid[1]};
+cycfi::q::peaking filterHighs = {0, defaultHighFreq, 48000, qHigh[1]};
 } // namespace
 
-static constexpr uint8_t s_paramCount = 9;
+static const char *s_qBinNames[3] = {"Narrow", "Medium", "Wide"};
+
+static constexpr uint8_t s_paramCount = 12;
 static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                                name : "Low Freq",
                                                                valueType : ParameterValueType::Float,
@@ -83,6 +86,33 @@ static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                                midiCCMapping : -1,
                                                                minValue : static_cast<int>(minGain),
                                                                maxValue : static_cast<int>(maxGain)
+                                                           },
+                                                           {
+                                                               name : "Low Q",
+                                                               valueType : ParameterValueType::Binned,
+                                                               valueBinCount : 3,
+                                                               valueBinNames : s_qBinNames,
+                                                               defaultValue : {.uint_value = 1},
+                                                               knobMapping : -1,
+                                                               midiCCMapping : -1,
+                                                           },
+                                                           {
+                                                               name : "Mid Q",
+                                                               valueType : ParameterValueType::Binned,
+                                                               valueBinCount : 3,
+                                                               valueBinNames : s_qBinNames,
+                                                               defaultValue : {.uint_value = 1},
+                                                               knobMapping : -1,
+                                                               midiCCMapping : -1,
+                                                           },
+                                                           {
+                                                               name : "High Q",
+                                                               valueType : ParameterValueType::Binned,
+                                                               valueBinCount : 3,
+                                                               valueBinNames : s_qBinNames,
+                                                               defaultValue : {.uint_value = 1},
+                                                               knobMapping : -1,
+                                                               midiCCMapping : -1,
                                                            }};
 
 // Default Constructor
@@ -105,9 +135,13 @@ ParametricEQModule::~ParametricEQModule() {
 void ParametricEQModule::Init(float sample_rate) {
     BaseEffectModule::Init(sample_rate);
 
-    filterLows.config(GetParameterAsFloat(3), GetParameterAsFloat(0), sample_rate, qLows);
-    filterMids.config(GetParameterAsFloat(4), GetParameterAsFloat(1), sample_rate, qMids);
-    filterHighs.config(GetParameterAsFloat(5), GetParameterAsFloat(2), sample_rate, qHighs);
+    const int qLowIndex = GetParameterAsBinnedValue(6) - 1;
+    const int qMidIndex = GetParameterAsBinnedValue(7) - 1;
+    const int qHighIndex = GetParameterAsBinnedValue(8) - 1;
+
+    filterLows.config(GetParameterAsFloat(3), GetParameterAsFloat(0), sample_rate, qLow[qLowIndex]);
+    filterMids.config(GetParameterAsFloat(4), GetParameterAsFloat(1), sample_rate, qMid[qMidIndex]);
+    filterHighs.config(GetParameterAsFloat(5), GetParameterAsFloat(2), sample_rate, qHigh[qHighIndex]);
 }
 
 void ParametricEQModule::ProcessMono(float in) {
@@ -130,16 +164,25 @@ void ParametricEQModule::ParameterChanged(int parameter_id) {
     switch (parameter_id) {
     case 0:
     case 3:
-        filterLows.config(GetParameterAsFloat(3), GetParameterAsFloat(0), GetSampleRate(), qLows);
+    case 6: {
+        const int qLowIndex = GetParameterAsBinnedValue(6) - 1;
+        filterLows.config(GetParameterAsFloat(3), GetParameterAsFloat(0), GetSampleRate(), qLow[qLowIndex]);
         break;
+    }
     case 1:
     case 4:
-        filterMids.config(GetParameterAsFloat(4), GetParameterAsFloat(1), GetSampleRate(), qMids);
+    case 7: {
+        const int qMidIndex = GetParameterAsBinnedValue(7) - 1;
+        filterMids.config(GetParameterAsFloat(4), GetParameterAsFloat(1), GetSampleRate(), qMid[qMidIndex]);
         break;
+    }
     case 2:
     case 5:
-        filterHighs.config(GetParameterAsFloat(5), GetParameterAsFloat(2), GetSampleRate(), qHighs);
+    case 8: {
+        const int qHighIndex = GetParameterAsBinnedValue(8) - 1;
+        filterHighs.config(GetParameterAsFloat(5), GetParameterAsFloat(2), GetSampleRate(), qHigh[qHighIndex]);
         break;
+    }
     }
 }
 
@@ -148,7 +191,6 @@ void ParametricEQModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex
     display.WriteStringAligned(m_name, Font_7x10, boundsToDrawIn, Alignment::topCentered, true);
 
     const int width = boundsToDrawIn.GetWidth();
-    const int barWidth = 10;
 
     const int stepWidth = (width / 3);
 
@@ -164,6 +206,23 @@ void ParametricEQModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex
     int x = stepWidth / 2;
     for (int i = 0; i < 3; i++) {
         const int gainParamId = i + 3;
+        const int qParamId = i + 6;
+
+        const int q = GetParameterAsBinnedValue(qParamId) - 1;
+
+        // Make narrow and wide Q values narrower and wider bars
+        int barWidth = 1;
+        switch (q) {
+        case 0:
+            barWidth = 5;
+            break;
+        case 1:
+            barWidth = 10;
+            break;
+        case 2:
+            barWidth = 15;
+            break;
+        }
 
         const bool positive = GetParameterAsFloat(gainParamId) > 0.0f;
         const float magnitude = std::abs(GetParameterAsFloat(gainParamId)) * magnitudeMultiplier;
