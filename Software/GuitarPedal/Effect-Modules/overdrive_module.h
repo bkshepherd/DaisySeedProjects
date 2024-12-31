@@ -21,7 +21,7 @@ class OverdriveModule : public BaseEffectModule {
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;
-    float GetBrightnessForLED(int led_id) override;
+    float GetBrightnessForLED(int led_id) const override;
 
   private:
     Overdrive m_overdriveLeft;

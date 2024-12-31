@@ -115,7 +115,7 @@ void ChopperModule::SetTempo(uint32_t bpm) {
     }
 }
 
-float ChopperModule::GetBrightnessForLED(int led_id) {
+float ChopperModule::GetBrightnessForLED(int led_id) const {
     float value = BaseEffectModule::GetBrightnessForLED(led_id);
 
     if (led_id == 1) {

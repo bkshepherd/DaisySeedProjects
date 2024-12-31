@@ -71,7 +71,7 @@ class MetroModule : public BaseEffectModule {
 
     void ParameterChanged(int parameter_id) override;
     void SetTempo(uint32_t bpm) override;
-    float GetBrightnessForLED(int led_id) override;
+    float GetBrightnessForLED(int led_id) const override;
     void DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int numItemsTotal, Rectangle boundsToDrawIn,
                 bool isEditing) override;
 

@@ -57,19 +57,19 @@ void GuitarPedalUI::UpdateActiveEffect(int effectID) {
 
 void GuitarPedalUI::UpdateActiveEffectParameterValue(int paramID, bool showChangeOnDisplay) {
     if (hardware.SupportsDisplay()) {
-        int parameterType = activeEffect->GetParameterType(paramID);
+        ParameterValueType parameterType = activeEffect->GetParameterType(paramID);
 
         // Update the UI based on the parameter type
-        if (parameterType == -1 || parameterType == 0) {
+        if (parameterType == ParameterValueType::Unknown || parameterType == ParameterValueType::Raw) {
             // Unknown or Raw value Types
             m_activeEffectSettingIntValues[paramID]->Set(activeEffect->GetParameterRaw(paramID));
-        } else if (parameterType == 1) {
+        } else if (parameterType == ParameterValueType::Float) {
             // Float Types
             m_activeEffectSettingFloatValues[paramID]->Set(activeEffect->GetParameterAsFloat(paramID));
-        } else if (parameterType == 2) {
+        } else if (parameterType == ParameterValueType::Bool) {
             // Bool Type
             m_activeEffectSettingBoolValues[paramID] = activeEffect->GetParameterAsBool(paramID);
-        } else if (parameterType == 3) {
+        } else if (parameterType == ParameterValueType::Binned) {
             // Binned Value Type
             if (activeEffect->GetParameterBinNames(paramID) == NULL) {
                 // Handle Case where Bin Values don't have names
@@ -219,9 +219,9 @@ void GuitarPedalUI::InitEffectUiPages() {
     for (int i = 0; i < m_numActiveEffectSettingsItems; i++) {
         m_activeEffectSettingsMenuItems[i].text = activeEffect->GetParameterName(i);
 
-        int parameterType = activeEffect->GetParameterType(i);
+        ParameterValueType parameterType = activeEffect->GetParameterType(i);
 
-        if (parameterType == -1 || parameterType == ParameterValueType::Raw) {
+        if (parameterType == ParameterValueType::Unknown || parameterType == ParameterValueType::Raw) {
             int minValue = activeEffect->GetParameterMin(i);
             int maxValue = activeEffect->GetParameterMax(i);
             // Unknown or Raw value Types
@@ -417,18 +417,18 @@ void GuitarPedalUI::UpdateUI(float elapsedTime) {
         }
         // Update all menu system parameters to the current Active Effect Parameter Settings
         for (int i = 0; i < m_numActiveEffectSettingsItems; i++) {
-            int parameterType = activeEffect->GetParameterType(i);
+            ParameterValueType parameterType = activeEffect->GetParameterType(i);
 
-            if (parameterType == -1 || parameterType == 0) {
+            if (parameterType == ParameterValueType::Unknown || parameterType == ParameterValueType::Raw) {
                 // Unknown or Raw value Types
                 m_activeEffectSettingIntValues[i]->Set(activeEffect->GetParameterRaw(i));
-            } else if (parameterType == 1) {
+            } else if (parameterType == ParameterValueType::Float) {
                 // Float Magnitude Types
                 m_activeEffectSettingFloatValues[i]->Set(activeEffect->GetParameterAsFloat(i));
-            } else if (parameterType == 2) {
+            } else if (parameterType == ParameterValueType::Bool) {
                 // Bool Type
                 m_activeEffectSettingBoolValues[i] = activeEffect->GetParameterAsBool(i);
-            } else if (parameterType == 3) {
+            } else if (parameterType == ParameterValueType::Binned) {
                 // Binned Value Type
                 if (activeEffect->GetParameterBinNames(i) == NULL) {
                     // Handle when Bins have no String Name
@@ -442,18 +442,18 @@ void GuitarPedalUI::UpdateUI(float elapsedTime) {
     } else {
         // Update all Active Effect Parameter Settings to values from the menu system
         for (int i = 0; i < m_numActiveEffectSettingsItems; i++) {
-            int parameterType = activeEffect->GetParameterType(i);
+            ParameterValueType parameterType = activeEffect->GetParameterType(i);
 
-            if (parameterType == -1 || parameterType == 0) {
+            if (parameterType == ParameterValueType::Unknown || parameterType == ParameterValueType::Raw) {
                 // Unknown or Raw value Types
                 activeEffect->SetParameterRaw(i, m_activeEffectSettingIntValues[i]->Get());
-            } else if (parameterType == 1) {
+            } else if (parameterType == ParameterValueType::Float) {
                 // Float Type
                 activeEffect->SetParameterAsFloat(i, m_activeEffectSettingFloatValues[i]->Get());
-            } else if (parameterType == 2) {
+            } else if (parameterType == ParameterValueType::Bool) {
                 // Bool Type
                 activeEffect->SetParameterAsBool(i, m_activeEffectSettingBoolValues[i]);
-            } else if (parameterType == 3) {
+            } else if (parameterType == ParameterValueType::Binned) {
                 // Binned Value Type
                 if (activeEffect->GetParameterBinNames(i) == NULL) {
                     // Handle when Bins have no String Name

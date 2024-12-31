@@ -22,7 +22,7 @@ class ModulatedTremoloModule : public BaseEffectModule {
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;
     void SetTempo(uint32_t bpm) override;
-    float GetBrightnessForLED(int led_id) override;
+    float GetBrightnessForLED(int led_id) const override;
 
   private:
     Tremolo m_tremolo;

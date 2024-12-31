@@ -21,7 +21,7 @@ class ChorusModule : public BaseEffectModule {
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;
-    float GetBrightnessForLED(int led_id) override;
+    float GetBrightnessForLED(int led_id) const override;
 
   private:
     Chorus m_chorus;

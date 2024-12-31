@@ -171,7 +171,7 @@ void MetroModule::ProcessStereo(float inL, float inR) {
 
 void MetroModule::SetTempo(uint32_t bpm) { m_bpm = std::clamp(bpm, minTempo, maxTempo); }
 
-float MetroModule::GetBrightnessForLED(int led_id) {
+float MetroModule::GetBrightnessForLED(int led_id) const {
     float value = BaseEffectModule::GetBrightnessForLED(led_id);
 
     if (led_id == 1) {

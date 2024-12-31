@@ -174,7 +174,7 @@ ReverbDelayModule::ReverbDelayModule()
       m_delaySpreadMax(2400.0f),
       // m_delayPPMin(1200.0f),
       // m_delayPPMax(96000.0f),
-      m_pdelRight_out(0.0), m_currentMod(1.0), m_modOscFreqMin(0.0), m_modOscFreqMax(3.0), m_LEDValue(1.0f) {
+      m_pdelRight_out(0.0), m_currentMod(1.0), m_modOscFreqMin(0.0), m_modOscFreqMax(3.0) {
     // Set the name of the effect
     m_name = "Verb Delay";
 
@@ -539,18 +539,20 @@ void ReverbDelayModule::SetTempo(uint32_t bpm) {
     UpdateLEDRate();
 }
 
-float ReverbDelayModule::GetBrightnessForLED(int led_id) {
+float ReverbDelayModule::GetBrightnessForLED(int led_id) const {
     float value = BaseEffectModule::GetBrightnessForLED(led_id);
 
     float osc_val = led_osc.Process();
+
+    float ledValue = 0.0;
     if (osc_val > 0.45) {
-        m_LEDValue = 1.0;
+        ledValue = 1.0;
     } else {
-        m_LEDValue = 0.0;
+        ledValue = 0.0;
     }
 
     if (led_id == 1) {
-        return value * m_LEDValue;
+        return value * ledValue;
     }
 
     return value;

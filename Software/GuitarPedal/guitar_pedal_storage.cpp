@@ -52,7 +52,7 @@ void InitPersistantStorage() {
 
         for (int paramID = 0; paramID < paramCount; paramID++) {
             // Floats are handled special (stored into the u_int32_t bytes)
-            if ((ParameterValueType)availableEffects[effectID]->GetParameterType(paramID) == ParameterValueType::Float) {
+            if (availableEffects[effectID]->GetParameterType(paramID) == ParameterValueType::Float) {
                 uint32_t tmp;
                 float f = availableEffects[effectID]->GetParameterAsFloat(paramID);
                 std::memcpy(&tmp, &f, sizeof(float));
@@ -142,7 +142,7 @@ void LoadPresetFromPersistentStorage(uint32_t effectID, uint32_t presetID) {
         startIdx = availableEffects[effectID]->GetSettingsArrayStartIdx() + 2 + (paramCount * presetID);
 
         for (int paramID = 0; paramID < paramCount; paramID++) {
-            if ((ParameterValueType)availableEffects[effectID]->GetParameterType(paramID) == ParameterValueType::Float) {
+            if (availableEffects[effectID]->GetParameterType(paramID) == ParameterValueType::Float) {
                 uint32_t tmp = settings.globalEffectsSettings[startIdx + paramID];
                 float f;
                 std::memcpy(&f, &tmp, sizeof(float));
@@ -171,7 +171,7 @@ void LoadEffectSettingsFromPersistantStorage() {
         if (paramCount == prevParamCount) {
             for (uint32_t paramID = 0; paramID < paramCount; paramID++) {
                 uint32_t value = settings.globalEffectsSettings[globalEffectsSettingMemIdx];
-                if ((ParameterValueType)availableEffects[effectID]->GetParameterType(paramID) == ParameterValueType::Float) {
+                if (availableEffects[effectID]->GetParameterType(paramID) == ParameterValueType::Float) {
                     float tmp;
                     std::memcpy(&tmp, &value, sizeof(float));
                     availableEffects[effectID]->SetParameterAsFloat(paramID, tmp);
@@ -188,7 +188,7 @@ void LoadEffectSettingsFromPersistantStorage() {
         else if (prevParamCount < paramCount) {
             for (uint32_t paramID = 0; paramID < prevParamCount; paramID++) {
                 uint32_t value = settings.globalEffectsSettings[globalEffectsSettingMemIdx];
-                if ((ParameterValueType)availableEffects[effectID]->GetParameterType(paramID) == ParameterValueType::Float) {
+                if (availableEffects[effectID]->GetParameterType(paramID) == ParameterValueType::Float) {
                     float tmp;
                     std::memcpy(&tmp, &value, sizeof(float));
                     availableEffects[effectID]->SetParameterAsFloat(paramID, tmp);
@@ -253,7 +253,7 @@ void SaveEffectSettingsToPersitantStorageForEffectID(int effectID, uint32_t pres
 
         if (canWriteNewPreset) {
             for (int paramID = 0; paramID < paramCount; paramID++) {
-                if ((ParameterValueType)availableEffects[effectID]->GetParameterType(paramID) == ParameterValueType::Float) {
+                if (availableEffects[effectID]->GetParameterType(paramID) == ParameterValueType::Float) {
                     uint32_t tmp;
                     float f = availableEffects[effectID]->GetParameterAsFloat(paramID);
                     std::memcpy(&tmp, &f, sizeof(float));

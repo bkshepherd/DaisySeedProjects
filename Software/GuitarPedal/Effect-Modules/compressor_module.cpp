@@ -117,7 +117,7 @@ void CompressorModule::ProcessStereo(float inL, float inR) {
     ProcessMono(inL);
 }
 
-float CompressorModule::GetBrightnessForLED(int led_id) {
+float CompressorModule::GetBrightnessForLED(int led_id) const {
     float value = BaseEffectModule::GetBrightnessForLED(led_id);
 
     // TODO: Use gain for the LED

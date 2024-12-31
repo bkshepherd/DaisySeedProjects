@@ -24,32 +24,35 @@ static constexpr uint8_t s_paramCount = 9;
 static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                                name : "Low Freq",
                                                                valueType : ParameterValueType::Float,
+                                                               valueCurve : ParameterValueCurve::Log,
                                                                valueBinCount : 0,
                                                                defaultValue : {.float_value = defaultLowFreq},
                                                                knobMapping : 0,
                                                                midiCCMapping : -1,
-                                                               minValue : static_cast<int>(defaultLowFreq - 80.f),
-                                                               maxValue : static_cast<int>(defaultLowFreq + 80.f)
+                                                               minValue : 35,
+                                                               maxValue : 500
                                                            },
                                                            {
                                                                name : "Mid Freq",
                                                                valueType : ParameterValueType::Float,
+                                                               valueCurve : ParameterValueCurve::Log,
                                                                valueBinCount : 0,
                                                                defaultValue : {.float_value = defaultMidFreq},
                                                                knobMapping : 1,
                                                                midiCCMapping : -1,
-                                                               minValue : static_cast<int>(defaultMidFreq - 550.f),
-                                                               maxValue : static_cast<int>(defaultMidFreq + 550.f)
+                                                               minValue : 250,
+                                                               maxValue : 5000
                                                            },
                                                            {
                                                                name : "High Freq",
                                                                valueType : ParameterValueType::Float,
+                                                               valueCurve : ParameterValueCurve::Log,
                                                                valueBinCount : 0,
                                                                defaultValue : {.float_value = defaultHighFreq},
                                                                knobMapping : 2,
                                                                midiCCMapping : -1,
-                                                               minValue : static_cast<int>(defaultHighFreq - 3000.f),
-                                                               maxValue : static_cast<int>(defaultHighFreq + 3000.f)
+                                                               minValue : 1000,
+                                                               maxValue : 20000
                                                            },
                                                            {
                                                                name : "Low Gain",
