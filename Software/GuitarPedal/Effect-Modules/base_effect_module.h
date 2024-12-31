@@ -19,7 +19,6 @@ enum ParameterValueType {
     Bool,   // Boolean Value
     Binned, // Binned Value (1 to valueBinCount)
     Unknown,
-    ParameterValueType_LAST, // Last enum item
 };
 
 union ParameterValue {
@@ -31,7 +30,6 @@ enum ParameterValueCurve {
     Linear,
     Log,
     InverseLog,
-    ParameterValueCurve_LAST, // Last enum item
 };
 
 // Meta data for an individual Effect Parameter.  Effects may have zero or more Parameters.
