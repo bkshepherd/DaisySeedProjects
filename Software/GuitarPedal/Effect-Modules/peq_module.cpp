@@ -11,9 +11,9 @@ const float qLows = 2.0f;
 const float qMids = 2.0f;
 const float qHighs = 2.0f;
 
-const float defaultLowFreq = 100.f;
-const float defaultMidFreq = 800.f;
-const float defaultHighFreq = 4000.f;
+const float defaultLowFreq = 130.f;
+const float defaultMidFreq = 1100.f;
+const float defaultHighFreq = 4400.f;
 
 cycfi::q::peaking filterLows = {0, defaultLowFreq, 48000, qLows};
 cycfi::q::peaking filterMids = {0, defaultMidFreq, 48000, qMids};
