@@ -165,7 +165,6 @@ class ReverbDelayModule : public BaseEffectModule {
 
     // Oscillator for blinking tempo LED
     mutable Oscillator led_osc;
-    float m_oscVal;
 };
 } // namespace bkshepherd
 #endif
