@@ -5,15 +5,15 @@ using namespace bkshepherd;
 
 // Default Constructor
 BaseEffectModule::BaseEffectModule()
-    : m_paramCount(0), m_presetCount(1), m_currentPreset(0), m_params(NULL), m_audioLeft(0.0f), m_audioRight(0.0f),
+    : m_paramCount(0), m_presetCount(1), m_currentPreset(0), m_params(nullptr), m_audioLeft(0.0f), m_audioRight(0.0f),
       m_settingsArrayStartIdx(0), m_isEnabled(false) {
     m_name = "Base";
-    m_paramMetaData = NULL;
+    m_paramMetaData = nullptr;
 }
 
 // Destructor
 BaseEffectModule::~BaseEffectModule() {
-    if (m_params != NULL) {
+    if (m_params != nullptr) {
         delete[] m_params;
     }
 }
@@ -24,9 +24,9 @@ const char *BaseEffectModule::GetName() { return m_name; }
 
 void BaseEffectModule::InitParams(int count) {
     // Remove any existing parameter storage
-    if (m_params != NULL) {
+    if (m_params != nullptr) {
         delete[] m_params;
-        m_params = NULL;
+        m_params = nullptr;
     }
 
     m_paramCount = 0;
@@ -38,7 +38,7 @@ void BaseEffectModule::InitParams(int count) {
 
         // Init all parameters to their default value or zero if there is no meta data
         for (int i = 0; i < m_paramCount; i++) {
-            if (m_paramMetaData != NULL) {
+            if (m_paramMetaData != nullptr) {
                 if (GetParameterType(i) == ParameterValueType::Float) {
                     uint32_t tmp;
                     float value = m_paramMetaData[i].defaultValue.float_value;
@@ -71,7 +71,7 @@ uint32_t BaseEffectModule::GetSettingsArrayStartIdx() const { return m_settingsA
 
 const char *BaseEffectModule::GetParameterName(int parameter_id) const {
     // Make sure parameter_id is valid.
-    if (m_params == NULL || parameter_id < 0 || parameter_id >= m_paramCount || m_paramMetaData == NULL) {
+    if (m_params == nullptr || parameter_id < 0 || parameter_id >= m_paramCount || m_paramMetaData == nullptr) {
         return "Unknown";
     }
 
@@ -80,7 +80,7 @@ const char *BaseEffectModule::GetParameterName(int parameter_id) const {
 
 ParameterValueType BaseEffectModule::GetParameterType(int parameter_id) const {
     // Make sure parameter_id is valid.
-    if (m_params == NULL || parameter_id < 0 || parameter_id >= m_paramCount || m_paramMetaData == NULL) {
+    if (m_params == nullptr || parameter_id < 0 || parameter_id >= m_paramCount || m_paramMetaData == nullptr) {
         return ParameterValueType::Unknown;
     }
 
@@ -89,7 +89,7 @@ ParameterValueType BaseEffectModule::GetParameterType(int parameter_id) const {
 
 ParameterValueCurve BaseEffectModule::GetParameterValueCurve(int parameter_id) const {
     // Make sure parameter_id is valid.
-    if (m_params == NULL || parameter_id < 0 || parameter_id >= m_paramCount || m_paramMetaData == NULL) {
+    if (m_params == nullptr || parameter_id < 0 || parameter_id >= m_paramCount || m_paramMetaData == nullptr) {
         return ParameterValueCurve::Linear;
     }
 
@@ -98,7 +98,7 @@ ParameterValueCurve BaseEffectModule::GetParameterValueCurve(int parameter_id) c
 
 int BaseEffectModule::GetParameterBinCount(int parameter_id) const {
     // Make sure parameter_id is valid.
-    if (m_params == NULL || parameter_id < 0 || parameter_id >= m_paramCount || m_paramMetaData == NULL) {
+    if (m_params == nullptr || parameter_id < 0 || parameter_id >= m_paramCount || m_paramMetaData == nullptr) {
         return -1;
     }
 
@@ -112,16 +112,16 @@ int BaseEffectModule::GetParameterBinCount(int parameter_id) const {
 
 const char **BaseEffectModule::GetParameterBinNames(int parameter_id) const {
     // Make sure parameter_id is valid.
-    if (m_params == NULL || parameter_id < 0 || parameter_id >= m_paramCount || m_paramMetaData == NULL) {
-        return NULL;
+    if (m_params == nullptr || parameter_id < 0 || parameter_id >= m_paramCount || m_paramMetaData == nullptr) {
+        return nullptr;
     }
 
     // Make sure this is a Binned Int type parameter
     int binCount = GetParameterBinCount(parameter_id);
 
-    // If this is not a binned value type aways return NULL
+    // If this is not a binned value type aways return nullptr
     if (binCount == -1) {
-        return NULL;
+        return nullptr;
     }
 
     return m_paramMetaData[parameter_id].valueBinNames;
@@ -129,7 +129,7 @@ const char **BaseEffectModule::GetParameterBinNames(int parameter_id) const {
 
 const float BaseEffectModule::GetParameterDefaultValueAsFloat(int parameter_id) const {
     // Make sure parameter_id is valid.
-    if (m_params == NULL || parameter_id < 0 || parameter_id >= m_paramCount || m_paramMetaData == NULL) {
+    if (m_params == nullptr || parameter_id < 0 || parameter_id >= m_paramCount || m_paramMetaData == nullptr) {
         return 0.0f;
     }
 
@@ -138,7 +138,7 @@ const float BaseEffectModule::GetParameterDefaultValueAsFloat(int parameter_id) 
 
 uint32_t BaseEffectModule::GetParameterRaw(int parameter_id) const {
     // Make sure parameter_id is valid.
-    if (m_params == NULL || parameter_id < 0 || parameter_id >= m_paramCount) {
+    if (m_params == nullptr || parameter_id < 0 || parameter_id >= m_paramCount) {
         return 0;
     }
 
@@ -181,7 +181,7 @@ int BaseEffectModule::GetParameterAsBinnedValue(int parameter_id) const {
 }
 
 int BaseEffectModule::GetMappedParameterIDForKnob(int knob_id) const {
-    if (m_paramMetaData != NULL) {
+    if (m_paramMetaData != nullptr) {
         for (int i = 0; i < m_paramCount; i++) {
             if (m_paramMetaData[i].knobMapping == knob_id) {
                 return i;
@@ -193,7 +193,7 @@ int BaseEffectModule::GetMappedParameterIDForKnob(int knob_id) const {
 }
 
 int BaseEffectModule::GetMappedParameterIDForMidiCC(int midiCC_id) const {
-    if (m_paramMetaData != NULL) {
+    if (m_paramMetaData != nullptr) {
         for (int i = 0; i < m_paramCount; i++) {
             if (m_paramMetaData[i].midiCCMapping == midiCC_id) {
                 return i;
@@ -205,7 +205,7 @@ int BaseEffectModule::GetMappedParameterIDForMidiCC(int midiCC_id) const {
 }
 
 int BaseEffectModule::GetParameterMin(int parameter_id) const {
-    if (m_paramMetaData != NULL && parameter_id < m_paramCount) {
+    if (m_paramMetaData != nullptr && parameter_id < m_paramCount) {
         return m_paramMetaData[parameter_id].minValue;
     }
 
@@ -213,7 +213,7 @@ int BaseEffectModule::GetParameterMin(int parameter_id) const {
 }
 
 int BaseEffectModule::GetParameterMax(int parameter_id) const {
-    if (m_paramMetaData != NULL && parameter_id < m_paramCount) {
+    if (m_paramMetaData != nullptr && parameter_id < m_paramCount) {
         return m_paramMetaData[parameter_id].maxValue;
     }
 
@@ -221,7 +221,7 @@ int BaseEffectModule::GetParameterMax(int parameter_id) const {
 }
 
 float BaseEffectModule::GetParameterFineStepSize(int parameter_id) const {
-    if (m_paramMetaData != NULL && parameter_id < m_paramCount) {
+    if (m_paramMetaData != nullptr && parameter_id < m_paramCount) {
         return m_paramMetaData[parameter_id].fineStepSize;
     }
     return 0.01f;
@@ -229,7 +229,7 @@ float BaseEffectModule::GetParameterFineStepSize(int parameter_id) const {
 
 void BaseEffectModule::SetParameterRaw(int parameter_id, uint32_t value) {
     // Make sure parameter_id is valid.
-    if (m_params == NULL || parameter_id < 0 || parameter_id >= m_paramCount) {
+    if (m_params == nullptr || parameter_id < 0 || parameter_id >= m_paramCount) {
         return;
     }
 

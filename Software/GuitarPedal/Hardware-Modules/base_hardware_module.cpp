@@ -6,7 +6,7 @@ using namespace bkshepherd;
 BaseHardwareModule::BaseHardwareModule()
     : m_supportsStereo(false), m_supportsMidi(false), m_supportsDisplay(false), m_supportsTrueBypass(false),
       m_switchMetaDataParamCount(0) {
-    m_switchMetaData = NULL;
+    m_switchMetaData = nullptr;
 }
 
 BaseHardwareModule::~BaseHardwareModule() {}
@@ -109,7 +109,7 @@ int BaseHardwareModule::GetLedCount() { return leds.size(); }
 
 int BaseHardwareModule::GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType sfType) {
     // If there are no switches return -1 since there can't be a preferred switch ID
-    if (GetSwitchCount() == 0 || m_switchMetaDataParamCount == 0 || m_switchMetaData == NULL) {
+    if (GetSwitchCount() == 0 || m_switchMetaDataParamCount == 0 || m_switchMetaData == nullptr) {
         return -1;
     }
 

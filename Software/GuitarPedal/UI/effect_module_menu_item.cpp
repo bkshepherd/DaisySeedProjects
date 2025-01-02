@@ -4,7 +4,7 @@ using namespace bkshepherd;
 
 // Default Constructor
 EffectModuleMenuItem::EffectModuleMenuItem()
-    : m_parentUI(NULL), m_effectSettingsPage(NULL), m_effectModule(NULL), m_isSavingData(false)
+    : m_parentUI(nullptr), m_effectSettingsPage(nullptr), m_effectModule(nullptr), m_isSavingData(false)
 
 {}
 
@@ -28,13 +28,13 @@ void EffectModuleMenuItem::ModifyValue(float valueSliderPosition0To1, bool isFun
 
 void EffectModuleMenuItem::OnOkayButton() {
     // Default Behavior is to open the effect settings page when the encoder button is pressed
-    if (m_parentUI != NULL && m_effectSettingsPage != NULL) {
+    if (m_parentUI != nullptr && m_effectSettingsPage != nullptr) {
         m_parentUI->OpenPage(*m_effectSettingsPage);
     }
 }
 
 void EffectModuleMenuItem::UpdateUI(float elapsedTime) {
-    if (m_effectModule != NULL) {
+    if (m_effectModule != nullptr) {
         m_effectModule->UpdateUI(elapsedTime);
     }
 }
@@ -42,7 +42,7 @@ void EffectModuleMenuItem::UpdateUI(float elapsedTime) {
 void EffectModuleMenuItem::Draw(OneBitGraphicsDisplay &display, int currentIndex, int numItemsTotal, Rectangle boundsToDrawIn,
                                 bool isEditing) {
     // If there is nothing to draw fill in some basic information.
-    if (m_effectModule == NULL) {
+    if (m_effectModule == nullptr) {
         display.WriteStringAligned("Daisy Guitar Pedal", Font_7x10, boundsToDrawIn, Alignment::topCentered, true);
         display.WriteStringAligned("Made by", Font_7x10, boundsToDrawIn, Alignment::centered, true);
         display.WriteStringAligned("Keith Shepherd", Font_7x10, boundsToDrawIn, Alignment::bottomCentered, true);

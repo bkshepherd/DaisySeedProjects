@@ -122,7 +122,7 @@ class BaseEffectModule {
 
     /** Gets the Bin Name of a Binned Int Effect Parameter
      \param parameter_id Id of the parameter to retrieve.
-     \return the Names of the Bins for this Binned Int type Efffect Parameter or NULL if there aren't any specified
+     \return the Names of the Bins for this Binned Int type Efffect Parameter or nullptr if there aren't any specified
     */
     const char **GetParameterBinNames(int parameter_id) const;
 

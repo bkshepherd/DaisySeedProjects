@@ -71,7 +71,7 @@ void GuitarPedalUI::UpdateActiveEffectParameterValue(int paramID, bool showChang
             m_activeEffectSettingBoolValues[paramID] = activeEffect->GetParameterAsBool(paramID);
         } else if (parameterType == ParameterValueType::Binned) {
             // Binned Value Type
-            if (activeEffect->GetParameterBinNames(paramID) == NULL) {
+            if (activeEffect->GetParameterBinNames(paramID) == nullptr) {
                 // Handle Case where Bin Values don't have names
                 m_activeEffectSettingIntValues[paramID]->Set(activeEffect->GetParameterAsBinnedValue(paramID));
             } else {
@@ -163,41 +163,41 @@ void GuitarPedalUI::InitEffectUiPages() {
     // ====================================================================
 
     // Clean up any dynamically allocated memory
-    if (m_activeEffectSettingIntValues != NULL) {
+    if (m_activeEffectSettingIntValues != nullptr) {
         for (int i = 0; i < m_numActiveEffectSettingsItems; ++i) {
-            if (m_activeEffectSettingIntValues[i] != NULL) {
+            if (m_activeEffectSettingIntValues[i] != nullptr) {
                 delete m_activeEffectSettingIntValues[i];
             }
         }
 
         delete[] m_activeEffectSettingIntValues;
-        m_activeEffectSettingIntValues = NULL;
+        m_activeEffectSettingIntValues = nullptr;
     }
 
     // Clean up any dynamically allocated memory
-    if (m_activeEffectSettingFloatValues != NULL) {
+    if (m_activeEffectSettingFloatValues != nullptr) {
         delete[] m_activeEffectSettingFloatValues;
-        m_activeEffectSettingFloatValues = NULL;
+        m_activeEffectSettingFloatValues = nullptr;
     }
 
-    if (m_activeEffectSettingStringValues != NULL) {
+    if (m_activeEffectSettingStringValues != nullptr) {
         for (int i = 0; i < m_numActiveEffectSettingsItems; ++i) {
-            if (m_activeEffectSettingStringValues[i] != NULL) {
+            if (m_activeEffectSettingStringValues[i] != nullptr) {
                 delete m_activeEffectSettingStringValues[i];
             }
         }
 
         delete[] m_activeEffectSettingStringValues;
-        m_activeEffectSettingStringValues = NULL;
+        m_activeEffectSettingStringValues = nullptr;
     }
 
     m_numActiveEffectSettingsItems = 0;
 
-    if (m_activeEffectSettingBoolValues != NULL) {
+    if (m_activeEffectSettingBoolValues != nullptr) {
         delete[] m_activeEffectSettingBoolValues;
     }
 
-    if (m_activeEffectSettingsMenuItems != NULL) {
+    if (m_activeEffectSettingsMenuItems != nullptr) {
         delete[] m_activeEffectSettingsMenuItems;
     }
 
@@ -209,9 +209,9 @@ void GuitarPedalUI::InitEffectUiPages() {
 
     // Initialize the param value stores to a known state.
     for (int i = 0; i < m_numActiveEffectSettingsItems; ++i) {
-        m_activeEffectSettingIntValues[i] = NULL;
-        m_activeEffectSettingFloatValues[i] = NULL;
-        m_activeEffectSettingStringValues[i] = NULL;
+        m_activeEffectSettingIntValues[i] = nullptr;
+        m_activeEffectSettingFloatValues[i] = nullptr;
+        m_activeEffectSettingStringValues[i] = nullptr;
         m_activeEffectSettingBoolValues[i] = false;
     }
 
@@ -250,7 +250,7 @@ void GuitarPedalUI::InitEffectUiPages() {
             int binnedValue = activeEffect->GetParameterAsBinnedValue(i);
             const char **binNames = activeEffect->GetParameterBinNames(i);
 
-            if (binNames == NULL) {
+            if (binNames == nullptr) {
                 m_activeEffectSettingIntValues[i] = new MappedIntValue(1, activeEffect->GetParameterBinCount(i), binnedValue, 1, 5);
                 m_activeEffectSettingsMenuItems[i].asMappedValueItem.valueToModify = m_activeEffectSettingIntValues[i];
             } else {
@@ -275,11 +275,11 @@ void GuitarPedalUI::InitGlobalSettingsUIPages() {
     // ====================================================================
     // The "Global Settings" menu
     // ====================================================================
-    if (m_availableEffectListMappedValues != NULL) {
+    if (m_availableEffectListMappedValues != nullptr) {
         delete m_availableEffectListMappedValues;
     }
 
-    if (m_availableEffectNames != NULL) {
+    if (m_availableEffectNames != nullptr) {
         delete[] m_availableEffectNames;
     }
 
@@ -433,7 +433,7 @@ void GuitarPedalUI::UpdateUI(float elapsedTime) {
                 m_activeEffectSettingBoolValues[i] = activeEffect->GetParameterAsBool(i);
             } else if (parameterType == ParameterValueType::Binned) {
                 // Binned Value Type
-                if (activeEffect->GetParameterBinNames(i) == NULL) {
+                if (activeEffect->GetParameterBinNames(i) == nullptr) {
                     // Handle when Bins have no String Name
                     m_activeEffectSettingIntValues[i]->Set(activeEffect->GetParameterAsBinnedValue(i));
                 } else {
@@ -458,7 +458,7 @@ void GuitarPedalUI::UpdateUI(float elapsedTime) {
                 activeEffect->SetParameterAsBool(i, m_activeEffectSettingBoolValues[i]);
             } else if (parameterType == ParameterValueType::Binned) {
                 // Binned Value Type
-                if (activeEffect->GetParameterBinNames(i) == NULL) {
+                if (activeEffect->GetParameterBinNames(i) == nullptr) {
                     // Handle when Bins have no String Name
                     activeEffect->SetParameterAsBinnedValue(i, m_activeEffectSettingIntValues[i]->Get());
                 } else {

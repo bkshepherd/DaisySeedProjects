@@ -55,11 +55,11 @@ PersistentStorage<Settings> storage(hardware.seed.qspi);
 
 // Effect Related Variables
 int availableEffectsCount = 0;
-BaseEffectModule **availableEffects = NULL;
+BaseEffectModule **availableEffects = nullptr;
 int activeEffectID = 0;
 int prevActiveEffectID = 0;
 int tunerModuleIndex = -1;
-BaseEffectModule *activeEffect = NULL;
+BaseEffectModule *activeEffect = nullptr;
 
 // UI Related Variables
 GuitarPedalUI guitarPedalUI;
@@ -97,16 +97,16 @@ float knobValueDeadZone = 0.05f; // Dead zone on both ends of the raw knob range
 float knobValueChangeTolerance = 1.0f / 256.0f;
 float knobValueIdleTimeInSeconds = 1.0f;
 int knobValueIdleTimeInSamples;
-bool *knobValueCacheChanged = NULL;
-float *knobValueCache = NULL;
-int *knobValueSamplesTilIdle = NULL;
+bool *knobValueCacheChanged = nullptr;
+float *knobValueCache = nullptr;
+int *knobValueSamplesTilIdle = nullptr;
 
 // Switch Monitoring Variables
 float switchEnabledIdleTimeInSeconds = 2.0f;
 int switchEnabledIdleTimeInSamples;
-bool *switchEnabledCache = NULL;
-bool *switchDoubleEnabledCache = NULL;
-int *switchEnabledSamplesTilIdle = NULL;
+bool *switchEnabledCache = nullptr;
+bool *switchDoubleEnabledCache = nullptr;
+int *switchEnabledSamplesTilIdle = nullptr;
 
 // Tempo
 bool needToChangeTempo = false;
@@ -324,7 +324,7 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
     // Handle Effect State being Toggled.
     if (effectOn != oldEffectOn) {
         // Set the stats on the effect
-        if (activeEffect != NULL) {
+        if (activeEffect != nullptr) {
             activeEffect->SetEnabled(effectOn);
         }
 
@@ -397,7 +397,7 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
         float effectOutputRight = inputRight;
 
         // Only calculate the active effect when it's needed
-        if (activeEffect != NULL && (effectOn || isCrossFading)) {
+        if (activeEffect != nullptr && (effectOn || isCrossFading)) {
             // Apply the Active Effect
             if (hardware.SupportsStereo()) {
                 activeEffect->ProcessStereo(inputLeft, inputRight);
@@ -508,7 +508,7 @@ void HandleMidiMessage(MidiEvent m) {
         }
     } break;
     case ControlChange: {
-        if (activeEffect != NULL) {
+        if (activeEffect != nullptr) {
             ControlChangeEvent p = m.AsControlChange();
 
             // Notify the activeEffect to handle this midi cc / value
