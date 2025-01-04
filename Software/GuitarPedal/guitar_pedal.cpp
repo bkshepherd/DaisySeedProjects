@@ -238,9 +238,12 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
             } else {
                 // Cycle to the next effect
                 int newActiveEffectId = activeEffectID + 1;
+
+                // Skip over the tuner if there is no screen
                 if (newActiveEffectId == tunerModuleIndex) {
                     newActiveEffectId++;
                 }
+
                 if (newActiveEffectId > availableEffectsCount - 1) {
                     newActiveEffectId = 0;
                 }
