@@ -258,7 +258,7 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
 
                 int newActiveEffectId = activeEffectID + 1;
                 if (newActiveEffectId == tunerModuleIndex) {
-                    activeEffectID++;
+                    newActiveEffectId++;
                 }
                 if (newActiveEffectId > availableEffectsCount - 1) {
                     newActiveEffectId = 0;
