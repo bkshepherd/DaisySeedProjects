@@ -243,12 +243,16 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
             !hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Bypass)].Pressed()) {
             ignoreBypassSwitchUntilNextActuation = false;
         }
-    } else {
+    } else if (!has_alternate_footswitch) {
         // Handle the scenario where we only have 1 footswitch
         if (hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Bypass)].TimeHeldMs() > 2000 &&
             !guitarPedalUI.IsShowingSavingSettingsScreen()) {
             needToSaveSettingsForActiveEffect = true;
         }
+    } else {
+        // Has no screen, but does have a alternate footswitch
+        // This could be used to switch effects if we wanted to, but for now it
+        // holding just the bypass for hw with this configuration does nothing
     }
 
     // Process the switches
