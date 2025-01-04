@@ -193,6 +193,7 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
     // Process potential footswitch actions before the main switch processing loop
     if (has_alternate_footswitch) {
         // Handle the scenario where have 2 footswitches
+
         // If both footswitches are down, save the parameters for this effect to
         // persistant storage If there is only one footswitch, it will do
         // parameter saving here when held instead of tuner quick switching later
@@ -205,17 +206,16 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
             ignoreBypassSwitchUntilNextActuation = true;
         }
 
-        // Only allow for quickswitching to tuner if we have an alternate
-        // footswitch and a screen.  With no screen, the tuner isn't useful.
-        if (hardware.SupportsDisplay()) {
-            // If bypass is held for 2 seconds and alternate footswitch is not
-            // pressed (not trying to save) then quick switch to/from the tuner
-            if (tunerModuleIndex > 0 &&
-                hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Bypass)].TimeHeldMs() >
-                    2000 &&
-                !hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)].Pressed() &&
-                !ignoreBypassSwitchUntilNextActuation) {
+        // If bypass is held for 2 seconds and alternate footswitch is not
+        // pressed (not trying to save) then perform an action
+        if (hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Bypass)].TimeHeldMs() > 2000 &&
+            !hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)].Pressed() &&
+            !ignoreBypassSwitchUntilNextActuation) {
 
+            // If we have a screen and there is a tuner module, we quick switch
+            // to it, otherwise we just cycle through the effects
+            if (hardware.SupportsDisplay() && tunerModuleIndex > 0) {
+                // Start the quick switch to the tuner
                 if (activeEffectID == tunerModuleIndex) {
                     // Set back the active effect before the quick switch
                     SetActiveEffect(prevActiveEffectID);
@@ -235,27 +235,8 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
                     activeEffect->SetEnabled(effectOn);
                 }
                 ignoreBypassSwitchUntilNextActuation = true;
-            }
-
-            // Disable quick switching until the footswitch is released to prevent infinite switching
-            // also prevents saving from toggling quick switch.
-            if (ignoreBypassSwitchUntilNextActuation &&
-                !hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Bypass)].Pressed()) {
-                ignoreBypassSwitchUntilNextActuation = false;
-            }
-
-        } else {
-            // Has no screen, but does have a alternate footswitch
-            // This could be used to switch effects if we wanted to, but for now it
-            // holding just the bypass for hw with this configuration does nothing
-
-            // If bypass is held for 2 seconds and alternate footswitch is not
-            // pressed (not trying to save) then switch to next effect
-            if (hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Bypass)].TimeHeldMs() >
-                    2000 &&
-                !hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)].Pressed() &&
-                !ignoreBypassSwitchUntilNextActuation) {
-
+            } else {
+                // Cycle to the next effect
                 int newActiveEffectId = activeEffectID + 1;
                 if (newActiveEffectId == tunerModuleIndex) {
                     newActiveEffectId++;
@@ -271,13 +252,13 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
 
                 ignoreBypassSwitchUntilNextActuation = true;
             }
+        }
 
-            // Disable quick switching until the footswitch is released to prevent infinite switching
-            // also prevents saving from toggling quick switch.
-            if (ignoreBypassSwitchUntilNextActuation &&
-                !hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Bypass)].Pressed()) {
-                ignoreBypassSwitchUntilNextActuation = false;
-            }
+        // Disable quick switching until the footswitch is released to prevent infinite switching
+        // also prevents saving from toggling quick switch.
+        if (ignoreBypassSwitchUntilNextActuation &&
+            !hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Bypass)].Pressed()) {
+            ignoreBypassSwitchUntilNextActuation = false;
         }
     } else {
         // Handle the scenario where we only have 1 footswitch
