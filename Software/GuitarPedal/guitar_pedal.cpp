@@ -190,13 +190,9 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
     // we need to perform a toggle at the end of processing the switches
     bool oldEffectOn = effectOn;
 
-    // Process potential 2 switch actions before the main switch processing loop
-
-    // Only allow for quickswitching to tuner if we have an alternate
-    // footswitch and a screen. With only 1 switch, holding the switch triggers saving the
-    // settings, not quick switching. With no screen, the tuner isn't useful.
-    if (has_alternate_footswitch && hardware.SupportsDisplay()) {
-        // Handle the scenario where we only have 2 footswitches
+    // Process potential footswitch actions before the main switch processing loop
+    if (has_alternate_footswitch) {
+        // Handle the scenario where have 2 footswitches
         // If both footswitches are down, save the parameters for this effect to
         // persistant storage If there is only one footswitch, it will do
         // parameter saving here when held instead of tuner quick switching later
@@ -209,50 +205,86 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
             ignoreBypassSwitchUntilNextActuation = true;
         }
 
-        // If bypass is held for 2 seconds and alternate footswitch is not
-        // pressed (not trying to save) then quick switch to/from the tuner
-        if (tunerModuleIndex > 0 &&
-            hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Bypass)].TimeHeldMs() > 2000 &&
-            !hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)].Pressed() &&
-            !ignoreBypassSwitchUntilNextActuation) {
+        // Only allow for quickswitching to tuner if we have an alternate
+        // footswitch and a screen.  With no screen, the tuner isn't useful.
+        if (hardware.SupportsDisplay()) {
+            // If bypass is held for 2 seconds and alternate footswitch is not
+            // pressed (not trying to save) then quick switch to/from the tuner
+            if (tunerModuleIndex > 0 &&
+                hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Bypass)].TimeHeldMs() >
+                    2000 &&
+                !hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)].Pressed() &&
+                !ignoreBypassSwitchUntilNextActuation) {
 
-            if (activeEffectID == tunerModuleIndex) {
-                // Set back the active effect before the quick switch
-                SetActiveEffect(prevActiveEffectID);
+                if (activeEffectID == tunerModuleIndex) {
+                    // Set back the active effect before the quick switch
+                    SetActiveEffect(prevActiveEffectID);
 
-                // Restore the effect state from when we quick switched, this is an
-                // inverse because the act of holding the switch caused the state to
-                // chnage due to the rising edge being detected
-                effectOn = !effectActiveBeforeQuickSwitch;
-                activeEffect->SetEnabled(effectOn);
-            } else {
-                // Store if effect is on or not when quick switching
-                effectActiveBeforeQuickSwitch = effectOn;
+                    // Restore the effect state from when we quick switched, this is an
+                    // inverse because the act of holding the switch caused the state to
+                    // chnage due to the rising edge being detected
+                    effectOn = !effectActiveBeforeQuickSwitch;
+                    activeEffect->SetEnabled(effectOn);
+                } else {
+                    // Store if effect is on or not when quick switching
+                    effectActiveBeforeQuickSwitch = effectOn;
 
-                // Switch to tuner and force it to be enabled
-                SetActiveEffect(tunerModuleIndex);
-                effectOn = true;
-                activeEffect->SetEnabled(effectOn);
+                    // Switch to tuner and force it to be enabled
+                    SetActiveEffect(tunerModuleIndex);
+                    effectOn = true;
+                    activeEffect->SetEnabled(effectOn);
+                }
+                ignoreBypassSwitchUntilNextActuation = true;
             }
-            ignoreBypassSwitchUntilNextActuation = true;
-        }
 
-        // Disable quick switching until the footswitch is released to prevent infinite switching
-        // also prevents saving from toggling quick switch.
-        if (ignoreBypassSwitchUntilNextActuation &&
-            !hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Bypass)].Pressed()) {
-            ignoreBypassSwitchUntilNextActuation = false;
+            // Disable quick switching until the footswitch is released to prevent infinite switching
+            // also prevents saving from toggling quick switch.
+            if (ignoreBypassSwitchUntilNextActuation &&
+                !hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Bypass)].Pressed()) {
+                ignoreBypassSwitchUntilNextActuation = false;
+            }
+
+        } else {
+            // Has no screen, but does have a alternate footswitch
+            // This could be used to switch effects if we wanted to, but for now it
+            // holding just the bypass for hw with this configuration does nothing
+
+            // If bypass is held for 2 seconds and alternate footswitch is not
+            // pressed (not trying to save) then switch to next effect
+            if (hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Bypass)].TimeHeldMs() >
+                    2000 &&
+                !hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)].Pressed() &&
+                !ignoreBypassSwitchUntilNextActuation) {
+
+                int newActiveEffectId = activeEffectID + 1;
+                if (newActiveEffectId == tunerModuleIndex) {
+                    activeEffectID++;
+                }
+                if (newActiveEffectId > availableEffectsCount - 1) {
+                    newActiveEffectId = 0;
+                }
+
+                SetActiveEffect(newActiveEffectId);
+
+                effectOn = false;
+                activeEffect->SetEnabled(effectOn);
+
+                ignoreBypassSwitchUntilNextActuation = true;
+            }
+
+            // Disable quick switching until the footswitch is released to prevent infinite switching
+            // also prevents saving from toggling quick switch.
+            if (ignoreBypassSwitchUntilNextActuation &&
+                !hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Bypass)].Pressed()) {
+                ignoreBypassSwitchUntilNextActuation = false;
+            }
         }
-    } else if (!has_alternate_footswitch) {
+    } else {
         // Handle the scenario where we only have 1 footswitch
         if (hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Bypass)].TimeHeldMs() > 2000 &&
             !guitarPedalUI.IsShowingSavingSettingsScreen()) {
             needToSaveSettingsForActiveEffect = true;
         }
-    } else {
-        // Has no screen, but does have a alternate footswitch
-        // This could be used to switch effects if we wanted to, but for now it
-        // holding just the bypass for hw with this configuration does nothing
     }
 
     // Process the switches
