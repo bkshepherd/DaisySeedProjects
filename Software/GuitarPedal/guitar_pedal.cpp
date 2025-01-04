@@ -193,9 +193,9 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
     // Process potential 2 switch actions before the main switch processing loop
 
     // Only allow for quickswitching to tuner if we have an alternate
-    // footswitch. With only 1 switch, holding the switch triggers saving the
-    // settings, not quick switching
-    if (has_alternate_footswitch) {
+    // footswitch and a screen. With only 1 switch, holding the switch triggers saving the
+    // settings, not quick switching. With no screen, the tuner isn't useful.
+    if (has_alternate_footswitch && hardware.SupportsDisplay()) {
         // Handle the scenario where we only have 2 footswitches
         // If both footswitches are down, save the parameters for this effect to
         // persistant storage If there is only one footswitch, it will do
