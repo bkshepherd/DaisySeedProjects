@@ -6,12 +6,12 @@ using namespace bkshepherd;
 // The threshold knob/parameter will generate a float between 0 and 1 which gets
 // multiplied by this value to be used as the threshold against the audio input
 // signal
-const float maxThreshold = 0.15;
+const float maxThreshold = 0.2;
 
 // These are placeholder values that will get overwritten with the attack and release parameters at initialization
 cycfi::q::ar_envelope_follower env_follower(48000.0, 0.002f, 0.020f);
 
-static const int s_paramCount = 3;
+static const int s_paramCount = 4;
 static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                                name : "Threshold",
                                                                valueType : ParameterValueType::Float,
@@ -34,11 +34,21 @@ static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                                name : "Rel [ms]",
                                                                valueType : ParameterValueType::Float,
                                                                valueBinCount : 0,
-                                                               defaultValue : {.float_value = 20.0f},
+                                                               defaultValue : {.float_value = 50.0f},
                                                                knobMapping : 2,
                                                                midiCCMapping : -1,
                                                                minValue : static_cast<int>(1),
                                                                maxValue : static_cast<int>(500)
+                                                           },
+                                                           {
+                                                               name : "Hold [ms]",
+                                                               valueType : ParameterValueType::Float,
+                                                               valueBinCount : 0,
+                                                               defaultValue : {.float_value = 50.0f},
+                                                               knobMapping : 3,
+                                                               midiCCMapping : -1,
+                                                               minValue : static_cast<int>(0),
+                                                               maxValue : static_cast<int>(1000) // Allow up to 1 second
                                                            }};
 
 // Default Constructor
@@ -67,18 +77,40 @@ void NoiseGateModule::Init(float sample_rate) {
 void NoiseGateModule::ParameterChanged(int parameter_id) {
     switch (parameter_id) {
     case 1:
+        env_follower.attack(GetParameterAsFloat(1) / 1000.f, GetSampleRate());
+        break;
     case 2:
-        env_follower.config(GetParameterAsFloat(1) / 1000.f, GetParameterAsFloat(2) / 1000.f, GetSampleRate());
+        env_follower.release(GetParameterAsFloat(2) / 1000.f, GetSampleRate());
         break;
     }
 }
 
 void NoiseGateModule::ProcessMono(float in) {
     // Update envelope follower with input signal
-    float env_level = env_follower(in);
+    const float raw_env_level = env_follower(std::abs(in));
 
-    // Apply noise gate
-    const float out = (env_level > GetParameterAsFloat(0) * maxThreshold) ? in : 0.0f;
+    // Run a smoothing filter on the envelope to prevent crackling due to rapid adjustments of the envelope state
+    const float currentTimeInSeconds = static_cast<float>(daisy::System::GetNow()) / 1000.f;
+    const float smoothed_env_level = m_smoothingFilter(raw_env_level, currentTimeInSeconds);
+
+    if (smoothed_env_level > GetParameterAsFloat(0) * maxThreshold) {
+        // Signal is above the threshold, open the gate and reset the timer
+        m_gateOpen = true;
+        m_holdTimer = 0.0f;
+    } else if (m_gateOpen) {
+        // Signal is below the threshold but within hold time
+
+        m_holdTimer += currentTimeInSeconds - m_prevTimeSeconds;
+
+        if (m_holdTimer >= (GetParameterAsFloat(3) / 1000.0f)) {
+            m_gateOpen = false;
+        }
+    }
+
+    m_prevTimeSeconds = currentTimeInSeconds;
+
+    // Apply noise gate using the smoothed envelope value and hold time
+    const float out = m_gateOpen ? in : 0.0f;
 
     m_audioLeft = out;
     m_audioRight = m_audioLeft;
@@ -93,7 +125,7 @@ float NoiseGateModule::GetBrightnessForLED(int led_id) const {
     float value = BaseEffectModule::GetBrightnessForLED(led_id);
 
     if (led_id == 1) {
-        return m_audioLeft > 0 ? 1.0f : 0.0f;
+        return m_gateOpen ? 1.0f : 0.0f;
     }
 
     return value;
