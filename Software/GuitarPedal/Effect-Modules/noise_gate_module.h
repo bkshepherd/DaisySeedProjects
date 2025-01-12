@@ -35,6 +35,8 @@ class NoiseGateModule : public BaseEffectModule {
     float m_holdTimer; // Timer tracking hold duration
     bool m_gateOpen;   // Is the gate currently open?
     float m_prevTimeSeconds;
+
+    float m_currentGain;
 };
 } // namespace bkshepherd
 #endif

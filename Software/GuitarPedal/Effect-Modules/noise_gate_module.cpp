@@ -11,7 +11,7 @@ const float maxThreshold = 0.2;
 // These are placeholder values that will get overwritten with the attack and release parameters at initialization
 cycfi::q::ar_envelope_follower env_follower(48000.0, 0.002f, 0.020f);
 
-static const int s_paramCount = 4;
+static const int s_paramCount = 5;
 static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                                name : "Threshold",
                                                                valueType : ParameterValueType::Float,
@@ -48,7 +48,17 @@ static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                                knobMapping : 3,
                                                                midiCCMapping : -1,
                                                                minValue : static_cast<int>(0),
-                                                               maxValue : static_cast<int>(1000) // Allow up to 1 second
+                                                               maxValue : static_cast<int>(1000)
+                                                           },
+                                                           {
+                                                               name : "Fade [ms]",
+                                                               valueType : ParameterValueType::Float,
+                                                               valueBinCount : 0,
+                                                               defaultValue : {.float_value = 200.0f},
+                                                               knobMapping : 4,
+                                                               midiCCMapping : -1,
+                                                               minValue : static_cast<int>(0),
+                                                               maxValue : static_cast<int>(500)
                                                            }};
 
 // Default Constructor
@@ -97,20 +107,29 @@ void NoiseGateModule::ProcessMono(float in) {
         // Signal is above the threshold, open the gate and reset the timer
         m_gateOpen = true;
         m_holdTimer = 0.0f;
+        m_currentGain = 1.0f; // Fully open
     } else if (m_gateOpen) {
         // Signal is below the threshold but within hold time
 
-        m_holdTimer += currentTimeInSeconds - m_prevTimeSeconds;
+        const float dt = currentTimeInSeconds - m_prevTimeSeconds;
+        m_holdTimer += dt;
 
         if (m_holdTimer >= (GetParameterAsFloat(3) / 1000.0f)) {
-            m_gateOpen = false;
+            // Gate is closing: start fading out
+            const float fadeOutStep = dt / (GetParameterAsFloat(4) / 1000.0f);
+            m_currentGain -= fadeOutStep;
+            if (m_currentGain <= 0.0f) {
+                m_currentGain = 0.0f;
+                m_gateOpen = false;
+            }
         }
     }
 
     m_prevTimeSeconds = currentTimeInSeconds;
 
-    // Apply noise gate using the smoothed envelope value and hold time
-    const float out = m_gateOpen ? in : 0.0f;
+    // Apply noise gate using the smoothed envelope value and hold time, and
+    // also the current gain value (used for fade)
+    const float out = m_gateOpen ? in * m_currentGain : 0.0f;
 
     m_audioLeft = out;
     m_audioRight = m_audioLeft;
