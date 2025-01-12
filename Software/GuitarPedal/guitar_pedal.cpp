@@ -11,6 +11,7 @@
 #include "Effect-Modules/looper_module.h"
 #include "Effect-Modules/metro_module.h"
 #include "Effect-Modules/multi_delay_module.h"
+#include "Effect-Modules/noise_gate_module.h"
 #include "Effect-Modules/overdrive_module.h"
 #include "Effect-Modules/peq_module.h"
 #include "Effect-Modules/pitch_shifter_module.h"
@@ -568,7 +569,7 @@ int main(void) {
     crossFaderTransitionTimeInSamples = hardware.GetNumberOfSamplesForTime(crossFaderTransitionTimeInSeconds);
 
     // Init the Effects Modules
-    availableEffectsCount = 14;
+    availableEffectsCount = 15;
     availableEffects = new BaseEffectModule *[availableEffectsCount];
     availableEffects[0] = new ModulatedTremoloModule();
     availableEffects[1] = new OverdriveModule();
@@ -584,6 +585,7 @@ int main(void) {
     availableEffects[11] = new LooperModule();
     availableEffects[12] = new GraphicEQModule();
     availableEffects[13] = new ParametricEQModule();
+    availableEffects[14] = new NoiseGateModule();
 
     for (int i = 0; i < availableEffectsCount; i++) {
         availableEffects[i]->Init(sample_rate);
