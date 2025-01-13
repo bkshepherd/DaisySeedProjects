@@ -3,8 +3,9 @@
 #define LOOPER_MODULE_H
 
 #include <stdint.h>
-
-#include "../Util/looper.h"
+#include "daisysp.h"
+//#include "../Util/looper.h"
+#include "../Util/varSpeedLooper.h"
 #include "base_effect_module.h"
 #ifdef __cplusplus
 
@@ -30,13 +31,19 @@ class LooperModule : public BaseEffectModule {
 
   private:
     void SetLooperMode();
-
-    daisysp_modified::Looper m_looper;
+    daisysp::Tone tone;       // Low Pass
+    daisysp::Tone toneR;       // Low Pass
+    //daisysp_modified::Looper m_looper;
+    daisysp_modified::varSpeedLooper m_looper;
+    daisysp_modified::varSpeedLooper m_looperR;  // Added another looper for stereo loops
 
     float m_inputLevelMin;
     float m_inputLevelMax;
     float m_loopLevelMin;
     float m_loopLevelMax;
+    float currentSpeed;
+    float m_toneFreqMin;    
+    float m_toneFreqMax;
 };
 } // namespace bkshepherd
 #endif

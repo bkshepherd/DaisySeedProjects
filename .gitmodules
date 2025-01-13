@@ -10,3 +10,12 @@
 [submodule "Software/GuitarPedal/q"]
 	path = Software/GuitarPedal/q/q
 	url = git@github.com:cycfi/q.git
+[submodule "Software/GuitarPedal/gcem"]
+	path = Software/GuitarPedal/gcem
+	url = https://github.com/kthohr/gcem.git
+[submodule "Software/GuitarPedal/RTNeural"]
+	path = Software/GuitarPedal/RTNeural
+	url = https://github.com/jatinchowdhury18/RTNeural
+[submodule "Software/GuitarPedal/eigen"]
+	path = Software/GuitarPedal/eigen
+	url = https://gitlab.com/libeigen/eigen
