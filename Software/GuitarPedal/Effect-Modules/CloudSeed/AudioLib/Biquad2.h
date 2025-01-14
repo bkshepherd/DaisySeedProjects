@@ -21,18 +21,18 @@ namespace AudioLib
 		};
 
 	private:
-		float samplerate;
-		float _gainDb;
-		float _q;
-		float a0, a1, a2, b0, b1, b2;
-		float x1, x2, y, y1, y2;
-		float gain;
+		float samplerate = 0.0f;
+		float _gainDb = 0.0f;
+		float _q = 0.0f;
+		float a0, a1, a2, b0, b1, b2 = 0.0f;
+		float x1, x2, y, y1, y2 = 0.0f;
+		float gain = 0.0f;
 
 	public:
 		FilterType Type;
-		float Output;
-		float Frequency;
-		float Slope;
+		float Output = 0.0f;
+		float Frequency = 0.0f;
+		float Slope = 0.0f;
 
 		Biquad2();
 		Biquad2(FilterType filterType, float samplerate);
