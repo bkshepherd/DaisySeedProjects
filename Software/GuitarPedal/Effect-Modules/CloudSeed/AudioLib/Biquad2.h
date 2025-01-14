@@ -24,8 +24,21 @@ namespace AudioLib
 		float samplerate = 0.0f;
 		float _gainDb = 0.0f;
 		float _q = 0.0f;
-		float a0, a1, a2, b0, b1, b2 = 0.0f;
-		float x1, x2, y, y1, y2 = 0.0f;
+
+		float a0 = 0.0f;
+		float a1 = 0.0f;
+		float a2 = 0.0f;
+
+		float b0 = 0.0f;
+		float b1 = 0.0f;
+		float b2 = 0.0f;
+
+		float x1 = 0.0f;
+		float x2 = 0.0f;
+		float y = 0.0f;
+		float y1 = 0.0f;
+		float y2 = 0.0f;
+
 		float gain = 0.0f;
 
 	public:
