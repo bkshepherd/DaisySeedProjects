@@ -2,10 +2,10 @@
 #ifndef NAM_MODULE_H
 #define NAM_MODULE_H
 
-#include <stdint.h>
-#include "daisysp.h"
 #include "base_effect_module.h"
+#include "daisysp.h"
 #include <RTNeural/RTNeural.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 
@@ -13,12 +13,9 @@
 
 using namespace daisysp;
 
+namespace bkshepherd {
 
-namespace bkshepherd
-{
-
-class NamModule : public BaseEffectModule
-{
+class NamModule : public BaseEffectModule {
   public:
     NamModule();
     ~NamModule();
@@ -32,25 +29,21 @@ class NamModule : public BaseEffectModule
     float GetBrightnessForLED(int led_id) const override;
 
   private:
-
-
     float m_gainMin;
     float m_gainMax;
 
     float wetMix;
     float dryMix;
 
-    //float nnLevelAdjust;
-    int   m_currentModelindex = -1;
+    // float nnLevelAdjust;
+    int m_currentModelindex = -1;
 
-    float m_toneFreqMin;    
+    float m_toneFreqMin;
     float m_toneFreqMax;
 
-    //Tone tone;       // Low Pass
-
+    // Tone tone;       // Low Pass
 
     float m_cachedEffectMagnitudeValue;
-
 };
 } // namespace bkshepherd
 #endif

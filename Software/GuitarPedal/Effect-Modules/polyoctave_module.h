@@ -2,9 +2,9 @@
 #ifndef POLYOCTAVE_MODULE_H
 #define POLYOCTAVE_MODULE_H
 
-#include <stdint.h>
-#include "daisysp.h"
 #include "base_effect_module.h"
+#include "daisysp.h"
+#include <stdint.h>
 #ifdef __cplusplus
 
 /** @file polyoctave_module.h */
@@ -15,11 +15,9 @@
 
 using namespace daisysp;
 
-namespace bkshepherd
-{
+namespace bkshepherd {
 
-class PolyOctaveModule : public BaseEffectModule
-{
+class PolyOctaveModule : public BaseEffectModule {
   public:
     PolyOctaveModule();
     ~PolyOctaveModule();
@@ -30,7 +28,6 @@ class PolyOctaveModule : public BaseEffectModule
     float GetBrightnessForLED(int led_id) const override;
 
   private:
-
     int bin_counter = 0;
     float buff[6];
     float buff_out[6];

@@ -9,36 +9,25 @@
 
 #include "dsp.h"
 
-
-History::History()
-{
-}
+History::History() {}
 
 // Destructor
-History::~History()
-{
+History::~History() {
     // No Code Needed
 }
 
+void History::_AdvanceHistoryIndex(const size_t bufferSize) { mHistoryIndex += bufferSize; }
 
-void History::_AdvanceHistoryIndex(const size_t bufferSize)
-{
-  mHistoryIndex += bufferSize;
+void History::_RewindHistory() {
+    // TODO memcpy?  Should be fine w/ history array being >2x the history length.
+    for (size_t i = 0, j = mHistoryIndex - mHistoryRequired; i < mHistoryRequired; i++, j++)
+        mHistory[i] = mHistory[j];
+    mHistoryIndex = mHistoryRequired;
 }
 
+void History::_UpdateHistory(float inputs) {
+    if (mHistoryIndex + 1 >= mHistory.size())
+        _RewindHistory();
 
-void History::_RewindHistory()
-{
-  // TODO memcpy?  Should be fine w/ history array being >2x the history length.
-  for (size_t i = 0, j = mHistoryIndex - mHistoryRequired; i < mHistoryRequired; i++, j++)
-    mHistory[i] = mHistory[j];
-  mHistoryIndex = mHistoryRequired;
-}
-
-void History::_UpdateHistory(float inputs)
-{
-  if (mHistoryIndex + 1 >= mHistory.size())
-    _RewindHistory();
-
-  mHistory[mHistoryIndex] = inputs;
+    mHistory[mHistoryIndex] = inputs;
 }

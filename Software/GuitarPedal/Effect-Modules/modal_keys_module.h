@@ -2,23 +2,19 @@
 #ifndef MODAL_KEYS_MODULE_H
 #define MODAL_KEYS_MODULE_H
 
-#include <stdint.h>
-#include "daisysp.h"
 #include "base_effect_module.h"
+#include "daisysp.h"
+#include <stdint.h>
 #ifdef __cplusplus
 
 /** @file modal_keys_module.h */
 // Implements DaisySP ModalVoice class
 
-
 using namespace daisysp;
 
-namespace bkshepherd
-{
+namespace bkshepherd {
 
-
-class ModalKeysModule : public BaseEffectModule
-{
+class ModalKeysModule : public BaseEffectModule {
   public:
     ModalKeysModule();
     ~ModalKeysModule();
@@ -32,14 +28,10 @@ class ModalKeysModule : public BaseEffectModule
     float GetBrightnessForLED(int led_id) const override;
 
   private:
-
-    ModalVoice   modalvoice;
-
+    ModalVoice modalvoice;
 
     float m_freqMin;
     float m_freqMax;
-
-
 
     float m_cachedEffectMagnitudeValue;
 };

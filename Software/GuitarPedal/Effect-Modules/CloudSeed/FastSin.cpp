@@ -1,10 +1,9 @@
 
 #define _USE_MATH_DEFINES
-#include <cmath>
-#include "Default.h"
 #include "FastSin.h"
+#include "Default.h"
+#include <cmath>
 
-namespace CloudSeed
-{
-	DSY_SDRAM_BSS float FastSin::data[FastSin::DataSize];
+namespace CloudSeed {
+DSY_SDRAM_BSS float FastSin::data[FastSin::DataSize];
 }

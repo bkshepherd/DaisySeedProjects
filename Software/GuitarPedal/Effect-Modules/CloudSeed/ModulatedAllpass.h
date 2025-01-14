@@ -1,178 +1,159 @@
 #ifndef MODULATEDALLPASS
 #define MODULATEDALLPASS
 
-#include "ModulatedAllpass.h"
 #include "FastSin.h"
+#include "ModulatedAllpass.h"
 #include "Utils.h"
-extern void* custom_pool_allocate(size_t size);
+extern void *custom_pool_allocate(size_t size);
 
-namespace CloudSeed
-{
-	class ModulatedAllpass
-	{
-	public:
-		const int DelayBufferSamples = 19200; // 100ms at 192Khz
-		static const int ModulationUpdateRate = 8;
+namespace CloudSeed {
+class ModulatedAllpass {
+  public:
+    const int DelayBufferSamples = 19200; // 100ms at 192Khz
+    static const int ModulationUpdateRate = 8;
 
-	private:
-		float* delayBuffer;
-		float* output;
-		int bufferSize;
-		int index;
-		unsigned int samplesProcessed;
+  private:
+    float *delayBuffer;
+    float *output;
+    int bufferSize;
+    int index;
+    unsigned int samplesProcessed;
 
-		float modPhase;
-		int delayA;
-		int delayB;
-		float gainA;
-		float gainB;
+    float modPhase;
+    int delayA;
+    int delayB;
+    float gainA;
+    float gainB;
 
-	public:
+  public:
+    int SampleDelay;
+    float Feedback;
+    float ModAmount;
+    float ModRate;
 
-		int SampleDelay;
-		float Feedback;
-		float ModAmount;
-		float ModRate;
+    bool InterpolationEnabled;
+    bool ModulationEnabled;
 
-		bool InterpolationEnabled;
-		bool ModulationEnabled;
+    ModulatedAllpass(int bufferSize, int sampleDelay) {
+        this->InterpolationEnabled = true;
+        this->bufferSize = bufferSize;
+        delayBuffer = new (custom_pool_allocate(sizeof(float) * DelayBufferSamples)) float[DelayBufferSamples];
+        output = new (custom_pool_allocate(sizeof(float) * bufferSize)) float[bufferSize];
+        SampleDelay = sampleDelay;
+        index = DelayBufferSamples - 1;
+        modPhase = 0.01 + 0.98 * std::rand() / (float)RAND_MAX;
+        ModRate = 0.0;
+        ModAmount = 0.0;
+        Update();
+    }
 
-		ModulatedAllpass(int bufferSize, int sampleDelay)
-		{
-			this->InterpolationEnabled = true;
-			this->bufferSize = bufferSize;
-			delayBuffer = new (custom_pool_allocate(sizeof(float) * DelayBufferSamples)) float[DelayBufferSamples];
-			output = new (custom_pool_allocate(sizeof(float) * bufferSize)) float[bufferSize];
-			SampleDelay = sampleDelay;
-			index = DelayBufferSamples - 1;
-			modPhase = 0.01 + 0.98 * std::rand() / (float)RAND_MAX;
-			ModRate = 0.0;
-			ModAmount = 0.0;
-			Update();
-		}
+    ~ModulatedAllpass() {
+        delete delayBuffer;
+        delete output;
+    }
 
-		~ModulatedAllpass()
-		{
-			delete delayBuffer;
-			delete output;
-		}
+    inline float *GetOutput() { return output; }
 
+    void ClearBuffers() {
+        Utils::ZeroBuffer(delayBuffer, DelayBufferSamples);
+        Utils::ZeroBuffer(output, bufferSize);
+    }
 
-		inline float* GetOutput()
-		{
-			return output;
-		}
+    void Process(float *input, int sampleCount) {
+        if (ModulationEnabled)
+            ProcessWithMod(input, sampleCount);
+        else
+            ProcessNoMod(input, sampleCount);
+    }
 
-		void ClearBuffers()
-		{
-			Utils::ZeroBuffer(delayBuffer, DelayBufferSamples);
-			Utils::ZeroBuffer(output, bufferSize);
-		}
+  private:
+    void ProcessNoMod(float *input, int sampleCount) {
+        auto delayedIndex = index - SampleDelay;
+        if (delayedIndex < 0)
+            delayedIndex += DelayBufferSamples;
 
-		void Process(float* input, int sampleCount)
-		{
-			if (ModulationEnabled)
-				ProcessWithMod(input, sampleCount);
-			else
-				ProcessNoMod(input, sampleCount);
-		}
+        for (int i = 0; i < sampleCount; i++) {
+            auto bufOut = delayBuffer[delayedIndex];
+            auto inVal = input[i] + bufOut * Feedback;
 
+            delayBuffer[index] = inVal;
+            output[i] = bufOut - inVal * Feedback;
 
-	private:
-		void ProcessNoMod(float* input, int sampleCount)
-		{
-			auto delayedIndex = index - SampleDelay;
-			if (delayedIndex < 0) delayedIndex += DelayBufferSamples;
+            index++;
+            delayedIndex++;
+            if (index >= DelayBufferSamples)
+                index -= DelayBufferSamples;
+            if (delayedIndex >= DelayBufferSamples)
+                delayedIndex -= DelayBufferSamples;
+            samplesProcessed++;
+        }
+    }
 
-			for (int i = 0; i < sampleCount; i++)
-			{
-				auto bufOut = delayBuffer[delayedIndex];
-				auto inVal = input[i] + bufOut * Feedback;
+    void ProcessWithMod(float *input, int sampleCount) {
+        for (int i = 0; i < sampleCount; i++) {
+            if (samplesProcessed >= ModulationUpdateRate)
+                Update();
 
-				delayBuffer[index] = inVal;
-				output[i] = bufOut - inVal * Feedback;
+            float bufOut;
 
-				index++;
-				delayedIndex++;
-				if (index >= DelayBufferSamples) index -= DelayBufferSamples;
-				if (delayedIndex >= DelayBufferSamples) delayedIndex -= DelayBufferSamples;
-				samplesProcessed++;
-			}
-		}
+            if (InterpolationEnabled) {
+                int idxA = index - delayA;
+                int idxB = index - delayB;
+                idxA += DelayBufferSamples * (idxA < 0); // modulo
+                idxB += DelayBufferSamples * (idxB < 0); // modulo
 
-		void ProcessWithMod(float* input, int sampleCount)
-		{
-			for (int i = 0; i < sampleCount; i++)
-			{
-				if (samplesProcessed >= ModulationUpdateRate)
-					Update();
+                bufOut = delayBuffer[idxA] * gainA + delayBuffer[idxB] * gainB;
+            } else {
+                int idxA = index - delayA;
+                idxA += DelayBufferSamples * (idxA < 0); // modulo
+                bufOut = delayBuffer[idxA];
+            }
 
-				float bufOut;
+            auto inVal = input[i] + bufOut * Feedback;
+            delayBuffer[index] = inVal;
+            output[i] = bufOut - inVal * Feedback;
 
-				if (InterpolationEnabled)
-				{
-					int idxA = index - delayA;
-					int idxB = index - delayB;
-					idxA += DelayBufferSamples * (idxA < 0); // modulo
-					idxB += DelayBufferSamples * (idxB < 0); // modulo
+            index++;
+            if (index >= DelayBufferSamples)
+                index -= DelayBufferSamples;
+            samplesProcessed++;
+        }
+    }
 
-					bufOut = delayBuffer[idxA] * gainA + delayBuffer[idxB] * gainB;
-				}
-				else
-				{
-					int idxA = index - delayA;
-					idxA += DelayBufferSamples * (idxA < 0); // modulo
-					bufOut = delayBuffer[idxA];
-				}
+    inline float Get(int delay) {
+        int idx = index - delay;
+        if (idx < 0)
+            idx += DelayBufferSamples;
 
-				auto inVal = input[i] + bufOut * Feedback;
-				delayBuffer[index] = inVal;
-				output[i] = bufOut - inVal * Feedback;
+        return delayBuffer[idx];
+    }
 
-				index++;
-				if (index >= DelayBufferSamples) index -= DelayBufferSamples;
-				samplesProcessed++;
-			}
-		}
+    void Update() {
+        modPhase += ModRate * ModulationUpdateRate;
+        if (modPhase > 1)
+            modPhase = std::fmod(modPhase, 1.0);
 
-		inline float Get(int delay)
-		{
-			int idx = index - delay;
-			if (idx < 0)
-				idx += DelayBufferSamples;
+        auto mod = FastSin::Get(modPhase);
 
-			return delayBuffer[idx];
-		}
+        if (ModAmount >= SampleDelay) // don't modulate to negative value
+            ModAmount = SampleDelay - 1;
 
-		void Update()
-		{
-			modPhase += ModRate * ModulationUpdateRate;
-			if (modPhase > 1)
-				modPhase = std::fmod(modPhase, 1.0);
+        auto totalDelay = SampleDelay + ModAmount * mod;
 
-			auto mod = FastSin::Get(modPhase);
+        if (totalDelay <= 0) // should no longer be required
+            totalDelay = 1;
 
-			if (ModAmount >= SampleDelay) // don't modulate to negative value
-				ModAmount = SampleDelay - 1;
+        delayA = (int)totalDelay;
+        delayB = (int)totalDelay + 1;
 
+        auto partial = totalDelay - delayA;
 
-			auto totalDelay = SampleDelay + ModAmount * mod;
-			
-			if (totalDelay <= 0) // should no longer be required
-				totalDelay = 1;
+        gainA = 1 - partial;
+        gainB = partial;
 
-			delayA = (int)totalDelay;
-			delayB = (int)totalDelay + 1;
-
-			auto partial = totalDelay - delayA;
-
-			gainA = 1 - partial;
-			gainB = partial;
-
-			samplesProcessed = 0;
-		}
-
-	};
-}
+        samplesProcessed = 0;
+    }
+};
+} // namespace CloudSeed
 
 #endif

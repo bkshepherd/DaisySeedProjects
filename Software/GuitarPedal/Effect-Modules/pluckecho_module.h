@@ -2,9 +2,9 @@
 #ifndef PLUCKEECHO_MODULE_H
 #define PLUCKECHO_MODULE_H
 
-#include <stdint.h>
-#include "daisysp.h"
 #include "base_effect_module.h"
+#include "daisysp.h"
+#include <stdint.h>
 #ifdef __cplusplus
 
 #define NUM_VOICES 32
@@ -12,15 +12,11 @@
 
 /** @file pluckecho_module.h */
 
-
 using namespace daisysp;
 
-namespace bkshepherd
-{
+namespace bkshepherd {
 
-
-class PluckEchoModule : public BaseEffectModule
-{
+class PluckEchoModule : public BaseEffectModule {
   public:
     PluckEchoModule();
     ~PluckEchoModule();
@@ -34,22 +30,20 @@ class PluckEchoModule : public BaseEffectModule
     float GetBrightnessForLED(int led_id) const override;
 
   private:
-
     // Synthesis
     PolyPluck<NUM_VOICES> synth;
     // 10 second delay line on the external SDRAM
-    //ReverbSc                                  verb;
+    // ReverbSc                                  verb;
 
     // Persistent filtered Value for smooth delay time changes.
     float smooth_time;
 
     float m_freqMin;
     float m_freqMax;
-    //float m_verbMin;
-    //float m_verbMax;
+    // float m_verbMin;
+    // float m_verbMax;
     float nn;
     float trig;
-
 
     float m_cachedEffectMagnitudeValue;
 };

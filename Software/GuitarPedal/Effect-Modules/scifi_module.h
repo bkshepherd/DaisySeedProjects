@@ -2,9 +2,9 @@
 #ifndef SCIFI_MODULE_H
 #define SCIFI_MODULE_H
 
-#include <stdint.h>
-#include "daisysp.h"
 #include "base_effect_module.h"
+#include "daisysp.h"
+#include <stdint.h>
 #ifdef __cplusplus
 
 /** @file scifi_module.h */
@@ -15,14 +15,11 @@
 // NOTE: This the octave effect code was adapted from https://github.com/schult/terrarium-poly-octave
 //       (Under the MIT License)
 
-
 using namespace daisysp;
 
-namespace bkshepherd
-{
+namespace bkshepherd {
 
-class SciFiModule : public BaseEffectModule
-{
+class SciFiModule : public BaseEffectModule {
   public:
     SciFiModule();
     ~SciFiModule();

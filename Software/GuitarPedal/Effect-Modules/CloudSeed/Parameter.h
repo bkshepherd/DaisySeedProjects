@@ -1,89 +1,87 @@
 #ifndef PARAMETER2
 #define PARAMETER2
 
-enum class Parameter2
-{
-	// Input
+enum class Parameter2 {
+    // Input
 
-	InputMix = 0,
-	PreDelay,
+    InputMix = 0,
+    PreDelay,
 
-	HighPass,
-	LowPass,
+    HighPass,
+    LowPass,
 
-	// Early
+    // Early
 
-	TapCount,
-	TapLength,
-	TapGain,
-	TapDecay,
+    TapCount,
+    TapLength,
+    TapGain,
+    TapDecay,
 
-	DiffusionEnabled,
-	DiffusionStages,
-	DiffusionDelay,
-	DiffusionFeedback,
+    DiffusionEnabled,
+    DiffusionStages,
+    DiffusionDelay,
+    DiffusionFeedback,
 
-	// Late
+    // Late
 
-	LineCount,
-	LineDelay,
-	LineDecay,
+    LineCount,
+    LineDelay,
+    LineDecay,
 
+    LateDiffusionEnabled,
+    LateDiffusionStages,
+    LateDiffusionDelay,
+    LateDiffusionFeedback,
 
-	LateDiffusionEnabled,
-	LateDiffusionStages,
-	LateDiffusionDelay,
-	LateDiffusionFeedback,
+    // Frequency Response
 
-	// Frequency Response
+    PostLowShelfGain,
+    PostLowShelfFrequency,
+    PostHighShelfGain,
+    PostHighShelfFrequency,
+    PostCutoffFrequency,
 
-	PostLowShelfGain,
-	PostLowShelfFrequency,
-	PostHighShelfGain,
-	PostHighShelfFrequency,
-	PostCutoffFrequency,
+    // Modulation
 
-	// Modulation
+    EarlyDiffusionModAmount,
+    EarlyDiffusionModRate,
 
-	EarlyDiffusionModAmount,
-	EarlyDiffusionModRate,
+    LineModAmount,
+    LineModRate,
 
-	LineModAmount,
-	LineModRate,
+    LateDiffusionModAmount,
+    LateDiffusionModRate,
 
-	LateDiffusionModAmount,
-	LateDiffusionModRate,
+    // Seeds
 
-	// Seeds
+    TapSeed,
+    DiffusionSeed,
+    DelaySeed,
+    PostDiffusionSeed,
 
-	TapSeed,
-	DiffusionSeed,
-	DelaySeed,
-	PostDiffusionSeed,
+    // Seed Mix
 
-	// Seed Mix
+    CrossSeed,
 
-	CrossSeed,
+    DryOut,
+    PredelayOut,
+    EarlyOut,
+    MainOut,
 
-	DryOut,
-	PredelayOut,
-	EarlyOut,
-	MainOut,
+    // Switches
+    HiPassEnabled,
+    LowPassEnabled,
+    LowShelfEnabled,
+    HighShelfEnabled,
+    CutoffEnabled,
+    LateStageTap,
 
-	// Switches
-	HiPassEnabled,
-	LowPassEnabled,
-	LowShelfEnabled,
-	HighShelfEnabled,
-	CutoffEnabled,
-	LateStageTap,
+    // Effects
+    Interpolation,
 
-	// Effects
-	Interpolation,
+    Count,
 
-	Count,
-
-	Unused = 999
+    Unused = 999
 };
 
 #endif

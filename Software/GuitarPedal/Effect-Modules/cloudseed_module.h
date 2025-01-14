@@ -2,32 +2,25 @@
 #ifndef CLOUDSEED_MODULE_H
 #define CLOUDSEED_MODULE_H
 
-#include <stdint.h>
-#include "daisysp.h"
 #include "base_effect_module.h"
+#include "daisysp.h"
+#include <stdint.h>
 
-
-#include "CloudSeed/Default.h"
-#include "CloudSeed/ReverbController.h"
-#include "CloudSeed/FastSin.h"
-#include "CloudSeed/AudioLib/ValueTables.h"
 #include "CloudSeed/AudioLib/MathDefs.h"
-
-
+#include "CloudSeed/AudioLib/ValueTables.h"
+#include "CloudSeed/Default.h"
+#include "CloudSeed/FastSin.h"
+#include "CloudSeed/ReverbController.h"
 
 #ifdef __cplusplus
 
 /** @file cloudseed_module.h */
 
-//using namespace daisysp;
+// using namespace daisysp;
 
+namespace bkshepherd {
 
-
-namespace bkshepherd
-{
-
-class CloudSeedModule : public BaseEffectModule
-{
+class CloudSeedModule : public BaseEffectModule {
   public:
     CloudSeedModule();
     ~CloudSeedModule();
@@ -41,8 +34,7 @@ class CloudSeedModule : public BaseEffectModule
     float GetBrightnessForLED(int led_id) const override;
 
   private:
-    
-    CloudSeed::ReverbController* reverb = 0;
+    CloudSeed::ReverbController *reverb = 0;
 
     float m_gainMin;
     float m_gainMax;

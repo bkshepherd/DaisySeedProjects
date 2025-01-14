@@ -8,11 +8,10 @@ typedef unsigned int uint;
 typedef unsigned long long ulong;
 #endif
 
-
 #ifdef DEBUG
-	#define __inline_always inline
+#define __inline_always inline
 #else
-	#define __inline_always __forceinline
+#define __inline_always __forceinline
 #endif
 
 #endif

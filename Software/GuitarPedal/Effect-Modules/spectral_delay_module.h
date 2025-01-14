@@ -6,11 +6,11 @@
 #include "daisysp.h"
 #include <stdint.h>
 
+#include "../Util/STFT/fourier.h"
+#include "../Util/STFT/shy_fft.h"
+#include "../Util/STFT/wave.h"
 #include <cmath>
 #include <complex>
-#include "../Util/STFT/shy_fft.h"
-#include "../Util/STFT/fourier.h"
-#include "../Util/STFT/wave.h"
 
 using namespace bkshepherd;
 using namespace soundmath;
@@ -21,7 +21,7 @@ using namespace soundmath;
 
 /** @file spectral_delay_module.h */
 
-// NOTES: During testing, DTCRAM overflowing was an issue. Removing Stereo capability helped (i.e. removing one of the stft's). 
+// NOTES: During testing, DTCRAM overflowing was an issue. Removing Stereo capability helped (i.e. removing one of the stft's).
 //  The Hann and HalfHann lookup tables are stored in DTCRAM. HalfHann is not used, so this is commented out.
 
 using namespace daisysp;
@@ -40,7 +40,6 @@ class SpectralDelayModule : public BaseEffectModule {
     float GetBrightnessForLED(int led_id) const override;
 
   private:
-
     float m_cachedEffectMagnitudeValue;
 };
 } // namespace bkshepherd

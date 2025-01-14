@@ -2,11 +2,11 @@
 #ifndef DELAY_MODULE_H
 #define DELAY_MODULE_H
 
-#include <stdint.h>
-#include "daisysp.h"
-#include "Delays/delayline_revoct.h"
 #include "Delays/delayline_reverse.h"
+#include "Delays/delayline_revoct.h"
 #include "base_effect_module.h"
+#include "daisysp.h"
+#include <stdint.h>
 #ifdef __cplusplus
 
 /** @file _delay_module.h */
@@ -14,11 +14,15 @@
 using namespace daisysp;
 
 // Delay Max Definitions (Assumes 48kHz samplerate)
-#define MAX_DELAY_NORM static_cast<size_t>(48000.0f * 8.f) // 4 second max delay // Increased the max to 8 seconds, got horrible pop noise when set to 4 seconds, increasing buffer size fixes it for some reason. TODO figure out why?
-#define MAX_DELAY_REV static_cast<size_t>(48000.0f * 8.f) // 8 second max delay (needs to be double for reverse, since read/write pointers are going opposite directions in the buffer)
-#define MAX_DELAY_SPREAD static_cast<size_t>(4800.0f) //  50 ms for Spread effect 
+#define MAX_DELAY_NORM                                                                                                                \
+    static_cast<size_t>(48000.0f * 8.f) // 4 second max delay // Increased the max to 8 seconds, got horrible pop noise when set to 4
+                                        // seconds, increasing buffer size fixes it for some reason. TODO figure out why?
+#define MAX_DELAY_REV                                                                                                                 \
+    static_cast<size_t>(48000.0f * 8.f) // 8 second max delay (needs to be double for reverse, since read/write pointers are going
+                                        // opposite directions in the buffer)
+#define MAX_DELAY_SPREAD static_cast<size_t>(4800.0f) //  50 ms for Spread effect
 
-// This is the core delay struct, which actually includes two delays, 
+// This is the core delay struct, which actually includes two delays,
 // one for forwared/octave, and one for reverse. This is required
 // because the reverse delayline needs to be double the size of the
 // normal delayline to have the same range of the Time control. Both
@@ -28,24 +32,22 @@ using namespace daisysp;
 // octave delay, or create a "fading into the distance" effect for the
 // forward and reverse delays. A "level" param is included for modulation
 // of the output volume, for stereo panning.
-struct delayRevOct
-{
+struct delayRevOct {
     DelayLineRevOct<float, MAX_DELAY_NORM> *del;
     DelayLineReverse<float, MAX_DELAY_REV> *delreverse;
-    float                        currentDelay;
-    float                        delayTarget;
-    float                        feedback = 0.0;
-    float                        active = false;
-    bool                         reverseMode = false;
-    Tone                         toneOctLP;  // Low Pass 
-    float                        level = 1.0;      // Level multiplier of output, added for stereo modulation
-    float                        level_reverse = 1.0;      // Level multiplier of output, added for stereo modulation
-    bool                         dual_delay = false;
-    bool                         secondTapOn = false;
-    
-    float Process(float in)
-    {
-        //set delay times
+    float currentDelay;
+    float delayTarget;
+    float feedback = 0.0;
+    float active = false;
+    bool reverseMode = false;
+    Tone toneOctLP;            // Low Pass
+    float level = 1.0;         // Level multiplier of output, added for stereo modulation
+    float level_reverse = 1.0; // Level multiplier of output, added for stereo modulation
+    bool dual_delay = false;
+    bool secondTapOn = false;
+
+    float Process(float in) {
+        // set delay times
         fonepole(currentDelay, delayTarget, .0002f);
         del->SetDelay(currentDelay);
         delreverse->SetDelay1(currentDelay);
@@ -54,27 +56,30 @@ struct delayRevOct
 
         float read_reverse = delreverse->ReadRev(); // REVERSE
 
-        float read = toneOctLP.Process(del_read);  // LP filter, tames harsh high frequencies on octave, has fading effect for normal/reverse
+        float read =
+            toneOctLP.Process(del_read); // LP filter, tames harsh high frequencies on octave, has fading effect for normal/reverse
 
         float secondTap = 0.0;
         if (secondTapOn) {
             secondTap = del->ReadSecondTap();
         }
-        //float read2 = delreverse->ReadFwd();
+        // float read2 = delreverse->ReadFwd();
         if (active) {
             del->Write((feedback * read) + in);
-            delreverse->Write((feedback * read) + in);  // Writing the read from fwd/oct delay line allows for combining oct and rev for reverse octave!
-            //delreverse->Write((feedback * read2) + in); 
+            delreverse->Write((feedback * read) +
+                              in); // Writing the read from fwd/oct delay line allows for combining oct and rev for reverse octave!
+            // delreverse->Write((feedback * read2) + in);
         } else {
             del->Write(feedback * read); // if not active, don't write any new sound to buffer
             delreverse->Write(feedback * read);
-            //delreverse->Write((feedback * read2));
+            // delreverse->Write((feedback * read2));
         }
 
         // TODO Figure out how to do dotted eighth with reverse
 
         if (dual_delay) {
-            return read_reverse * level_reverse * 0.5 + (read + secondTap) * level * 0.5; // Half the volume to keep total level consistent
+            return read_reverse * level_reverse * 0.5 +
+                   (read + secondTap) * level * 0.5; // Half the volume to keep total level consistent
         } else if (reverseMode) {
             return read_reverse * level_reverse;
         } else {
@@ -83,37 +88,32 @@ struct delayRevOct
     }
 };
 
-// For stereo spread setting (delay the right channel signal from 0 to 50ms)      
+// For stereo spread setting (delay the right channel signal from 0 to 50ms)
 //    A short, zero feedback (one repeat) delay for stereo spread
 
-struct delay_spread
-{
+struct delay_spread {
     DelayLine<float, MAX_DELAY_SPREAD> *del;
-    float                        currentDelay;
-    float                        delayTarget;
-    float                        active = false;
-    
-    float Process(float in)
-    {
-        //set delay times
+    float currentDelay;
+    float delayTarget;
+    float active = false;
+
+    float Process(float in) {
+        // set delay times
         fonepole(currentDelay, delayTarget, .0002f);
         del->SetDelay(currentDelay);
 
         float read = del->Read();
         if (active) {
             del->Write(in);
-        } 
+        }
 
         return read;
     }
 };
 
+namespace bkshepherd {
 
-namespace bkshepherd
-{
-
-class DelayModule : public BaseEffectModule
-{
+class DelayModule : public BaseEffectModule {
   public:
     DelayModule();
     ~DelayModule();
@@ -127,10 +127,8 @@ class DelayModule : public BaseEffectModule
     void ProcessStereo(float inL, float inR) override;
     void SetTempo(uint32_t bpm) override;
     float GetBrightnessForLED(int led_id) const override;
- 
 
   private:
-
     float m_delaylpFreqMin;
     float m_delaylpFreqMax;
     float m_delaySamplesMin;
@@ -145,9 +143,9 @@ class DelayModule : public BaseEffectModule
     float m_modOscFreqMax;
 
     // Delays
-    delayRevOct             delayLeft;
-    delayRevOct             delayRight;
-    delay_spread       delaySpread;
+    delayRevOct delayLeft;
+    delayRevOct delayRight;
+    delay_spread delaySpread;
 
     // Mix params
     float delayWetMix = 0.5;
@@ -162,8 +160,6 @@ class DelayModule : public BaseEffectModule
     // Oscillator for blinking tempo LED
     Oscillator led_osc;
     float m_LEDValue;
-    
-
 };
 } // namespace bkshepherd
 #endif
