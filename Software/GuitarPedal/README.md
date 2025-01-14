@@ -25,7 +25,7 @@ Check to make sure that the following directories have files in them:
 1. `Software/GuitarPedal/eigen`
 
 
-If they do not have anything in them, you may need to do a `git pull --recurse-submodules`.
+If they do not have anything in them, you may need to do a `git submodule update --init --recursive`.
 
 Once those directories exist and have files in them, you should build libDaisy and DaisySP. This can be done with the following commands:
 
