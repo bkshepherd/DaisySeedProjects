@@ -47,7 +47,6 @@ CPP_SOURCES += Effect-Modules/tuner_module.cpp
 
 
 # Compiler options
-#OPT = -O1
 OPT=-Ofast
 
 # Boot options
