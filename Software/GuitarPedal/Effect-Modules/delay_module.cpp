@@ -217,6 +217,8 @@ void DelayModule::ProcessMono(float in)
 {
     BaseEffectModule::ProcessMono(in);
 
+    m_LEDValue = led_osc.Process(); // update the tempo LED
+
     // Calculate the effect
     int delayType = GetParameterAsBinnedValue(4) - 1;
 
@@ -289,8 +291,12 @@ void DelayModule::ProcessStereo(float inL, float inR)
     // Calculate the mono effect
     //ProcessMono(inL); 
 
+
     // Do the base stereo calculation (which resets the right signal to be the inputR instead of combined mono)
     BaseEffectModule::ProcessStereo(inL, inR);
+
+    m_LEDValue = led_osc.Process(); // update the tempo LED
+
     // Calculate the effect
     int delayType = GetParameterAsBinnedValue(4) - 1;
 
@@ -384,10 +390,8 @@ void DelayModule::SetTempo(uint32_t bpm)
 float DelayModule::GetBrightnessForLED(int led_id) const {
     float value = BaseEffectModule::GetBrightnessForLED(led_id);
 
-    //float osc_val = led_osc.Process();   // I think the latest changes declaring this a const fucntion broke this TODO fix later
-    float osc_val = 0.0;
     float ledValue = 0.0;
-    if (osc_val > 0.45) {
+    if (m_LEDValue > 0.45) {
         ledValue = 1.0;
     } else {
         ledValue = 0.0;

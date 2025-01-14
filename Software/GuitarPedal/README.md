@@ -12,7 +12,7 @@ The code in this project is supplied with a Microsoft Visual Code project and de
 
 https://electro-smith.github.io/libDaisy/index.html
 
-### 2. Setup libDaisy, DaisySP, and q dependencies
+### 2. Setup libDaisy, DaisySP, q, gcem, RTNeural, and eigen dependencies
 
 Check to make sure that the following directories have files in them:
 
@@ -20,6 +20,10 @@ Check to make sure that the following directories have files in them:
 1. `Software/GuitarPedal/DaisySP`
 1. `Software/GuitarPedal/q/q`
 1. `Software/GuitarPedal/q/infra`
+1. `Software/GuitarPedal/gcem`
+1. `Software/GuitarPedal/RTNeural`
+1. `Software/GuitarPedal/eigen`
+
 
 If they do not have anything in them, you may need to do a `git pull --recurse-submodules`.
 

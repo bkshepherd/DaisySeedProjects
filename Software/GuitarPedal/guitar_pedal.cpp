@@ -21,7 +21,7 @@
 #include "Effect-Modules/nam_module.h"  
 #include "Effect-Modules/cloudseed_module.h"  // Takes up significant SDRAM (about 30%)
 #include "Effect-Modules/amp_module.h"
-#include "Effect-Modules/midi_keys_module.h"
+//#include "Effect-Modules/midi_keys_module.h"
 #include "Effect-Modules/delay_module.h"
 //#include "Effect-Modules/pluckecho_module.h"
 //#include "Effect-Modules/modal_keys_module.h"
@@ -589,7 +589,7 @@ int main(void) {
     crossFaderTransitionTimeInSamples = hardware.GetNumberOfSamplesForTime(crossFaderTransitionTimeInSeconds);
 
     // Init the Effects Modules
-    availableEffectsCount = 22;
+    availableEffectsCount = 21;
     availableEffects = new BaseEffectModule *[availableEffectsCount];
     availableEffects[0] = new ModulatedTremoloModule();
     availableEffects[1] = new OverdriveModule();
@@ -616,7 +616,7 @@ int main(void) {
     availableEffects[20] = new SpectralDelayModule(); 
 
     // The following require a MIDI keyboard
-    availableEffects[21] = new MidiKeysModule();
+    //availableEffects[21] = new MidiKeysModule();
     //availableEffects[22] = new PluckEchoModule();
     //availableEffects[23] = new StringKeysModule(); 
     //availableEffects[24] = new ModalKeysModule();

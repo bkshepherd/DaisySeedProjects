@@ -8,10 +8,9 @@
 
 #include <cmath>
 #include <complex>
-#include "STFT/shy_fft.h"
-
-#include "STFT/fourier.h"
-#include "STFT/wave.h"
+#include "../Util/STFT/shy_fft.h"
+#include "../Util/STFT/fourier.h"
+#include "../Util/STFT/wave.h"
 
 using namespace bkshepherd;
 using namespace soundmath;

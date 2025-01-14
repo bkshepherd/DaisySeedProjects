@@ -1,12 +1,6 @@
 #include "spectral_delay_module.h"
 #include "../Util/audio_utilities.h"
 
-#include <cmath>
-#include <complex>
-#include "STFT/shy_fft.h"
-
-#include "STFT/fourier.h"
-#include "STFT/wave.h"
 
 using namespace bkshepherd;
 using namespace soundmath;
