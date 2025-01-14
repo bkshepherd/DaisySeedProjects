@@ -6,9 +6,11 @@
 #include "daisysp.h"
 #include <stdint.h>
 
-#include "../Util/STFT/fourier.h"
+// clang-format off
 #include "../Util/STFT/shy_fft.h"
+#include "../Util/STFT/fourier.h"
 #include "../Util/STFT/wave.h"
+// clang-format on
 #include <cmath>
 #include <complex>
 
