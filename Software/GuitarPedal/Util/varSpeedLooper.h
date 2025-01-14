@@ -1,6 +1,10 @@
+// This is a copy of the looper from DaisySP with this PR applied:
+// https://github.com/electro-smith/DaisySP/pull/205
+// It simply adds getters for loop length and loop position.
+// It also adds variable speed options
 #pragma once
 #include <algorithm>
-//#include "dsp.h"
+// #include "dsp.h"
 #include "Utility/dsp.h"
 
 namespace daisysp_modified {
