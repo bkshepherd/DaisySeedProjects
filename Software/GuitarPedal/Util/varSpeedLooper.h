@@ -1,19 +1,10 @@
 // This is a copy of the looper from DaisySP with this PR applied:
 // https://github.com/electro-smith/DaisySP/pull/205
 // It simply adds getters for loop length and loop position.
-// This file can be deleted if that PR is merged and the submodule is updated
-
-/*
-Copyright (c) 2020 Electrosmith, Corp
-
-Use of this source code is governed by an MIT-style
-license that can be found in the LICENSE file or at
-https://opensource.org/licenses/MIT.
-*/
-
+// It also adds variable speed options
 #pragma once
 #include <algorithm>
-
+// #include "dsp.h"
 #include "Utility/dsp.h"
 
 namespace daisysp_modified {
@@ -27,24 +18,20 @@ namespace daisysp_modified {
  *
  * Read more about the looper modes in the mode enum documentation.
  */
-class Looper {
+class varSpeedLooper {
   public:
-    Looper() {}
-    ~Looper() {}
+    varSpeedLooper() {}
+    ~varSpeedLooper() {}
 
     /**
-     ** Normal Mode: Input is added to the existing loop infinitely while
-     *recording
+     ** Normal Mode: Input is added to the existing loop infinitely while recording
      **
-     ** Onetime Dub Mode: Recording starts at the first sample of the buffer and
-     *is added
-     **     to the existing buffer contents. Recording automatically stops after
-     *one full loop.
+     ** Onetime Dub Mode: Recording starts at the first sample of the buffer and is added
+     **     to the existing buffer contents. Recording automatically stops after one full loop.
      **
      ** Replace Mode: Audio in the buffer is replaced while recording is on.
      **
-     ** Frippertronics Mode: infinite looping recording with fixed decay on each
-     *loop. The module acts like tape-delay set up.
+     ** Frippertronics Mode: infinite looping recording with fixed decay on each loop. The module acts like tape-delay set up.
      */
     enum class Mode {
         NORMAL,
@@ -64,6 +51,7 @@ class Looper {
         reverse_ = false;
         rec_queue_ = false;
         win_idx_ = 0;
+        fractional_inc = 1.0; // KAB Change
     }
 
     /** Handles reading/writing to the Buffer depending on the mode. */
@@ -77,8 +65,6 @@ class Looper {
         switch (state_) {
         case State::EMPTY:
             sig = 0.0f;
-            pos_ = 0;
-            recsize_ = 0;
             break;
         case State::REC_FIRST:
             sig = 0.f;
@@ -96,8 +82,7 @@ class Looper {
         case State::PLAYING:
             sig = Read(pos_);
             /** This is a way of 'seamless looping'
-             ** The first N samps after recording is done are recorded with the
-             *input faded out.
+             ** The first N samps after recording is done are recorded with the input faded out.
              */
             if (win_idx_ < kWindowSamps - 1) {
                 Write(pos_, sig + input * (1.f - win_));
@@ -201,8 +186,7 @@ class Looper {
 
     inline const bool RecordingQueued() const { return rec_queue_; }
 
-    /** Increments the Mode by one step useful for buttons, etc. that need to step
-     * through the Looper modes. */
+    /** Increments the Mode by one step useful for buttons, etc. that need to step through the Looper modes. */
     inline void IncrementMode() {
         int m = static_cast<int>(mode_);
         m = m + 1;
@@ -225,7 +209,21 @@ class Looper {
     inline void SetHalfSpeed(bool state) { half_speed_ = state; }
     inline bool GetHalfSpeed() const { return half_speed_; }
 
-    inline bool IsNearBeginning() const { return near_beginning_; }
+    inline bool IsNearBeginning() { return near_beginning_; }
+
+    float GetIncrementSize() // KAB CHANGE
+    {
+
+        // float inc = 1.f;
+        // if(half_speed_)
+        //    inc = 0.5f;
+        return reverse_ ? -fractional_inc : fractional_inc;
+    }
+
+    void SetIncrementSize(float increment) // KAB CHANGE
+    {
+        fractional_inc = increment;
+    }
 
     inline float GetPos() const { return pos_; }
     inline size_t GetRecSize() const { return recsize_; }
@@ -241,12 +239,6 @@ class Looper {
     static constexpr float kWindowFactor = (1.f / kWindowSamps);
 
     /** Private Member Functions */
-    float GetIncrementSize() {
-        float inc = 1.f;
-        if (half_speed_)
-            inc = 0.5f;
-        return reverse_ ? -inc : inc;
-    }
 
     /** Initialize the buffer */
     void InitBuff() { std::fill(&buff_[0], &buff_[buffer_size_ - 1], 0); }
@@ -254,8 +246,7 @@ class Looper {
     /** Get a floating point sample from the buffer */
     inline const float Read(size_t pos) const { return buff_[pos]; }
 
-    /** Reads from a specified point in the delay line using linear interpolation
-     */
+    /** Reads from a specified point in the delay line using linear interpolation */
     float ReadF(float pos) {
         float a, b, frac;
         uint32_t i_idx = static_cast<uint32_t>(pos);
@@ -293,6 +284,7 @@ class Looper {
     size_t recsize_;
     bool rec_queue_;
     bool near_beginning_;
+    float fractional_inc;
 };
 
 } // namespace daisysp_modified

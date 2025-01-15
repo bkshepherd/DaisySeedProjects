@@ -12,23 +12,33 @@ The code in this project is supplied with a Microsoft Visual Code project and de
 
 https://electro-smith.github.io/libDaisy/index.html
 
-### 2. Setup libDaisy, DaisySP, and q dependencies
+### 2. Setup dependencies
 
 Check to make sure that the following directories have files in them:
 
-1. `Software/GuitarPedal/libDaisy`
-1. `Software/GuitarPedal/DaisySP`
-1. `Software/GuitarPedal/q/q`
-1. `Software/GuitarPedal/q/infra`
+1. `Software/GuitarPedal/dependencies/libDaisy`
+1. `Software/GuitarPedal/dependencies/DaisySP`
+1. `Software/GuitarPedal/dependencies/q/q`
+1. `Software/GuitarPedal/dependencies/q/infra`
+1. `Software/GuitarPedal/dependencies/gcem`
+1. `Software/GuitarPedal/dependencies/RTNeural`
+1. `Software/GuitarPedal/dependencies/eigen`
 
 If they do not have anything in them, you may need to do a `git submodule update --init --recursive`.
 
-Once those directories exist and have files in them, you should build libDaisy and DaisySP. This can be done with the following commands:
+Once those directories exist and have files in them, you should build libDaisy, DaisySP, and CloudSeed. This can be done with the following command:
+
+1. From `Software/GuitarPedal` directiory: `./ci/build_libs.sh`
+
+If this doesn't work, you can do it manually:
 
 1. `cd libDaisy`
 1. `make clean && make -j4`
 1. `cd ..`
 1. `cd DaisySP`
+1. `make clean && make -j4`
+1. `cd ..`
+1. `cd CloudSeed`
 1. `make clean && make -j4`
 
 #### Additional information for this step:

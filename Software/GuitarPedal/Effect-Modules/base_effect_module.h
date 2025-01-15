@@ -168,6 +168,20 @@ class BaseEffectModule {
     */
     int GetMappedParameterIDForMidiCC(int midiCC_id) const;
 
+    /** Sets the note and velocity of a midi key pressed event.
+     \notenumber Midi note number pressed
+     \velocity Midi note velocity (how hard the key was pressed)
+     \Expected to be overridden by the active effect
+    */
+    virtual void OnNoteOn(float notenumber, float velocity);
+
+    /** Sets the note and velocity of a midi key released event.
+     \notenumber Midi note number pressed
+     \velocity Midi note velocity (how quickly the key was released)
+     \Expected to be overridden by the active effect
+    */
+    virtual void OnNoteOff(float notenumber, float velocity);
+
     /** Sets the Raw Value for a Particular Effect Parameter.  If the Parameter ID isn't valid, there is no effect.
         \param parameter_id Id of the parameter to set (0 .. m_paramCount - 1).
         \param value the uint32_t Value to set on the parameter.
@@ -288,11 +302,11 @@ class BaseEffectModule {
      */
     virtual bool AlternateFootswitchForTempo() const { return true; };
     /** Overridable callback when alternate footswitch is pressed */
-    virtual void AlternateFootswitchPressed() {};
+    virtual void AlternateFootswitchPressed(){};
     /** Overridable callback when alternate footswitch is released */
-    virtual void AlternateFootswitchReleased() {};
+    virtual void AlternateFootswitchReleased(){};
     /** Overridable callback when alternate footswitch is held for 1 second */
-    virtual void AlternateFootswitchHeldFor1Second() {};
+    virtual void AlternateFootswitchHeldFor1Second(){};
 
   protected:
     /** Initializes the Parameter Storage and creates space for the specified number of stored Effect Parameters
