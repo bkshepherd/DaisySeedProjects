@@ -38,8 +38,8 @@ Fourier<float, N> *stft;               // stft object
 float fft_size = N / 2;
 
 // Delay
-#define MAX_DELAY_SPECTRAL_DELAY                                                                                                      \
-    static_cast<size_t>(188 * 4.f) // 4 second max delay (4 second spread plus 1 second predelay), delay called 188 times per second
+constexpr size_t MAX_DELAY_SPECTRAL_DELAY =
+    static_cast<size_t>(188 * 4.f); // 4 second max delay (4 second spread plus 1 second predelay), delay called 188 times per second
 
 // const int delay_array_size = 175;
 const int delay_array_size = 120;
