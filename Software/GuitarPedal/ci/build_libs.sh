@@ -1,9 +1,9 @@
 #!/bin/bash
 
 START_DIR=$PWD
-LIBDAISY_DIR=$PWD/libDaisy
-DAISYSP_DIR=$PWD/DaisySP
-CLOUDSEED_DIR=$PWD/Effect-Modules/CloudSeed
+LIBDAISY_DIR=$START_DIR/dependencies/libDaisy
+DAISYSP_DIR=$START_DIR/dependencies/DaisySP
+CLOUDSEED_DIR=$START_DIR/dependencies/CloudSeed
 
 echo "Building libDaisy..."
 cd "$LIBDAISY_DIR"

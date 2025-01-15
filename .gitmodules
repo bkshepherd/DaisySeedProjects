@@ -1,21 +1,21 @@
-[submodule "Software/GuitarPedal/DaisySP"]
-	path = Software/GuitarPedal/DaisySP
-	url = https://github.com/electro-smith/DaisySP.git
-[submodule "Software/GuitarPedal/libDaisy"]
-	path = Software/GuitarPedal/libDaisy
-	url = https://github.com/electro-smith/libDaisy.git
-[submodule "Software/GuitarPedal/infra"]
-	path = Software/GuitarPedal/q/infra
-	url = https://github.com/cycfi/infra.git
-[submodule "Software/GuitarPedal/q"]
-	path = Software/GuitarPedal/q/q
-	url = https://github.com/cycfi/q.git
-[submodule "Software/GuitarPedal/gcem"]
-	path = Software/GuitarPedal/gcem
-	url = https://github.com/kthohr/gcem.git
-[submodule "Software/GuitarPedal/RTNeural"]
-	path = Software/GuitarPedal/RTNeural
-	url = https://github.com/jatinchowdhury18/RTNeural
-[submodule "Software/GuitarPedal/eigen"]
-	path = Software/GuitarPedal/eigen
-	url = https://gitlab.com/libeigen/eigen
+[submodule "Software/GuitarPedal/dependencies/DaisySP"]
+path = Software/GuitarPedal/dependencies/DaisySP
+url = https://github.com/electro-smith/DaisySP.git
+[submodule "Software/GuitarPedal/dependencies/libDaisy"]
+path = Software/GuitarPedal/dependencies/libDaisy
+url = https://github.com/electro-smith/libDaisy.git
+[submodule "Software/GuitarPedal/dependencies/infra"]
+path = Software/GuitarPedal/dependencies/q/infra
+url = https://github.com/cycfi/infra.git
+[submodule "Software/GuitarPedal/dependencies/q"]
+path = Software/GuitarPedal/dependencies/q/q
+url = https://github.com/cycfi/q.git
+[submodule "Software/GuitarPedal/dependencies/gcem"]
+path = Software/GuitarPedal/dependencies/gcem
+url = https://github.com/kthohr/gcem.git
+[submodule "Software/GuitarPedal/dependencies/RTNeural"]
+path = Software/GuitarPedal/dependencies/RTNeural
+url = https://github.com/jatinchowdhury18/RTNeural
+[submodule "Software/GuitarPedal/dependencies/eigen"]
+path = Software/GuitarPedal/dependencies/eigen
+url = https://gitlab.com/libeigen/eigen

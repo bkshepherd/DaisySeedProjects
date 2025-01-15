@@ -6,11 +6,11 @@
 #include "daisysp.h"
 #include <stdint.h>
 
-#include "CloudSeed/AudioLib/MathDefs.h"
-#include "CloudSeed/AudioLib/ValueTables.h"
-#include "CloudSeed/Default.h"
-#include "CloudSeed/FastSin.h"
-#include "CloudSeed/ReverbController.h"
+#include "../dependencies/CloudSeed/AudioLib/MathDefs.h"
+#include "../dependencies/CloudSeed/AudioLib/ValueTables.h"
+#include "../dependencies/CloudSeed/Default.h"
+#include "../dependencies/CloudSeed/FastSin.h"
+#include "../dependencies/CloudSeed/ReverbController.h"
 
 #ifdef __cplusplus
 

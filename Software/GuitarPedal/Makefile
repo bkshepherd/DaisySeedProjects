@@ -53,9 +53,8 @@ OPT=-Ofast
 APP_TYPE = BOOT_SRAM
 
 # Library Locations
-DAISYSP_DIR ?= DaisySP
-LIBDAISY_DIR ?= libDaisy
-CLOUDSEED_DIR = Effect-Modules/CloudSeed
+DAISYSP_DIR ?= dependencies/DaisySP
+LIBDAISY_DIR ?= dependencies/libDaisy
 
 USE_DAISYSP_LGPL=1
 
@@ -63,17 +62,17 @@ USE_DAISYSP_LGPL=1
 SYSTEM_FILES_DIR = $(LIBDAISY_DIR)/core
 include $(SYSTEM_FILES_DIR)/Makefile
 
-C_INCLUDES += -I./q/q/q_lib/include -I./q/infra/include -I./gcem/include
+C_INCLUDES += -I./dependencies/q/q/q_lib/include
+C_INCLUDES += -I./dependencies/q/infra/include 
+C_INCLUDES += -I./dependencies/gcem/include
+C_INCLUDES += -I./dependencies/eigen
+C_INCLUDES += -I./dependencies/RTNeural
 
-C_INCLUDES += -I./eigen
-C_INCLUDES += -I./RTNeural
 CPPFLAGS += -DRTNEURAL_DEFAULT_ALIGNMENT=8 -DRTNEURAL_NO_DEBUG=1 -DRTNEURAL_USE_EIGEN=1
 
-C_INCLUDES += \
--IEffect-Modules/CloudSeed \
-
+C_INCLUDES += -I./dependencies/CloudSeed
 LIBS += -lcloudseed
-LIBDIR += -LEffect-Modules/CloudSeed/build
+LIBDIR += -Ldependencies/CloudSeed/build
 
 # Parse variants from argument to make, if none is supplied, will build for 125B
 # options:
