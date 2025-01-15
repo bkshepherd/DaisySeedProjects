@@ -1,6 +1,10 @@
 // Edit the contents of this file to populate the available effects that you
 // want to use
 
+#ifndef LOADED_EFFECTS_H
+#define LOADED_EFFECTS_H
+#pragma once
+
 #include "Effect-Modules/autopan_module.h"
 #include "Effect-Modules/chopper_module.h"
 #include "Effect-Modules/chorus_module.h"
@@ -28,10 +32,10 @@
 #include "Effect-Modules/scifi_module.h"
 #include "Effect-Modules/spectral_delay_module.h"
 
-int load_effects(BaseEffectModule **availableEffects) {
+void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffects) {
     // Make sure this count matches the maxindex - 1 (count) of effects that get
     // added to the array
-    const int availableEffectsCount = 21;
+    availableEffectsCount = 21;
     availableEffects = new BaseEffectModule *[availableEffectsCount];
     availableEffects[0] = new ModulatedTremoloModule();
     availableEffects[1] = new OverdriveModule();
@@ -62,6 +66,6 @@ int load_effects(BaseEffectModule **availableEffects) {
     // availableEffects[22] = new PluckEchoModule();
     // availableEffects[23] = new StringKeysModule();
     // availableEffects[24] = new ModalKeysModule();
-
-    return availableEffectsCount;
 }
+
+#endif
