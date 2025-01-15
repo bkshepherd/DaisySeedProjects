@@ -4,7 +4,7 @@
 #include <q/fx/biquad.hpp>
 #include <q/support/literals.hpp>
 
-//#include "../Util/EffectState.h"
+// #include "../Util/EffectState.h"
 #include "../Util/Multirate.h"
 #include "../Util/OctaveGenerator.h"
 
@@ -34,7 +34,7 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         midiCCMapping : 15
     },
     //{name: "1 OctDown", valueType: ParameterValueType::Float, defaultValue: {.float_value = 0.5f}, knobMapping: 2, midiCCMapping:
-    //16},
+    // 16},
     {name : "OctUp", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 2, midiCCMapping : 16},
     {
         name : "Time",
@@ -155,7 +155,6 @@ void SciFiModule::ProcessMono(float in) {
         for (size_t j = 0; j < out_chunk.size(); ++j) {
             float mix = eq2_scifi(eq1_scifi(out_chunk[j]));
 
-            const auto dry_signal = buff[j];
             mix += dryLevel * buff[j];
 
             buff_out[j] = mix;
