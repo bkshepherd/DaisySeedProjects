@@ -55,8 +55,8 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.float_value = 0.0f},
         knobMapping : 3,
         midiCCMapping : 17,
-        minValue : minGain,
-        maxValue : maxGain
+        minValue : static_cast<int>(minGain),
+        maxValue : static_cast<int>(maxGain)
     },
     {
         name : "Mid",
@@ -65,8 +65,8 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.float_value = 0.0f},
         knobMapping : 4,
         midiCCMapping : 18,
-        minValue : minGain,
-        maxValue : maxGain
+        minValue : static_cast<int>(minGain),
+        maxValue : static_cast<int>(maxGain)
     },
     {
         name : "Treble",
@@ -75,8 +75,8 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.float_value = 0.0f},
         knobMapping : 5,
         midiCCMapping : 19,
-        minValue : minGain,
-        maxValue : maxGain
+        minValue : static_cast<int>(minGain),
+        maxValue : static_cast<int>(maxGain)
     },
     {
         name : "NeuralModel",

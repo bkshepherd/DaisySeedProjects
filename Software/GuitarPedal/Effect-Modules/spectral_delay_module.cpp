@@ -79,7 +79,7 @@ inline void spectraldelay(const float *in, float *out) {
         float real = 0.0;
         float imag = 0.0;
         float test = vtone * 20;
-        int tone_bins = test;
+        size_t tone_bins = static_cast<size_t>(test);
         // each delayline affects 1 bin. 512 total bins. only using first 175 bins in more audible frequencies, more causes dropouts
         if (i < delay_array_size && i > tone_bins) {
 
