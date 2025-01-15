@@ -2,8 +2,8 @@
 #include "../Util/audio_utilities.h"
 #include "Nam/model_data_nam.h"
 #include <q/fx/biquad.hpp>
-//#include <math_approx/math_approx.hpp>  // I dont think this is needed, only used in SIMD NAMMathsProvider
-#include "Nam/wavenet/wavenet_model.hpp"
+// #include <math_approx/math_approx.hpp>  // I dont think this is needed, only used in SIMD NAMMathsProvider
+#include "../dependencies/RTNeural-NAM-modified/wavenet/wavenet_model.hpp"
 
 using namespace bkshepherd;
 
