@@ -1,9 +1,9 @@
 #include "nam_module.h"
 #include "../Util/audio_utilities.h"
-#include "Nam/model_data_nam.h"
-#include <q/fx/biquad.hpp>
-// #include <math_approx/math_approx.hpp>  // I dont think this is needed, only used in SIMD NAMMathsProvider
 #include "../dependencies/RTNeural-NAM-modified/wavenet/wavenet_model.hpp"
+#include "Nam/model_data_nam.h"
+#include <RTNeural/RTNeural.h>
+#include <q/fx/biquad.hpp>
 
 using namespace bkshepherd;
 
@@ -12,8 +12,8 @@ constexpr uint8_t NUM_FILTERS_NAM = 3;
 const float minGain = -10.f;
 const float maxGain = 10.f;
 
-const float centerFrequencyNam[NUM_FILTERS_NAM] = {180.f, 1200.f, 5000.f}; // Experiment with these freqs and q values
-const float q_nam[NUM_FILTERS_NAM] = {0.7f, 0.6f, 0.5f};
+const float centerFrequencyNam[NUM_FILTERS_NAM] = {110.f, 900.f, 4000.f}; // Experiment with these freqs and q values
+const float q_nam[NUM_FILTERS_NAM] = {1.0f, 1.0f, 1.0f};
 
 cycfi::q::peaking filter_nam[NUM_FILTERS_NAM] = {{0, centerFrequencyNam[0], 48000, q_nam[0]},
                                                  {0, centerFrequencyNam[1], 48000, q_nam[1]},
@@ -122,8 +122,7 @@ wavenet::Wavenet_Model<float, 1, wavenet::Layer_Array<float, 1, 1, 2, 2, 3, Dila
 
 // Default Constructor
 NamModule::NamModule()
-    : BaseEffectModule(), m_gainMin(0.0f), m_gainMax(2.0f), m_toneFreqMin(400.0f), m_toneFreqMax(20000.0f),
-      m_cachedEffectMagnitudeValue(1.0f) {
+    : BaseEffectModule(), m_gainMin(0.0f), m_gainMax(2.0f), m_levelMin(0.0f), m_levelMax(2.0f), m_cachedEffectMagnitudeValue(1.0f) {
     // Set the name of the effect
     m_name = "NAM";
 
@@ -162,21 +161,28 @@ void NamModule::ParameterChanged(int parameter_id) {
 }
 
 void NamModule::SelectModel() {
-    int modelIndex = GetParameterAsBinnedValue(2) - 1;
+    const int modelIndex = GetParameterAsBinnedValue(2) - 1;
 
     if (m_currentModelindex != modelIndex) {
-        float temp = GetParameterAsFloat(1);
-        SetParameterAsFloat(1, 0.0);
+        // Temporarily disable output as we switch models
+        m_muteOutput = true;
         rtneural_wavenet.load_weights(model_collection_nam[modelIndex].weights);
         static constexpr size_t N = 1; // number of samples sent through model at once
         rtneural_wavenet.prepare(N);   // This is needed, including this allowed the led to come on before freezing
         rtneural_wavenet.prewarm();    // Note: looks like this just sends some 0's through the model
         m_currentModelindex = modelIndex;
-        SetParameterAsFloat(1, temp);
+        // Re-enable output
+        m_muteOutput = false;
     }
 }
 
 void NamModule::ProcessMono(float in) {
+    // When switching models, we stop processing temporarily and mute the output
+    if (m_muteOutput) {
+        m_audioLeft = m_audioRight = 0.0f;
+        return;
+    }
+
     BaseEffectModule::ProcessMono(in);
 
     float ampOut;
@@ -198,7 +204,9 @@ void NamModule::ProcessMono(float in) {
         }
     }
 
-    m_audioRight = m_audioLeft = ampOut * GetParameterAsFloat(1);
+    const float level = m_levelMin + (GetParameterAsFloat(1) * (m_levelMax - m_levelMin));
+
+    m_audioRight = m_audioLeft = ampOut * level;
 }
 
 void NamModule::ProcessStereo(float inL, float inR) {

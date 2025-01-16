@@ -3,15 +3,11 @@
 #define NAM_MODULE_H
 
 #include "base_effect_module.h"
-#include "daisysp.h"
-#include <RTNeural/RTNeural.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
 
 /** @file nam_module.h */
-
-using namespace daisysp;
 
 namespace bkshepherd {
 
@@ -32,18 +28,18 @@ class NamModule : public BaseEffectModule {
     float m_gainMin;
     float m_gainMax;
 
+    float m_levelMin;
+    float m_levelMax;
+
     float wetMix;
     float dryMix;
 
-    // float nnLevelAdjust;
     int m_currentModelindex = -1;
 
-    float m_toneFreqMin;
-    float m_toneFreqMax;
-
-    // Tone tone;       // Low Pass
-
     float m_cachedEffectMagnitudeValue;
+
+    // Used for nicely switching models
+    bool m_muteOutput = false;
 };
 } // namespace bkshepherd
 #endif
