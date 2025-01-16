@@ -13,7 +13,7 @@ const float minGain = -10.f;
 const float maxGain = 10.f;
 
 const float centerFrequencyNam[NUM_FILTERS_NAM] = {110.f, 900.f, 4000.f}; // Experiment with these freqs and q values
-const float q_nam[NUM_FILTERS_NAM] = {1.0f, 1.0f, 1.0f};
+const float q_nam[NUM_FILTERS_NAM] = {.7f, .7f, .7f};
 
 cycfi::q::peaking filter_nam[NUM_FILTERS_NAM] = {{0, centerFrequencyNam[0], 48000, q_nam[0]},
                                                  {0, centerFrequencyNam[1], 48000, q_nam[1]},
