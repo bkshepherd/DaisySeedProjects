@@ -37,7 +37,14 @@ struct NAMMathsProvider {
 
 static const int s_paramCount = 8;
 static const ParameterMetaData s_metaData[s_paramCount] = {
-    {name : "Gain", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 0, midiCCMapping : 14},
+    {
+        name : "Gain",
+        valueType : ParameterValueType::Float,
+        valueCurve : ParameterValueCurve::Log,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 0,
+        midiCCMapping : 14,
+    },
     {name : "Level", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 1, midiCCMapping : 15},
     {
         name : "Model",
