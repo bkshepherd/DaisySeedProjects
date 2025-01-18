@@ -255,9 +255,6 @@ void BaseEffectModule::SetParameterRaw(int parameter_id, uint32_t value) {
 }
 
 void BaseEffectModule::SetParameterAsMagnitude(int parameter_id, float value) {
-    int min = GetParameterMin(parameter_id);
-    int max = GetParameterMax(parameter_id);
-
     // Handle different ParameterValueTypes Correctly
     ParameterValueType paramType = GetParameterType(parameter_id);
 
@@ -265,6 +262,9 @@ void BaseEffectModule::SetParameterAsMagnitude(int parameter_id, float value) {
         // This is an unsupported operation, so do nothing.
         return;
     } else if (paramType == ParameterValueType::Float) {
+        const int min = GetParameterMin(parameter_id);
+        const int max = GetParameterMax(parameter_id);
+
         // Make sure the value is in the valid range.
         if (value < 0.0f) {
             SetParameterAsFloat(parameter_id, min);
@@ -277,15 +277,22 @@ void BaseEffectModule::SetParameterAsMagnitude(int parameter_id, float value) {
         // Set the scaled parameter using the magnitude and the curve type
         switch (GetParameterValueCurve(parameter_id)) {
         case ParameterValueCurve::Log: {
+            // Don't do log operations with a 0 or negative number,
+            // automatically adjust value if necessary
+            const float minToUse = std::max(0.01f, (float)min);
+
             // Logarithmic scaling: interpolate in the log domain
-            const float tmp = std::pow(10.0, std::log10((float)min) + value * (std::log10((float)max) - std::log10((float)min)));
+            const float tmp = std::pow(10.0, std::log10(minToUse) + value * (std::log10((float)max) - std::log10(minToUse)));
             SetParameterAsFloat(parameter_id, tmp);
             break;
         }
         case ParameterValueCurve::InverseLog: {
+            // Don't do log operations with a 0 or negative number,
+            // automatically adjust value if necessary
+            const float minToUse = std::max(0.01f, (float)min);
+
             // Inverse Logarithmic scaling: reverse the mapping
-            const float tmp =
-                std::pow(10.0, std::log10((float)min) + (1.0f - value) * (std::log10((float)max) - std::log10((float)min)));
+            const float tmp = std::pow(10.0, std::log10(minToUse) + (1.0f - value) * (std::log10((float)max) - std::log10(minToUse)));
             SetParameterAsFloat(parameter_id, tmp);
             break;
         }
