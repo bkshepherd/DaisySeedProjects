@@ -1,6 +1,9 @@
 #include "base_effect_module.h"
 #include "../Util/audio_utilities.h"
 
+// This can be used to show the CPU on the default UI
+constexpr bool showCPU = false;
+
 using namespace bkshepherd;
 
 // Default Constructor
@@ -469,4 +472,10 @@ void BaseEffectModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, 
 
     display.WriteStringAligned(m_name, Font_11x18, topRowRect, Alignment::centered, true);
     display.WriteStringAligned("...", Font_11x18, boundsToDrawIn, Alignment::centered, true);
+
+    if (showCPU) {
+        char cpuStr[64];
+        sprintf(cpuStr, FLT_FMT(3), FLT_VAR3(GetCPUUsage()));
+        display.WriteStringAligned(cpuStr, Font_11x18, boundsToDrawIn, Alignment::bottomCentered, true);
+    }
 }

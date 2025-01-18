@@ -105,10 +105,13 @@ CrossFade crossFaderLeft, crossFaderRight;
 float crossFaderTransitionTimeInSeconds = 0.1f;
 int crossFaderTransitionTimeInSamples;
 int samplesTilCrossFadingComplete;
+CpuLoadMeter cpuLoadMeter;
 
 void SetActiveEffect(int effectID);
 
 static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, size_t size) {
+    cpuLoadMeter.OnBlockStart();
+
     // Process Audio
     float inputLeft;
     float inputRight;
@@ -438,6 +441,8 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
     hardware.SetLed(0, led1Brightness);
     hardware.SetLed(1, led2Brightness);
     hardware.UpdateLeds();
+
+    cpuLoadMeter.OnBlockEnd();
 }
 
 void SetActiveEffect(int effectID) {
@@ -633,6 +638,9 @@ int main(void) {
     // Setup Debug Logging
     // hardware.seed.StartLog();
 
+    // Setup CPU logging of the audio callback
+    cpuLoadMeter.Init(hardware.AudioSampleRate(), hardware.AudioBlockSize());
+
     while (1) {
         // Handle Clock Time
         uint32_t currentTimeStampUS = System::GetUs();
@@ -698,6 +706,9 @@ int main(void) {
                 SetActiveEffect(menuEffectID);
             }
         }
+
+        // Set the latest cpu load to the effect
+        activeEffect->SetCPUUsage(cpuLoadMeter.GetAvgCpuLoad());
 
         // Handle Display
         if (hardware.SupportsDisplay()) {
