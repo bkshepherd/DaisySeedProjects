@@ -255,9 +255,6 @@ void BaseEffectModule::SetParameterRaw(int parameter_id, uint32_t value) {
 }
 
 void BaseEffectModule::SetParameterAsMagnitude(int parameter_id, float value) {
-    int min = GetParameterMin(parameter_id);
-    int max = GetParameterMax(parameter_id);
-
     // Handle different ParameterValueTypes Correctly
     ParameterValueType paramType = GetParameterType(parameter_id);
 
@@ -265,6 +262,9 @@ void BaseEffectModule::SetParameterAsMagnitude(int parameter_id, float value) {
         // This is an unsupported operation, so do nothing.
         return;
     } else if (paramType == ParameterValueType::Float) {
+        const int min = GetParameterMin(parameter_id);
+        const int max = GetParameterMax(parameter_id);
+
         // Make sure the value is in the valid range.
         if (value < 0.0f) {
             SetParameterAsFloat(parameter_id, min);
