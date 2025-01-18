@@ -277,14 +277,20 @@ void BaseEffectModule::SetParameterAsMagnitude(int parameter_id, float value) {
         // Set the scaled parameter using the magnitude and the curve type
         switch (GetParameterValueCurve(parameter_id)) {
         case ParameterValueCurve::Log: {
-            const float minToUse = min > 0 ? (float)min : 0.01f;
+            // Don't do log operations with a 0 or negative number,
+            // automatically adjust value if necessary
+            const float minToUse = std::max(0.01f, (float)min);
+
             // Logarithmic scaling: interpolate in the log domain
             const float tmp = std::pow(10.0, std::log10(minToUse) + value * (std::log10((float)max) - std::log10(minToUse)));
             SetParameterAsFloat(parameter_id, tmp);
             break;
         }
         case ParameterValueCurve::InverseLog: {
-            const float minToUse = min > 0 ? (float)min : 0.01f;
+            // Don't do log operations with a 0 or negative number,
+            // automatically adjust value if necessary
+            const float minToUse = std::max(0.01f, (float)min);
+
             // Inverse Logarithmic scaling: reverse the mapping
             const float tmp = std::pow(10.0, std::log10(minToUse) + (1.0f - value) * (std::log10((float)max) - std::log10(minToUse)));
             SetParameterAsFloat(parameter_id, tmp);
