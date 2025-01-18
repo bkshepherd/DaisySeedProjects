@@ -35,6 +35,9 @@ class AmpModule : public BaseEffectModule {
     float m_gainMin;
     float m_gainMax;
 
+    float m_levelMin;
+    float m_levelMax;
+
     float wetMix;
     float dryMix;
 

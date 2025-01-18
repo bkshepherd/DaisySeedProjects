@@ -18,7 +18,14 @@ static const char *s_irNames[10] = {"Rhythm",  "Lead",    "Clean",   "Marsh",   
 
 static const int s_paramCount = 8;
 static const ParameterMetaData s_metaData[s_paramCount] = {
-    {name : "Gain", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 0, midiCCMapping : 14},
+    {
+        name : "Gain",
+        valueType : ParameterValueType::Float,
+        valueCurve : ParameterValueCurve::Log,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 0,
+        midiCCMapping : 14
+    },
     {name : "Mix", valueType : ParameterValueType::Float, defaultValue : {.float_value = 1.0f}, knobMapping : 1, midiCCMapping : 15},
     {name : "Level", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 2, midiCCMapping : 16},
     {name : "Tone", valueType : ParameterValueType::Float, defaultValue : {.float_value = 1.0f}, knobMapping : 3, midiCCMapping : 17},
@@ -55,8 +62,8 @@ RTNeural::ModelT<float, 1, 1, RTNeural::GRULayerT<float, 1, 9>, RTNeural::DenseT
 
 // Default Constructor
 AmpModule::AmpModule()
-    : BaseEffectModule(), m_gainMin(0.0f), m_gainMax(2.0f), m_toneFreqMin(400.0f), m_toneFreqMax(20000.0f),
-      m_cachedEffectMagnitudeValue(1.0f) {
+    : BaseEffectModule(), m_gainMin(0.0f), m_gainMax(2.0f), m_levelMin(0.0f), m_levelMax(2.0f), m_toneFreqMin(400.0f),
+      m_toneFreqMax(20000.0f), m_cachedEffectMagnitudeValue(1.0f) {
     // Set the name of the effect
     m_name = "Amp";
 
@@ -163,11 +170,13 @@ void AmpModule::ProcessMono(float in) {
     // MIX //
     float mix_out = filter_out * wetMix + input_arr[0] * dryMix; // Applies model level adjustment ("/4.0"), wet/dry mix
 
+    const float level = m_levelMin + (GetParameterAsFloat(2) * (m_levelMax - m_levelMin));
+
     // IMPULSE RESPONSE //
     if (GetParameterAsBool(7)) {
-        m_audioLeft = mIR.Process(mix_out) * GetParameterAsFloat(2) * 0.2; // 0.2 is level adjust for loud output
+        m_audioLeft = mIR.Process(mix_out) * level * 0.2; // 0.2 is level adjust for loud output
     } else {
-        m_audioLeft = mix_out * GetParameterAsFloat(2);
+        m_audioLeft = mix_out * level;
     }
 
     m_audioRight = m_audioLeft;
