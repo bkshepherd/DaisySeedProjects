@@ -553,10 +553,15 @@ void HandleMidiMessage(MidiEvent m) {
 }
 
 int main(void) {
-    hardware.Init(true); // true enables cpu boost (480Mhz instead of 400Mhz)
-    hardware.SetAudioBlockSize(48);
+    const size_t blockSize = 48;
+    const bool boost = true; // true enables cpu boost (480Mhz instead of 400Mhz)
 
-    float sample_rate = hardware.AudioSampleRate();
+    hardware.Init(blockSize, boost);
+
+    const float sample_rate = hardware.AudioSampleRate();
+
+    // Setup CPU logging of the audio callback
+    cpuLoadMeter.Init(sample_rate, blockSize);
 
     // Set the number of samples to use for the crossfade based on the hardware sample rate
     muteOffTransitionTimeInSamples = hardware.GetNumberOfSamplesForTime(muteOffTransitionTimeInSeconds);
@@ -637,9 +642,6 @@ int main(void) {
 
     // Setup Debug Logging
     // hardware.seed.StartLog();
-
-    // Setup CPU logging of the audio callback
-    cpuLoadMeter.Init(hardware.AudioSampleRate(), hardware.AudioBlockSize());
 
     while (1) {
         // Handle Clock Time

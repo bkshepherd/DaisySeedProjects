@@ -41,7 +41,7 @@ class BaseHardwareModule {
     virtual ~BaseHardwareModule();
 
     /** Initialize the pedal */
-    virtual void Init(bool boost = false);
+    virtual void Init(size_t blockSize, bool boost);
 
     /**
        Wait before moving on.

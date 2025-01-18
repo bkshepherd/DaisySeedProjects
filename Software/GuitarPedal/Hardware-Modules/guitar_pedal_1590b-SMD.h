@@ -19,7 +19,7 @@ class GuitarPedal1590BSMD : public BaseHardwareModule {
   public:
     GuitarPedal1590BSMD();
     ~GuitarPedal1590BSMD();
-    void Init(bool boost = false) override;
+    void Init(size_t blockSize, bool boost) override;
 };
 } // namespace bkshepherd
 #endif

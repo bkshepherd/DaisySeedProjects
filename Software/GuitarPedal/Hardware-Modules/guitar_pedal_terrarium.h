@@ -19,7 +19,7 @@ class GuitarPedalTerrarium : public BaseHardwareModule {
   public:
     GuitarPedalTerrarium();
     ~GuitarPedalTerrarium();
-    void Init(bool boost = false) override;
+    void Init(size_t blockSize, bool boost) override;
 };
 } // namespace bkshepherd
 #endif

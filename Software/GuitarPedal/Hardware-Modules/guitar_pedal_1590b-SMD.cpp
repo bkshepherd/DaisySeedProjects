@@ -14,8 +14,8 @@ GuitarPedal1590BSMD::GuitarPedal1590BSMD() : BaseHardwareModule() {
 
 GuitarPedal1590BSMD::~GuitarPedal1590BSMD() {}
 
-void GuitarPedal1590BSMD::Init(bool boost) {
-    BaseHardwareModule::Init(boost);
+void GuitarPedal1590BSMD::Init(size_t blockSize, bool boost) {
+    BaseHardwareModule::Init(blockSize, boost);
 
     m_supportsStereo = true;
 
