@@ -105,10 +105,13 @@ CrossFade crossFaderLeft, crossFaderRight;
 float crossFaderTransitionTimeInSeconds = 0.1f;
 int crossFaderTransitionTimeInSamples;
 int samplesTilCrossFadingComplete;
+CpuLoadMeter cpuLoadMeter;
 
 void SetActiveEffect(int effectID);
 
 static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, size_t size) {
+    cpuLoadMeter.OnBlockStart();
+
     // Process Audio
     float inputLeft;
     float inputRight;
@@ -438,6 +441,8 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
     hardware.SetLed(0, led1Brightness);
     hardware.SetLed(1, led2Brightness);
     hardware.UpdateLeds();
+
+    cpuLoadMeter.OnBlockEnd();
 }
 
 void SetActiveEffect(int effectID) {
@@ -548,10 +553,15 @@ void HandleMidiMessage(MidiEvent m) {
 }
 
 int main(void) {
-    hardware.Init(true); // true enables cpu boost (480Mhz instead of 400Mhz)
-    hardware.SetAudioBlockSize(48);
+    const size_t blockSize = 48;
+    const bool boost = true; // true enables cpu boost (480Mhz instead of 400Mhz)
 
-    float sample_rate = hardware.AudioSampleRate();
+    hardware.Init(blockSize, boost);
+
+    const float sample_rate = hardware.AudioSampleRate();
+
+    // Setup CPU logging of the audio callback
+    cpuLoadMeter.Init(sample_rate, blockSize);
 
     // Set the number of samples to use for the crossfade based on the hardware sample rate
     muteOffTransitionTimeInSamples = hardware.GetNumberOfSamplesForTime(muteOffTransitionTimeInSeconds);
@@ -698,6 +708,9 @@ int main(void) {
                 SetActiveEffect(menuEffectID);
             }
         }
+
+        // Set the latest cpu load to the effect
+        activeEffect->SetCPUUsage(cpuLoadMeter.GetAvgCpuLoad());
 
         // Handle Display
         if (hardware.SupportsDisplay()) {

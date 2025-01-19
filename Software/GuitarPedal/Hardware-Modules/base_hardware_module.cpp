@@ -11,12 +11,12 @@ BaseHardwareModule::BaseHardwareModule()
 
 BaseHardwareModule::~BaseHardwareModule() {}
 
-void BaseHardwareModule::Init(bool boost) {
+void BaseHardwareModule::Init(size_t blockSize, bool boost) {
     // Initialize the hardware.
     seed.Configure();
     seed.Init(boost);
 
-    SetAudioBlockSize(48);
+    SetAudioBlockSize(blockSize);
 }
 
 void BaseHardwareModule::DelayMs(size_t del) { seed.DelayMs(del); }

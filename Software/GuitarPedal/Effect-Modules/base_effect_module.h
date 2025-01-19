@@ -302,11 +302,14 @@ class BaseEffectModule {
      */
     virtual bool AlternateFootswitchForTempo() const { return true; };
     /** Overridable callback when alternate footswitch is pressed */
-    virtual void AlternateFootswitchPressed(){};
+    virtual void AlternateFootswitchPressed() {};
     /** Overridable callback when alternate footswitch is released */
-    virtual void AlternateFootswitchReleased(){};
+    virtual void AlternateFootswitchReleased() {};
     /** Overridable callback when alternate footswitch is held for 1 second */
-    virtual void AlternateFootswitchHeldFor1Second(){};
+    virtual void AlternateFootswitchHeldFor1Second() {};
+
+    void SetCPUUsage(float cpuUsage) { m_cpuUsage = cpuUsage; };
+    float GetCPUUsage() const { return m_cpuUsage; }
 
   protected:
     /** Initializes the Parameter Storage and creates space for the specified number of stored Effect Parameters
@@ -335,6 +338,7 @@ class BaseEffectModule {
   private:
     bool m_isEnabled;
     float m_sampleRate; // Current Sample Rate this Effect was initialized for.
+    float m_cpuUsage;   // CPU usage of the audio callback, can be used for rendering to display
 };
 } // namespace bkshepherd
 #endif

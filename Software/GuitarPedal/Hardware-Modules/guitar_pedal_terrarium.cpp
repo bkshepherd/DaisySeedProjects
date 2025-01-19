@@ -14,8 +14,8 @@ GuitarPedalTerrarium::GuitarPedalTerrarium() : BaseHardwareModule() {
 
 GuitarPedalTerrarium::~GuitarPedalTerrarium() {}
 
-void GuitarPedalTerrarium::Init(bool boost) {
-    BaseHardwareModule::Init(boost);
+void GuitarPedalTerrarium::Init(size_t blockSize, bool boost) {
+    BaseHardwareModule::Init(blockSize, boost);
 
     Pin knobPins[] = {seed::D16, seed::D17, seed::D18, seed::D19, seed::D20, seed::D21};
     InitKnobs(6, knobPins);

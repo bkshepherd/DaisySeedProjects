@@ -14,8 +14,8 @@ GuitarPedal125B::GuitarPedal125B() : BaseHardwareModule() {
 
 GuitarPedal125B::~GuitarPedal125B() {}
 
-void GuitarPedal125B::Init(bool boost) {
-    BaseHardwareModule::Init(boost);
+void GuitarPedal125B::Init(size_t blockSize, bool boost) {
+    BaseHardwareModule::Init(blockSize, boost);
 
     m_supportsStereo = true;
 

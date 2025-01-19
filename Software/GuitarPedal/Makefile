@@ -62,15 +62,17 @@ USE_DAISYSP_LGPL=1
 SYSTEM_FILES_DIR = $(LIBDAISY_DIR)/core
 include $(SYSTEM_FILES_DIR)/Makefile
 
-C_INCLUDES += -I./dependencies/q/q/q_lib/include
-C_INCLUDES += -I./dependencies/q/infra/include 
-C_INCLUDES += -I./dependencies/gcem/include
-C_INCLUDES += -I./dependencies/eigen
-C_INCLUDES += -I./dependencies/RTNeural
+# Included as system instead of regular includes to avoid warnings from the
+# 3rd party dependencies
+C_INCLUDES += -isystem ./dependencies/q/q/q_lib/include
+C_INCLUDES += -isystem ./dependencies/q/infra/include
+C_INCLUDES += -isystem ./dependencies/gcem/include
+C_INCLUDES += -isystem ./dependencies/eigen
+C_INCLUDES += -isystem ./dependencies/RTNeural
 
 CPPFLAGS += -DRTNEURAL_DEFAULT_ALIGNMENT=8 -DRTNEURAL_NO_DEBUG=1 -DRTNEURAL_USE_EIGEN=1
 
-C_INCLUDES += -I./dependencies/CloudSeed
+C_INCLUDES += -isystem ./dependencies/CloudSeed
 LIBS += -lcloudseed
 LIBDIR += -Ldependencies/CloudSeed/build
 
