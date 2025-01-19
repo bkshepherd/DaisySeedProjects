@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+// https://en.wikipedia.org/wiki/Fast_inverse_square_root
 static constexpr float fastInvSqrt(float number) noexcept {
     union {
         float f;
