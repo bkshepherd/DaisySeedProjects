@@ -4,7 +4,7 @@
 #include <q/fx/biquad.hpp>
 #include <q/support/literals.hpp>
 
-//#include "../Util/EffectState.h"
+// #include "../Util/EffectState.h"
 #include "../Util/Multirate.h"
 #include "../Util/OctaveGenerator.h"
 
@@ -78,9 +78,7 @@ void PolyOctaveModule::Init(float sample_rate) {
 void PolyOctaveModule::ProcessMono(float in) {
     BaseEffectModule::ProcessMono(in);
 
-    float input = m_audioLeft;
-    buff[bin_counter] =
-        m_audioLeft; // making a workaround for only processing sample by sample instead of block, will add 6 samples of latency
+    buff[bin_counter] = in; // making a workaround for only processing sample by sample instead of block, will add 6 samples of latency
 
     float dryLevel = GetParameterAsFloat(0);
     float down1Level = GetParameterAsFloat(1);
@@ -107,7 +105,6 @@ void PolyOctaveModule::ProcessMono(float in) {
         for (size_t j = 0; j < out_chunk.size(); ++j) {
             float mix = eq2(eq1(out_chunk[j]));
 
-            const auto dry_signal = buff[j];
             mix += dryLevel * buff[j];
 
             buff_out[j] = mix;
