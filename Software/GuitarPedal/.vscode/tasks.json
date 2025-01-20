@@ -10,7 +10,9 @@
       "options": {
         "cwd": "${workspaceFolder}"
       },
-      "problemMatcher": ["$gcc"],
+      "problemMatcher": [
+        "$gcc"
+      ],
       "type": "shell"
     },
     {
@@ -19,7 +21,9 @@
       "options": {
         "cwd": "${workspaceFolder}"
       },
-      "problemMatcher": ["$gcc"],
+      "problemMatcher": [
+        "$gcc"
+      ],
       "type": "shell"
     },
     {
@@ -28,27 +32,41 @@
       "options": {
         "cwd": "${workspaceFolder}"
       },
-      "problemMatcher": ["$gcc"],
+      "problemMatcher": [
+        "$gcc"
+      ],
       "type": "shell"
     },
     {
       "command": "make clean;make",
-      "dependsOn": ["build_libdaisy", "build_daisysp"],
+      "dependsOn": [
+        "build_libdaisy",
+        "build_daisysp",
+        "build_cloudseed"
+      ],
       "label": "build_all",
       "options": {
         "cwd": "${workspaceFolder}"
       },
-      "problemMatcher": ["$gcc"],
+      "problemMatcher": [
+        "$gcc"
+      ],
       "type": "shell"
     },
     {
       "command": "make clean;DEBUG=1 make",
-      "dependsOn": ["build_libdaisy", "build_daisysp"],
+      "dependsOn": [
+        "build_libdaisy",
+        "build_daisysp",
+        "build_cloudseed"
+      ],
       "label": "build_all_debug",
       "options": {
         "cwd": "${workspaceFolder}"
       },
-      "problemMatcher": ["$gcc"],
+      "problemMatcher": [
+        "$gcc"
+      ],
       "type": "shell"
     },
     {
@@ -67,18 +85,33 @@
       "command": "make",
       "label": "build_libdaisy",
       "options": {
-        "cwd": "${workspaceFolder}/libDaisy"
+        "cwd": "${workspaceFolder}/dependencies/libDaisy"
       },
-      "problemMatcher": ["$gcc"],
+      "problemMatcher": [
+        "$gcc"
+      ],
       "type": "shell"
     },
     {
       "command": "make",
       "label": "build_daisysp",
       "options": {
-        "cwd": "${workspaceFolder}/DaisySP"
+        "cwd": "${workspaceFolder}/dependencies/DaisySP"
       },
-      "problemMatcher": ["$gcc"],
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "type": "shell"
+    },
+    {
+      "command": "make",
+      "label": "build_cloudseed",
+      "options": {
+        "cwd": "${workspaceFolder}/dependencies/Cloudseed"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
       "type": "shell"
     }
   ],

@@ -5,7 +5,8 @@ using namespace bkshepherd;
 
 static const char *s_waveBinNames[5] = {"Sine", "Triangle", "Saw", "Ramp",
                                         "Square"}; //, "Poly Tri", "Poly Saw", "Poly Sqr"};  // Horrible loud sound when switching to
-                                                   //poly tri, not every time, TODO whats going on?
+                                                   // poly tri, not every time, TODO whats going on? (I suspect electro smith broke
+                                                   // the poly tri osc, the same happens in the tremolo too)
 static const char *s_modParamNames[4] = {"None", "DelayTime", "DelayLevel", "DelayPan"};
 static const char *s_delayModes[3] = {"Normal", "Triplett", "Dotted 8th"};
 static const char *s_delayTypes[6] = {"Forward", "Reverse", "Octave", "ReverseOct", "Dual", "DualOct"};
@@ -123,8 +124,8 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
 // Default Constructor
 DelayModule::DelayModule()
     : BaseEffectModule(), m_delaylpFreqMin(300.0f), m_delaylpFreqMax(20000.0f), m_delaySamplesMin(2400.0f),
-      m_delaySamplesMax(192000.0f), m_delaySpreadMin(24.0f), m_delaySpreadMax(2400.0f), m_pdelRight_out(0.0), m_modOscFreqMin(0.0),
-      m_modOscFreqMax(3.0), m_currentMod(1.0), m_LEDValue(1.0f) {
+      m_delaySamplesMax(192000.0f), m_delaySpreadMin(24.0f), m_delaySpreadMax(2400.0f), m_pdelRight_out(0.0), m_currentMod(1.0),
+      m_modOscFreqMin(0.0), m_modOscFreqMax(3.0), m_LEDValue(1.0f) {
     // Set the name of the effect
     m_name = "Delay";
 

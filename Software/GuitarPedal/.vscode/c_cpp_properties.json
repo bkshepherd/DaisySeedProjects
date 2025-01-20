@@ -4,11 +4,15 @@
       "cStandard": "c11",
       "compilerPath": "arm-none-eabi-g++.exe",
       "cppStandard": "c++20",
-      "defines": ["_DEBUG", "UNICODE", "_UNICODE"],
+      "defines": [
+        "_DEBUG",
+        "UNICODE",
+        "_UNICODE"
+      ],
       "includePath": [
         "${workspaceFolder}/**",
-        "${workspaceFolder}/libDaisy/**",
-        "${workspaceFolder}/DaisySP/**"
+        "${workspaceFolder}/dependencies/libDaisy/**",
+        "${workspaceFolder}/dependencies/DaisySP/**"
       ],
       "name": "Win32",
       "windowsSdkVersion": "10.0.17763.0",
@@ -18,11 +22,15 @@
       "cStandard": "c11",
       "compilerPath": "/usr/local/bin/arm-none-eabi-g++",
       "cppStandard": "c++20",
-      "defines": ["_DEBUG", "UNICODE", "_UNICODE"],
+      "defines": [
+        "_DEBUG",
+        "UNICODE",
+        "_UNICODE"
+      ],
       "includePath": [
         "${workspaceFolder}/**",
-        "${workspaceFolder}/libDaisy/**",
-        "${workspaceFolder}/DaisySP/**"
+        "${workspaceFolder}/dependencies/libDaisy/**",
+        "${workspaceFolder}/dependencies/DaisySP/**"
       ],
       "name": "macOS",
       "configurationProvider": "ms-vscode.makefile-tools"
