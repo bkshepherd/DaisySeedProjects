@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# From /Software/GuitarPedal/ you can run ./ci/clang-format.sh to format all the code in the project
+# From /Software/GuitarPedal/ you can run ./ci/format.sh to format all the code in the project
 START_DIR=$PWD
 find $START_DIR/Effect-Modules/ -iname '*.h' -o -iname '*.cpp' -o -iname '*.hpp' -exec clang-format -style=file -i {} \;
 find $START_DIR/Hardware-Modules/ -iname '*.h' -o -iname '*.cpp' -o -iname '*.hpp' -exec clang-format -style=file -i {} \;
