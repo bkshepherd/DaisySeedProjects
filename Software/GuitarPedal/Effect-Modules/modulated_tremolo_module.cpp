@@ -80,7 +80,7 @@ void ModulatedTremoloModule::ProcessMono(float in) {
     m_tremolo.SetFreq(m_tremoloFreqMin + ((GetParameterAsFloat(2) * m_tremoloFreqMax) * mod));
 
     // Ease the effect value into it's target to avoid clipping with square or sawtooth waves
-    fonepole(m_cachedEffectMagnitudeValue, m_tremolo.Process(1.0f), .01f);
+    daisysp::fonepole(m_cachedEffectMagnitudeValue, m_tremolo.Process(1.0f), .01f);
 
     m_audioLeft = m_audioLeft * m_cachedEffectMagnitudeValue;
     m_audioRight = m_audioLeft;
