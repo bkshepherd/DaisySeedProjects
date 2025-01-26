@@ -4,13 +4,14 @@
 
 using namespace bkshepherd;
 
-static const char *s_clippingOptions[5] = {"Hard Clip", "Soft Clip", "Fuzz", "Tube", "Multi Stage"};
+static const char *s_clippingOptions[6] = {"Hard Clip", "Soft Clip", "Fuzz", "Tube", "Multi Stage", "Diode Clip"};
 
-constexpr float preFilterCutoff = 80.0f;
+constexpr float preFilterCutoffBase = 140.0f;
+constexpr float preFilterCutoffMax = 300.0f;
 constexpr float postFilterCutoff = 8000.0f;
-cycfi::q::highpass preFilter(preFilterCutoff, 48000);
+cycfi::q::highpass preFilter(preFilterCutoffBase, 48000);
 cycfi::q::lowpass postFilter(postFilterCutoff, 48000);
-constexpr uint8_t oversamplingFactor = 8;
+constexpr uint8_t oversamplingFactor = 16;
 
 static const int s_paramCount = 6;
 static const ParameterMetaData s_metaData[s_paramCount] = {
@@ -41,7 +42,7 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
     {
         name : "Dist Type",
         valueType : ParameterValueType::Binned,
-        valueBinCount : 5,
+        valueBinCount : 6,
         valueBinNames : s_clippingOptions,
         defaultValue : {.uint_value = 0},
         knobMapping : 3,
@@ -94,7 +95,7 @@ void DistortionModule::Init(float sample_rate) {
 }
 
 void DistortionModule::InitializeFilters() {
-    preFilter.config(preFilterCutoff, GetSampleRate());
+    preFilter.config(preFilterCutoffBase, GetSampleRate());
 
     if (m_oversampling) {
         postFilter.config(postFilterCutoff, GetSampleRate() * oversamplingFactor);
@@ -114,6 +115,14 @@ void DistortionModule::ParameterChanged(int parameter_id) {
 }
 
 float hardClipping(float input, float threshold) { return std::clamp(input, -threshold, threshold); }
+
+float diodeClipping(float input, float threshold) {
+    if (input > threshold)
+        return threshold - std::exp(-(input - threshold));
+    else if (input < -threshold)
+        return -threshold + std::exp(input + threshold);
+    return input;
+}
 
 float softClipping(float input, float gain) { return std::tanh(input * gain); }
 
@@ -144,6 +153,10 @@ float multiStage(float sample, float drive, float intensity) {
     const float result = tubeSaturation(stage2, drive * intensity);
 
     return result;
+}
+
+float dynamicPreFilterCutoff(float inputEnergy) {
+    return preFilterCutoffBase + (preFilterCutoffMax - preFilterCutoffBase) * std::tanh(inputEnergy);
 }
 
 // Helper functions for oversampling
@@ -195,6 +208,9 @@ void processDistortion(float &sample,           // Sample to process
     case 4: // Multi-stage
         sample = multiStage(sample, gain, intensity);
         break;
+    case 5: // Diode Clipping
+        sample = hardClipping(sample, 1.0f - intensity);
+        break;
     }
 }
 
@@ -215,6 +231,9 @@ void normalizeVolume(float &sample, int clippingType) {
     case 4: // Multi-stage
         sample *= 0.5f;
         break;
+    case 5: // Diode Clipping
+        sample *= 1.8f;
+        break;
     }
 }
 
@@ -222,11 +241,16 @@ void DistortionModule::ProcessMono(float in) {
     float distorted = in;
 
     // Apply high-pass filter to remove excessive low frequencies
+    const float energy = std::abs(distorted);
+    preFilter.config(dynamicPreFilterCutoff(energy), GetSampleRate());
     distorted = preFilter(distorted);
 
     const float gain = m_gainMin + (GetParameterAsFloat(1) * (m_gainMax - m_gainMin));
     const int clippingType = GetParameterAsBinnedValue(3) - 1;
     const float intensity = GetParameterAsFloat(4);
+
+    // Reduce signal amplitude before clipping
+    distorted = distorted * 0.5f;
 
     if (m_oversampling) {
         // Prepare signal for oversampling
