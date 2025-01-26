@@ -28,6 +28,8 @@ class DistortionModule : public BaseEffectModule {
 
   private:
     float ProcessTiltToneControl(float in);
+    void InitializeFilters();
+
     float m_levelMin = 0.0f;
     float m_levelMax = 1.0f;
 
@@ -35,6 +37,8 @@ class DistortionModule : public BaseEffectModule {
     float m_gainMax = 20.0f;
 
     Tone m_tone;
+
+    bool m_oversampling;
 };
 } // namespace bkshepherd
 #endif
