@@ -21,6 +21,7 @@ CPP_SOURCES += Effect-Modules/cloudseed_module.cpp
 CPP_SOURCES += Effect-Modules/compressor_module.cpp
 CPP_SOURCES += Effect-Modules/crusher_module.cpp
 CPP_SOURCES += Effect-Modules/delay_module.cpp
+CPP_SOURCES += Effect-Modules/distortion_module.cpp
 CPP_SOURCES += Effect-Modules/geq_module.cpp
 CPP_SOURCES += Effect-Modules/ImpulseResponse/ImpulseResponse.cpp
 CPP_SOURCES += Effect-Modules/ImpulseResponse/dsp.cpp
