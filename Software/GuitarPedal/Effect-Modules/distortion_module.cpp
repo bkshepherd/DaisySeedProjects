@@ -1,12 +1,15 @@
 #include "distortion_module.h"
+#include <algorithm>
 #include <q/fx/biquad.hpp>
 
 using namespace bkshepherd;
 
 static const char *s_clippingOptions[5] = {"Hard Clip", "Soft Clip", "Fuzz", "Tube", "Multi Stage"};
 
-cycfi::q::highpass preFilter(80.0f, 48000);
-cycfi::q::lowpass postFilter(8000.0f, 48000);
+constexpr float preFilterCutoff = 80.0f;
+constexpr float postFilterCutoff = 8000.0f;
+cycfi::q::highpass preFilter(preFilterCutoff, 48000);
+cycfi::q::lowpass postFilter(postFilterCutoff, 48000);
 constexpr uint8_t oversamplingFactor = 8;
 
 static const int s_paramCount = 6;
@@ -91,12 +94,12 @@ void DistortionModule::Init(float sample_rate) {
 }
 
 void DistortionModule::InitializeFilters() {
-    preFilter.config(80.0f, GetSampleRate());
+    preFilter.config(preFilterCutoff, GetSampleRate());
 
     if (m_oversampling) {
-        postFilter.config(8000.0f, GetSampleRate() * oversamplingFactor);
+        postFilter.config(postFilterCutoff, GetSampleRate() * oversamplingFactor);
     } else {
-        postFilter.config(8000.0f, GetSampleRate());
+        postFilter.config(postFilterCutoff, GetSampleRate());
     }
 }
 
@@ -110,15 +113,7 @@ void DistortionModule::ParameterChanged(int parameter_id) {
     }
 }
 
-float hardClipping(float input, float threshold) {
-    if (input > threshold) {
-        return threshold;
-    } else if (input < -threshold) {
-        return -threshold;
-    } else {
-        return input;
-    }
-}
+float hardClipping(float input, float threshold) { return std::clamp(input, -threshold, threshold); }
 
 float softClipping(float input, float gain) { return std::tanh(input * gain); }
 
@@ -236,7 +231,7 @@ void DistortionModule::ProcessMono(float in) {
     if (m_oversampling) {
         // Prepare signal for oversampling
         std::vector<float> monoInput = {distorted};
-        std::vector<float> oversampledInput = upsample(monoInput, oversamplingFactor, GetSampleRate()); // 4x oversampling
+        std::vector<float> oversampledInput = upsample(monoInput, oversamplingFactor, GetSampleRate());
 
         // Apply gain and distortion processing
         for (float &sample : oversampledInput) {
@@ -279,12 +274,12 @@ float DistortionModule::ProcessTiltToneControl(float input) {
     const float toneAmount = GetParameterAsFloat(2);
 
     // Process input with one-pole low-pass
-    float lp = m_tone.Process(input);
+    const float lp = m_tone.Process(input);
 
     // Compute the high-passed portion
-    float hp = input - lp;
+    const float hp = input - lp;
 
-    // Crossfade: toneAmount=0 => all LP (bassier), toneAmount=1 => all HP (treblier)
+    // Crossfade: toneAmount=0 => all LP (more bass), toneAmount=1 => all HP (more treble)
     return lp * (1.f - toneAmount) + hp * toneAmount;
 }
 
