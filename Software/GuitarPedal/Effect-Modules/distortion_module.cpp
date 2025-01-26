@@ -5,9 +5,9 @@ using namespace bkshepherd;
 
 static const char *s_clippingOptions[5] = {"Hard Clip", "Soft Clip", "Fuzz", "Tube", "Multi Stage"};
 
-cycfi::q::highpass preFilter(40.0f, 48000);
+cycfi::q::highpass preFilter(80.0f, 48000);
 cycfi::q::lowpass postFilter(8000.0f, 48000);
-constexpr uint8_t oversamplingFactor = 32;
+constexpr uint8_t oversamplingFactor = 8;
 
 static const int s_paramCount = 6;
 static const ParameterMetaData s_metaData[s_paramCount] = {
@@ -82,15 +82,16 @@ DistortionModule::~DistortionModule() {
 void DistortionModule::Init(float sample_rate) {
     BaseEffectModule::Init(sample_rate);
     m_tone.Init(sample_rate);
-    // Set the frequency for the tilt pivot for the tone control
-    m_tone.SetFreq(1000.0f);
+
+    // Pivot between 500 Hz and 2 kHz as the tone amount changes
+    m_tone.SetFreq(500.0f + 1500.0f * GetParameterAsFloat(2));
 
     m_oversampling = GetParameterAsBool(5);
     InitializeFilters();
 }
 
 void DistortionModule::InitializeFilters() {
-    preFilter.config(40.0f, GetSampleRate());
+    preFilter.config(80.0f, GetSampleRate());
 
     if (m_oversampling) {
         postFilter.config(8000.0f, GetSampleRate() * oversamplingFactor);
@@ -103,6 +104,9 @@ void DistortionModule::ParameterChanged(int parameter_id) {
     if (parameter_id == 5) {
         m_oversampling = GetParameterAsBool(5);
         InitializeFilters();
+    } else if (parameter_id == 2) {
+        // Pivot between 500 Hz and 2 kHz as the tone amount changes
+        m_tone.SetFreq(500.0f + 1500.0f * GetParameterAsFloat(2));
     }
 }
 
