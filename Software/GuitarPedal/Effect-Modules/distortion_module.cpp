@@ -1,5 +1,5 @@
 #include "distortion_module.h"
-#include "../Util/1efilter.hpp"
+#include <q/fx/lowpass.hpp>
 
 using namespace bkshepherd;
 
@@ -122,14 +122,17 @@ float multiStage(float sample, float drive, float intensity) {
 // Helper functions for oversampling
 std::vector<float> upsample(const std::vector<float> &input, int factor, float sample_rate) {
     std::vector<float> output(input.size() * factor, 0.0f);
+    cycfi::q::one_pole_lowpass lowpass_filter(sample_rate / (2.0f * factor));
+
     for (size_t i = 0; i < input.size(); ++i) {
         output[i * factor] = input[i]; // Insert input samples, leaving zeros in between
     }
-    // Apply a 1 Euro filter to smooth interpolated samples
-    static one_euro_filter<float> smoothing_filter(sample_rate, 1.0, 0.0, 1.0);
+
+    // Apply the one-pole low-pass filter to smooth interpolated samples
     for (size_t i = 1; i < output.size(); ++i) {
-        output[i] = smoothing_filter(output[i], static_cast<double>(i) / sample_rate);
+        output[i] = lowpass_filter(output[i]);
     }
+
     return output;
 }
 
@@ -174,7 +177,7 @@ void DistortionModule::ProcessMono(float in) {
 
     float distorted = in;
     if (GetParameterAsBool(5)) {
-        const uint8_t oversamplingFactor = 8;
+        const uint8_t oversamplingFactor = 32;
         // Prepare signal for oversampling
         std::vector<float> monoInput = {distorted};
         std::vector<float> oversampledInput = upsample(monoInput, oversamplingFactor, GetSampleRate()); // 4x oversampling
