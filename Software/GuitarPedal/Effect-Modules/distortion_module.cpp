@@ -199,6 +199,26 @@ void processDistortion(float &sample,           // Sample to process
     }
 }
 
+void normalizeVolume(float &sample, int clippingType) {
+    switch (clippingType) {
+    case 0: // Hard Clipping
+        sample *= 1.8f;
+        break;
+    case 1: // Soft Clipping
+        sample *= 0.8f;
+        break;
+    case 2: // Fuzz
+        sample *= 1.0f;
+        break;
+    case 3: // Tube Saturation
+        sample *= 0.9f;
+        break;
+    case 4: // Multi-stage
+        sample *= 0.5f;
+        break;
+    }
+}
+
 void DistortionModule::ProcessMono(float in) {
     float distorted = in;
 
@@ -236,23 +256,7 @@ void DistortionModule::ProcessMono(float in) {
     }
 
     // Normalize the volume between the types of distortion
-    switch (clippingType) {
-    case 0:
-        distorted *= 1.4f;
-        break;
-    case 1:
-        distorted *= 0.8f;
-        break;
-    case 2:
-        distorted *= 1.0f;
-        break;
-    case 3:
-        distorted *= 0.9f;
-        break;
-    case 4:
-        distorted *= 0.5f;
-        break;
-    }
+    normalizeVolume(distorted, clippingType);
 
     // Apply tilt-tone filter
     const float filter_out = ProcessTiltToneControl(distorted);
