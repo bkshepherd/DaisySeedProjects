@@ -97,13 +97,28 @@ float hardClipping(float input, float threshold) {
 float softClipping(float input, float gain) { return std::tanh(input * gain); }
 
 float fuzzEffect(float input, float intensity) {
-    // Symmetrical clipping with extreme compression
-    float fuzzed = std::tanh(input * intensity);
+    // Pre-filter: High-pass to remove low-frequency content
+    static float prevInput = 0.0f;
+    float highPassed = input - prevInput;
+    prevInput = input;
 
-    // Introduce a slight asymmetry for a classic fuzz character and adds
-    // harmonic content
-    fuzzed += 0.05f * std::sin(input * 20.0f);
-    return fuzzed;
+    // Symmetrical clipping with extreme compression
+    float fuzzed = std::tanh(highPassed * intensity);
+
+    // Introduce a slight asymmetry for a classic fuzz character and adds harmonic content
+    fuzzed += 0.05f * std::sin(highPassed * 20.0f);
+
+    // Dynamic response: Adjust the intensity based on the input signal's amplitude
+    float dynamicIntensity = intensity * (1.0f + 0.5f * std::abs(input));
+    fuzzed = std::tanh(fuzzed * dynamicIntensity);
+
+    // Post-filter: Low-pass to smooth out harsh high frequencies
+    static float prevOutput = 0.0f;
+    float alpha = 0.1f; // Adjust alpha for desired smoothing
+    float smoothed = alpha * fuzzed + (1.0f - alpha) * prevOutput;
+    prevOutput = smoothed;
+
+    return smoothed;
 }
 
 float tubeSaturation(float input, float gain) { return std::atan(input * gain); }
@@ -203,7 +218,7 @@ void DistortionModule::ProcessMono(float in) {
         distorted *= 1.0f;
         break;
     case 2:
-        distorted *= 0.9f;
+        distorted *= 2.8f;
         break;
     case 3:
         distorted *= 0.9f;
