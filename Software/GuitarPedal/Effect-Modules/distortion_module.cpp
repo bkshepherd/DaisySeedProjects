@@ -9,8 +9,10 @@ static const char *s_clippingOptions[6] = {"Hard Clip", "Soft Clip", "Fuzz", "Tu
 constexpr float preFilterCutoffBase = 140.0f;
 constexpr float preFilterCutoffMax = 300.0f;
 constexpr float postFilterCutoff = 8000.0f;
-cycfi::q::highpass preFilter(preFilterCutoffBase, 48000);
-cycfi::q::lowpass postFilter(postFilterCutoff, 48000);
+cycfi::q::highpass preFilter(preFilterCutoffBase, 48000); // Dummy values that get overwritten in Init
+cycfi::q::lowpass postFilter(postFilterCutoff, 48000);    // Dummy values that get overwritten in Init
+cycfi::q::lowpass upsamplingLowpassFilter(0.0f, 48000);   // Dummy values that get overwritten in Init
+
 constexpr uint8_t oversamplingFactor = 16;
 
 static const int s_paramCount = 6;
@@ -102,6 +104,8 @@ void DistortionModule::InitializeFilters() {
     } else {
         postFilter.config(postFilterCutoff, GetSampleRate());
     }
+
+    upsamplingLowpassFilter.config(GetSampleRate() / (2.0f * static_cast<float>(oversamplingFactor)), GetSampleRate());
 }
 
 void DistortionModule::ParameterChanged(int parameter_id) {
@@ -169,9 +173,8 @@ std::vector<float> upsample(const std::vector<float> &input, int factor, float s
     }
 
     // Apply the low-pass filter to smooth interpolated samples
-    cycfi::q::lowpass lowpass_filter(sample_rate / (2.0f * static_cast<float>(factor)), sample_rate);
     for (size_t i = 1; i < output.size(); ++i) {
-        output[i] = lowpass_filter(output[i]);
+        output[i] = upsamplingLowpassFilter(output[i]);
     }
 
     return output;
