@@ -17,7 +17,7 @@
 #include "Effect-Modules/noise_gate_module.h"
 #include "Effect-Modules/overdrive_module.h"
 #include "Effect-Modules/peq_module.h"
-// #include "Effect-Modules/pitch_shifter_module.h" // Commented out to make room in DTCRAM
+#include "Effect-Modules/pitch_shifter_module.h"
 #include "Effect-Modules/reverb_module.h"
 #include "Effect-Modules/tuner_module.h"
 
@@ -36,32 +36,32 @@
 void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffects) {
     // Make sure this count matches the maxindex - 1 (count) of effects that get
     // added to the array
-    availableEffectsCount = 22;
+    availableEffectsCount = 1;
     availableEffects = new BaseEffectModule *[availableEffectsCount];
-    availableEffects[0] = new ModulatedTremoloModule();
-    availableEffects[1] = new OverdriveModule();
-    availableEffects[2] = new AutoPanModule();
-    availableEffects[3] = new ChorusModule();
-    availableEffects[4] = new ChopperModule();
-    availableEffects[5] = new ReverbModule();
-    availableEffects[6] = new MultiDelayModule();
-    availableEffects[7] = new MetroModule();
-    availableEffects[8] = new TunerModule();
-    // availableEffects[9] = new PitchShifterModule();
-    availableEffects[9] = new CompressorModule();
-    availableEffects[10] = new LooperModule();
-    availableEffects[11] = new GraphicEQModule();
-    availableEffects[12] = new ParametricEQModule();
-    availableEffects[13] = new NoiseGateModule();
+    // availableEffects[0] = new ModulatedTremoloModule();
+    // availableEffects[1] = new OverdriveModule();
+    // availableEffects[2] = new AutoPanModule();
+    // availableEffects[3] = new ChorusModule();
+    // availableEffects[4] = new ChopperModule();
+    // availableEffects[5] = new ReverbModule();
+    // availableEffects[6] = new MultiDelayModule();
+    // availableEffects[7] = new MetroModule();
+    // availableEffects[8] = new TunerModule();
+    // availableEffects[9] = new CompressorModule();
+    // availableEffects[10] = new LooperModule();
+    // availableEffects[11] = new GraphicEQModule();
+    // availableEffects[12] = new ParametricEQModule();
+    // availableEffects[13] = new NoiseGateModule();
 
-    availableEffects[14] = new CloudSeedModule();
-    availableEffects[15] = new AmpModule();
-    availableEffects[16] = new DelayModule();
-    availableEffects[17] = new NamModule();
-    availableEffects[18] = new SciFiModule();
-    availableEffects[19] = new PolyOctaveModule();
-    availableEffects[20] = new SpectralDelayModule();
-    availableEffects[21] = new DistortionModule();
+    // availableEffects[14] = new CloudSeedModule();
+    // availableEffects[15] = new AmpModule();
+    // availableEffects[16] = new DelayModule();
+    // availableEffects[17] = new NamModule();
+    // availableEffects[18] = new SciFiModule();
+    // availableEffects[19] = new PolyOctaveModule();
+    // availableEffects[20] = new SpectralDelayModule();
+    // availableEffects[21] = new DistortionModule();
+    availableEffects[0] = new PitchShifterModule();
 
     // The following require a MIDI keyboard
     // availableEffects[21] = new MidiKeysModule();

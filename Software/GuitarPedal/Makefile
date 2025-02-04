@@ -35,7 +35,7 @@ CPP_SOURCES += Effect-Modules/nam_module.cpp
 CPP_SOURCES += Effect-Modules/noise_gate_module.cpp
 CPP_SOURCES += Effect-Modules/overdrive_module.cpp
 CPP_SOURCES += Effect-Modules/peq_module.cpp
-#CPP_SOURCES += Effect-Modules/pitch_shifter_module.cpp
+CPP_SOURCES += Effect-Modules/pitch_shifter_module.cpp
 #CPP_SOURCES += Effect-Modules/pluckecho_module.cpp
 CPP_SOURCES += Effect-Modules/polyoctave_module.cpp
 CPP_SOURCES += Effect-Modules/reverb_module.cpp
@@ -70,6 +70,7 @@ C_INCLUDES += -isystem ./dependencies/q/infra/include
 C_INCLUDES += -isystem ./dependencies/gcem/include
 C_INCLUDES += -isystem ./dependencies/eigen
 C_INCLUDES += -isystem ./dependencies/RTNeural
+C_INCLUDES += -isystem ./dependencies/signalsmith-stretch
 
 CPPFLAGS += -DRTNEURAL_DEFAULT_ALIGNMENT=8 -DRTNEURAL_NO_DEBUG=1 -DRTNEURAL_USE_EIGEN=1
 

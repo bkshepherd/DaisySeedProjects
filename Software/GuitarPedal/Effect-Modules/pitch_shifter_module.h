@@ -37,6 +37,7 @@ class PitchShifterModule : public BaseEffectModule {
     bool m_alternateFootswitchPressed = false;
 
     float m_semitoneTarget = 0;
+    float m_semitoneTargetPrev = 0;
 
     uint32_t m_sampleCounter = 0;
     uint32_t m_samplesToDelayShift = 0;

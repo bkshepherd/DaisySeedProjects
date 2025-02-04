@@ -2,8 +2,8 @@
 
 #include <algorithm>
 
-#include "../Util/pitch_shifter.h"
 #include "daisysp.h"
+#include "signalsmith-stretch.h"
 
 using namespace bkshepherd;
 
@@ -16,7 +16,17 @@ static const char *s_modeBinNames[2] = {"LATCH", "MOMENT"};
 // transition when in momentary mode. Has no effect on latching mode
 const uint32_t k_maxSamplesMaxTime = 48000 * 2;
 
-const uint32_t k_defaultSamplesDelayPitchShifter = 2048;
+static constexpr size_t PROCESS_BLOCK_SIZE = 256; // Adjust for quality vs latency
+
+static signalsmith::stretch::SignalsmithStretch<float> stretch;
+static daisysp::CrossFade pitchCrossfade;
+
+// Circular buffers
+static float inputBuffer[PROCESS_BLOCK_SIZE];
+static float outputBuffer[PROCESS_BLOCK_SIZE];
+static size_t inputIndex = 0;
+static size_t outputIndex = 0;
+static size_t outputReady = 0;
 
 static const int s_paramCount = 6;
 static const ParameterMetaData s_metaData[s_paramCount] = {
@@ -73,11 +83,6 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
     },
 };
 
-// TODO: move this to SDRAM, I experience a bad sound at startup sometimes when
-// I use DSY_SDRAM_BSS and I haven't been able to pin down the cause yet
-static daisysp_modified::PitchShifter pitchShifter;
-static daisysp::CrossFade pitchCrossfade;
-
 // Default Constructor
 PitchShifterModule::PitchShifterModule() : BaseEffectModule() {
     m_name = "Pitch";
@@ -107,41 +112,18 @@ void PitchShifterModule::ProcessSemitoneTargetChange() {
 }
 
 void PitchShifterModule::SetTranspose(float semitone) {
-    // If this is latching, then we also adjust the delay to get the best sound
-    // from the adjustments at the cost of increased latency
-    if (m_latching) {
-        // Larger delay size is higher fidelity/quality for a farther transpose, at
-        // the cost of additional latency (like...a lot of latency)
-
-        // 2048 works pretty well for 1 semitone and is just ~5ms, not too bad at
-        // all
-
-        // 6000 samples was the best I could find for a usable full octave tone,
-        // but is a whopping 125 ms, nearly unusable? kind of cool when blended
-        // with the dry signal though
-
-        // Value between 0 and 1 where 0 is 1 semitone and 1 is 12 semitones
-        const float interpolateValue = (std::abs(semitone) - 1.0f) / 11.0f;
-
-        // Linearly just choose a value between the min and max based on how many
-        // semitones we are dropping
-        const uint32_t delaySize =
-            std::lerp(k_defaultSamplesDelayPitchShifter, daisysp_modified::k_maxSamplesDelayPitchShifter, interpolateValue);
-
-        // Set delay size clamping to the min/max that are possible
-        pitchShifter.SetDelSize(
-            std::clamp(delaySize, k_defaultSamplesDelayPitchShifter, daisysp_modified::k_maxSamplesDelayPitchShifter));
+    if (m_semitoneTargetPrev != semitone) {
+        stretch.setTransposeSemitones(semitone);
+        m_semitoneTargetPrev = semitone;
     }
-    pitchShifter.SetTransposition(semitone);
 }
 
 void PitchShifterModule::Init(float sample_rate) {
     BaseEffectModule::Init(sample_rate);
 
-    pitchShifter.Init(sample_rate);
-    pitchShifter.SetDelSize(k_defaultSamplesDelayPitchShifter);
+    stretch.configure(1, 2048, 1024);
 
-    pitchCrossfade.Init(CROSSFADE_CPOW);
+    pitchCrossfade.Init(daisysp::CROSSFADE_CPOW);
     pitchCrossfade.SetPos(GetParameterAsFloat(1));
 
     m_latching = GetParameterAsBinnedValue(3) == 1;
@@ -150,10 +132,38 @@ void PitchShifterModule::Init(float sample_rate) {
 
     ProcessSemitoneTargetChange();
 
+    // Set it the first time just to be sure
+    stretch.setTransposeSemitones(m_semitoneTarget);
+
     SetTranspose(m_semitoneTarget);
 
     m_samplesToDelayShift = static_cast<uint32_t>(static_cast<float>(k_maxSamplesMaxTime) * GetParameterAsFloat(4));
     m_samplesToDelayReturn = static_cast<uint32_t>(static_cast<float>(k_maxSamplesMaxTime) * GetParameterAsFloat(5));
+}
+
+float ProcessPitchShift(float in) {
+    float out = in;
+
+    // Store input sample
+    inputBuffer[inputIndex++] = in;
+
+    if (inputIndex >= PROCESS_BLOCK_SIZE) {
+        // Process the block when full
+        float *inputPtr[1] = {inputBuffer};
+        float *outputPtr[1] = {outputBuffer};
+        stretch.process(inputPtr, PROCESS_BLOCK_SIZE, outputPtr, PROCESS_BLOCK_SIZE);
+        inputIndex = 0;
+        outputIndex = 0;
+        outputReady = PROCESS_BLOCK_SIZE;
+    }
+
+    // Retrieve processed samples
+    if (outputReady > 0) {
+        out = outputBuffer[outputIndex++];
+        outputReady--;
+    }
+
+    return out;
 }
 
 void PitchShifterModule::ParameterChanged(int parameter_id) {
@@ -166,9 +176,6 @@ void PitchShifterModule::ParameterChanged(int parameter_id) {
         pitchCrossfade.SetPos(GetParameterAsFloat(1));
     } else if (parameter_id == 3) {
         m_latching = GetParameterAsBinnedValue(3) == 1;
-        if (!m_latching) {
-            pitchShifter.SetDelSize(k_defaultSamplesDelayPitchShifter);
-        }
     } else if (parameter_id == 4) {
         m_samplesToDelayShift = static_cast<uint32_t>(static_cast<float>(k_maxSamplesMaxTime) * GetParameterAsFloat(4));
     } else if (parameter_id == 5) {
@@ -222,7 +229,7 @@ void PitchShifterModule::ProcessMono(float in) {
     if (m_latching) {
         // When in latching mode, just process the target semitone at all times
         // immediately
-        float shifted = pitchShifter.Process(in);
+        float shifted = ProcessPitchShift(in);
         out = pitchCrossfade.Process(in, shifted);
     } else {
         out = ProcessMomentaryMode(in);
@@ -249,7 +256,7 @@ float PitchShifterModule::ProcessMomentaryMode(float in) {
 
         // Process the pitch shift for completely active to the target
         SetTranspose(semitone);
-        float shifted = pitchShifter.Process(in);
+        float shifted = ProcessPitchShift(in);
         float out = pitchCrossfade.Process(in, shifted);
         return out;
     }
@@ -281,7 +288,7 @@ float PitchShifterModule::ProcessMomentaryMode(float in) {
         SetTranspose(m_semitoneTarget * (1.0f - m_percentageTransitionComplete));
     }
 
-    float shifted = pitchShifter.Process(in);
+    float shifted = ProcessPitchShift(in);
     float pitchOut = pitchCrossfade.Process(in, shifted);
 
     // Increment the counter for the next pass
@@ -331,4 +338,7 @@ void PitchShifterModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex
         display.DrawRect(r, true, active);
         x += blockWidth;
     }
+
+    const int inputLatency = stretch.inputLatency();
+    const int outputLatency = stretch.outputLatency();
 }
