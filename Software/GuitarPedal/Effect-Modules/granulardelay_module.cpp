@@ -142,7 +142,7 @@ void GranularDelayModule::ParameterChanged(int parameter_id) {
         m_pitch = rounded_pitch * 100;
 
     } else if (parameter_id == 3) {  // Stereo Spread
-        
+        granular.setStereoSpread(GetParameterAsFloat(3));
 
     } else if (parameter_id == 4) {   // Grain Env
         int option = GetParameterAsBinnedValue(4) - 1;
