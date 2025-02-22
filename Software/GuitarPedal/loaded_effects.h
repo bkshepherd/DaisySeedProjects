@@ -9,6 +9,7 @@
 #include "Effect-Modules/chopper_module.h"
 #include "Effect-Modules/chorus_module.h"
 #include "Effect-Modules/compressor_module.h"
+#include "Effect-Modules/distortion_module.h"
 #include "Effect-Modules/geq_module.h"
 #include "Effect-Modules/looper_module.h"
 #include "Effect-Modules/metro_module.h"
@@ -38,7 +39,7 @@
 void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffects) {
     // Make sure this count matches the maxindex - 1 (count) of effects that get
     // added to the array
-    availableEffectsCount = 23;
+    availableEffectsCount = 24;
     availableEffects = new BaseEffectModule *[availableEffectsCount];
     availableEffects[0] = new ModulatedTremoloModule();
     availableEffects[1] = new OverdriveModule();
@@ -63,14 +64,14 @@ void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffec
     availableEffects[18] = new SciFiModule();
     availableEffects[19] = new PolyOctaveModule();
     availableEffects[20] = new SpectralDelayModule();
-    availableEffects[21] = new FmKeysModule();
-    availableEffects[22] = new GranularDelayModule(); 
-
+    availableEffects[21] = new DistortionModule();
+    availableEffects[22] = new FmKeysModule();
+    availableEffects[23] = new GranularDelayModule(); 
     // The following require a MIDI keyboard
-    // availableEffects[21] = new MidiKeysModule();
-    // availableEffects[22] = new PluckEchoModule();
-    // availableEffects[23] = new StringKeysModule();
-    // availableEffects[24] = new ModalKeysModule();
+    // availableEffects[23] = new MidiKeysModule();
+    // availableEffects[24] = new PluckEchoModule();
+    // availableEffects[25] = new StringKeysModule();
+    // availableEffects[26] = new ModalKeysModule();
 }
 
 #endif
