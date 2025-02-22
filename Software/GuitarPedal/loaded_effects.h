@@ -31,11 +31,14 @@
 #include "Effect-Modules/polyoctave_module.h"
 #include "Effect-Modules/scifi_module.h"
 #include "Effect-Modules/spectral_delay_module.h"
+#include "Effect-Modules/spectral_delay_module.h"
+#include "Effect-Modules/fm_keys_module.h"
+#include "Effect-Modules/granulardelay_module.h"
 
 void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffects) {
     // Make sure this count matches the maxindex - 1 (count) of effects that get
     // added to the array
-    availableEffectsCount = 21;
+    availableEffectsCount = 23;
     availableEffects = new BaseEffectModule *[availableEffectsCount];
     availableEffects[0] = new ModulatedTremoloModule();
     availableEffects[1] = new OverdriveModule();
@@ -60,6 +63,8 @@ void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffec
     availableEffects[18] = new SciFiModule();
     availableEffects[19] = new PolyOctaveModule();
     availableEffects[20] = new SpectralDelayModule();
+    availableEffects[21] = new FmKeysModule();
+    availableEffects[22] = new GranularDelayModule(); 
 
     // The following require a MIDI keyboard
     // availableEffects[21] = new MidiKeysModule();
