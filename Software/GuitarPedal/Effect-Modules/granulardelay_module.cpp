@@ -109,18 +109,15 @@ void GranularDelayModule::Init(float sample_rate) {
     m_looper.Init(buffer_gran_delay, MAX_SAMPLE_GRAN);
     m_looper.SetMode(static_cast<daisysp::Looper::Mode>(3)); // Frippertronics mode
     
-    //m_looper.TrigRecord(); // Always run the frippertronics looper, so it acts like a delay
-    //m_looper.SetMode(static_cast<daisysp::Looper::Mode>(1)); // One Shot Loop mode
     granular.Init(buffer_gran_delay, MAX_SAMPLE_GRAN, sample_rate, 0.0, 0.5);
 
-    // Not sure if this is needed, should be defined by param initialization
     m_pitch = 0.0;
 
     m_hold = false;
     m_loop_recorded = false;
     first_count = 0;
 
-    for(int i = 0; i < MAX_SAMPLE_GRAN; i++) { // hard coding sample length for now
+    for(int i = 0; i < MAX_SAMPLE_GRAN; i++) {
         buffer_gran_delay[i] = 0.;
     }
 
@@ -213,9 +210,8 @@ void GranularDelayModule::ProcessMono(float in) {
     gran_out_left += granular.getLeftOut();
     gran_out_right += granular.getRightOut();
 
-    // Only one GranularPlayerMod works or really bad noise??
+    // NOTE: Only able to use one GranularPlayerMod, or getting really bad noise with more than 1
 
-  
     m_audioLeft = gran_out_left * GetParameterAsFloat(1)  + input * (1.0 - GetParameterAsFloat(1));
     m_audioRight = gran_out_right * GetParameterAsFloat(1)  + input * (1.0 - GetParameterAsFloat(1));
 

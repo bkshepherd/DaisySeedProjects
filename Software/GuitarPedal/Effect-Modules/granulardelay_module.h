@@ -5,7 +5,6 @@
 #include <stdint.h>
 #include "daisysp.h"
 #include "../Util/granularplayermod.h"
-//#include "../Util/varSpeedLooper.h"
 
 #include "base_effect_module.h"
 #ifdef __cplusplus
