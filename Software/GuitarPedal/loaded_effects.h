@@ -32,11 +32,14 @@
 #include "Effect-Modules/polyoctave_module.h"
 #include "Effect-Modules/scifi_module.h"
 #include "Effect-Modules/spectral_delay_module.h"
+#include "Effect-Modules/spectral_delay_module.h"
+//#include "Effect-Modules/fm_keys_module.h"
+#include "Effect-Modules/granulardelay_module.h"
 
 void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffects) {
     // Make sure this count matches the maxindex - 1 (count) of effects that get
     // added to the array
-    availableEffectsCount = 22;
+    availableEffectsCount = 23;
     availableEffects = new BaseEffectModule *[availableEffectsCount];
     availableEffects[0] = new ModulatedTremoloModule();
     availableEffects[1] = new OverdriveModule();
@@ -62,12 +65,13 @@ void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffec
     availableEffects[19] = new PolyOctaveModule();
     availableEffects[20] = new SpectralDelayModule();
     availableEffects[21] = new DistortionModule();
-
+    availableEffects[22] = new GranularDelayModule(); 
     // The following require a MIDI keyboard
-    // availableEffects[21] = new MidiKeysModule();
-    // availableEffects[22] = new PluckEchoModule();
-    // availableEffects[23] = new StringKeysModule();
-    // availableEffects[24] = new ModalKeysModule();
+    // availableEffects[23] = new MidiKeysModule();
+    // availableEffects[24] = new PluckEchoModule();
+    // availableEffects[25] = new StringKeysModule();
+    // availableEffects[26] = new ModalKeysModule();
+    // availableEffects[22] = new FmKeysModule();
 }
 
 #endif
