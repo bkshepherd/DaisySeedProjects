@@ -40,7 +40,7 @@
 
 void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffects) {
     // clang-format off
-    std::vector<BaseEffectModule*> effects = {
+    static BaseEffectModule* effectList[] = {
         new ModulatedTremoloModule(),
         new OverdriveModule(),
         new AutoPanModule(),
@@ -74,10 +74,11 @@ void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffec
     };
     // clang-format on
 
-    // Allocate memory and copy pointers
-    availableEffectsCount = effects.size();
+    availableEffectsCount = sizeof(effectList) / sizeof(effectList[0]);
     availableEffects = new BaseEffectModule *[availableEffectsCount];
-    std::copy(effects.begin(), effects.end(), availableEffects);
+    for (int i = 0; i < availableEffectsCount; ++i) {
+        availableEffects[i] = effectList[i];
+    }
 }
 
 #endif
