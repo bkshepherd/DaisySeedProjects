@@ -5,6 +5,10 @@
 #define LOADED_EFFECTS_H
 #pragma once
 
+#include "Effect-Modules/base_effect_module.h"
+#include <vector>
+
+// Include all effect modules
 #include "Effect-Modules/autopan_module.h"
 #include "Effect-Modules/chopper_module.h"
 #include "Effect-Modules/chorus_module.h"
@@ -18,12 +22,11 @@
 #include "Effect-Modules/overdrive_module.h"
 #include "Effect-Modules/peq_module.h"
 // #include "Effect-Modules/pitch_shifter_module.h" // Commented out to make room in DTCRAM
-#include "Effect-Modules/reverb_module.h"
-#include "Effect-Modules/tuner_module.h"
-
 #include "Effect-Modules/amp_module.h"
 #include "Effect-Modules/cloudseed_module.h" // Takes up significant SDRAM (about 30%)
 #include "Effect-Modules/nam_module.h"
+#include "Effect-Modules/reverb_module.h"
+#include "Effect-Modules/tuner_module.h"
 // #include "Effect-Modules/midi_keys_module.h"
 #include "Effect-Modules/delay_module.h"
 // #include "Effect-Modules/pluckecho_module.h"
@@ -34,40 +37,44 @@
 #include "Effect-Modules/spectral_delay_module.h"
 
 void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffects) {
-    // Make sure this count matches the maxindex - 1 (count) of effects that get
-    // added to the array
-    availableEffectsCount = 22;
+    // clang-format off
+    std::vector<BaseEffectModule*> effects = {
+        new ModulatedTremoloModule(),
+        new OverdriveModule(),
+        new AutoPanModule(),
+        new ChorusModule(),
+        new ChopperModule(),
+        new ReverbModule(),
+        new MultiDelayModule(),
+        new MetroModule(),
+        new TunerModule(),
+        // new PitchShifterModule(),
+        new CompressorModule(),
+        new LooperModule(),
+        new GraphicEQModule(),
+        new ParametricEQModule(),
+        new NoiseGateModule(),
+        new CloudSeedModule(),
+        new AmpModule(),
+        new DelayModule(),
+        new NamModule(),
+        new SciFiModule(),
+        new PolyOctaveModule(),
+        new SpectralDelayModule(),
+        new DistortionModule(),
+
+        // The following require a MIDI keyboard
+        // new MidiKeysModule(),
+        // new PluckEchoModule(),
+        // new StringKeysModule(),
+        // new ModalKeysModule()
+    };
+    // clang-format on
+
+    // Allocate memory and copy pointers
+    availableEffectsCount = effects.size();
     availableEffects = new BaseEffectModule *[availableEffectsCount];
-    availableEffects[0] = new ModulatedTremoloModule();
-    availableEffects[1] = new OverdriveModule();
-    availableEffects[2] = new AutoPanModule();
-    availableEffects[3] = new ChorusModule();
-    availableEffects[4] = new ChopperModule();
-    availableEffects[5] = new ReverbModule();
-    availableEffects[6] = new MultiDelayModule();
-    availableEffects[7] = new MetroModule();
-    availableEffects[8] = new TunerModule();
-    // availableEffects[9] = new PitchShifterModule();
-    availableEffects[9] = new CompressorModule();
-    availableEffects[10] = new LooperModule();
-    availableEffects[11] = new GraphicEQModule();
-    availableEffects[12] = new ParametricEQModule();
-    availableEffects[13] = new NoiseGateModule();
-
-    availableEffects[14] = new CloudSeedModule();
-    availableEffects[15] = new AmpModule();
-    availableEffects[16] = new DelayModule();
-    availableEffects[17] = new NamModule();
-    availableEffects[18] = new SciFiModule();
-    availableEffects[19] = new PolyOctaveModule();
-    availableEffects[20] = new SpectralDelayModule();
-    availableEffects[21] = new DistortionModule();
-
-    // The following require a MIDI keyboard
-    // availableEffects[21] = new MidiKeysModule();
-    // availableEffects[22] = new PluckEchoModule();
-    // availableEffects[23] = new StringKeysModule();
-    // availableEffects[24] = new ModalKeysModule();
+    std::copy(effects.begin(), effects.end(), availableEffects);
 }
 
 #endif
