@@ -35,6 +35,8 @@
 #include "Effect-Modules/polyoctave_module.h"
 #include "Effect-Modules/scifi_module.h"
 #include "Effect-Modules/spectral_delay_module.h"
+// #include "Effect-Modules/fm_keys_module.h"
+#include "Effect-Modules/granulardelay_module.h"
 
 void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffects) {
     // clang-format off
@@ -62,6 +64,7 @@ void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffec
         new PolyOctaveModule(),
         new SpectralDelayModule(),
         new DistortionModule(),
+        new GranularDelayModule(), 
 
         // The following require a MIDI keyboard
         // new MidiKeysModule(),
