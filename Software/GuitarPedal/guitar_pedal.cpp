@@ -1,4 +1,3 @@
-#include "Effect-Modules/modulated_tremolo_module.h"
 #include "daisysp.h"
 #include "guitar_pedal_storage.h"
 #include "loaded_effects.h"

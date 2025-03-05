@@ -20,6 +20,7 @@
 #include "Effect-Modules/granulardelay_module.h"
 #include "Effect-Modules/looper_module.h"
 #include "Effect-Modules/metro_module.h"
+#include "Effect-Modules/modulated_tremolo_module.h"
 #include "Effect-Modules/multi_delay_module.h"
 #include "Effect-Modules/nam_module.h"
 #include "Effect-Modules/noise_gate_module.h"
