@@ -40,6 +40,8 @@
 // #include "Effect-Modules/pluckecho_module.h"
 // #include "Effect-Modules/string_keys_module.h"
 
+using namespace bkshepherd;
+
 void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffects) {
     // clang-format off
     static BaseEffectModule* effectList[] = {

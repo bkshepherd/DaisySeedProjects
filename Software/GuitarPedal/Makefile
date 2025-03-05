@@ -28,7 +28,6 @@ CPP_SOURCES += Effect-Modules/ImpulseResponse/ImpulseResponse.cpp
 CPP_SOURCES += Effect-Modules/ImpulseResponse/dsp.cpp
 CPP_SOURCES += Effect-Modules/looper_module.cpp
 CPP_SOURCES += Effect-Modules/metro_module.cpp
-CPP_SOURCES += Effect-Modules/midi_keys_module.cpp
 CPP_SOURCES += Effect-Modules/modulated_tremolo_module.cpp
 CPP_SOURCES += Effect-Modules/multi_delay_module.cpp
 CPP_SOURCES += Effect-Modules/nam_module.cpp
@@ -42,12 +41,13 @@ CPP_SOURCES += Effect-Modules/scifi_module.cpp
 CPP_SOURCES += Effect-Modules/scope_module.cpp
 CPP_SOURCES += Effect-Modules/spectral_delay_module.cpp
 CPP_SOURCES += Effect-Modules/tuner_module.cpp
+#CPP_SOURCES += Effect-Modules/reverb_delay_module.cpp
 
 # Keyboard oriented modules
 #CPP_SOURCES += Effect-Modules/fm_keys_module.cpp
+#CPP_SOURCES += Effect-Modules/midi_keys_module.cpp
 #CPP_SOURCES += Effect-Modules/modal_keys_module.cpp
 #CPP_SOURCES += Effect-Modules/pluckecho_module.cpp
-#CPP_SOURCES += Effect-Modules/reverb_delay_module.cpp
 #CPP_SOURCES += Effect-Modules/string_keys_module.cpp
 
 # Compiler options
