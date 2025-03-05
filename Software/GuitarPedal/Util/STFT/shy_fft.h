@@ -136,14 +136,20 @@ template <typename T, size_t num_passes> class LutPhasor {
     T *sin_ptr_;
 };
 
-template <typename T> struct LutPhasor<T, 0> { void Init(){}; };
-template <typename T> struct LutPhasor<T, 1> { void Init(){}; };
-template <typename T> struct LutPhasor<T, 2> { void Init(){}; };
+template <typename T> struct LutPhasor<T, 0> {
+    void Init() {};
+};
+template <typename T> struct LutPhasor<T, 1> {
+    void Init() {};
+};
+template <typename T> struct LutPhasor<T, 2> {
+    void Init() {};
+};
 
 template <typename T> struct LutPhasor<T, 3> {
-    void Init(){};
-    void Start(size_t){};
-    void Rotate(){};
+    void Init() {};
+    void Start(size_t) {};
+    void Rotate() {};
     inline T cos() const { return 1.0; }
     inline T sin() const { return 0.0; }
 };
@@ -187,14 +193,20 @@ template <typename T, size_t num_passes> class RotationPhasor {
     T imag_;
 };
 
-template <typename T> struct RotationPhasor<T, 0> { void Init(){}; };
-template <typename T> struct RotationPhasor<T, 1> { void Init(){}; };
-template <typename T> struct RotationPhasor<T, 2> { void Init(){}; };
+template <typename T> struct RotationPhasor<T, 0> {
+    void Init() {};
+};
+template <typename T> struct RotationPhasor<T, 1> {
+    void Init() {};
+};
+template <typename T> struct RotationPhasor<T, 2> {
+    void Init() {};
+};
 
 template <typename T> struct RotationPhasor<T, 3> {
-    void Init(){};
-    void Start(size_t){};
-    void Rotate(){};
+    void Init() {};
+    void Start(size_t) {};
+    void Rotate() {};
     inline T cos() const { return 1.0; }
     inline T sin() const { return 0.0; }
 };

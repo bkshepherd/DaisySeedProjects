@@ -3,10 +3,10 @@
 
 // This is used in the modified CloudSeed code for allocating
 // delay line memory to SDRAM (64MB available on Daisy)
-//#define CUSTOM_POOL_SIZE (48*1024*1024)
-//#define CUSTOM_POOL_SIZE (48*512*512) // works
+// #define CUSTOM_POOL_SIZE (48*1024*1024)
+// #define CUSTOM_POOL_SIZE (48*512*512) // works
 #define CUSTOM_POOL_SIZE (48 * 384 * 384) // Works! test more thoroughly with other presets, if it freezes, check here first TODO
-//#define CUSTOM_POOL_SIZE (48*256*256) // freezes
+// #define CUSTOM_POOL_SIZE (48*256*256) // freezes
 
 DSY_SDRAM_BSS char custom_pool[CUSTOM_POOL_SIZE];
 size_t pool_index = 0;

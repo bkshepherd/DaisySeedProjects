@@ -2,9 +2,9 @@
 #ifndef GRANULARDELAY_MODULE_H
 #define GRANULARDELAY_MODULE_H
 
-#include <stdint.h>
-#include "daisysp.h"
 #include "../Util/granularplayermod.h"
+#include "daisysp.h"
+#include <stdint.h>
 
 #include "base_effect_module.h"
 #ifdef __cplusplus
@@ -29,13 +29,12 @@ class GranularDelayModule : public BaseEffectModule {
     void AlternateFootswitchPressed() override;
 
   private:
-
     GranularPlayerMod granular;
 
     Looper m_looper;
 
     int m_sample_index;
- 
+
     float m_speed;
     float m_pitch;
     float m_grain_size;
@@ -47,8 +46,6 @@ class GranularDelayModule : public BaseEffectModule {
     bool m_loop_recorded;
 
     bool m_hold;
-
-
 };
 } // namespace bkshepherd
 #endif

@@ -2,14 +2,11 @@
 
 using namespace daisysp;
 
-
-
-void Operator::Init(float samplerate, bool isCarrier)
-{
-    //init oscillators
+void Operator::Init(float samplerate, bool isCarrier) {
+    // init oscillators
     osc_.Init(samplerate);
 
-    //set some reasonable values
+    // set some reasonable values
     lfreq_ = freq_ = 440.f;
     lratio_ = ratio_ = 2.f;
     SetFrequency(lfreq_);
@@ -23,15 +20,12 @@ void Operator::Init(float samplerate, bool isCarrier)
     iscarrier_ = isCarrier;
 
     modval_ = 0.0;
-
 }
 
-float Operator::Process()
-{
-    if(lratio_ != ratio_ || lfreq_ != freq_)
-    {
+float Operator::Process() {
+    if (lratio_ != ratio_ || lfreq_ != freq_) {
         lratio_ = ratio_;
-        lfreq_  = freq_;
+        lfreq_ = freq_;
         osc_.SetFreq(lfreq_ * lratio_);
     }
 
@@ -47,37 +41,25 @@ float Operator::Process()
     return osc_.Process() * velocity_amp_;
 }
 
-void Operator::SetFrequency(float freq) ///Currently unused
+void Operator::SetFrequency(float freq) /// Currently unused
 {
     freq_ = fabsf(freq);
 }
 
-void Operator::SetRatio(float ratio)
-{
-    ratio_ = fabsf(ratio);
-}
+void Operator::SetRatio(float ratio) { ratio_ = fabsf(ratio); }
 
-void Operator::SetLevel(float level)
-{
-    level_ = fabsf(level);
-}
+void Operator::SetLevel(float level) { level_ = fabsf(level); }
 
 void Operator::setPhaseInput(float modval) // TODO should I use this function to just do the osc phase add instead?
 {
     modval_ = modval;
 }
 
-
-void Operator::Reset()
-{
-    osc_.Reset();
-}
+void Operator::Reset() { osc_.Reset(); }
 
 ////////////////////////////////////// NEW STUFF
-void Operator::OnNoteOn(float note, float velocity)
-{
+void Operator::OnNoteOn(float note, float velocity) {
     velocity_ = velocity;
     velocity_amp_ = velocity_ / 127.f;
-    freq_ = mtof(note);  /// The base frequency of the note is set here, modified by the ratio in the Process function
+    freq_ = mtof(note); /// The base frequency of the note is set here, modified by the ratio in the Process function
 }
-

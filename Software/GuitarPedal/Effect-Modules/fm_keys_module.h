@@ -2,29 +2,27 @@
 #ifndef FM_KEYS_MODULE_H
 #define FM_KEYS_MODULE_H
 
-#include <stdint.h>
-#include "daisysp.h"
-#include "base_effect_module.h"
 #include "../Util/operator.h"
+#include "base_effect_module.h"
+#include "daisysp.h"
+#include <stdint.h>
 #ifdef __cplusplus
 
 /** @file midi_keys_module.h */
 // Implements the DaisyExamples Midi effect for DaisyField, but on the 125B pedal
 // Polyphonic MIDI Synth
-// 12 (changed from 24, didn't work) voices of polyphony. Each voice is a band-limited saw waveform running through a state variable filter.
+// 12 (changed from 24, didn't work) voices of polyphony. Each voice is a band-limited saw waveform running through a state variable
+// filter.
 
 using namespace daisysp;
 
-namespace bkshepherd
-{
+namespace bkshepherd {
 
-class Voice
-{
+class Voice {
   public:
     Voice() {}
     ~Voice() {}
-    void Init(float samplerate)
-    {
+    void Init(float samplerate) {
         active_ = false;
         op1_.Init(samplerate, false);
         op2_.Init(samplerate, true);
@@ -40,17 +38,14 @@ class Voice
         env2_.SetTime(ADSR_SEG_ATTACK, 0.005f);
         env2_.SetTime(ADSR_SEG_DECAY, 0.005f);
         env2_.SetTime(ADSR_SEG_RELEASE, 0.2f);
-
     }
 
-    float Process()
-    {
-        if(active_)
-        {
+    float Process() {
+        if (active_) {
             float sig, sig2, amp, amp2;
             amp = env_.Process(env_gate_);   // Carruer envelope
             amp2 = env2_.Process(env_gate_); // Modulator envelope
-            if(!env_.IsRunning())
+            if (!env_.IsRunning())
                 active_ = false;
             sig = op1_.Process();
             op2_.setPhaseInput(sig * amp2);
@@ -61,13 +56,12 @@ class Voice
         return 0.f;
     }
 
-    void OnNoteOn(float note, float velocity)
-    {
-        note_     = note;
+    void OnNoteOn(float note, float velocity) {
+        note_ = note;
         velocity_ = velocity;
         op1_.OnNoteOn(note, velocity);
         op2_.OnNoteOn(note, velocity);
-        active_   = true;
+        active_ = true;
         env_gate_ = true;
     }
 
@@ -81,8 +75,6 @@ class Voice
 
     void SetCarrierLevel(float val) { op2_.SetLevel(val); }
 
-
-
     void SetCarrierAttack(float val) { env_.SetTime(ADSR_SEG_ATTACK, val); }
 
     void SetCarrierDecay(float val) { env_.SetTime(ADSR_SEG_DECAY, val); }
@@ -90,7 +82,6 @@ class Voice
     void SetCarrierSustain(float val) { env_.SetSustainLevel(val); }
 
     void SetCarrierRelease(float val) { env_.SetTime(ADSR_SEG_RELEASE, val); }
-
 
     void SetModAttack(float val) { env2_.SetTime(ADSR_SEG_ATTACK, val); }
 
@@ -100,183 +91,140 @@ class Voice
 
     void SetModRelease(float val) { env2_.SetTime(ADSR_SEG_RELEASE, val); }
 
-
-    inline bool  IsActive() const { return active_; }
+    inline bool IsActive() const { return active_; }
     inline float GetNote() const { return note_; }
 
   private:
-    //Oscillator osc_;
-    Operator   op1_;
-    Operator   op2_;
-    Adsr       env_;
-    Adsr       env2_;
-    float      note_, velocity_;
-    bool       active_;
-    bool       env_gate_;
+    // Oscillator osc_;
+    Operator op1_;
+    Operator op2_;
+    Adsr env_;
+    Adsr env2_;
+    float note_, velocity_;
+    bool active_;
+    bool env_gate_;
 };
 
-template <size_t max_voices>
-class VoiceManager
-{
+template <size_t max_voices> class VoiceManager {
   public:
     VoiceManager() {}
     ~VoiceManager() {}
 
-    void Init(float samplerate)
-    {
-        for(size_t i = 0; i < max_voices; i++)
-        {
+    void Init(float samplerate) {
+        for (size_t i = 0; i < max_voices; i++) {
             voices[i].Init(samplerate);
         }
     }
 
-    float Process()
-    {
+    float Process() {
         float sum;
         sum = 0.f;
-        for(size_t i = 0; i < max_voices; i++)
-        {
+        for (size_t i = 0; i < max_voices; i++) {
             sum += voices[i].Process();
         }
         return sum;
     }
 
-    void OnNoteOn(float notenumber, float velocity)
-    {
+    void OnNoteOn(float notenumber, float velocity) {
         Voice *v = FindFreeVoice();
-        if(v == NULL)
+        if (v == NULL)
             return;
         v->OnNoteOn(notenumber, velocity);
     }
 
-    void OnNoteOff(float notenumber, float velocity)
-    {
-        for(size_t i = 0; i < max_voices; i++)
-        {
+    void OnNoteOff(float notenumber, float velocity) {
+        for (size_t i = 0; i < max_voices; i++) {
             Voice *v = &voices[i];
-            if(v->IsActive() && v->GetNote() == notenumber)
-            {
+            if (v->IsActive() && v->GetNote() == notenumber) {
                 v->OnNoteOff();
             }
         }
     }
 
-    void FreeAllVoices()
-    {
-        for(size_t i = 0; i < max_voices; i++)
-        {
+    void FreeAllVoices() {
+        for (size_t i = 0; i < max_voices; i++) {
             voices[i].OnNoteOff();
         }
     }
 
-    void SetModulatorLevel(float all_val)
-    {
-        for(size_t i = 0; i < max_voices; i++)
-        {
+    void SetModulatorLevel(float all_val) {
+        for (size_t i = 0; i < max_voices; i++) {
             voices[i].SetModulatorLevel(all_val);
         }
     }
 
-    void SetModulatorRatio(float all_val)
-    {
-        for(size_t i = 0; i < max_voices; i++)
-        {
+    void SetModulatorRatio(float all_val) {
+        for (size_t i = 0; i < max_voices; i++) {
             voices[i].SetModulatorRatio(all_val);
         }
     }
 
-    void SetCarrierLevel(float all_val)
-    {
-        for(size_t i = 0; i < max_voices; i++)
-        {
+    void SetCarrierLevel(float all_val) {
+        for (size_t i = 0; i < max_voices; i++) {
             voices[i].SetCarrierLevel(all_val);
         }
     }
 
-    void SetCarrierRatio(float all_val)
-    {
-        for(size_t i = 0; i < max_voices; i++)
-        {
+    void SetCarrierRatio(float all_val) {
+        for (size_t i = 0; i < max_voices; i++) {
             voices[i].SetCarrierRatio(all_val);
         }
     }
 
-
-    void SetCarrierAttack(float all_val)
-    {
-        for(size_t i = 0; i < max_voices; i++)
-        {
+    void SetCarrierAttack(float all_val) {
+        for (size_t i = 0; i < max_voices; i++) {
             voices[i].SetCarrierAttack(all_val);
         }
     }
 
-    void SetCarrierDecay(float all_val)
-    {
-        for(size_t i = 0; i < max_voices; i++)
-        {
+    void SetCarrierDecay(float all_val) {
+        for (size_t i = 0; i < max_voices; i++) {
             voices[i].SetCarrierDecay(all_val);
         }
     }
 
-    void SetCarrierSustain(float all_val)
-    {
-        for(size_t i = 0; i < max_voices; i++)
-        {
+    void SetCarrierSustain(float all_val) {
+        for (size_t i = 0; i < max_voices; i++) {
             voices[i].SetCarrierSustain(all_val);
         }
     }
 
-    void SetCarrierRelease(float all_val)
-    {
-        for(size_t i = 0; i < max_voices; i++)
-        {
+    void SetCarrierRelease(float all_val) {
+        for (size_t i = 0; i < max_voices; i++) {
             voices[i].SetCarrierRelease(all_val);
         }
     }
 
-
-
-    void SetModAttack(float all_val)
-    {
-        for(size_t i = 0; i < max_voices; i++)
-        {
+    void SetModAttack(float all_val) {
+        for (size_t i = 0; i < max_voices; i++) {
             voices[i].SetModAttack(all_val);
         }
     }
 
-    void SetModDecay(float all_val)
-    {
-        for(size_t i = 0; i < max_voices; i++)
-        {
+    void SetModDecay(float all_val) {
+        for (size_t i = 0; i < max_voices; i++) {
             voices[i].SetModDecay(all_val);
         }
     }
 
-    void SetModSustain(float all_val)
-    {
-        for(size_t i = 0; i < max_voices; i++)
-        {
+    void SetModSustain(float all_val) {
+        for (size_t i = 0; i < max_voices; i++) {
             voices[i].SetModSustain(all_val);
         }
     }
 
-    void SetModRelease(float all_val)
-    {
-        for(size_t i = 0; i < max_voices; i++)
-        {
+    void SetModRelease(float all_val) {
+        for (size_t i = 0; i < max_voices; i++) {
             voices[i].SetModRelease(all_val);
         }
     }
 
   private:
-    Voice  voices[max_voices];
-    Voice *FindFreeVoice()
-    {
+    Voice voices[max_voices];
+    Voice *FindFreeVoice() {
         Voice *v = NULL;
-        for(size_t i = 0; i < max_voices; i++)
-        {
-            if(!voices[i].IsActive())
-            {
+        for (size_t i = 0; i < max_voices; i++) {
+            if (!voices[i].IsActive()) {
                 v = &voices[i];
                 break;
             }
@@ -285,11 +233,9 @@ class VoiceManager
     }
 };
 
-
-class FmKeysModule : public BaseEffectModule
-{
+class FmKeysModule : public BaseEffectModule {
   public:
-   FmKeysModule();
+    FmKeysModule();
     ~FmKeysModule();
 
     void Init(float sample_rate) override;
@@ -302,15 +248,11 @@ class FmKeysModule : public BaseEffectModule
     float GetBrightnessForLED(int led_id) const override;
 
   private:
-
-
     float m_freqMin;
     float m_freqMax;
 
-
     VoiceManager<16> m_voice_handler; // starting with 1 voice for testing, 16 WORKS, 18 freezes
-                                       // With added carrier env control, 16 glitches, 12 works
-
+                                      // With added carrier env control, 16 glitches, 12 works
 
     float m_cachedEffectMagnitudeValue;
 };
