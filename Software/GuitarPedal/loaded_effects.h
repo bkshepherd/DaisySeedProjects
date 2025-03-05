@@ -6,7 +6,6 @@
 #pragma once
 
 #include "Effect-Modules/base_effect_module.h"
-#include <vector>
 
 // Include all effect modules
 #include "Effect-Modules/autopan_module.h"
