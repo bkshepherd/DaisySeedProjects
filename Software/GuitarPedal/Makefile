@@ -22,7 +22,6 @@ CPP_SOURCES += Effect-Modules/compressor_module.cpp
 CPP_SOURCES += Effect-Modules/crusher_module.cpp
 CPP_SOURCES += Effect-Modules/delay_module.cpp
 CPP_SOURCES += Effect-Modules/geq_module.cpp
-#CPP_SOURCES += Effect-Modules/fm_keys_module.cpp
 CPP_SOURCES += Effect-Modules/granulardelay_module.cpp
 CPP_SOURCES += Effect-Modules/distortion_module.cpp
 CPP_SOURCES += Effect-Modules/ImpulseResponse/ImpulseResponse.cpp
@@ -30,7 +29,6 @@ CPP_SOURCES += Effect-Modules/ImpulseResponse/dsp.cpp
 CPP_SOURCES += Effect-Modules/looper_module.cpp
 CPP_SOURCES += Effect-Modules/metro_module.cpp
 CPP_SOURCES += Effect-Modules/midi_keys_module.cpp
-#CPP_SOURCES += Effect-Modules/modal_keys_module.cpp
 CPP_SOURCES += Effect-Modules/modulated_tremolo_module.cpp
 CPP_SOURCES += Effect-Modules/multi_delay_module.cpp
 CPP_SOURCES += Effect-Modules/nam_module.cpp
@@ -38,16 +36,19 @@ CPP_SOURCES += Effect-Modules/noise_gate_module.cpp
 CPP_SOURCES += Effect-Modules/overdrive_module.cpp
 CPP_SOURCES += Effect-Modules/peq_module.cpp
 #CPP_SOURCES += Effect-Modules/pitch_shifter_module.cpp
-#CPP_SOURCES += Effect-Modules/pluckecho_module.cpp
 CPP_SOURCES += Effect-Modules/polyoctave_module.cpp
 CPP_SOURCES += Effect-Modules/reverb_module.cpp
-#CPP_SOURCES += Effect-Modules/reverb_delay_module.cpp
 CPP_SOURCES += Effect-Modules/scifi_module.cpp
 CPP_SOURCES += Effect-Modules/scope_module.cpp
 CPP_SOURCES += Effect-Modules/spectral_delay_module.cpp
-#CPP_SOURCES += Effect-Modules/string_keys_module.cpp
 CPP_SOURCES += Effect-Modules/tuner_module.cpp
 
+# Keyboard oriented modules
+#CPP_SOURCES += Effect-Modules/fm_keys_module.cpp
+#CPP_SOURCES += Effect-Modules/modal_keys_module.cpp
+#CPP_SOURCES += Effect-Modules/pluckecho_module.cpp
+#CPP_SOURCES += Effect-Modules/reverb_delay_module.cpp
+#CPP_SOURCES += Effect-Modules/string_keys_module.cpp
 
 # Compiler options
 OPT=-Ofast
