@@ -10,11 +10,13 @@ static const char* s_modelBinNames[14] = {"Klon", "Fender57", "TS9", "Bassman", 
                                           "Mesa Amp", "Victory", "Ethos"};
 */
 
-static const char *s_modelBinNames[9] = {"Fender57", "Matchless", "Klon",   "Mesa iic", "H&K Clean",
-                                         "Bassman",  "5150",      "Splawn", "Klon2"};
+static const char *s_modelBinNames[7] = {"Fender57", "Matchless", "Klon",   "Mesa iic",
+                                         "Bassman",  "5150",      "Splawn"};
 
-static const char *s_irNames[10] = {"Rhythm",  "Lead",    "Clean",   "Marsh",     "Bogn",
-                                    "Proteus", "Rectify", "Rhythm2", "US Deluxe", "British"};
+//static const char *s_irNames[10] = {"Rhythm",  "Lead",    "Clean",   "Marsh",     "Bogn",
+//"Proteus", "Rectify", "Rhythm2", "US Deluxe", "British"};
+
+static const char *s_irNames[4] = {"Marsh", "Proteus", "US Deluxe", "British"};
 
 static const int s_paramCount = 8;
 static const ParameterMetaData s_metaData[s_paramCount] = {
@@ -32,7 +34,7 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
     {
         name : "Model",
         valueType : ParameterValueType::Binned,
-        valueBinCount : 9,
+        valueBinCount : 7,
         valueBinNames : s_modelBinNames,
         defaultValue : {.uint_value = 0},
         knobMapping : 4,
@@ -41,7 +43,7 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
     {
         name : "IR",
         valueType : ParameterValueType::Binned,
-        valueBinCount : 10,
+        valueBinCount : 4,
         valueBinNames : s_irNames,
         defaultValue : {.uint_value = 0},
         knobMapping : 5,

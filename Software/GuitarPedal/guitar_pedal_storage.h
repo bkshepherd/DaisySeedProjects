@@ -3,7 +3,7 @@
 #define GUITAR_PEDAL_STORAGE_H
 
 // Peristant Storage Settings
-#define SETTINGS_FILE_FORMAT_VERSION 4
+#define SETTINGS_FILE_FORMAT_VERSION 5
 
 // Arbitrarily limiting this to 4KB of stored presets since this sits in DTCMRAM which is limited to 128KB.
 // TODO: In the future it would be better if this worked with the QSPI directly instead of using

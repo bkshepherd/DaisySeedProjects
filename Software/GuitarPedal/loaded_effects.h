@@ -18,6 +18,7 @@
 #include "Effect-Modules/distortion_module.h"
 #include "Effect-Modules/geq_module.h"
 #include "Effect-Modules/granulardelay_module.h"
+#include "Effect-Modules/ir_module.h"
 #include "Effect-Modules/looper_module.h"
 #include "Effect-Modules/metro_module.h"
 #include "Effect-Modules/modulated_tremolo_module.h"
@@ -34,6 +35,7 @@
 #include "Effect-Modules/tuner_module.h"
 
 // Keyboard modules
+#include "Effect-Modules/drum_module.h"
 // #include "Effect-Modules/fm_keys_module.h"
 // #include "Effect-Modules/midi_keys_module.h"
 // #include "Effect-Modules/modal_keys_module.h"
@@ -69,6 +71,8 @@ void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffec
         new SpectralDelayModule(),
         new DistortionModule(),
         new GranularDelayModule(), 
+        new IrModule(),
+        new DrumModule(), 
 
         // The following require a MIDI keyboard
         // new MidiKeysModule(),
