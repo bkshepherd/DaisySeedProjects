@@ -41,6 +41,11 @@ class DrumModule : public BaseEffectModule {
     bool auto_mode = false;
     int beat_count; // 0 to 15 for now, indicates which voice to play and when
     float tap_mag = 0.0;
+    int led_tempo_count;
+    bool auto_mode_override = false;
+
+    int time_sig = 0;
+    int selected_beat = 0;
 
     AnalogSnareDrum snare;
     AnalogBassDrum  bass;
