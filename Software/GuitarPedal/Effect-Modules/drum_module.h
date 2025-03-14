@@ -28,7 +28,7 @@ class DrumModule : public BaseEffectModule {
     void ProcessStereo(float inL, float inR) override;
     void OnNoteOn(float notenumber, float velocity) override;
     void OnNoteOff(float notenumber, float velocity) override;
-    void AlternateFootswitchPressed() override;
+    void SetTempo(uint32_t bpm) override;
     float GetBrightnessForLED(int led_id) const override;
 
   private:
@@ -36,13 +36,18 @@ class DrumModule : public BaseEffectModule {
     int instrument_;
     int voice_;      // Used to determine which voice to play in Kit mode
 
+    Metro metro;
+    uint32_t m_bpm;
+    bool auto_mode = false;
+    int beat_count; // 0 to 15 for now, indicates which voice to play and when
+    float tap_mag = 0.0;
+
     AnalogSnareDrum snare;
     AnalogBassDrum  bass;
     HiHat<>           hihat;
     SyntheticSnareDrum synthsnare;
     SyntheticBassDrum  synthbass;
 
-    bool m_sustain;
     float m_cachedEffectMagnitudeValue;
 };
 } // namespace bkshepherd
