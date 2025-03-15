@@ -359,23 +359,18 @@ void DrumModule::ProcessStereo(float inL, float inR) {
     // Calculate the mono effect
     ProcessMono(inL);
 
-    // TODO If the other new stuff works try this out next for stereo dry through
-    //float through_audioR = 0.0; 
-    //if (GetParameterAsBinnedValue(6) == 3;) {
-    //    through_audioR = inR;
-    //    m_audioRight = m_audioRight + through_audioR - inL; // DOES THIS MAKE SENSE? subtracting out left through
-    //}
-
-
-    // TODO Figure out how to send stereo through and still use the ProcessMono function
-    
+    float through_audioR = 0.0; 
+    if (GetParameterAsBinnedValue(6) == 3) {
+        through_audioR = inR;
+        m_audioRight = m_audioRight + through_audioR - inL;
+    }
 }
 
 void DrumModule::SetTempo(uint32_t bpm) { 
     m_bpm = std::clamp(bpm, minTempoDrum, maxTempoDrum); 
     SetParameterAsFloat(5, m_bpm);
-    float freq = tempo_to_freq(m_bpm);  // TODO Is this needed or will it go to the ParameterChanged function?
-    metro.SetFreq(freq * 4.0);        // TODO Is this line needed here? Also, multiplying freq by 4, since beats are defined every sixteenth note, and we want BPM by quarter note
+    float freq = tempo_to_freq(m_bpm);
+    metro.SetFreq(freq * 4.0);  
 }
 
 
