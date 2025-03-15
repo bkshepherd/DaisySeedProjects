@@ -33,9 +33,9 @@
 #include "Effect-Modules/scifi_module.h"
 #include "Effect-Modules/spectral_delay_module.h"
 #include "Effect-Modules/tuner_module.h"
+#include "Effect-Modules/drum_module.h"
 
 // Keyboard modules
-#include "Effect-Modules/drum_module.h"
 // #include "Effect-Modules/fm_keys_module.h"
 // #include "Effect-Modules/midi_keys_module.h"
 // #include "Effect-Modules/modal_keys_module.h"
@@ -72,7 +72,7 @@ void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffec
         new DistortionModule(),
         new GranularDelayModule(), 
         new IrModule(),
-        new DrumModule(), 
+        new DrumModule(),  // This module can be used with MIDI keyboard as a drum machine
 
         // The following require a MIDI keyboard
         // new MidiKeysModule(),
