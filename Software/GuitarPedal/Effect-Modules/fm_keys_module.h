@@ -18,10 +18,10 @@ using namespace daisysp;
 
 namespace bkshepherd {
 
-class Voice {
+class VoiceFm {
   public:
-    Voice() {}
-    ~Voice() {}
+    VoiceFm() {}
+    ~VoiceFm() {}
     void Init(float samplerate) {
         active_ = false;
         op1_.Init(samplerate, false);
@@ -105,10 +105,10 @@ class Voice {
     bool env_gate_;
 };
 
-template <size_t max_voices> class VoiceManager {
+template <size_t max_voices> class VoiceManagerFm {
   public:
-    VoiceManager() {}
-    ~VoiceManager() {}
+    VoiceManagerFm() {}
+    ~VoiceManagerFm() {}
 
     void Init(float samplerate) {
         for (size_t i = 0; i < max_voices; i++) {
@@ -126,7 +126,7 @@ template <size_t max_voices> class VoiceManager {
     }
 
     void OnNoteOn(float notenumber, float velocity) {
-        Voice *v = FindFreeVoice();
+        VoiceFm *v = FindFreeVoice();
         if (v == NULL)
             return;
         v->OnNoteOn(notenumber, velocity);
@@ -134,7 +134,7 @@ template <size_t max_voices> class VoiceManager {
 
     void OnNoteOff(float notenumber, float velocity) {
         for (size_t i = 0; i < max_voices; i++) {
-            Voice *v = &voices[i];
+            VoiceFm *v = &voices[i];
             if (v->IsActive() && v->GetNote() == notenumber) {
                 v->OnNoteOff();
             }
@@ -220,9 +220,9 @@ template <size_t max_voices> class VoiceManager {
     }
 
   private:
-    Voice voices[max_voices];
-    Voice *FindFreeVoice() {
-        Voice *v = NULL;
+    VoiceFm voices[max_voices];
+    VoiceFm *FindFreeVoice() {
+        VoiceFm *v = NULL;
         for (size_t i = 0; i < max_voices; i++) {
             if (!voices[i].IsActive()) {
                 v = &voices[i];
@@ -251,7 +251,7 @@ class FmKeysModule : public BaseEffectModule {
     float m_freqMin;
     float m_freqMax;
 
-    VoiceManager<16> m_voice_handler; // starting with 1 voice for testing, 16 WORKS, 18 freezes
+    VoiceManagerFm<16> m_voice_handler; // starting with 1 voice for testing, 16 WORKS, 18 freezes
                                       // With added carrier env control, 16 glitches, 12 works
 
     float m_cachedEffectMagnitudeValue;
