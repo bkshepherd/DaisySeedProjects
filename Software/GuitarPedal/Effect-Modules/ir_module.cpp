@@ -5,14 +5,14 @@
 using namespace bkshepherd;
 
 
-static const char *s_irNames_large[3] = {"Rhythm",  "Lead",  "Clean"};
+static const char *s_irNames_large[2] = {"Rhythm",  "Lead"};
 
 static const int s_paramCount = 2;
 static const ParameterMetaData s_metaData[s_paramCount] = {
     {
         name : "IR",
         valueType : ParameterValueType::Binned,
-        valueBinCount : 3,
+        valueBinCount : 2,
         valueBinNames : s_irNames_large,
         defaultValue : {.uint_value = 0},
         knobMapping : 0,

@@ -40,7 +40,7 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
     },
     {
         name : "Beats",
-        valueType : ParameterValueType::Binned,
+        valueType : ParameterValueType::Binned, 
         valueBinCount : 8,
         valueBinNames : s_beatBinNames,
         defaultValue : {.uint_value = 0},
@@ -58,26 +58,26 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         maxValue : maxTempoDrum
     },
     {
-        name : "Mode",
-        valueType : ParameterValueType::Binned,
-        valueBinCount : 2,
-        valueBinNames : s_modeBinNames,
-        defaultValue : {.uint_value = 0},
-        knobMapping : -1,
-        midiCCMapping : 18
-    },
-    {
         name : "MidiVoice",
         valueType : ParameterValueType::Binned,
         valueBinCount : 6,
         valueBinNames : s_midiVoiceBinNames,
         defaultValue : {.uint_value = 0},
         knobMapping : 4,
-        midiCCMapping : 19
+        midiCCMapping : 18
     },
+    {name : "Timbre", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 5, midiCCMapping : 19},
     {name : "Tone", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : -1, midiCCMapping : 20},
     {name : "Decay", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : -1, midiCCMapping : 21},
-    {name : "Timbre", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 5, midiCCMapping : 22},
+    {
+        name : "Mode",
+        valueType : ParameterValueType::Binned,
+        valueBinCount : 2,
+        valueBinNames : s_modeBinNames,
+        defaultValue : {.uint_value = 0},
+        knobMapping : -1,
+        midiCCMapping : 22
+    },
     {
         name : "DryThru",
         valueType : ParameterValueType::Binned,
@@ -130,23 +130,47 @@ void DrumModule::Init(float sample_rate) {
 
 void DrumModule::ParameterChanged(int parameter_id) {
 
-    // TODO Rearrange params in the right order for readability
-
     if (parameter_id == 0) { // Level
-       
-    } else if (parameter_id == 5) {  // Midi Voice
-        instrument_ = GetParameterAsBinnedValue(5) - 1;
 
-    } else if (parameter_id == 4) {  // Mode
-        if (GetParameterAsBinnedValue(4) == 1) {
-            auto_mode = true;
-            beat_count = 0; // start beat at beginning
+    } else if (parameter_id == 2) {  // Beats
+        if (GetParameterAsBinnedValue(2) < 5) {  // Currently, first four beats are 4/4 time, second two are 3/4
+            time_sig = 0; // 0=4/4; 1=3/4
+            selected_beat = GetParameterAsBinnedValue(2) - 1;
         } else {
-            auto_mode = false;
+            time_sig = 1; // 0=4/4; 1=3/4
+            selected_beat = GetParameterAsBinnedValue(2) - 5;
+        }
+
+    } else if (parameter_id == 3) {  // Tempo
+        m_bpm = GetParameterAsFloat(3);
+        float freq = tempo_to_freq(m_bpm);
+        metro.SetFreq(freq * 4.0); // Multiplying freq by 4, since beats are defined every sixteenth note, and we want BPM by quarter note
+       
+    } else if (parameter_id == 4) {  // Midi Voice
+        instrument_ = GetParameterAsBinnedValue(4) - 1;
+
+    }  else if (parameter_id == 5) {  // Timbre
+        instrument_ = GetParameterAsBinnedValue(4) - 1;
+
+        if (instrument_ == 0) {
+            bass.SetSelfFmAmount(GetParameterAsFloat(5)); // self fm amount
+
+        } else if (instrument_ == 1) {
+            synthbass.SetDirtiness(GetParameterAsFloat(5)); // dirtiness
+
+        } else if (instrument_ == 2) {
+            snare.SetSnappy(GetParameterAsFloat(5));  // snappy
+
+        } else if (instrument_ == 3) {
+            synthsnare.SetSnappy(GetParameterAsFloat(5)); // snappy
+
+        } else if (instrument_ == 4) {
+            hihat.SetNoisiness(GetParameterAsFloat(5)); // noisiness
+
         }
 
     }  else if (parameter_id == 6) { // Tone
-        instrument_ = GetParameterAsBinnedValue(5) - 1;
+        instrument_ = GetParameterAsBinnedValue(4) - 1;
         if (instrument_ == 0) {
             bass.SetTone(GetParameterAsFloat(6));
 
@@ -165,7 +189,7 @@ void DrumModule::ParameterChanged(int parameter_id) {
         }
 
     }  else if (parameter_id == 7) {  // Decay
-        instrument_ = GetParameterAsBinnedValue(5) - 1;
+        instrument_ = GetParameterAsBinnedValue(4) - 1;
 
         if (instrument_ == 0) {
             bass.SetDecay(GetParameterAsFloat(7));
@@ -184,37 +208,12 @@ void DrumModule::ParameterChanged(int parameter_id) {
 
         }
 
-    }  else if (parameter_id == 8) {  // Timbre
-        instrument_ = GetParameterAsBinnedValue(5) - 1;
-
-        if (instrument_ == 0) {
-            bass.SetSelfFmAmount(GetParameterAsFloat(8)); // self fm amount
-
-        } else if (instrument_ == 1) {
-            synthbass.SetDirtiness(GetParameterAsFloat(8)); // dirtiness
-
-        } else if (instrument_ == 2) {
-            snare.SetSnappy(GetParameterAsFloat(8));  // snappy
-
-        } else if (instrument_ == 3) {
-            synthsnare.SetSnappy(GetParameterAsFloat(8)); // snappy
-
-        } else if (instrument_ == 4) {
-            hihat.SetNoisiness(GetParameterAsFloat(8)); // noisiness
-
-        }
-    } else if (parameter_id == 3) {  // Tempo
-        m_bpm = GetParameterAsFloat(3);
-        float freq = tempo_to_freq(m_bpm);
-        metro.SetFreq(freq * 4.0); // Multiplying freq by 4, since beats are defined every sixteenth note, and we want BPM by quarter note
-
-    } else if (parameter_id == 2) {  // Beats
-        if (GetParameterAsBinnedValue(2) < 5) {  // Currently, first four beats are 4/4 time, second two are 3/4
-            time_sig = 0; // 0=4/4; 1=3/4
-            selected_beat = GetParameterAsBinnedValue(2) - 1;
+    } else if (parameter_id == 8) {  // Mode
+        if (GetParameterAsBinnedValue(8) == 1) {
+            auto_mode = true;
+            beat_count = 0; // start beat at beginning
         } else {
-            time_sig = 1; // 0=4/4; 1=3/4
-            selected_beat = GetParameterAsBinnedValue(2) - 5;
+            auto_mode = false;
         }
     }
 }
