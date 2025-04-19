@@ -1,7 +1,6 @@
 
 // IR Test Data, 400 length, 8.3ms (seems to be about the max size working with GRU9, 500 is too much)
 
-
 // Marshall
 std::vector<float> ir_data1 = {
     0.19024348,    0.4953071,    0.85037684,    0.9999999,     0.83256125,    0.48705566,   0.1561923,    -0.119377255, -0.35273468,

@@ -27,10 +27,9 @@ class IrModule : public BaseEffectModule {
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;
     float GetBrightnessForLED(int led_id) const override;
-    //void AlternateFootswitchPressed() override;
+    // void AlternateFootswitchPressed() override;
 
   private:
-
     float m_levelMin;
     float m_levelMax;
 

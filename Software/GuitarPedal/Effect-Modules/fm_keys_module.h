@@ -252,7 +252,7 @@ class FmKeysModule : public BaseEffectModule {
     float m_freqMax;
 
     VoiceManagerFm<16> m_voice_handler; // starting with 1 voice for testing, 16 WORKS, 18 freezes
-                                      // With added carrier env control, 16 glitches, 12 works
+                                        // With added carrier env control, 16 glitches, 12 works
 
     float m_cachedEffectMagnitudeValue;
 };

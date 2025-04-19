@@ -10,12 +10,9 @@
 
 /** @file drum_module.h */
 
-
 using namespace daisysp;
 
 namespace bkshepherd {
-
-
 
 class DrumModule : public BaseEffectModule {
   public:
@@ -32,9 +29,8 @@ class DrumModule : public BaseEffectModule {
     float GetBrightnessForLED(int led_id) const override;
 
   private:
-
     int instrument_;
-    int voice_;      // Used to determine which voice to play in Kit mode
+    int voice_; // Used to determine which voice to play in Kit mode
 
     Metro metro;
     uint32_t m_bpm;
@@ -47,10 +43,10 @@ class DrumModule : public BaseEffectModule {
     int selected_beat = 0;
 
     AnalogSnareDrum snare;
-    AnalogBassDrum  bass;
-    HiHat<>           hihat;
+    AnalogBassDrum bass;
+    HiHat<> hihat;
     SyntheticSnareDrum synthsnare;
-    SyntheticBassDrum  synthbass;
+    SyntheticBassDrum synthbass;
 
     float m_cachedEffectMagnitudeValue;
 };

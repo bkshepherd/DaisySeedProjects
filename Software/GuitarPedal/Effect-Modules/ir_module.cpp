@@ -4,8 +4,7 @@
 
 using namespace bkshepherd;
 
-
-static const char *s_irNames_large[2] = {"Rhythm",  "Lead"};
+static const char *s_irNames_large[2] = {"Rhythm", "Lead"};
 
 static const int s_paramCount = 2;
 static const ParameterMetaData s_metaData[s_paramCount] = {
@@ -18,16 +17,13 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         knobMapping : 0,
         midiCCMapping : 14
     },
-  
+
     {name : "Level", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 1, midiCCMapping : 15},
 
-    };
-
-
+};
 
 // Default Constructor
-IrModule::IrModule()
-    : BaseEffectModule(), m_levelMin(0.0f), m_levelMax(2.0f), m_cachedEffectMagnitudeValue(1.0f) {
+IrModule::IrModule() : BaseEffectModule(), m_levelMin(0.0f), m_levelMax(2.0f), m_cachedEffectMagnitudeValue(1.0f) {
     // Set the name of the effect
     m_name = "IR";
 
@@ -52,22 +48,20 @@ void IrModule::ParameterChanged(int parameter_id) {
     if (parameter_id == 0) { // Change IR
         SelectIR();
     } else if (parameter_id == 1) { // Level
-
     }
 }
 
-
-//void IrModule::AlternateFootswitchPressed() {
-    // Increment the IR selection by pressing alternate footswitch
-    //unsigned int irIndex = GetParameterAsBinnedValue(0); // not doing -1 here to increment index by 1
-    //if (irIndex == ir_collection_large.size()) {
-    //    irIndex = 0; // reset back to 0
-    //} 
-    //SetParameterAsBinnedValue(0,irIndex + 1);
-    //if (irIndex != m_currentIRindex) {
-    //    mIR.Init(ir_collection_large[irIndex]); // ir_data is from ir_data_large.h
-    //}
-    //m_currentIRindex = irIndex;
+// void IrModule::AlternateFootswitchPressed() {
+// Increment the IR selection by pressing alternate footswitch
+// unsigned int irIndex = GetParameterAsBinnedValue(0); // not doing -1 here to increment index by 1
+// if (irIndex == ir_collection_large.size()) {
+//    irIndex = 0; // reset back to 0
+//}
+// SetParameterAsBinnedValue(0,irIndex + 1);
+// if (irIndex != m_currentIRindex) {
+//    mIR.Init(ir_collection_large[irIndex]); // ir_data is from ir_data_large.h
+//}
+// m_currentIRindex = irIndex;
 
 //}
 
@@ -79,8 +73,6 @@ void IrModule::SelectIR() {
     m_currentIRindex = irIndex;
 }
 
-
-
 void IrModule::ProcessMono(float in) {
     BaseEffectModule::ProcessMono(in);
 
@@ -90,15 +82,12 @@ void IrModule::ProcessMono(float in) {
     // IMPULSE RESPONSE //
     m_audioLeft = mIR.Process(input) * level * 0.5; // 0.5 is level adjust for loud output
     m_audioRight = m_audioLeft;
-
 }
 
 void IrModule::ProcessStereo(float inL, float inR) {
     // Calculate the mono effect
     ProcessMono(inL);
-
 }
-
 
 float IrModule::GetBrightnessForLED(int led_id) const {
     float value = BaseEffectModule::GetBrightnessForLED(led_id);

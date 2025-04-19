@@ -16,7 +16,6 @@ modelData Model5;
 modelData Model6;
 modelData Model7;
 
-
 /////////////////////////////////////////////////////////////////
 
 std::vector<modelData> model_collection;
@@ -412,7 +411,6 @@ void setupWeights() {
                         0.027705200016498566, 0.006273994687944651}};
     Model4.levelAdjust = 0.6;
 
-
     //========================================================================
     //../newNeuralSeedModel bassman_g25_gru9_p0072_shift29  keep
     /*
@@ -701,8 +699,6 @@ void setupWeights() {
                         -0.03789837658405304, -0.008905002847313881}};
 
     Model7.levelAdjust = 0.5;
-
-
 
     /*========================================================================*/
 
