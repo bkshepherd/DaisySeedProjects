@@ -131,9 +131,14 @@ Plug your guitar into the Input and connect the Output to your amp.
 
 1. Download the .zip for the hardware variant you have built from the latest release https://github.com/bkshepherd/DaisySeedProjects/releases
 1. Unzip it so that you have a guitarpedal.bin
-1. Follow the instructions on https://electro-smith.github.io/Programmer/
-   - Once connected, select the file with the `Or select a file from your computer` option
-   - Click Advanced -> Flash Bootloader Image
+1. Follow the instructions on https://flash.daisy.audio/
+1. Flash the bootloader (instructions on the Bootloader tab of the web flashing tool)
+   - This step can be skipped if the bootloader has already been flashed
+1. Flash the firmware .bin file (and repeat these steps for changing firmware versions)
+   1. Press RESET button on the daisy
+   1. Within 5 seconds single press the BOOT button on the daisy (this locks it into bootloader mode so that you can take your time to do the following steps instead of trying to do it all within 5 seconds)
+   1. Use File Upload to select the .bin file
+   1. Press Flash
 
 ## Software Updates
 
