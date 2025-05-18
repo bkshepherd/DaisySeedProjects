@@ -16,7 +16,7 @@ jobs:
       - name: Install Arm GNU Toolchain (arm-none-eabi-gcc)
         uses: carlosperate/arm-none-eabi-gcc-action@v1
         with:
-          release: "latest"
+          release: "10.3-2021.10"
       - name: Build Libraries
         working-directory: Software/GuitarPedal/
         run: ./ci/build_libs.sh
