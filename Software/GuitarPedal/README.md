@@ -12,6 +12,10 @@ The code in this project is supplied with a Microsoft Visual Code project and de
 
 https://electro-smith.github.io/libDaisy/index.html
 
+Some issues have been reported with newer ARM compiler versions. The documentation above from Electrosmith should be complete but for reference many users have had success with `10.3-2021.10`
+
+Version can be checked with `arm-none-eabi-gcc --version`
+
 ### 2. Setup dependencies
 
 Check to make sure that the following directories have files in them:
