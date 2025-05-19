@@ -92,3 +92,23 @@ ifdef VARIANT
    CFLAGS += -DVARIANT_$(VARIANT)
    $(info VARIANT=$(VARIANT))
 endif
+
+
+# --- ARM SDK Version check --- [start]
+# Issues have been experienced with the latest version of arm-none-eabi-gcc, so
+# we add a check here to help guide users to use a supported version
+
+# Get compiler version string safely
+GCC_VERSION_STRING := $(shell arm-none-eabi-gcc --version | head -n1)
+# Extract just the version number (e.g., "10.3.1")
+GCC_VERSION := $(shell echo "$(GCC_VERSION_STRING)" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+GCC_VERSION_MAJOR := $(shell echo $(GCC_VERSION) | cut -d. -f1)
+GCC_VERSION_MAJOR_REQUIRED := 10
+
+# Compare major versions
+VERSION_TOO_NEW := $(shell [ "$(GCC_VERSION_MAJOR)" -gt "$(GCC_VERSION_MAJOR_REQUIRED)" ] && echo yes)
+
+ifeq ($(VERSION_TOO_NEW),yes)
+$(error Compiler version of arm-none-eabi-gcc: $(GCC_VERSION) is too new and has issues with Daisy compatibility. Use arm-none-eabi-gcc $(GCC_VERSION_MAJOR_REQUIRED))
+endif
+# --- ARM SDK Version check --- [end]
