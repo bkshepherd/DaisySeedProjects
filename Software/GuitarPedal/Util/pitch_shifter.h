@@ -12,7 +12,6 @@
 #include "arm_math.h"
 #endif
 #include "RuntimeDelayLine.h"
-#include "Utility/delayline.h"
 #include "Utility/dsp.h"
 #include "phasor.h"
 
