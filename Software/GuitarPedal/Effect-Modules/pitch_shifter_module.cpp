@@ -16,6 +16,12 @@ static const char *s_modeBinNames[2] = {"LATCH", "MOMENT"};
 // transition when in momentary mode. Has no effect on latching mode
 const uint32_t k_maxSamplesMaxTime = 48000 * 2;
 
+// Larger delay size is higher fidelity/quality for a farther transpose, at
+// the cost of additional latency (like...a lot of latency)
+// 2048 works pretty well for 1 semitone and is ~42ms
+// 6000 samples was the best I could find for a usable full octave tone,
+// but is a whopping 125 ms, nearly unusable? kind of cool when blended
+// with the dry signal though
 const uint32_t k_defaultSamplesDelayPitchShifter = 2048;
 const uint32_t k_maxSamplesDelayPitchShifter = 6000;
 
@@ -74,9 +80,8 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
     },
 };
 
-#define MAX_DELAY_SAMPLES 96000 // 2s @ 48kHz
-DSY_SDRAM_BSS float pitch_delay_buffer_a[MAX_DELAY_SAMPLES];
-DSY_SDRAM_BSS float pitch_delay_buffer_b[MAX_DELAY_SAMPLES];
+DSY_SDRAM_BSS float pitch_delay_buffer_a[k_maxSamplesDelayPitchShifter];
+DSY_SDRAM_BSS float pitch_delay_buffer_b[k_maxSamplesDelayPitchShifter];
 
 static daisysp_modified::PitchShifter pitchShifter;
 static daisysp::CrossFade pitchCrossfade;
@@ -113,16 +118,6 @@ void PitchShifterModule::SetTranspose(float semitone) {
     // If this is latching, then we also adjust the delay to get the best sound
     // from the adjustments at the cost of increased latency
     if (m_latching) {
-        // Larger delay size is higher fidelity/quality for a farther transpose, at
-        // the cost of additional latency (like...a lot of latency)
-
-        // 2048 works pretty well for 1 semitone and is just ~5ms, not too bad at
-        // all
-
-        // 6000 samples was the best I could find for a usable full octave tone,
-        // but is a whopping 125 ms, nearly unusable? kind of cool when blended
-        // with the dry signal though
-
         // Value between 0 and 1 where 0 is 1 semitone and 1 is 12 semitones
         const float interpolateValue = (std::abs(semitone) - 1.0f) / 11.0f;
 
@@ -143,7 +138,7 @@ void PitchShifterModule::Init(float sample_rate) {
     memset(pitch_delay_buffer_a, 0, sizeof(pitch_delay_buffer_a));
     memset(pitch_delay_buffer_b, 0, sizeof(pitch_delay_buffer_b));
 
-    pitchShifter.Init(sample_rate, pitch_delay_buffer_a, pitch_delay_buffer_b, MAX_DELAY_SAMPLES);
+    pitchShifter.Init(sample_rate, pitch_delay_buffer_a, pitch_delay_buffer_b, k_maxSamplesDelayPitchShifter);
 
     pitchCrossfade.Init(CROSSFADE_CPOW);
     pitchCrossfade.SetPos(GetParameterAsFloat(1));
