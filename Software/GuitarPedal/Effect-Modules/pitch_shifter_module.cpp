@@ -75,7 +75,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
 };
 
 #define MAX_DELAY_SAMPLES 96000 // 2s @ 48kHz
-DSY_SDRAM_BSS float pitch_delay_buffer[2 * MAX_DELAY_SAMPLES];
+DSY_SDRAM_BSS float pitch_delay_buffer_a[MAX_DELAY_SAMPLES];
+DSY_SDRAM_BSS float pitch_delay_buffer_b[MAX_DELAY_SAMPLES];
+
 static daisysp_modified::PitchShifter pitchShifter;
 static daisysp::CrossFade pitchCrossfade;
 
@@ -138,9 +140,10 @@ void PitchShifterModule::Init(float sample_rate) {
     BaseEffectModule::Init(sample_rate);
 
     // clear and initialize SDRAM for pitch shift buffers
-    memset(pitch_delay_buffer, 0, sizeof(pitch_delay_buffer));
+    memset(pitch_delay_buffer_a, 0, sizeof(pitch_delay_buffer_a));
+    memset(pitch_delay_buffer_b, 0, sizeof(pitch_delay_buffer_b));
 
-    pitchShifter.Init(sample_rate, &pitch_delay_buffer[0], &pitch_delay_buffer[MAX_DELAY_SAMPLES], MAX_DELAY_SAMPLES);
+    pitchShifter.Init(sample_rate, pitch_delay_buffer_a, pitch_delay_buffer_b, MAX_DELAY_SAMPLES);
 
     pitchCrossfade.Init(CROSSFADE_CPOW);
     pitchCrossfade.SetPos(GetParameterAsFloat(1));
