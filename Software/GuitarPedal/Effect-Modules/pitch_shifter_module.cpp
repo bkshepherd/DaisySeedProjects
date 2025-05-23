@@ -17,6 +17,7 @@ static const char *s_modeBinNames[2] = {"LATCH", "MOMENT"};
 const uint32_t k_maxSamplesMaxTime = 48000 * 2;
 
 const uint32_t k_defaultSamplesDelayPitchShifter = 2048;
+const uint32_t k_maxSamplesDelayPitchShifter = 6000;
 
 static const int s_paramCount = 6;
 static const ParameterMetaData s_metaData[s_paramCount] = {
@@ -125,12 +126,10 @@ void PitchShifterModule::SetTranspose(float semitone) {
 
         // Linearly just choose a value between the min and max based on how many
         // semitones we are dropping
-        const uint32_t delaySize =
-            std::lerp(k_defaultSamplesDelayPitchShifter, daisysp_modified::k_maxSamplesDelayPitchShifter, interpolateValue);
+        const uint32_t delaySize = std::lerp(k_defaultSamplesDelayPitchShifter, k_maxSamplesDelayPitchShifter, interpolateValue);
 
         // Set delay size clamping to the min/max that are possible
-        pitchShifter.SetDelSize(
-            std::clamp(delaySize, k_defaultSamplesDelayPitchShifter, daisysp_modified::k_maxSamplesDelayPitchShifter));
+        pitchShifter.SetDelSize(std::clamp(delaySize, k_defaultSamplesDelayPitchShifter, k_maxSamplesDelayPitchShifter));
     }
     pitchShifter.SetTransposition(semitone);
 }
