@@ -1,9 +1,6 @@
 // This is a copy of the pitch_shifter from DaisySP with this PR applied:
 // https://github.com/electro-smith/DaisySP/pull/166
-// The buffer size is also changed to minimize latency
-// static constexpr size_t kShiftDelaySize = 2048;
-// This file can be deleted if that PR is merged, the buffer size is templatized
-// or parameterized, and the submodule is updated
+// A customized dynamic delay line for the pitch shifter is also used
 
 #pragma once
 #ifndef PITCHSHIFTER_H
