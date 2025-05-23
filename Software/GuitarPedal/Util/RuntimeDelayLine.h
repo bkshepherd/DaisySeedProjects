@@ -10,6 +10,8 @@ https://opensource.org/licenses/MIT.
 */
 
 #pragma once
+#ifndef DSY_RUNTIME_DELAY_H
+#define DSY_RUNTIME_DELAY_H
 #include <algorithm>
 #include <cstdint>
 
@@ -65,3 +67,5 @@ template <typename T> class DelayLine {
 };
 
 } // namespace daisysp_modified
+
+#endif
