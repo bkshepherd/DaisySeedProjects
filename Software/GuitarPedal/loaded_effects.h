@@ -56,7 +56,7 @@ void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffec
         new MultiDelayModule(),
         new MetroModule(),
         new TunerModule(),
-        // new PitchShifterModule(),
+        new PitchShifterModule(),
         new CompressorModule(),
         new LooperModule(),
         new GraphicEQModule(),
