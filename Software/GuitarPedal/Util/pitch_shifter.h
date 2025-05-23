@@ -14,6 +14,7 @@
 #ifdef USE_ARM_DSP
 #include "arm_math.h"
 #endif
+#include "RuntimeDelayLine.h"
 #include "Utility/delayline.h"
 #include "Utility/dsp.h"
 #include "phasor.h"
@@ -50,7 +51,7 @@ where:
     r is the sample_rate
 
 solving for t = 12.0
-f = (12 - 1) * 48000 / kShiftDelaySize;
+f = (12 - 1) * 48000 / delaySize;
 
 \todo - move hash_xs32 and myrand to dsp.h and give appropriate names
 */
@@ -61,19 +62,27 @@ class PitchShifter {
 
     /** Initialize pitch shifter
      *  \param sr the expected samplerate in Hz of the audio engines
+     *  \param bufferA the buffer to use for the first delay line
+     *  \param bufferB the buffer to use for the second delay line
+     *  \param buffer_size the size of the delay line buffers
      *  \param quantize_semitones locks transpositions to integer values (defaults
      * to false)
      */
-    void Init(float sr, bool quantize_semitones = false) {
+    void Init(float sr, float *bufferA, float *bufferB, uint32_t buffer_size, bool quantize_semitones = false) {
         force_recalc_ = false;
         sr_ = sr;
         mod_freq_ = 5.0f;
+
+        d_[0].Init(bufferA, buffer_size);
+        d_[1].Init(bufferB, buffer_size);
+
         for (uint8_t i = 0; i < 2; i++) {
             gain_[i] = 0.0f;
-            d_[i].Init();
             phs_[i].Init(sr, 50, i == 0 ? 0 : PI_F);
         }
-        del_size_ = kShiftDelaySize;
+
+        buffer_size_ = buffer_size;
+        del_size_ = buffer_size;
         SetDelSize(del_size_);
         fun_ = 0.0f;
         quantize_semitones_ = quantize_semitones;
@@ -151,7 +160,7 @@ class PitchShifter {
     /** sets delay size changing the timbre of the pitchshifting
      */
     void SetDelSize(uint32_t size) {
-        del_size_ = size < kShiftDelaySize ? size : kShiftDelaySize;
+        del_size_ = std::min(size, buffer_size_);
         force_recalc_ = true;
         SetTransposition(transpose_);
     }
@@ -162,10 +171,7 @@ class PitchShifter {
     inline void SetFun(float f) { fun_ = f; }
 
   private:
-    /** Shift can be 30-100 ms lets just start with 50 for now.
-    0.050 * SR = 2400 samples (at 48kHz) */
-    static constexpr size_t kShiftDelaySize = k_maxSamplesDelayPitchShifter;
-    typedef DelayLine<float, kShiftDelaySize> ShiftDelay;
+    typedef daisysp_modified::DelayLine<float> ShiftDelay;
     ShiftDelay d_[2];
     float pitch_shift_, mod_freq_;
     uint32_t del_size_;
@@ -176,6 +182,7 @@ class PitchShifter {
     float gain_[2], mod_[2], transpose_;
     float fun_, mod_a_amt_, mod_b_amt_, prev_phs_a_, prev_phs_b_;
     float slewed_mod_[2], mod_coeff_[2];
+    uint32_t buffer_size_ = 0;
 
     /** Config stuff */
     bool quantize_semitones_;
