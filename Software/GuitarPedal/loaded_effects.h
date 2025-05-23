@@ -16,6 +16,7 @@
 #include "Effect-Modules/compressor_module.h"
 #include "Effect-Modules/delay_module.h"
 #include "Effect-Modules/distortion_module.h"
+#include "Effect-Modules/drum_module.h"
 #include "Effect-Modules/geq_module.h"
 #include "Effect-Modules/granulardelay_module.h"
 #include "Effect-Modules/ir_module.h"
@@ -27,8 +28,7 @@
 #include "Effect-Modules/noise_gate_module.h"
 #include "Effect-Modules/overdrive_module.h"
 #include "Effect-Modules/peq_module.h"
-// #include "Effect-Modules/pitch_shifter_module.h" // Commented out to make room in DTCRAM
-#include "Effect-Modules/drum_module.h"
+#include "Effect-Modules/pitch_shifter_module.h"
 #include "Effect-Modules/polyoctave_module.h"
 #include "Effect-Modules/reverb_module.h"
 #include "Effect-Modules/scifi_module.h"
@@ -56,7 +56,7 @@ void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffec
         new MultiDelayModule(),
         new MetroModule(),
         new TunerModule(),
-        // new PitchShifterModule(),
+        new PitchShifterModule(),
         new CompressorModule(),
         new LooperModule(),
         new GraphicEQModule(),
