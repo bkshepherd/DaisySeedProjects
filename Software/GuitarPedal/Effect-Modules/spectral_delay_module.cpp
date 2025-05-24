@@ -1,41 +1,16 @@
 #include "spectral_delay_module.h"
+#include "../Util/STFT/fft_shared_context.h"
 #include "../Util/audio_utilities.h"
 
 using namespace bkshepherd;
-using namespace soundmath;
 
 #define PI 3.1415926535897932384626433832795
-// convenient lookup tables
-Wave<float> hann([](float phase) -> float {
-    return 0.5 * (1 - cos(2 * PI * phase));
-}); // see if moving this to sdram significantly slows things down, YES, fails to load if allocated to SDRAM
-// Wave<float> halfhann([] (float phase) -> float { return sin(PI * phase); });
 
-// 4 overlapping windows of size 2^12 = 4096
-// `N = 4096` and `laps = 4` (higher frequency resolution, greater latency), or when `N = 2048` and `laps = 8` (higher time resolution,
-// less latency). For Saturn, I'm using N=1024, N=4
+soundmath::Fourier<float, kFFTSize> *stft = nullptr; // pointer to the STFT object, initialized in Init()
 
-// const size_t order = 10;      // 1024
-const size_t order = 8; // 256 // Changing to order 8 from 10 allowed running at 48 blocksize instaed of 256
-const size_t N = (1 << order);
-const float sqrtN = sqrt(N);
-const size_t laps = 4;
-const size_t buffsize = 2 * laps * N;
-
+constexpr size_t N = (1 << kFFTOrder);
 // convenient constant for grabbing imaginary parts
 static const size_t offset = N / 2; // equals 512
-
-// buffers for STFT processing
-// audio --> in --(fft)--> middle --(process)--> out --(ifft)--> in -->
-// each of these is a few circular buffers stacked end-to-end.
-float DSY_SDRAM_BSS in[buffsize];     // buffers for input and output (from / to user audio callback)
-float DSY_SDRAM_BSS middle[buffsize]; // buffers for unprocessed frequency domain data
-float DSY_SDRAM_BSS out[buffsize];    // buffers for processed frequency domain data
-
-ShyFFT<float, N, RotationPhasor> *fft; // fft object
-Fourier<float, N> *stft;               // stft object
-
-float fft_size = N / 2;
 
 // Delay
 constexpr size_t MAX_DELAY_SPECTRAL_DELAY =
@@ -144,10 +119,9 @@ SpectralDelayModule::~SpectralDelayModule() {
 void SpectralDelayModule::Init(float sample_rate) {
     BaseEffectModule::Init(sample_rate);
 
-    // initialize FFT and STFT objects
-    fft = new ShyFFT<float, N, RotationPhasor>();
-    fft->Init();
-    stft = new Fourier<float, N>(spectraldelay, fft, &hann, laps, in, middle, out);
+    // initialize FFT objects
+    FFTSharedContext::Instance().Init(sample_rate, spectraldelay);
+    stft = FFTSharedContext::Instance().GetSTFT();
 
     // Initialize delay array settings
     for (int i = 0; i < delay_array_size; i++) {

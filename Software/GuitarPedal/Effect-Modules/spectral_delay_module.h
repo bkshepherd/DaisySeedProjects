@@ -6,16 +6,10 @@
 #include "daisysp.h"
 #include <stdint.h>
 
-// clang-format off
-#include "../Util/STFT/shy_fft.h"
-#include "../Util/STFT/fourier.h"
-#include "../Util/STFT/wave.h"
-// clang-format on
 #include <cmath>
 #include <complex>
 
 using namespace bkshepherd;
-using namespace soundmath;
 
 #define PI 3.1415926535897932384626433832795
 

@@ -6,7 +6,7 @@ CPP_STANDARD = -std=gnu++20
 # Sources
 
 CPP_SOURCES = guitar_pedal.cpp guitar_pedal_storage.cpp $(wildcard UI/*.cpp) $(wildcard Util/*.cpp) \
-$(wildcard Hardware-Modules/*.cpp)
+$(wildcard Hardware-Modules/*.cpp) Util/STFT/fft_shared_context.cpp
 CPP_SOURCES += Effect-Modules/base_effect_module.cpp
 
 # Naming the module sources explicitly to make it easier to add/remove from build. Otherwise all global attributes

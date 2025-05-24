@@ -2,10 +2,11 @@
 
 #include <algorithm>
 
-#include "../Util/pitch_shifter.h"
+#include "../Util/pitch_shifter_fft.h"
 #include "daisysp.h"
 
 using namespace bkshepherd;
+using namespace daisysp;
 
 static const char *s_semitoneBinNames[8] = {"1", "2", "3", "4", "5", "6", "7", "OCT"};
 static const char *s_directionBinNames[2] = {"DOWN", "UP"};
@@ -15,15 +16,6 @@ static const char *s_modeBinNames[2] = {"LATCH", "MOMENT"};
 // when the time knob is set to max, this is used for the ramp up/down
 // transition when in momentary mode. Has no effect on latching mode
 const uint32_t k_maxSamplesMaxTime = 48000 * 2;
-
-// Larger delay size is higher fidelity/quality for a farther transpose, at
-// the cost of additional latency (like...a lot of latency)
-// 2048 works pretty well for 1 semitone and is ~42ms
-// 6000 samples was the best I could find for a usable full octave tone,
-// but is a whopping 125 ms, nearly unusable? kind of cool when blended
-// with the dry signal though
-const uint32_t k_defaultSamplesDelayPitchShifter = 2048;
-const uint32_t k_maxSamplesDelayPitchShifter = 6000;
 
 static const int s_paramCount = 6;
 static const ParameterMetaData s_metaData[s_paramCount] = {
@@ -80,10 +72,7 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
     },
 };
 
-DSY_SDRAM_BSS float pitch_delay_buffer_a[k_maxSamplesDelayPitchShifter];
-DSY_SDRAM_BSS float pitch_delay_buffer_b[k_maxSamplesDelayPitchShifter];
-
-static daisysp_modified::PitchShifter pitchShifter;
+static PitchShifterFFT pitchShifter;
 static daisysp::CrossFade pitchCrossfade;
 
 // Default Constructor
@@ -114,31 +103,12 @@ void PitchShifterModule::ProcessSemitoneTargetChange() {
     }
 }
 
-void PitchShifterModule::SetTranspose(float semitone) {
-    // If this is latching, then we also adjust the delay to get the best sound
-    // from the adjustments at the cost of increased latency
-    if (m_latching) {
-        // Value between 0 and 1 where 0 is 1 semitone and 1 is 12 semitones
-        const float interpolateValue = (std::abs(semitone) - 1.0f) / 11.0f;
-
-        // Linearly just choose a value between the min and max based on how many
-        // semitones we are dropping
-        const uint32_t delaySize = std::lerp(k_defaultSamplesDelayPitchShifter, k_maxSamplesDelayPitchShifter, interpolateValue);
-
-        // Set delay size clamping to the min/max that are possible
-        pitchShifter.SetDelSize(std::clamp(delaySize, k_defaultSamplesDelayPitchShifter, k_maxSamplesDelayPitchShifter));
-    }
-    pitchShifter.SetTransposition(semitone);
-}
+void PitchShifterModule::SetTranspose(float semitone) { pitchShifter.SetTransposition(semitone); }
 
 void PitchShifterModule::Init(float sample_rate) {
     BaseEffectModule::Init(sample_rate);
 
-    // clear and initialize SDRAM for pitch shift buffers
-    memset(pitch_delay_buffer_a, 0, sizeof(pitch_delay_buffer_a));
-    memset(pitch_delay_buffer_b, 0, sizeof(pitch_delay_buffer_b));
-
-    pitchShifter.Init(sample_rate, pitch_delay_buffer_a, pitch_delay_buffer_b, k_maxSamplesDelayPitchShifter);
+    pitchShifter.Init(sample_rate);
 
     pitchCrossfade.Init(CROSSFADE_CPOW);
     pitchCrossfade.SetPos(GetParameterAsFloat(1));
@@ -165,9 +135,6 @@ void PitchShifterModule::ParameterChanged(int parameter_id) {
         pitchCrossfade.SetPos(GetParameterAsFloat(1));
     } else if (parameter_id == 3) {
         m_latching = GetParameterAsBinnedValue(3) == 1;
-        if (!m_latching) {
-            pitchShifter.SetDelSize(k_defaultSamplesDelayPitchShifter);
-        }
     } else if (parameter_id == 4) {
         m_samplesToDelayShift = static_cast<uint32_t>(static_cast<float>(k_maxSamplesMaxTime) * GetParameterAsFloat(4));
     } else if (parameter_id == 5) {

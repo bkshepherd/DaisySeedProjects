@@ -2,6 +2,7 @@
 #ifndef FOURIER
 
 #include "wave.h"
+#include <cstring>
 
 namespace soundmath {
 template <typename T, size_t N> class Fourier {
