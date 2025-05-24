@@ -16,7 +16,7 @@ using namespace soundmath;
 
 using FFTProcessCallback = void (*)(const float *, float *);
 
-constexpr size_t kFFTOrder = 8; // 256-point FFT
+constexpr size_t kFFTOrder = 9; // 512-point FFT
 constexpr size_t kFFTSize = (1 << kFFTOrder);
 constexpr size_t kLaps = 4;
 constexpr size_t kBufferSize = 2 * kLaps * kFFTSize;
