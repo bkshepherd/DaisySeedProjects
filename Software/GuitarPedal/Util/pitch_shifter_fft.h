@@ -38,14 +38,14 @@ class PitchShifterFFT {
         ratio_ = std::pow(2.0f, semitone_shift_ / 12.0f);
         // Reset output phase accumulators (critical!)
         std::fill(sum_phase_.begin(), sum_phase_.end(), 0.0f);
+        std::fill(prev_phase_.begin(), prev_phase_.end(), 0.0f);
     }
 
     float Process(float input) {
         auto *stft = FFTSharedContext::Instance().GetSTFT();
         stft->write(input);
 
-        float gain_boost = 4.0f + std::abs(semitone_shift_) * 0.25f; // empirically determined
-        return stft->read() * gain_boost;
+        return stft->read();
     }
 
   private:
@@ -76,7 +76,7 @@ class PitchShifterFFT {
         std::fill(out, out + kFFTSize, 0.0f);
         float gain = 1.0f;
         for (size_t i = 0; i < kFFTSize / 2; ++i) {
-            size_t shifted_idx = static_cast<size_t>(i / ratio_);
+            size_t shifted_idx = static_cast<size_t>(i * ratio_);
             if (shifted_idx < kFFTSize / 2) {
                 out[i] += in[shifted_idx] * gain;
                 out[i + kFFTSize / 2] += in[shifted_idx + kFFTSize / 2] * gain;
@@ -86,7 +86,7 @@ class PitchShifterFFT {
 
     void ProcessFrameWithVocoder(const float *in, float *out) {
         constexpr float two_pi = 2.0f * M_PI;
-        constexpr float mag_threshold = 1e-5f; // empirical floor (adjust as needed)
+        constexpr float mag_threshold = 1e-6f; // empirical floor (adjust as needed)
 
         const float bin_freq = sample_rate_ / static_cast<float>(kFFTSize);
         const float hop_size = static_cast<float>(kFFTSize) / static_cast<float>(kLaps);
@@ -125,7 +125,9 @@ class PitchShifterFFT {
 
         // Resynthesis: pull from input bin corresponding to i / ratio_
         for (size_t i = 0; i < num_bins; ++i) {
-            float src_bin = static_cast<float>(i) / ratio_;
+            float src_bin = static_cast<float>(i) * ratio_;
+            if (src_bin > num_bins - 2) // clamp instead of abort
+                src_bin = static_cast<float>(num_bins - 2);
             size_t i0 = static_cast<size_t>(std::floor(src_bin));
             float frac = src_bin - static_cast<float>(i0);
 
@@ -137,6 +139,8 @@ class PitchShifterFFT {
             float mag1 = mag_[i0 + 1];
             float mag = (1.0f - frac) * mag0 + frac * mag1;
 
+            mag *= ratio_ > 1.0f ? (1.0f / ratio_) : ratio_; // crude but effective
+
             float freq0 = freq_[i0];
             float freq1 = freq_[i0 + 1];
             float freq = (1.0f - frac) * freq0 + frac * freq1;
@@ -146,7 +150,8 @@ class PitchShifterFFT {
                 continue;
 
             // Accumulate output phase
-            float phase_adv = two_pi * freq * hop_size / sample_rate_;
+            float target_freq = freq * ratio_;
+            float phase_adv = two_pi * target_freq * hop_size / sample_rate_;
             sum_phase_[i] += phase_adv;
 
             float re = mag * std::cos(sum_phase_[i]);
