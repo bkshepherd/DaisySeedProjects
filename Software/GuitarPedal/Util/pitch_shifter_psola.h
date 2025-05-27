@@ -9,7 +9,7 @@
 // PSOLA-based pitch shifter (monophonic)
 class PitchShifterPSOLA {
   public:
-    PitchShifterPSOLA() : m_pitchShiftRatio(1.0f), m_hopIn(0), m_hopOut(0), m_writeIndex(0), m_readIndex(0) {}
+    PitchShifterPSOLA() : m_pitchShiftRatio(1.0f), m_hopIn(0), m_hopOut(0), m_readIndex(0), m_writeIndex(0) {}
 
     void Init(float sample_rate) {
         m_sampleRate = sample_rate;
@@ -97,19 +97,19 @@ class PitchShifterPSOLA {
     }
 
     /* ---------- state ---------- */
-    float m_sampleRate{};
-    float m_pitchShiftRatio{1.f};
-    int m_pitchPeriod{256};
-    int m_maxPeriodSamples{};
-    int m_minPeriodSamples{};
+    float m_sampleRate;
+    float m_pitchShiftRatio = 1.f;
+    int m_pitchPeriod;
+    int m_maxPeriodSamples;
+    int m_minPeriodSamples;
 
     std::vector<float> m_inputBuffer;
     std::deque<float> m_outputBuffer;
 
-    int m_hopIn{};
-    int m_hopOut{};
-    int m_readIndex{};
-    int m_writeIndex{};
+    int m_hopIn;
+    int m_hopOut;
+    int m_readIndex;
+    int m_writeIndex;
 };
 
 #endif // PITCH_SHIFTER_PSOLA_H
