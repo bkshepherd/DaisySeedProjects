@@ -24,7 +24,7 @@
 #include "Effect-Modules/metro_module.h"
 #include "Effect-Modules/modulated_tremolo_module.h"
 #include "Effect-Modules/multi_delay_module.h"
-#include "Effect-Modules/nam_module.h"
+// #include "Effect-Modules/nam_module.h"
 #include "Effect-Modules/noise_gate_module.h"
 #include "Effect-Modules/overdrive_module.h"
 #include "Effect-Modules/peq_module.h"
@@ -33,7 +33,7 @@
 #include "Effect-Modules/reverb_module.h"
 #include "Effect-Modules/scifi_module.h"
 #include "Effect-Modules/spectral_delay_module.h"
-#include "Effect-Modules/tuner_module.h"
+// #include "Effect-Modules/tuner_module.h"
 
 // Keyboard modules
 // #include "Effect-Modules/fm_keys_module.h"
@@ -55,7 +55,7 @@ void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffec
         new ReverbModule(),
         new MultiDelayModule(),
         new MetroModule(),
-        new TunerModule(),
+        // new TunerModule(),
         new PitchShifterModule(),
         new CompressorModule(),
         new LooperModule(),
@@ -65,7 +65,7 @@ void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffec
         new CloudSeedModule(),
         new AmpModule(),
         new DelayModule(),
-        new NamModule(),
+        // new NamModule(),
         new SciFiModule(),
         new PolyOctaveModule(),
         new SpectralDelayModule(),
