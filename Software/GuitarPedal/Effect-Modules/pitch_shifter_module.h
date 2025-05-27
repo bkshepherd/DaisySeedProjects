@@ -46,6 +46,8 @@ class PitchShifterModule : public BaseEffectModule {
     bool m_transitioningReturn = false;
 
     float m_percentageTransitionComplete = 0.0;
+
+    float m_currentFrequency = 0.0f;
 };
 } // namespace bkshepherd
 #endif

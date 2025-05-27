@@ -2,7 +2,8 @@
 
 #include <algorithm>
 
-#include "../Util/pitch_shifter_fft.h"
+#include "../Util/frequency_detector_q.h"
+#include "../Util/pitch_shifter_psola.h"
 #include "daisysp.h"
 
 using namespace bkshepherd;
@@ -72,7 +73,8 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
     },
 };
 
-static PitchShifterFFT pitchShifter;
+static FrequencyDetectorQ frequencyDetector;
+static PitchShifterPSOLA pitchShifter;
 static daisysp::CrossFade pitchCrossfade;
 
 // Default Constructor
@@ -103,12 +105,17 @@ void PitchShifterModule::ProcessSemitoneTargetChange() {
     }
 }
 
-void PitchShifterModule::SetTranspose(float semitone) { pitchShifter.SetTransposition(semitone); }
+void PitchShifterModule::SetTranspose(float semitone) {
+    float ratio = powf(2.0f, semitone / 12.0f);
+    pitchShifter.SetPitchShiftRatio(ratio);
+}
 
 void PitchShifterModule::Init(float sample_rate) {
     BaseEffectModule::Init(sample_rate);
 
+    frequencyDetector.Init(sample_rate);
     pitchShifter.Init(sample_rate);
+    pitchShifter.SetPitchShiftRatio(1.0f);
 
     pitchCrossfade.Init(CROSSFADE_CPOW);
     pitchCrossfade.SetPos(GetParameterAsFloat(1));
@@ -185,11 +192,15 @@ void PitchShifterModule::AlternateFootswitchReleased() {
 void PitchShifterModule::ProcessMono(float in) {
     float out = in;
 
+    // Update pitch detection
+    m_currentFrequency = frequencyDetector.Process(in);
+    if (m_currentFrequency > 0.0f) {
+        float pitchPeriodSamples = GetSampleRate() / m_currentFrequency;
+        pitchShifter.SetPitchPeriod(static_cast<int>(pitchPeriodSamples));
+    }
+
     if (m_latching) {
-        // When in latching mode, just process the target semitone at all times
-        // immediately
-        float shifted = pitchShifter.Process(in);
-        out = pitchCrossfade.Process(in, shifted);
+        out = pitchShifter.ProcessSample(in);
     } else {
         out = ProcessMomentaryMode(in);
     }
@@ -215,7 +226,7 @@ float PitchShifterModule::ProcessMomentaryMode(float in) {
 
         // Process the pitch shift for completely active to the target
         SetTranspose(semitone);
-        float shifted = pitchShifter.Process(in);
+        float shifted = pitchShifter.ProcessSample(in);
         float out = pitchCrossfade.Process(in, shifted);
         return out;
     }
@@ -247,7 +258,7 @@ float PitchShifterModule::ProcessMomentaryMode(float in) {
         SetTranspose(m_semitoneTarget * (1.0f - m_percentageTransitionComplete));
     }
 
-    float shifted = pitchShifter.Process(in);
+    float shifted = pitchShifter.ProcessSample(in);
     float pitchOut = pitchCrossfade.Process(in, shifted);
 
     // Increment the counter for the next pass
