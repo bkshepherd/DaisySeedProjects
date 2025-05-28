@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#include "../Util/frequency_detector_q.h"
+#include "../Util/frequency_detector_yin.h"
 #include "../Util/pitch_shifter_psola.h"
 #include "daisysp.h"
 
@@ -72,7 +72,7 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
     },
 };
 
-static FrequencyDetectorQ frequencyDetector;
+static FrequencyDetectorYin frequencyDetector;
 static PitchShifterPSOLA pitchShifter;
 static daisysp::CrossFade pitchCrossfade;
 
@@ -199,7 +199,8 @@ void PitchShifterModule::ProcessMono(float in) {
     }
 
     if (m_latching) {
-        float shifted = pitchShifter.ProcessSample(in);
+        // float shifted = pitchShifter.ProcessSample(in);
+        float shifted = in;
         out = pitchCrossfade.Process(in, shifted);
     } else {
         out = ProcessMomentaryMode(in);
