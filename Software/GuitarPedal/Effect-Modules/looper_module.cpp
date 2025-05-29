@@ -112,8 +112,8 @@ void LooperModule::Init(float sample_rate) {
 
 void LooperModule::SetLooperMode() {
     const int modeIndex = GetParameterAsBinnedValue(2) - 1;
-    m_looper.SetMode(static_cast<daisysp_modified::varSpeedLooper::Mode>(modeIndex));
-    m_looperR.SetMode(static_cast<daisysp_modified::varSpeedLooper::Mode>(modeIndex));
+    m_looper.SetMode(static_cast<daisysp::Looper::Mode>(modeIndex));
+    m_looperR.SetMode(static_cast<daisysp::Looper::Mode>(modeIndex));
 }
 
 void LooperModule::ParameterChanged(int parameter_id) {
