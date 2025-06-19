@@ -20,10 +20,11 @@ cycfi::q::peaking filter_nam[NUM_FILTERS_NAM] = {{0, centerFrequencyNam[0], 4800
                                                  {0, centerFrequencyNam[2], 48000, q_nam[2]}};
 
 // This must match the length of the model_collection_nam array in model_data_nam.h
-const size_t k_numModels = 12;
+const size_t k_numModels = 13;
 
-static const char *s_modelBinNames[k_numModels] = {"Mesa",    "Match30", "DumHighG",    "DumLowG",     "Ethos",       "Splawn",
-                                                   "PRSArch", "JCM800",  "JCM800(08c)", "BE-100(21a)", "BE-100(41a)", "BE-100(10)"};
+static const char *s_modelBinNames[k_numModels] = {"Mesa",        "Match30",    "DumHighG",    "DumLowG",     "Ethos",
+                                                   "Splawn",      "PRSArch",    "JCM800",      "JCM800(08c)", "BE-100(21a)",
+                                                   "BE-100(41a)", "BE-100(10)", "Sansamp Bass"};
 struct NAMMathsProvider {
 #if RTNEURAL_USE_EIGEN
     template <typename Matrix> static auto tanh(const Matrix &x) {
