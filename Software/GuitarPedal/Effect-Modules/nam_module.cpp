@@ -140,7 +140,7 @@ NamModule::NamModule()
     // Setup the meta data reference for this Effect
     m_paramMetaData = s_metaData;
 
-    // in the model data nam .h file
+    // Setup model weights before anything else in case SelectModel is called
     setupWeightsNam();
 
     // Initialize Parameters for this Effect
