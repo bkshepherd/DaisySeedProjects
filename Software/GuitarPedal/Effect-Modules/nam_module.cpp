@@ -22,9 +22,9 @@ cycfi::q::peaking filter_nam[NUM_FILTERS_NAM] = {{0, centerFrequencyNam[0], 4800
 // This must match the length of the model_collection_nam array in model_data_nam.h
 const size_t k_numModels = 13;
 
-static const char *s_modelBinNames[k_numModels] = {"Mesa",        "Match30",    "DumHighG",    "DumLowG",     "Ethos",
-                                                   "Splawn",      "PRSArch",    "JCM800",      "JCM800(08c)", "BE-100(21a)",
-                                                   "BE-100(41a)", "BE-100(10)", "Sansamp Bass"};
+static const char *s_modelBinNames[k_numModels] = {"Mesa",        "Match30",    "DumHighG", "DumLowG",     "Ethos",
+                                                   "Splawn",      "PRSArch",    "JCM800",   "JCM800(08c)", "BE-100(21a)",
+                                                   "BE-100(41a)", "BE-100(10)", "SansBass"};
 struct NAMMathsProvider {
 #if RTNEURAL_USE_EIGEN
     template <typename Matrix> static auto tanh(const Matrix &x) {
@@ -140,6 +140,9 @@ NamModule::NamModule()
     // Setup the meta data reference for this Effect
     m_paramMetaData = s_metaData;
 
+    // in the model data nam .h file
+    setupWeightsNam();
+
     // Initialize Parameters for this Effect
     this->InitParams(s_paramCount);
 }
@@ -151,7 +154,6 @@ NamModule::~NamModule() {
 
 void NamModule::Init(float sample_rate) {
     BaseEffectModule::Init(sample_rate);
-    setupWeightsNam(); // in the model data nam .h file
     SelectModel();
 
     filter_nam[0].config(GetParameterAsFloat(3), centerFrequencyNam[0], sample_rate, q_nam[0]);
@@ -204,6 +206,12 @@ void NamModule::ProcessMono(float in) {
     if (GetParameterAsBool(6)) {
         ampOut =
             rtneural_wavenet.forward(input_arr[0]) * 0.4; // TODO Try this again, was sending the whole array, wants just the float
+
+        if (m_currentModelindex == 12) {
+            // SansAmp Bass Driver DI model is very quiet, so we need to boost
+            // the output
+            ampOut *= 5.0f;
+        }
     } else {
         ampOut = input_arr[0];
     }
