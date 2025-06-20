@@ -207,10 +207,10 @@ void NamModule::ProcessMono(float in) {
         ampOut =
             rtneural_wavenet.forward(input_arr[0]) * 0.4; // TODO Try this again, was sending the whole array, wants just the float
 
-        if (m_currentModelindex == 12) {
-            // SansAmp Bass Driver DI model is very quiet, so we need to boost
-            // the output
-            ampOut *= 5.0f;
+        // Apply automatic level normalization based on metadata
+        const int modelIndex = GetParameterAsBinnedValue(2) - 1;
+        if (modelIndex >= 0 && modelIndex < static_cast<int>(model_collection_nam.size())) {
+            ampOut *= model_collection_nam[modelIndex].levelAdjust;
         }
     } else {
         ampOut = input_arr[0];
