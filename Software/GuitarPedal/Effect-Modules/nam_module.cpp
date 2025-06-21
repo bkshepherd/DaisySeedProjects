@@ -121,8 +121,8 @@ wavenet::Wavenet_Model<float,
 // NOTE NAM "Pico" (unnoficial model type)
 using Dilations = wavenet::Dilations<1, 2, 4, 8, 16, 32, 64>;
 using Dilations2 = wavenet::Dilations<128, 256, 512, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512>;
-wavenet::Wavenet_Model<float, 1, wavenet::Layer_Array<float, 1, 1, 2, 2, 3, Dilations, false, NAMMathsProvider>,
-                       wavenet::Layer_Array<float, 2, 1, 1, 2, 3, Dilations2, true, NAMMathsProvider>>
+DSY_SDRAM_BSS wavenet::Wavenet_Model<float, 1, wavenet::Layer_Array<float, 1, 1, 2, 2, 3, Dilations, false, NAMMathsProvider>,
+                                     wavenet::Layer_Array<float, 2, 1, 1, 2, 3, Dilations2, true, NAMMathsProvider>>
     rtneural_wavenet;
 
 // NOTES:
@@ -140,9 +140,6 @@ NamModule::NamModule()
     // Setup the meta data reference for this Effect
     m_paramMetaData = s_metaData;
 
-    // Setup model weights before anything else in case SelectModel is called
-    setupWeightsNam();
-
     // Initialize Parameters for this Effect
     this->InitParams(s_paramCount);
 }
@@ -153,7 +150,13 @@ NamModule::~NamModule() {
 }
 
 void NamModule::Init(float sample_rate) {
+    // Initialize the wavenet object after SDRAM is ready
+    new (&rtneural_wavenet)
+        wavenet::Wavenet_Model<float, 1, wavenet::Layer_Array<float, 1, 1, 2, 2, 3, Dilations, false, NAMMathsProvider>,
+                               wavenet::Layer_Array<float, 2, 1, 1, 2, 3, Dilations2, true, NAMMathsProvider>>();
+
     BaseEffectModule::Init(sample_rate);
+    setupWeightsNam(); // in the model data nam .h file
     SelectModel();
 
     filter_nam[0].config(GetParameterAsFloat(3), centerFrequencyNam[0], sample_rate, q_nam[0]);
