@@ -122,7 +122,7 @@ using Dilations2 = wavenet::Dilations<128, 256, 512, 1, 2, 4, 8, 16, 32, 64, 128
 using NAMWavenetType = wavenet::Wavenet_Model<float, 1, wavenet::Layer_Array<float, 1, 1, 2, 2, 3, Dilations, false, NAMMathsProvider>,
                                               wavenet::Layer_Array<float, 2, 1, 1, 2, 3, Dilations2, true, NAMMathsProvider>>;
 
-DSY_SDRAM_BSS NAMWavenetType rtneural_wavenet;
+static NAMWavenetType *rtneural_wavenet = nullptr;
 
 // NOTES:
 // nano models:
@@ -149,10 +149,13 @@ NamModule::~NamModule() {
 }
 
 void NamModule::Init(float sample_rate) {
-    // Initialize the wavenet object after SDRAM is ready
-    new (&rtneural_wavenet) NAMWavenetType();
-
     BaseEffectModule::Init(sample_rate);
+
+    // Allocate in SDRAM if not already allocated
+    if (rtneural_wavenet == nullptr) {
+        rtneural_wavenet = new NAMWavenetType();
+    }
+
     setupWeightsNam(); // in the model data nam .h file
     SelectModel();
 
@@ -182,10 +185,10 @@ void NamModule::SelectModel() {
         const auto weights = model_collection_nam[modelIndex]->weights;
         const auto weight_count = model_collection_nam[modelIndex]->weight_count;
         std::vector<float> weights_vec(weights, weights + weight_count);
-        rtneural_wavenet.load_weights(weights_vec);
+        rtneural_wavenet->load_weights(weights_vec);
         static constexpr size_t N = 1; // number of samples sent through model at once
-        rtneural_wavenet.prepare(N);   // This is needed, including this allowed the led to come on before freezing
-        rtneural_wavenet.prewarm();    // Note: looks like this just sends some 0's through the model
+        rtneural_wavenet->prepare(N);  // This is needed, including this allowed the led to come on before freezing
+        rtneural_wavenet->prewarm();   // Note: looks like this just sends some 0's through the model
         m_currentModelindex = modelIndex;
         // Re-enable output
         m_muteOutput = false;
@@ -208,7 +211,7 @@ void NamModule::ProcessMono(float in) {
     // NEURAL MODEL //
     if (GetParameterAsBool(6)) {
         ampOut =
-            rtneural_wavenet.forward(input_arr[0]) * 0.4; // TODO Try this again, was sending the whole array, wants just the float
+            rtneural_wavenet->forward(input_arr[0]) * 0.4; // TODO Try this again, was sending the whole array, wants just the float
 
         // Apply level normalization factor
         if (m_currentModelindex >= 0 && m_currentModelindex < static_cast<int>(k_numModels)) {
