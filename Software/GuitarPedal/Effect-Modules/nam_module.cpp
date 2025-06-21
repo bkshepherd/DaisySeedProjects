@@ -138,9 +138,6 @@ NamModule::NamModule()
     // Setup the meta data reference for this Effect
     m_paramMetaData = s_metaData;
 
-    // Setup model weights before anything else in case SelectModel is called
-    setupWeightsNam();
-
     // Initialize Parameters for this Effect
     this->InitParams(s_paramCount);
 }
@@ -152,6 +149,7 @@ NamModule::~NamModule() {
 
 void NamModule::Init(float sample_rate) {
     BaseEffectModule::Init(sample_rate);
+    setupWeightsNam(); // in the model data nam .h file
     SelectModel();
 
     filter_nam[0].config(GetParameterAsFloat(3), centerFrequencyNam[0], sample_rate, q_nam[0]);
