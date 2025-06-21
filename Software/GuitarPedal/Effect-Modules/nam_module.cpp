@@ -20,8 +20,6 @@ cycfi::q::peaking filter_nam[NUM_FILTERS_NAM] = {{0, centerFrequencyNam[0], 4800
                                                  {0, centerFrequencyNam[2], 48000, q_nam[2]}};
 
 // This must match the length of the model_collection_nam array in model_data_nam.h
-const size_t k_numModels = 13;
-
 static const char *s_modelBinNames[k_numModels] = {"Mesa",        "Match30",    "DumHighG", "DumLowG",     "Ethos",
                                                    "Splawn",      "PRSArch",    "JCM800",   "JCM800(08c)", "BE-100(21a)",
                                                    "BE-100(41a)", "BE-100(10)", "SansBass"};
@@ -181,7 +179,10 @@ void NamModule::SelectModel() {
     if (m_currentModelindex != modelIndex) {
         // Temporarily disable output as we switch models
         m_muteOutput = true;
-        rtneural_wavenet.load_weights(model_collection_nam[modelIndex].weights);
+        const auto weights = model_collection_nam[modelIndex]->weights;
+        const auto weight_count = model_collection_nam[modelIndex]->weight_count;
+        std::vector<float> weights_vec(weights, weights + weight_count);
+        rtneural_wavenet.load_weights(weights_vec);
         static constexpr size_t N = 1; // number of samples sent through model at once
         rtneural_wavenet.prepare(N);   // This is needed, including this allowed the led to come on before freezing
         rtneural_wavenet.prewarm();    // Note: looks like this just sends some 0's through the model
@@ -210,8 +211,8 @@ void NamModule::ProcessMono(float in) {
             rtneural_wavenet.forward(input_arr[0]) * 0.4; // TODO Try this again, was sending the whole array, wants just the float
 
         // Apply level normalization factor
-        if (m_currentModelindex >= 0 && m_currentModelindex < static_cast<int>(model_collection_nam.size())) {
-            ampOut *= model_collection_nam[m_currentModelindex].levelAdjust;
+        if (m_currentModelindex >= 0 && m_currentModelindex < static_cast<int>(k_numModels)) {
+            ampOut *= model_collection_nam[m_currentModelindex]->levelAdjust;
         }
     } else {
         ampOut = input_arr[0];
