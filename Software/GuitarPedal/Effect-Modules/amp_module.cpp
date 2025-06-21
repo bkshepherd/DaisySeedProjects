@@ -71,6 +71,9 @@ AmpModule::AmpModule()
     // Setup the meta data reference for this Effect
     m_paramMetaData = s_metaData;
 
+    // Setup model weights before anything else in case SelectModel is called
+    setupWeights();
+
     // Initialize Parameters for this Effect
     this->InitParams(s_paramCount);
 }
@@ -82,7 +85,6 @@ AmpModule::~AmpModule() {
 
 void AmpModule::Init(float sample_rate) {
     BaseEffectModule::Init(sample_rate);
-    setupWeights(); // in the model data .h file
     SelectModel();
     SelectIR();
     CalculateMix();
