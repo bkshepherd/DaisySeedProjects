@@ -121,9 +121,10 @@ wavenet::Wavenet_Model<float,
 // NOTE NAM "Pico" (unnoficial model type)
 using Dilations = wavenet::Dilations<1, 2, 4, 8, 16, 32, 64>;
 using Dilations2 = wavenet::Dilations<128, 256, 512, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512>;
-DSY_SDRAM_BSS wavenet::Wavenet_Model<float, 1, wavenet::Layer_Array<float, 1, 1, 2, 2, 3, Dilations, false, NAMMathsProvider>,
-                                     wavenet::Layer_Array<float, 2, 1, 1, 2, 3, Dilations2, true, NAMMathsProvider>>
-    rtneural_wavenet;
+using NAMWavenetType = wavenet::Wavenet_Model<float, 1, wavenet::Layer_Array<float, 1, 1, 2, 2, 3, Dilations, false, NAMMathsProvider>,
+                                              wavenet::Layer_Array<float, 2, 1, 1, 2, 3, Dilations2, true, NAMMathsProvider>>;
+
+DSY_SDRAM_BSS NAMWavenetType rtneural_wavenet;
 
 // NOTES:
 // nano models:
@@ -151,9 +152,7 @@ NamModule::~NamModule() {
 
 void NamModule::Init(float sample_rate) {
     // Initialize the wavenet object after SDRAM is ready
-    new (&rtneural_wavenet)
-        wavenet::Wavenet_Model<float, 1, wavenet::Layer_Array<float, 1, 1, 2, 2, 3, Dilations, false, NAMMathsProvider>,
-                               wavenet::Layer_Array<float, 2, 1, 1, 2, 3, Dilations2, true, NAMMathsProvider>>();
+    new (&rtneural_wavenet) NAMWavenetType();
 
     BaseEffectModule::Init(sample_rate);
     setupWeightsNam(); // in the model data nam .h file
