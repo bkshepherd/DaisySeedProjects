@@ -108,22 +108,18 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
 
 };
 
-// NOTE NAM Standard arch?
-/*
-using Dilations = wavenet::Dilations<1, 2, 4, 8, 16, 32, 64, 128, 256, 512>;
-wavenet::Wavenet_Model<float,
-                       1,
-                       wavenet::Layer_Array<float, 1, 1, 8, 16, 3, Dilations, false, NAMMathsProvider>,
-                       wavenet::Layer_Array<float, 16, 1, 1, 8, 3, Dilations, true, NAMMathsProvider>>
-    rtneural_wavenet;
-*/
-
-// NOTE NAM "Pico" (unnoficial model type)
+// NOTE NAM "Pico" (unofficial model type)
 using Dilations = wavenet::Dilations<1, 2, 4, 8, 16, 32, 64>;
 using Dilations2 = wavenet::Dilations<128, 256, 512, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512>;
-wavenet::Wavenet_Model<float, 1, wavenet::Layer_Array<float, 1, 1, 2, 2, 3, Dilations, false, NAMMathsProvider>,
-                       wavenet::Layer_Array<float, 2, 1, 1, 2, 3, Dilations2, true, NAMMathsProvider>>
-    rtneural_wavenet;
+using NAMWavenetModel =
+    wavenet::Wavenet_Model<float, 1, wavenet::Layer_Array<float, 1, 1, 2, 2, 3, Dilations, false, NAMMathsProvider>,
+                           wavenet::Layer_Array<float, 2, 1, 1, 2, 3, Dilations2, true, NAMMathsProvider>>;
+
+// 1) raw storage in SDRAM.bss, correctly aligned:
+DSY_SDRAM_BSS
+__attribute__((aligned(__alignof__(NAMWavenetModel)))) static uint8_t rtneural_wavenet_storage[sizeof(NAMWavenetModel)];
+
+static NAMWavenetModel *rtneural_wavenet = nullptr;
 
 // NOTES:
 // nano models:
@@ -151,6 +147,13 @@ NamModule::~NamModule() {
 
 void NamModule::Init(float sample_rate) {
     BaseEffectModule::Init(sample_rate);
+
+    // interpret the raw bytes as your object
+    rtneural_wavenet = reinterpret_cast<NAMWavenetModel *>(rtneural_wavenet_storage);
+
+    // placement-new into *that* buffer:
+    new (rtneural_wavenet) NAMWavenetModel{};
+
     setupWeightsNam(); // in the model data nam .h file
     SelectModel();
 
@@ -177,10 +180,10 @@ void NamModule::SelectModel() {
     if (m_currentModelindex != modelIndex) {
         // Temporarily disable output as we switch models
         m_muteOutput = true;
-        rtneural_wavenet.load_weights(model_collection_nam[modelIndex].weights);
+        rtneural_wavenet->load_weights(model_collection_nam[modelIndex].weights);
         static constexpr size_t N = 1; // number of samples sent through model at once
-        rtneural_wavenet.prepare(N);   // This is needed, including this allowed the led to come on before freezing
-        rtneural_wavenet.prewarm();    // Note: looks like this just sends some 0's through the model
+        rtneural_wavenet->prepare(N);  // This is needed, including this allowed the led to come on before freezing
+        rtneural_wavenet->prewarm();   // Note: looks like this just sends some 0's through the model
         m_currentModelindex = modelIndex;
         // Re-enable output
         m_muteOutput = false;
@@ -203,7 +206,7 @@ void NamModule::ProcessMono(float in) {
     // NEURAL MODEL //
     if (GetParameterAsBool(6)) {
         ampOut =
-            rtneural_wavenet.forward(input_arr[0]) * 0.4; // TODO Try this again, was sending the whole array, wants just the float
+            rtneural_wavenet->forward(input_arr[0]) * 0.4; // TODO Try this again, was sending the whole array, wants just the float
 
         // Apply level normalization factor
         if (m_currentModelindex >= 0 && m_currentModelindex < static_cast<int>(k_numModels)) {
