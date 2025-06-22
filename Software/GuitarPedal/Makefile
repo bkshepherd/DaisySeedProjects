@@ -27,7 +27,7 @@ CPP_SOURCES += Effect-Modules/granulardelay_module.cpp
 CPP_SOURCES += Effect-Modules/distortion_module.cpp
 CPP_SOURCES += Effect-Modules/ImpulseResponse/ImpulseResponse.cpp
 CPP_SOURCES += Effect-Modules/ImpulseResponse/dsp.cpp
-CPP_SOURCES += Effect-Modules/ir_module.cpp
+# CPP_SOURCES += Effect-Modules/ir_module.cpp
 CPP_SOURCES += Effect-Modules/looper_module.cpp
 CPP_SOURCES += Effect-Modules/metro_module.cpp
 CPP_SOURCES += Effect-Modules/modulated_tremolo_module.cpp
@@ -53,8 +53,8 @@ CPP_SOURCES += Effect-Modules/tuner_module.cpp
 #CPP_SOURCES += Effect-Modules/string_keys_module.cpp
 
 # Compiler options
-OPT=-Ofast
-# OPT=-Og -g
+# OPT=-Ofast
+OPT=-Og -g
 
 # Boot options
 APP_TYPE = BOOT_SRAM

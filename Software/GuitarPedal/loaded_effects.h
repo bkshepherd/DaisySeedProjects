@@ -19,7 +19,7 @@
 #include "Effect-Modules/drum_module.h"
 #include "Effect-Modules/geq_module.h"
 #include "Effect-Modules/granulardelay_module.h"
-#include "Effect-Modules/ir_module.h"
+// #include "Effect-Modules/ir_module.h"
 #include "Effect-Modules/looper_module.h"
 #include "Effect-Modules/metro_module.h"
 #include "Effect-Modules/modulated_tremolo_module.h"
@@ -71,7 +71,7 @@ void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffec
         new SpectralDelayModule(),
         new DistortionModule(),
         new GranularDelayModule(), 
-        new IrModule(),
+        // new IrModule(),
         new DrumModule(),  // This module can be used with MIDI keyboard as a drum machine
 
         // The following require a MIDI keyboard
