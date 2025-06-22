@@ -54,6 +54,7 @@ CPP_SOURCES += Effect-Modules/tuner_module.cpp
 
 # Compiler options
 OPT=-Ofast
+# OPT=-Og -g
 
 # Boot options
 APP_TYPE = BOOT_SRAM
