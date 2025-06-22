@@ -204,6 +204,11 @@ void NamModule::ProcessMono(float in) {
     if (GetParameterAsBool(6)) {
         ampOut =
             rtneural_wavenet.forward(input_arr[0]) * 0.4; // TODO Try this again, was sending the whole array, wants just the float
+
+        // Apply level normalization factor
+        if (m_currentModelindex >= 0 && m_currentModelindex < static_cast<int>(k_numModels)) {
+            ampOut *= model_collection_nam[m_currentModelindex].levelAdjust;
+        }
     } else {
         ampOut = input_arr[0];
     }
