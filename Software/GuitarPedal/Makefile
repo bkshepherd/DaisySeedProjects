@@ -53,8 +53,8 @@ CPP_SOURCES += Effect-Modules/tuner_module.cpp
 #CPP_SOURCES += Effect-Modules/string_keys_module.cpp
 
 # Compiler options
-# OPT=-Ofast
-OPT=-Og -g
+OPT=-Ofast
+# OPT=-Og -g
 
 # Boot options
 APP_TYPE = BOOT_SRAM
