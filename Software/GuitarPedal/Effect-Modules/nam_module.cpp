@@ -23,7 +23,7 @@ cycfi::q::peaking filter_nam[NUM_FILTERS_NAM] = {{0, centerFrequencyNam[0], 4800
 const size_t k_numModels = 10;
 
 static const char *s_modelBinNames[k_numModels] = {
-    "Mesa", "Match30", "DumHighG", "DumLowG", "Ethos", "Splawn", "PRSArch", "JCM800", "SansAmp", "BE-100(10)",
+    "Mesa", "Match30", "DumHighG", "DumLowG", "Ethos", "Splawn", "PRSArch", "JCM800", "SansAmp", "BE-100",
 };
 struct NAMMathsProvider {
 #if RTNEURAL_USE_EIGEN
