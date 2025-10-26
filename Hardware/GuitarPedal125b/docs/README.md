@@ -1,5 +1,5 @@
 # Building the Hardware
-Some quick instructions for how to make the GuitarPedal125B Hardware.  This document assumes you know the basics about soldering and circuit board assembly.  You'll also need to be fairly handy with a drill to mount the various knobs and switches on the enclosure (or you can order one pre-made from Tayda).
+Some quick instructions for how to make the GuitarPedal125B Hardware.  This document assumes you know the basics about soldering and circuit board assembly.  You'll also need to be fairly handy with a drill to mount the various knobs and switches on the enclosure (or you can order one pre-made from Tayda). Alternatively, you can order or 3D print the enclosure using provided 3D models.
 
 Quick note, I couldn't include some of the custom footprints for specific components due to licenses that wouldn't allow redistribution.  Here is a list of where you can find some of them:
 
@@ -151,7 +151,7 @@ It will roughly look like this when finished with this step:
 
 You'll also need to order an enclosure and the external hardware such as the knobs and the Led Holders.
 
-You can either order a generic 125B sized enclosure like these from [Tayda](https://www.taydaelectronics.com/hardware/enclosures/1590b-style-1.html) and drill your own holes (which is a pain in the butt), or you can order a custom drilled & powder coated enclosure from Tayda using this [Custom Drill Template](https://drill.taydakits.com/box-designs/new?public_key=MlRHaUhqaEVXOVVFZ1ErV1FiTXlrQT09Cg==)
+You can either order a generic 125B sized enclosure like these from [Tayda](https://www.taydaelectronics.com/hardware/enclosures/1590b-style-1.html) and drill your own holes (which is a pain in the butt), or you can order a custom drilled & powder coated enclosure from Tayda using this [Custom Drill Template](https://drill.taydakits.com/box-designs/new?public_key=MlRHaUhqaEVXOVVFZ1ErV1FiTXlrQT09Cg==). Alternatively, you can use provided [STEP and FreeCAD files](../enclosure/) to order or 3D print the enclosure yourself.
 
 Additional External Hardware:
 
