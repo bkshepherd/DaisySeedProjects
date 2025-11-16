@@ -24,8 +24,8 @@ using namespace bkshepherd;
 
 static const char *s_presetNames[8] = {"FChorus", "DullEchos", "Hyperplane", "MedSpace", "Hallway", "RubiKa", "SmallRoom", "90s"};
 
-static const int s_paramCount = 10;
-static const ParameterMetaData s_metaData[s_paramCount] = {
+static const int s_paramCount = 11;
+static ParameterMetaData s_metaData[s_paramCount] = {
     {
         name : "PreDelay",
         valueType : ParameterValueType::Float,
@@ -67,8 +67,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : -1,
         midiCCMapping : 23
-    } // "KnobsOverride(Presets)" - Making this True always makes the knob settings override the preset settings. If false, changing
+    }, // "KnobsOverride(Presets)" - Making this True always makes the knob settings override the preset settings. If false, changing
       // the preset changes all settings until a knob is moved.
+    {name : "DryVolume", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : -1, midiCCMapping : 24}
 };
 
 // NOTES ABOUT THE CLOUDSEED PARAMETERS
@@ -137,7 +138,14 @@ void CloudSeedModule::ParameterChanged(int parameter_id) // Somewhere here is ca
             if (parameter_id == 0) { // {PreDelay
                 reverb->SetParameter(::Parameter2::PreDelay, GetParameterAsFloat(0) * 0.95); // Was freezing pedal when set to 127
             } else if (parameter_id == 1) {                                                  // Mix
-                CalculateMix();
+                if (!inputMuteForWet) {
+                    linearChangeDryLevel.deactivate();
+                    // If the wet-input is not frozen, update the mix normally
+                    CalculateMix();
+                } else {
+                    // otherwise - update only the wet mix value
+                    currentMix.wet = CalculateMix(GetParameterAsFloat(1)).wet;
+                }
             } else if (parameter_id == 2) { // Decay
                 reverb->SetParameter(::Parameter2::LineDecay, GetParameterAsFloat(2));
             } else if (parameter_id == 3) { // Mod Amt
@@ -149,10 +157,36 @@ void CloudSeedModule::ParameterChanged(int parameter_id) // Somewhere here is ca
                     ::Parameter2::CutoffEnabled,
                     1.0); // If this knob is moved, turn on the cutoff filter, the presets will reset this on/off as needed
                 reverb->SetParameter(::Parameter2::PostCutoffFrequency, GetParameterAsFloat(5));
+            } else if (parameter_id == 10) { // Dry Volume, when wet-input is muted
+                if (inputMuteForWet) {
+                    linearChangeDryLevel.deactivate();
+                    // When wet-input is frozen, this knob controls the dry input volume for the mix directly
+                    currentMix.dry = GetParameterAsFloat(10);
+                }
             }
             throttle_counter = 0;
         }
         throttle_counter += 1;
+    }
+}
+
+void CloudSeedModule::AlternateFootswitchPressed() { 
+    inputMuteForWet = !inputMuteForWet;
+
+    if (inputMuteForWet) {
+        // Don't set dryMix immediately, let it ramp in ProcessStereo/ProcessMono
+        linearChangeDryLevel.activate(currentMix.dry, GetParameterAsFloat(10), linearChangeDryLevelSteps);
+
+         // remap 'mix' knob to 'dry-volume' knob when wet-input is frozen
+        s_metaData[10].knobMapping = s_metaData[1].knobMapping;
+        s_metaData[1].knobMapping = -1;
+    } else {
+        // Don't set dryMix immediately, let it ramp in ProcessStereo/ProcessMono
+        linearChangeDryLevel.activate(currentMix.dry, CalculateMix(GetParameterAsFloat(1)).dry, linearChangeDryLevelSteps);
+
+        // remap 'dry-volume' knob to 'mix' knob when wet-input is active
+        s_metaData[1].knobMapping = s_metaData[10].knobMapping;
+        s_metaData[10].knobMapping = -1;
     }
 }
 
@@ -181,19 +215,25 @@ void CloudSeedModule::changePreset() {
 }
 
 void CloudSeedModule::CalculateMix() {
+    currentMix = CalculateMix(GetParameterAsFloat(1));
+}
+
+CloudSeedModule::Mix CloudSeedModule::CalculateMix(float mixValue) {
     //    A computationally cheap mostly energy constant crossfade from SignalSmith Blog
     //    https://signalsmith-audio.co.uk/writing/2021/cheap-energy-crossfade/
 
-    float mixKnob = GetParameterAsFloat(1);
-    float x2 = 1.0 - mixKnob;
-    float A = mixKnob * x2;
+    float x2 = 1.0 - mixValue;
+    float A = mixValue * x2;
     float B = A * (1.0 + 1.4186 * A);
-    float C = B + mixKnob;
+    float C = B + mixValue;
     float D = B + x2;
 
-    wetMix = C * C;
-    dryMix = D * D;
+    float wetMix = C * C;
+    float dryMix = D * D;
+    return Mix{wetMix, dryMix};
 }
+
+static float inMuted[1] = {0};
 
 void CloudSeedModule::ProcessMono(float in) {
     BaseEffectModule::ProcessMono(in);
@@ -206,14 +246,23 @@ void CloudSeedModule::ProcessMono(float in) {
     inL[0] = m_audioLeft;
     inR[0] = m_audioLeft;
 
-    reverb->Process(inL, inR, outL, outR, 1);
+    if (inputMuteForWet) {
+        reverb->Process(inMuted, inMuted, outL, outR, 1);
+    } else {
+        reverb->Process(inL, inR, outL, outR, 1);
+    }
+
+    // Gradually ramp dryMix if transition is active
+    if (linearChangeDryLevel.isActive()) {
+        currentMix.dry = linearChangeDryLevel.getNextValue();
+    }
 
     if (GetParameterAsBool(7)) { // If "Sum2Mono" is on, combine L and R signals and half the level
-        m_audioLeft = ((outL[0] + outR[0]) / 2.0) * wetMix + inL[0] * dryMix;
+        m_audioLeft = ((outL[0] + outR[0]) / 2.0) * currentMix.wet + inL[0] * currentMix.dry;
         m_audioRight = m_audioLeft;
     } else {
-        m_audioLeft = outL[0] * wetMix + inL[0] * dryMix;
-        m_audioRight = outR[0] * wetMix + inR[0] * dryMix;
+        m_audioLeft = outL[0] * currentMix.wet + inL[0] * currentMix.dry;
+        m_audioRight = outR[0] * currentMix.wet + inR[0] * currentMix.dry;
     }
 }
 
@@ -234,21 +283,40 @@ void CloudSeedModule::ProcessStereo(float inL, float inR) {
         inR2[0] = m_audioLeft;
     }
 
-    reverb->Process(inL2, inR2, outL, outR, 1);
+    if (inputMuteForWet) {
+        reverb->Process(inMuted, inMuted, outL, outR, 1);
+    } else {
+        reverb->Process(inL2, inR2, outL, outR, 1);
+    }
+
+    // Gradually ramp dryMix if transition is active
+    if (linearChangeDryLevel.isActive()) {
+        currentMix.dry = linearChangeDryLevel.getNextValue();
+    }
 
     if (GetParameterAsBool(7)) { // If "Sum2Mono" is on, combine L and R signals and half the level
-        m_audioLeft = ((outL[0] + outR[0]) / 2.0) * wetMix + inL2[0] * dryMix;
+        m_audioLeft = ((outL[0] + outR[0]) / 2.0) * currentMix.wet + inL2[0] * currentMix.dry;
         m_audioRight = m_audioLeft;
     } else {
-        m_audioLeft = outL[0] * wetMix + inL2[0] * dryMix;
-        m_audioRight = outR[0] * wetMix + inR2[0] * dryMix;
+        m_audioLeft = outL[0] * currentMix.wet + inL2[0] * currentMix.dry;
+        m_audioRight = outR[0] * currentMix.wet + inR2[0] * currentMix.dry;
     }
 }
 
 float CloudSeedModule::GetBrightnessForLED(int led_id) const {
     float value = BaseEffectModule::GetBrightnessForLED(led_id);
 
+    static long flashCounter = 0;
+
     if (led_id == 1) {
+        if (inputMuteForWet) {
+            flashCounter++;
+            if ((flashCounter / 10000) % 2 == 0) {
+                return value * m_cachedEffectMagnitudeValue;
+            } else {
+                return 0;
+            }
+        }
         return value * m_cachedEffectMagnitudeValue;
     }
 
