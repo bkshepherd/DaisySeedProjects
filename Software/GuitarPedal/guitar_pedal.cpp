@@ -13,7 +13,7 @@ using namespace bkshepherd;
 // Uncomment the version you are trying to use, by default (and if nothing is
 // uncommented), the 125B with 2 footswitch variant will be used
 
-// #define VARIANT_125B
+ #define VARIANT_125B
 // #define VARIANT_1590B
 // #define VARIANT_1590B_SMD
 // #define VARIANT_TERRARIUM
