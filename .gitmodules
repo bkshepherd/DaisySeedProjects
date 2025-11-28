@@ -19,3 +19,6 @@ url = https://github.com/jatinchowdhury18/RTNeural
 [submodule "Software/GuitarPedal/dependencies/eigen"]
 path = Software/GuitarPedal/dependencies/eigen
 url = https://gitlab.com/libeigen/eigen
+[submodule "Software/GuitarPedal/GFX2"]
+	path = Software/GuitarPedal/dependencies/GFX2
+	url = https://github.com/NickintheBigHouse/GFX2
