@@ -5,6 +5,7 @@
 #include "daisy_seed.h"
 #include "dev/oled_ssd130x.h"
 #include <vector>
+#include "../Display/GFX2Adapter.h"
 
 using namespace daisy;
 
@@ -13,7 +14,7 @@ using namespace daisy;
  *
  *  There are several other premade test
  */
-using MyOledDisplay = OledDisplay<SSD130x4WireSpi128x64Driver>;
+using MyOledDisplay = bkshepherd::GFX2Adapter;
 
 namespace bkshepherd {
 

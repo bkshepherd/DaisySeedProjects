@@ -557,6 +557,23 @@ int main(void) {
 
     hardware.Init(blockSize, boost);
 
+    // Test the display with a simple color fill
+if (hardware.SupportsDisplay()) {
+    // Cast to our adapter to access test method
+    bkshepherd::GFX2Adapter* display_adapter = 
+        static_cast<bkshepherd::GFX2Adapter*>(&hardware.display);
+    
+    // Test: Flash red, then green, then blue
+    display_adapter->TestFill(255, 0, 0);  // Red
+    hardware.DelayMs(500);
+    display_adapter->TestFill(0, 255, 0);  // Green
+    hardware.DelayMs(500);
+    display_adapter->TestFill(0, 0, 255);  // Blue
+    hardware.DelayMs(500);
+    display_adapter->Fill(false);  // Clear to black
+    display_adapter->Update();
+}
+
     const float sample_rate = hardware.AudioSampleRate();
 
     // Setup CPU logging of the audio callback

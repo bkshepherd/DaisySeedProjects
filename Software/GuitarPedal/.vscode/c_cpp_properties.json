@@ -12,6 +12,8 @@
       "includePath": [
         "${workspaceFolder}/**",
         "${workspaceFolder}/dependencies/libDaisy/**",
+         "${workspaceFolder}/**",
+        "${workspaceFolder}/dependencies/DaisySeedGFX2/**",
         "${workspaceFolder}/dependencies/DaisySP/**"
       ],
       "name": "Win32",

@@ -7,6 +7,8 @@ CPP_STANDARD = -std=gnu++20
 
 CPP_SOURCES = guitar_pedal.cpp guitar_pedal_storage.cpp $(wildcard UI/*.cpp) $(wildcard Util/*.cpp) \
 $(wildcard Hardware-Modules/*.cpp)
+CPP_SOURCES += Display/GFX2Adapter.cpp
+CPP_SOURCES += $(wildcard dependencies/GFX2/*.cpp)
 CPP_SOURCES += Effect-Modules/base_effect_module.cpp
 
 # Naming the module sources explicitly to make it easier to add/remove from build. Otherwise all global attributes
@@ -78,7 +80,7 @@ C_INCLUDES += -isystem ./dependencies/q/infra/include
 #C_INCLUDES += -isystem ./dependencies/RTNeural
 
 CPPFLAGS += -DRTNEURAL_DEFAULT_ALIGNMENT=8 -DRTNEURAL_NO_DEBUG=1 -DRTNEURAL_USE_EIGEN=1
-
+C_INCLUDES += -I./dependencies/DaisySeedGFX2
 C_INCLUDES += -isystem ./dependencies/CloudSeed
 LIBS += -lcloudseed
 LIBDIR += -Ldependencies/CloudSeed/build

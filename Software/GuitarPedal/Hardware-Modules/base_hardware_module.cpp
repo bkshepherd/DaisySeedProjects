@@ -211,13 +211,12 @@ void BaseHardwareModule::InitMidi(Pin rxPin, Pin txPin) {
     m_supportsMidi = true;
 }
 
+// NEW:
 void BaseHardwareModule::InitDisplay(Pin dcPin, Pin resetPin) {
-    // Configure the Display
-    MyOledDisplay::Config disp_cfg;
-    disp_cfg.driver_config.transport_config.pin_config.dc = dcPin;
-    disp_cfg.driver_config.transport_config.pin_config.reset = resetPin;
-    display.Init(disp_cfg);
-
+    // GFX2 display initialization
+    // Pins are configured in UserConfig.h, so we ignore the parameters
+    // (keeping them for API compatibility with other hardware modules)
+    display.Init();
     m_supportsDisplay = true;
 }
 
