@@ -20,6 +20,9 @@ struct SimplePhaser {
     float feedback_ = 0.25f;   // 0..~0.7
     float fb_state_ = 0.f;
 
+    float lfo_norm_ = 0.0f;   // 0..1
+    float sweep_norm_ = 0.0f; // 0..1
+
     SimplePhaser()
         : ap_{allpass{frequency{1000.0}, 48000.0f, 0.7}, allpass{frequency{1000.0}, 48000.0f, 0.7},
               allpass{frequency{1000.0}, 48000.0f, 0.7}, allpass{frequency{1000.0}, 48000.0f, 0.7}} {}
@@ -40,6 +43,9 @@ struct SimplePhaser {
         max_freq_ = std::max(min_freq_ + 1.0f, max_hz);
     }
 
+    float get_lfo_norm() const { return lfo_norm_; }
+    float get_sweep_norm() const { return sweep_norm_; }
+
     float process(float in) {
         // --- LFO (sine in 0..1) ---
         constexpr float two_pi = 6.28318530718f;
@@ -49,9 +55,12 @@ struct SimplePhaser {
             lfo_phase_ -= two_pi;
 
         float lfo = 0.5f * (1.0f + std::sin(lfo_phase_)); // 0..1
+        lfo_norm_ = lfo;
 
         // Exponential-ish sweep between min_freq_ and max_freq_
         float sweep_pos = depth_ * lfo; // depth shrinks range
+        sweep_norm_ = sweep_pos;
+
         float fc = min_freq_ * std::pow(max_freq_ / min_freq_, sweep_pos);
 
         frequency f{fc};

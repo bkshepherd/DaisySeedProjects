@@ -135,15 +135,8 @@ void PhaserModule::ProcessMono(float in) {
     const float post = 0.95f;
     const float out = (x * dryGain + wet * wetGain) * post;
 
-    // --- Audio output ---
     m_audioLeft = out;
     m_audioRight = out;
-
-    // --- LED envelope (rectify + smooth) ---
-    float mag = fabsf(out); // 0..~1
-    // simple one-pole low-pass for LED env
-    const float ledAlpha = 0.01f; // adjust for LED "speed"
-    m_ledEnv += ledAlpha * (mag - m_ledEnv);
 }
 
 void PhaserModule::ProcessStereo(float inL, float inR) {
@@ -153,20 +146,16 @@ void PhaserModule::ProcessStereo(float inL, float inR) {
 
 float PhaserModule::GetBrightnessForLED(int led_id) const {
     float base = BaseEffectModule::GetBrightnessForLED(led_id);
-
     if (led_id == 1) {
-        // Clamp env just to be safe
-        float env = m_ledEnv;
-        if (env < 0.0f)
-            env = 0.0f;
-        if (env > 1.0f)
-            env = 1.0f;
+        float sweep = m_phaser.get_sweep_norm(); // 0..1
 
-        // Add a minimum so LED never fully goes dark
-        float shaped = 0.2f + 0.8f * env; // 0.2 .. 1.0
+        // Avoid out-of-range
+        sweep = fminf(fmaxf(sweep, 0.0f), 1.0f);
+
+        // shape for LED
+        float shaped = 0.2f + 0.8f * sweep;
 
         return base * shaped;
     }
-
     return base;
 }

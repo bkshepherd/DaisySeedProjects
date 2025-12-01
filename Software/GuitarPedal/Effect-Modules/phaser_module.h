@@ -33,8 +33,6 @@ class PhaserModule : public BaseEffectModule {
     float m_targetDepth = 0.95f;
     float m_smoothedRate = 1.0f;
     float m_smoothedDepth = 0.95f;
-
-    float m_ledEnv = 0.0f; // 0..1 envelope for LED
 };
 
 } // namespace bkshepherd
