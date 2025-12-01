@@ -37,12 +37,12 @@ CPP_SOURCES += Effect-Modules/noise_gate_module.cpp
 CPP_SOURCES += Effect-Modules/overdrive_module.cpp
 CPP_SOURCES += Effect-Modules/peq_module.cpp
 CPP_SOURCES += Effect-Modules/phaser_module.cpp
-CPP_SOURCES += Effect-Modules/pitch_shifter_module.cpp
+# CPP_SOURCES += Effect-Modules/pitch_shifter_module.cpp
 CPP_SOURCES += Effect-Modules/polyoctave_module.cpp
 CPP_SOURCES += Effect-Modules/reverb_module.cpp
 CPP_SOURCES += Effect-Modules/scifi_module.cpp
 CPP_SOURCES += Effect-Modules/scope_module.cpp
-CPP_SOURCES += Effect-Modules/spectral_delay_module.cpp
+# CPP_SOURCES += Effect-Modules/spectral_delay_module.cpp
 CPP_SOURCES += Effect-Modules/tuner_module.cpp
 #CPP_SOURCES += Effect-Modules/reverb_delay_module.cpp
 

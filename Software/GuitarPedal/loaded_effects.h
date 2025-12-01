@@ -29,11 +29,11 @@
 #include "Effect-Modules/overdrive_module.h"
 #include "Effect-Modules/peq_module.h"
 #include "Effect-Modules/phaser_module.h"
-#include "Effect-Modules/pitch_shifter_module.h"
+// #include "Effect-Modules/pitch_shifter_module.h"
 #include "Effect-Modules/polyoctave_module.h"
 #include "Effect-Modules/reverb_module.h"
 #include "Effect-Modules/scifi_module.h"
-#include "Effect-Modules/spectral_delay_module.h"
+// #include "Effect-Modules/spectral_delay_module.h"
 #include "Effect-Modules/tuner_module.h"
 
 // Keyboard modules
@@ -52,13 +52,12 @@ void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffec
         new OverdriveModule(),
         new AutoPanModule(),
         new ChorusModule(),
-        new PhaserModule(),
         new ChopperModule(),
         new ReverbModule(),
         new MultiDelayModule(),
         new MetroModule(),
         new TunerModule(),
-        new PitchShifterModule(),
+        // new PitchShifterModule(),
         new CompressorModule(),
         new LooperModule(),
         new GraphicEQModule(),
@@ -70,11 +69,12 @@ void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffec
         new NamModule(),
         new SciFiModule(),
         new PolyOctaveModule(),
-        new SpectralDelayModule(),
+        // new SpectralDelayModule(),
         new DistortionModule(),
         new GranularDelayModule(), 
         new IrModule(),
         new DrumModule(),  // This module can be used with MIDI keyboard as a drum machine
+        new PhaserModule(),
 
         // The following require a MIDI keyboard
         // new MidiKeysModule(),
