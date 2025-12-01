@@ -1,8 +1,9 @@
 #include "phaser_module.h"
+#include <math.h>
 
 using namespace bkshepherd;
 
-static const int s_paramCount = 6;
+static const int s_paramCount = 4;
 static const ParameterMetaData s_metaData[s_paramCount] = {
     {
         // 0 Mix (dry/wet)
@@ -16,7 +17,7 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         // 1 Rate
         name : "Rate",
         valueType : ParameterValueType::Float,
-        defaultValue : {.float_value = 0.25f}, // ~2 Hz after mapping
+        defaultValue : {.float_value = 0.25f},
         knobMapping : 1,
         midiCCMapping : -1
     },
@@ -34,24 +35,6 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.25f},
         knobMapping : 3,
-        midiCCMapping : -1
-    },
-    {
-        // 4 Center
-        name : "Center",
-        valueType : ParameterValueType::Float,
-        defaultValue : {.float_value = 0.35f}, // maps ≈ 400–600 Hz region
-        knobMapping : 4,
-        midiCCMapping : -1
-    },
-    {
-        // 5 Stages (4/6/8)
-        name : "Stages",
-        valueType : ParameterValueType::Binned,
-        valueBinCount : 3,
-        valueBinNames : (const char *[]){"4", "6", "8"},
-        defaultValue : {.uint_value = 0},
-        knobMapping : -1,
         midiCCMapping : -1
     },
 };
@@ -79,55 +62,51 @@ inline float SmoothParam(float current, float target) {
     return current + alpha * (target - current);
 }
 
-void PhaserModule::Init(float sample_rate) {
-    BaseEffectModule::Init(sample_rate);
-    m_phaserL.Init(sample_rate);
-    m_phaserR.Init(sample_rate);
-    m_phaserL.SetPoles(4);
-    m_phaserR.SetPoles(4);
-    m_smoothedRate = 1.0f;
-    m_smoothedDepth = 1.0f;
-    for (int i = 1; i < 6; ++i)
-        ParameterChanged(i);
-}
-
-// Map helper
-static float MapExp(float norm, float minV, float maxV, float curve = 3.0f) {
-    // Emphasize low end of rate control
+// Exponential mapper for Rate
+static inline float MapExp(float norm, float minV, float maxV, float curve = 3.0f) {
     float x = powf(norm, curve);
     return minV + x * (maxV - minV);
 }
 
+// Equal-power dry/wet gains to prevent level bumps
+static inline void EqualPowerMix(float mix, float &dryGain, float &wetGain) {
+    const float t = mix;                // 0..1
+    dryGain = cosf(t * 1.57079632679f); // pi/2
+    wetGain = sinf(t * 1.57079632679f);
+}
+
+void PhaserModule::Init(float sample_rate) {
+    BaseEffectModule::Init(sample_rate);
+
+    // Init SimplePhaser
+    m_phaser.init(sample_rate);
+    m_phaser.set_range(300.0f, 1500.0f); // guitar‑friendly sweep
+    m_phaser.set_depth(0.95f);
+    m_phaser.set_feedback(0.20f);
+
+    m_smoothedRate = 1.0f;
+    m_smoothedDepth = 0.95f;
+
+    // Push Rate/Depth/Feedback from UI once
+    for (int i = 1; i <= 3; ++i)
+        ParameterChanged(i);
+}
+
 void PhaserModule::ParameterChanged(int parameter_id) {
     switch (parameter_id) {
-    case 1: { // Rate
-        // 0..1 -> 0.10–8 Hz (exp)
+    case 1: { // Rate: 0..1 -> 0.10–8 Hz (exp mapping favors slow)
         float rate = MapExp(GetParameterAsFloat(1), 0.10f, 8.0f);
         m_targetRate = rate;
         break;
     }
-    case 2: {                                   // Depth
-        m_targetDepth = GetParameterAsFloat(2); // 0..1
+    case 2: { // Depth
+        m_targetDepth = fminf(fmaxf(GetParameterAsFloat(2), 0.0f), 0.98f);
+        m_phaser.set_depth(m_targetDepth);
         break;
     }
-    case 3: {                                     // Feedback
-        float fb = GetParameterAsFloat(3) * 0.6f; // cap at 0.6
-        m_phaserL.SetFeedback(fb);
-        m_phaserR.SetFeedback(-fb * 0.9f); // slight inversion for stereo spread
-        break;
-    }
-    case 4: { // Center
-        // 0..1 -> 300–1200 Hz (mild span typical guitar)
-        float cf = 300.0f + GetParameterAsFloat(4) * (1200.0f - 300.0f);
-        m_phaserL.SetFreq(cf);
-        m_phaserR.SetFreq(cf * 1.07f); // tiny offset
-        break;
-    }
-    case 5: { // Stages
-        uint32_t idx = GetParameterAsBinnedValue(5);
-        int poles = (idx == 0 ? 4 : (idx == 1 ? 6 : 8));
-        m_phaserL.SetPoles(poles);
-        m_phaserR.SetPoles(poles);
+    case 3: { // Feedback
+        float fb = GetParameterAsFloat(3) * 0.45f;
+        m_phaser.set_feedback(fb);
         break;
     }
     default:
@@ -136,55 +115,58 @@ void PhaserModule::ParameterChanged(int parameter_id) {
 }
 
 void PhaserModule::ProcessMono(float in) {
-    // Smooth dynamic params
+    // Smooth live-changed params
     m_smoothedRate = SmoothParam(m_smoothedRate, m_targetRate);
     m_smoothedDepth = SmoothParam(m_smoothedDepth, m_targetDepth);
-    m_phaserL.SetLfoFreq(m_smoothedRate);
-    m_phaserR.SetLfoFreq(m_smoothedRate);
-    m_phaserL.SetLfoDepth(m_smoothedDepth);
-    m_phaserR.SetLfoDepth(m_smoothedDepth * 0.95f);
+    m_phaser.set_lfo_freq(m_smoothedRate);
+    m_phaser.set_depth(m_smoothedDepth);
 
-    float wetL = m_phaserL.Process(in);
-    float wetR = m_phaserR.Process(in);
+    // Small pre-trim for headroom (dry+wet can boost peaks)
+    const float pre = 0.85f;
+    float x = in * pre;
 
-    float mix = GetParameterAsFloat(0); // 0..1
-    // Preserve approximate level
-    float dryGain = 1.0f - mix;
-    float wetGain = mix;
+    // SimplePhaser returns 0.5*(x + wet). Recover wet = 2*out - x.
+    float sp_out = m_phaser.process(x);
+    float wet = 2.0f * sp_out - x;
 
-    float outL = in * dryGain + wetL * wetGain;
-    float outR = in * dryGain + wetR * wetGain;
+    float dryGain, wetGain;
+    EqualPowerMix(GetParameterAsFloat(0), dryGain, wetGain);
 
-    m_audioLeft = outL;
-    m_audioRight = outR;
+    const float post = 0.95f;
+    const float out = (x * dryGain + wet * wetGain) * post;
+
+    // --- Audio output ---
+    m_audioLeft = out;
+    m_audioRight = out;
+
+    // --- LED envelope (rectify + smooth) ---
+    float mag = fabsf(out); // 0..~1
+    // simple one-pole low-pass for LED env
+    const float ledAlpha = 0.01f; // adjust for LED "speed"
+    m_ledEnv += ledAlpha * (mag - m_ledEnv);
 }
 
 void PhaserModule::ProcessStereo(float inL, float inR) {
-    // Process channels independently for better stereo motion
-    m_smoothedRate = SmoothParam(m_smoothedRate, m_targetRate);
-    m_smoothedDepth = SmoothParam(m_smoothedDepth, m_targetDepth);
-    m_phaserL.SetLfoFreq(m_smoothedRate);
-    m_phaserR.SetLfoFreq(m_smoothedRate);
-    m_phaserL.SetLfoDepth(m_smoothedDepth);
-    m_phaserR.SetLfoDepth(m_smoothedDepth * 0.95f);
-
-    float wetL = m_phaserL.Process(inL);
-    float wetR = m_phaserR.Process(inR);
-
-    float mix = GetParameterAsFloat(0);
-    float outL = inL * (1.0f - mix) + wetL * mix;
-    float outR = inR * (1.0f - mix) + wetR * mix;
-
-    m_audioLeft = outL;
-    m_audioRight = outR;
+    const float monoIn = 0.5f * (inL + inR);
+    ProcessMono(monoIn);
 }
 
 float PhaserModule::GetBrightnessForLED(int led_id) const {
-    float v = BaseEffectModule::GetBrightnessForLED(led_id);
+    float base = BaseEffectModule::GetBrightnessForLED(led_id);
+
     if (led_id == 1) {
-        float depthNorm = GetParameterAsFloat(2);
-        float rateNorm = GetParameterAsFloat(1);
-        return v * (0.3f + 0.7f * depthNorm) * (0.4f + 0.6f * rateNorm);
+        // Clamp env just to be safe
+        float env = m_ledEnv;
+        if (env < 0.0f)
+            env = 0.0f;
+        if (env > 1.0f)
+            env = 1.0f;
+
+        // Add a minimum so LED never fully goes dark
+        float shaped = 0.2f + 0.8f * env; // 0.2 .. 1.0
+
+        return base * shaped;
     }
-    return v;
+
+    return base;
 }
