@@ -36,6 +36,7 @@ CPP_SOURCES += Effect-Modules/nam_module.cpp
 CPP_SOURCES += Effect-Modules/noise_gate_module.cpp
 CPP_SOURCES += Effect-Modules/overdrive_module.cpp
 CPP_SOURCES += Effect-Modules/peq_module.cpp
+CPP_SOURCES += Effect-Modules/phaser_module.cpp
 CPP_SOURCES += Effect-Modules/pitch_shifter_module.cpp
 CPP_SOURCES += Effect-Modules/polyoctave_module.cpp
 CPP_SOURCES += Effect-Modules/reverb_module.cpp
