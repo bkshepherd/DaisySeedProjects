@@ -29,11 +29,11 @@
 #include "Effect-Modules/overdrive_module.h"
 #include "Effect-Modules/peq_module.h"
 #include "Effect-Modules/phaser_module.h"
-// #include "Effect-Modules/pitch_shifter_module.h"
+#include "Effect-Modules/pitch_shifter_module.h"
 #include "Effect-Modules/polyoctave_module.h"
 #include "Effect-Modules/reverb_module.h"
 #include "Effect-Modules/scifi_module.h"
-// #include "Effect-Modules/spectral_delay_module.h"
+#include "Effect-Modules/spectral_delay_module.h"
 #include "Effect-Modules/tuner_module.h"
 
 // Keyboard modules
