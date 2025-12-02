@@ -22,6 +22,7 @@ CPP_SOURCES += Effect-Modules/compressor_module.cpp
 CPP_SOURCES += Effect-Modules/crusher_module.cpp
 CPP_SOURCES += Effect-Modules/delay_module.cpp
 CPP_SOURCES += Effect-Modules/drum_module.cpp
+CPP_SOURCES += Effect-Modules/flanger_module.cpp
 CPP_SOURCES += Effect-Modules/geq_module.cpp
 CPP_SOURCES += Effect-Modules/granulardelay_module.cpp
 CPP_SOURCES += Effect-Modules/distortion_module.cpp
