@@ -9,6 +9,7 @@ namespace bkshepherd {
  * @brief Adapter that makes GFX2 look like OneBitGraphicsDisplay
  * 
  * Phase 2: Core drawing primitives implemented
+ * Using GFX2's macro-based memory management
  */
 class GFX2Adapter : public daisy::OneBitGraphicsDisplay {
 public:
@@ -43,7 +44,7 @@ public:
     void DrawArc(uint_fast8_t x, uint_fast8_t y, uint_fast8_t radius,
                  int_fast16_t start_angle, int_fast16_t sweep, bool on) override;
     
-    // Text functions - still stubs for now (Phase 3)
+    // Text functions - Phase 3 stubs
     char WriteChar(char c, FontDef font, bool on) override {
         return 7;  // Stub
     }
@@ -61,26 +62,27 @@ public:
         return Rectangle(0, 0, 10, 10);  // Stub
     }
     
+    // Cursor control (not part of base interface)
+    void SetCursor(uint_fast8_t x, uint_fast8_t y) {
+        cursor_x_ = x;
+        cursor_y_ = y;
+    }
+    
     // Update functions
     void Update() override;
     bool UpdateFinished() override { return true; }
 
     // Testing utilities
     void TestFill(uint8_t r, uint8_t g, uint8_t b);
-    void TestDrawingPrimitives();  // New test function
+    void TestDrawingPrimitives();
 
-    // Color control (for future customization)
+    // Color control
     void SetForegroundColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255);
     void SetBackgroundColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255);
 
 private:
-    DadGFX::cDisplay display_;
+    DadGFX::cDisplay* display_;
     DadGFX::cLayer* layer_;
-    
-    // Static storage
-    static DadGFX::sFIFO_Data fifo_data_;
-    static DadGFX::sColor bloc_frame_[BLOC_HEIGHT][BLOC_WIDTH];
-    static DadGFX::sColor layer_framebuffer_[TFT_HEIGHT][TFT_WIDTH];
     
     // Current drawing state
     DadGFX::sColor foreground_color_;

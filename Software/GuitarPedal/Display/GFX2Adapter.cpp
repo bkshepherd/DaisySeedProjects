@@ -4,13 +4,14 @@
 
 namespace bkshepherd {
 
-// Define static storage
-DadGFX::sFIFO_Data GFX2Adapter::fifo_data_;
-DadGFX::sColor GFX2Adapter::bloc_frame_[BLOC_HEIGHT][BLOC_WIDTH];
-DadGFX::sColor GFX2Adapter::layer_framebuffer_[TFT_HEIGHT][TFT_WIDTH];
+// Use GFX2's macros for proper memory management
+// The display MUST be named __Display for the ADD_LAYER macro to work
+DECLARE_DISPLAY(__Display);
+DECLARE_LAYER(MainLayer, TFT_WIDTH, TFT_HEIGHT);
 
 GFX2Adapter::GFX2Adapter()
-    : layer_(nullptr),
+    : display_(nullptr),
+      layer_(nullptr),
       foreground_color_(255, 255, 255, 255),  // White
       background_color_(0, 0, 0, 255),        // Black
       cursor_x_(0),
@@ -18,28 +19,48 @@ GFX2Adapter::GFX2Adapter()
 }
 
 GFX2Adapter::~GFX2Adapter() {
-    // Memory is statically allocated, no cleanup needed
+    // Memory is managed by GFX2 macros, no manual cleanup needed
 }
 
 void GFX2Adapter::Init() {
-    // Initialize the GFX2 display system
-    display_.init(&fifo_data_, &bloc_frame_[0][0]);
+    // Initialize using GFX2's macro system
+    INIT_DISPLAY(__Display);
+    display_ = &__Display;
     
-    // Create primary layer (full screen, Z-order 1)
-    layer_ = display_.addLayer(&layer_framebuffer_[0][0], 0, 0, 
-                               TFT_WIDTH, TFT_HEIGHT, 1);
+    // Add the main layer at position (0,0) with Z-order 1
+    layer_ = ADD_LAYER(MainLayer, 0, 0, 1);
     
     if (!layer_) {
-        return;  // Failed to create layer
+        // Failed to create layer
+        while(1) {
+            daisy::System::Delay(200);
+        }
     }
     
     // Set initial drawing colors
     layer_->setTextFrontColor(foreground_color_);
     layer_->setTextBackColor(background_color_);
     
-    // Clear the screen to black
+    // Test sequence - same as Phase 1 that worked
+    DadGFX::sColor red(255, 0, 0, 255);
+    DadGFX::sColor green(0, 255, 0, 255);
+    DadGFX::sColor blue(0, 0, 255, 255);
+    
+    layer_->eraseLayer(red);
+    display_->flush();
+    daisy::System::Delay(1000);
+    
+    layer_->eraseLayer(green);
+    display_->flush();
+    daisy::System::Delay(1000);
+    
+    layer_->eraseLayer(blue);
+    display_->flush();
+    daisy::System::Delay(1000);
+    
+    // Clear to black
     layer_->eraseLayer(background_color_);
-    display_.flush();
+    display_->flush();
 }
 
 void GFX2Adapter::Fill(bool on) {
@@ -56,7 +77,9 @@ void GFX2Adapter::DrawPixel(uint_fast8_t x, uint_fast8_t y, bool on) {
     if (x >= TFT_WIDTH || y >= TFT_HEIGHT) return;
     
     DadGFX::sColor color = on ? foreground_color_ : background_color_;
-    layer_->setPixel(x, y, color);
+    
+    // Since setPixel() is protected, use drawLine from point to itself
+    layer_->drawLine(x, y, x, y, color);
 }
 
 void GFX2Adapter::DrawLine(uint_fast8_t x1, uint_fast8_t y1,
@@ -94,9 +117,6 @@ void GFX2Adapter::DrawArc(uint_fast8_t x, uint_fast8_t y, uint_fast8_t radius,
     DadGFX::sColor color = on ? foreground_color_ : background_color_;
     
     // Convert angles to GFX2 format (0-360 degrees)
-    // OneBitGraphicsDisplay uses: 0° = right, counterclockwise
-    // GFX2 uses: 0° = right, clockwise (standard)
-    
     uint16_t gfx_start = start_angle % 360;
     uint16_t gfx_end = (start_angle + sweep) % 360;
     
@@ -113,8 +133,9 @@ void GFX2Adapter::DrawArc(uint_fast8_t x, uint_fast8_t y, uint_fast8_t radius,
 }
 
 void GFX2Adapter::Update() {
+    if (!display_) return;
     // Flush all pending changes to the display
-    display_.flush();
+    display_->flush();
 }
 
 void GFX2Adapter::SetForegroundColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
@@ -136,46 +157,97 @@ void GFX2Adapter::TestFill(uint8_t r, uint8_t g, uint8_t b) {
     
     DadGFX::sColor test_color(r, g, b, 255);
     layer_->eraseLayer(test_color);
-    display_.flush();
+    display_->flush();
 }
 
 void GFX2Adapter::TestDrawingPrimitives() {
     if (!layer_) return;
     
-    // Clear screen to black
-    Fill(false);
-    Update();
+    // Test 1: Full screen colors - verify eraseLayer works
+    DadGFX::sColor red(255, 0, 0, 255);
+    layer_->eraseLayer(red);
+    display_->flush();
+    daisy::System::Delay(1000);
+    
+    DadGFX::sColor green(0, 255, 0, 255);
+    layer_->eraseLayer(green);
+    display_->flush();
+    daisy::System::Delay(1000);
+    
+    DadGFX::sColor blue(0, 0, 255, 255);
+    layer_->eraseLayer(blue);
+    display_->flush();
+    daisy::System::Delay(1000);
+    
+    // Clear to black for drawing tests
+    layer_->eraseLayer(background_color_);
+    display_->flush();
     daisy::System::Delay(500);
     
-    // Test 1: Draw some pixels
+    // Test 2: DrawPixel - Draw a red cross pattern using pixels
     SetForegroundColor(255, 0, 0);  // Red
     for (int i = 0; i < 20; i++) {
-        DrawPixel(10 + i, 10, true);
-        DrawPixel(10 + i, 11, true);
+        DrawPixel(20 + i, 20, true);      // Horizontal line
+        DrawPixel(29, 11 + i, true);      // Vertical line
     }
     Update();
-    daisy::System::Delay(500);
+    daisy::System::Delay(2000);
     
-    // Test 2: Draw lines
+    // Test 3: DrawLine - Draw green lines in different angles
     SetForegroundColor(0, 255, 0);  // Green
-    DrawLine(10, 20, 50, 60, true);
-    DrawLine(50, 20, 10, 60, true);
+    DrawLine(50, 20, 90, 20, true);   // Horizontal
+    DrawLine(50, 25, 50, 45, true);   // Vertical
+    DrawLine(60, 25, 80, 45, true);   // Diagonal
+    DrawLine(80, 25, 60, 45, true);   // Diagonal other way
     Update();
-    daisy::System::Delay(500);
+    daisy::System::Delay(2000);
     
-    // Test 3: Draw rectangles
+    // Test 4: DrawRect - Draw blue rectangles (outline and filled)
     SetForegroundColor(0, 0, 255);  // Blue
-    DrawRect(70, 10, 110, 30, true, false);  // Outline
-    DrawRect(70, 40, 110, 60, true, true);   // Filled
+    DrawRect(10, 60, 40, 80, true, false);  // Outline rectangle
+    DrawRect(50, 60, 80, 80, true, true);   // Filled rectangle
     Update();
-    daisy::System::Delay(500);
+    daisy::System::Delay(2000);
     
-    // Test 4: Draw circles
+    // Test 5: DrawCircle - Draw yellow circles
     SetForegroundColor(255, 255, 0);  // Yellow
-    DrawCircle(40, 100, 15, true);
-    DrawCircle(80, 100, 20, true);
+    DrawCircle(30, 110, 15, true);  // Circle at (30, 110) radius 15
+    DrawCircle(70, 110, 10, true);  // Circle at (70, 110) radius 10
+    Update();
+    daisy::System::Delay(2000);
+    
+    // Test 6: DrawArc - Draw cyan arcs
+    SetForegroundColor(0, 255, 255);  // Cyan
+    DrawArc(110, 30, 20, 0, 90, true);    // Quarter circle
+    DrawArc(110, 70, 15, 45, 180, true);  // Half circle at 45°
+    Update();
+    daisy::System::Delay(2000);
+    
+    // Test 7: Fill - Test Fill function
+    Fill(true);  // Fill with foreground (cyan)
     Update();
     daisy::System::Delay(1000);
+    
+    Fill(false);  // Fill with background (black)
+    Update();
+    daisy::System::Delay(500);
+    
+    // Final test: Draw a complete test pattern
+    SetForegroundColor(255, 255, 255);  // White
+    
+    // Border
+    DrawRect(0, 0, TFT_WIDTH - 1, TFT_HEIGHT - 1, true, false);
+    
+    // Grid pattern
+    for (int x = 20; x < TFT_WIDTH; x += 20) {
+        DrawLine(x, 0, x, TFT_HEIGHT - 1, true);
+    }
+    for (int y = 20; y < TFT_HEIGHT; y += 20) {
+        DrawLine(0, y, TFT_WIDTH - 1, y, true);
+    }
+    
+    Update();
+    daisy::System::Delay(3000);
     
     // Clear and finish
     Fill(false);

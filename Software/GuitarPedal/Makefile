@@ -80,7 +80,7 @@ C_INCLUDES += -isystem ./dependencies/q/infra/include
 #C_INCLUDES += -isystem ./dependencies/RTNeural
 
 CPPFLAGS += -DRTNEURAL_DEFAULT_ALIGNMENT=8 -DRTNEURAL_NO_DEBUG=1 -DRTNEURAL_USE_EIGEN=1
-C_INCLUDES += -I./dependencies/DaisySeedGFX2
+C_INCLUDES += -I./dependencies/GFX2
 C_INCLUDES += -isystem ./dependencies/CloudSeed
 LIBS += -lcloudseed
 LIBDIR += -Ldependencies/CloudSeed/build
