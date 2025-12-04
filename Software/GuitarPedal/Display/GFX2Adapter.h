@@ -44,23 +44,14 @@ public:
     void DrawArc(uint_fast8_t x, uint_fast8_t y, uint_fast8_t radius,
                  int_fast16_t start_angle, int_fast16_t sweep, bool on) override;
     
-    // Text functions - Phase 3 stubs
-    char WriteChar(char c, FontDef font, bool on) override {
-        return 7;  // Stub
-    }
-    
-    char WriteString(const char* str, FontDef font, bool on) override {
-        if (!str) return 0;
-        return strlen(str) * 7;  // Stub
-    }
-    
+    // Text functions - Phase 3 implementation
+    char WriteChar(char c, FontDef font, bool on) override;
+    char WriteString(const char* str, FontDef font, bool on) override;
     Rectangle WriteStringAligned(const char* str,
                                  const FontDef& font,
                                  Rectangle boundingBox,
                                  Alignment alignment,
-                                 bool on) override {
-        return Rectangle(0, 0, 10, 10);  // Stub
-    }
+                                 bool on) override;
     
     // Cursor control (not part of base interface)
     void SetCursor(uint_fast8_t x, uint_fast8_t y) {
