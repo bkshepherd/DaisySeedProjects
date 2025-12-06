@@ -2,14 +2,14 @@
 #include "dev/oled_ssd130x.h"
 #include "../dependencies/GFX2/cDisplay.h"
 #include "../dependencies/GFX2/GFX.h"
+#include "../dependencies/GFX2/Fonts/FreeSans12pt7b.h"
 
 namespace bkshepherd {
 
 /**
  * @brief Adapter that makes GFX2 look like OneBitGraphicsDisplay
  * 
- * Phase 2: Core drawing primitives implemented
- * Using GFX2's macro-based memory management
+ * Phase 3: Font handling with single GFX2 font for simplicity
  */
 class GFX2Adapter : public daisy::OneBitGraphicsDisplay {
 public:
@@ -53,7 +53,7 @@ public:
                                  Alignment alignment,
                                  bool on) override;
     
-    // Cursor control (not part of base interface)
+    // Cursor control
     void SetCursor(uint_fast8_t x, uint_fast8_t y) {
         cursor_x_ = x;
         cursor_y_ = y;
@@ -74,6 +74,9 @@ public:
 private:
     DadGFX::cDisplay* display_;
     DadGFX::cLayer* layer_;
+    
+    // Single GFX2 font for all Daisy fonts
+    DadGFX::cFont* gfx_font_;
     
     // Current drawing state
     DadGFX::sColor foreground_color_;

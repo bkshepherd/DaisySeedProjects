@@ -557,16 +557,24 @@ int main(void) {
 
     hardware.Init(blockSize, boost);
 
+// Phase II
 // Test the display drawing primitives
-if (hardware.SupportsDisplay()) {
+ if (hardware.SupportsDisplay()) {
+    //__Display.setOrientation(Rotation::Degre_270);
     bkshepherd::GFX2Adapter* display_adapter = 
         static_cast<bkshepherd::GFX2Adapter*>(&hardware.display);
-    
+   /*  
     // Run the drawing primitives test
     display_adapter->TestDrawingPrimitives();
     
     // Give user time to see the results
     hardware.DelayMs(2000);
+
+    */
+
+
+    hardware.display.TestDrawingPrimitives();  // This will show "Hello GFX2!" text
+
 }
 
     const float sample_rate = hardware.AudioSampleRate();
