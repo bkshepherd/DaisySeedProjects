@@ -72,9 +72,11 @@ jobs:
           name: 1590B-SMD-Firmware
           path: dist/1590B-SMD.bin
 
+      # TODO: This would require a personal access token with repo scope to work
+      # correctly with manually created releases in the Github UI
       # Upload all firmware files to the GitHub release if this is a release
-      - name: Upload firmware to GitHub Release
-        if: github.event_name == 'release' && github.event.action == 'published'
-        uses: softprops/action-gh-release@v2
-        with:
-          files: dist/*.bin
+      # - name: Upload firmware to GitHub Release
+      #   if: github.event_name == 'release' && github.event.action == 'published'
+      #   uses: softprops/action-gh-release@v2
+      #   with:
+      #     files: dist/*.bin
