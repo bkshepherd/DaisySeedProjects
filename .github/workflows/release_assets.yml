@@ -11,7 +11,7 @@ jobs:
     steps:
       # Download artifacts from the most recent successful run of your build workflow
       - name: Download artifacts from last successful build
-        uses: dawidd6/action-download-artifact@v3
+        uses: dawidd6/action-download-artifact@v11
         with:
           workflow: build.yml
           workflow_conclusion: success
