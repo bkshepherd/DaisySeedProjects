@@ -1,0 +1,26 @@
+name: Attach Firmware Artifacts to Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  attach:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Download artifacts from the most recent successful run of your build workflow
+      - name: Download artifacts from last successful build
+        uses: dawidd6/action-download-artifact@v3
+        with:
+          workflow: build.yml
+          workflow_conclusion: success
+          # ensure only artifacts from same commit/tag
+          commit: ${{ github.event.release.target_commitish }}
+
+      # Upload every .bin file to the GitHub Release
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            **/*.bin

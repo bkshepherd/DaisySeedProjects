@@ -24,9 +24,9 @@ jobs:
         working-directory: Software/GuitarPedal/
         run: ./ci/build_app.sh VARIANT=125B
       - name: Archive 125B .bin
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
-          name: 125B Firmware
+          name: 125B-Firmware
           path: |
             Software/GuitarPedal/build/guitarpedal.bin
           if-no-files-found: error
@@ -34,9 +34,9 @@ jobs:
         working-directory: Software/GuitarPedal/
         run: ./ci/build_app.sh VARIANT=TERRARIUM
       - name: Archive Terrarium .bin
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
-          name: Terrarium Firmware
+          name: Terrarium-Firmware
           path: |
             Software/GuitarPedal/build/guitarpedal.bin
           if-no-files-found: error
@@ -44,9 +44,9 @@ jobs:
         working-directory: Software/GuitarPedal/
         run: ./ci/build_app.sh VARIANT=1590B
       - name: Archive 1590B .bin
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
-          name: 1590B Firmware
+          name: 1590B-Firmware
           path: |
             Software/GuitarPedal/build/guitarpedal.bin
           if-no-files-found: error
@@ -54,9 +54,9 @@ jobs:
         working-directory: Software/GuitarPedal/
         run: ./ci/build_app.sh VARIANT=1590B_SMD
       - name: Archive 1590B-SMD .bin
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
-          name: 1590B-SMD Firmware
+          name: 1590B-SMD-Firmware
           path: |
             Software/GuitarPedal/build/guitarpedal.bin
           if-no-files-found: error
