@@ -70,6 +70,8 @@ bool UpdateFinished() override { return true; }
     // For testing - fill screen with specific color
     void TestFill(uint8_t r, uint8_t g, uint8_t b);
 
+bool IsBusy() const { return display_.isBusy(); }
+
 private:
     DadGFX::cDisplay display_;
     DadGFX::cLayer* layer_;

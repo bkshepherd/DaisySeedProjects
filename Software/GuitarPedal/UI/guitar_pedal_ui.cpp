@@ -508,17 +508,5 @@ void GuitarPedalUI::UpdateUI(float elapsedTime) {
     settings.globalMidiChannel = m_midiChannelSettingValue.Get();
 
     // Process the UI
-static uint32_t processCount = 0;
-processCount++;
-if (processCount % 100 == 0) {  // Print every 100 calls
-    hardware.seed.PrintLine("UI Process called %d times", processCount);
-}
-     // Process the UI at a lower rate to avoid blocking encoder
-    static uint32_t lastUIProcess = 0;
-    uint32_t now = System::GetNow();
-    
-    if (now - lastUIProcess >= 100) {  // Only process UI every 100ms
-        m_ui.Process();
-        lastUIProcess = now;
-    }
+    m_ui.Process();
 }

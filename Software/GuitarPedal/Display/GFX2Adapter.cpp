@@ -130,27 +130,20 @@ void GFX2Adapter::Fill(bool on) {
 }
 
 void GFX2Adapter::Update() {
-    // Three-layer protection against blocking:
+    // Don't update if display is busy with DMA
+    if (display_.isBusy()) {
+        return;
+    }
     
-    // 1. Rate limit to 20Hz
+    // Rate limit to 15Hz to be safe
     static uint32_t lastFlush = 0;
     uint32_t now = daisy::System::GetNow();
     
-    if (now - lastFlush < 50) {
-        return;  // Too soon, skip this update
+    if (now - lastFlush < 66) {  // ~15Hz 50 for 20Hz
+        return;
     }
     
-    // 2. Check if we're already in a flush (shouldn't happen but be safe)
-    static bool flushing = false;
-    if (flushing) {
-        return;  // Already flushing, don't re-enter
-    }
-    
-    // 3. Perform the flush with re-entry protection
-    flushing = true;
     display_.flush();
-    flushing = false;
-    
     lastFlush = now;
 }
 

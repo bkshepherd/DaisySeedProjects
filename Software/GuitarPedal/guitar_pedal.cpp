@@ -718,26 +718,11 @@ if (hardware.SupportsDisplay()) {
     // Check which effect the Menu system thinks is active
     int menuEffectID = guitarPedalUI.GetActiveEffectIDFromSettingsMenu();
     
-    static int lastPrintedMenuID = -999;
-    static uint32_t lastPrintTime = 0;
-    
-    // Print current state every 2 seconds
-    if (System::GetNow() - lastPrintTime > 2000) {
-        hardware.seed.PrintLine("=== Effect State === Time = ", System::GetNow());
-        hardware.seed.PrintLine("menuEffectID: %d", menuEffectID);
-        hardware.seed.PrintLine("activeEffectID: %d", activeEffectID);
-        hardware.seed.PrintLine("activeEffect ptr: %p", activeEffect);
-        lastPrintTime = System::GetNow();
-    }
-    
     BaseEffectModule *selectedEffect = availableEffects[menuEffectID];
 
     // If the effect differs from the active effect, change the active effect
     if (activeEffect != selectedEffect) {
-        hardware.seed.PrintLine("SWITCHING EFFECT: %d -> %d", activeEffectID, menuEffectID);
-        hardware.seed.PrintLine("activeEffect: %p, selectedEffect: %p", activeEffect, selectedEffect);
         SetActiveEffect(menuEffectID);
-        hardware.seed.PrintLine("Effect switched! New activeEffectID: %d", activeEffectID);
     }
 }
 
@@ -764,7 +749,12 @@ if (hardware.SupportsDisplay()) {
                 hardware.display.Update();
             } else {
                 // Handle UI Updates for the UI System
+                // MEDIUM PRIORITY: Update UI state (not display) frequently
+                static uint32_t lastUIUpdate = 0;
+                if (System::GetNow() - lastUIUpdate >= 10) {  // 50Hz @ 20ms
                 guitarPedalUI.UpdateUI(elapsedTimeInSeconds);
+                lastUIUpdate = System::GetNow();
+                }
             }
         }
 
@@ -778,7 +768,7 @@ if (hardware.SupportsDisplay()) {
         }
 
         // Throttle persitant storage saves to once every 2 seconds:
-        if (System::GetNow() - last_save_time >= 2000) {
+        if (System::GetNow() - last_save_time >= 10000) {
             if (needToSaveSettingsForActiveEffect) {
                 uint16_t tempPreset = activeEffect->GetCurrentPreset();
                 SaveEffectSettingsToPersitantStorageForEffectID(activeEffectID, tempPreset);
@@ -788,5 +778,14 @@ if (hardware.SupportsDisplay()) {
             last_save_time = System::GetNow();
             needToSaveSettingsForActiveEffect = false;
         }
+
+         static uint32_t lastDisplayUpdate = 0;
+    if (System::GetNow() - lastDisplayUpdate >= 50) {  // 20Hz max @ 50
+        if (hardware.SupportsDisplay()) {
+            guitarPedalUI.UpdateUI(elapsedTimeInSeconds);
+        }
+        lastDisplayUpdate = System::GetNow();
+    }
+
     }
 }
