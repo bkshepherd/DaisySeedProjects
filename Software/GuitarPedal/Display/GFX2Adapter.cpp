@@ -42,6 +42,86 @@ void GFX2Adapter::Init() {
     display_.flush();
 }
 
+void GFX2Adapter::DrawPixel(uint_fast8_t x, uint_fast8_t y, bool on) {
+    if (!layer_) return;
+    
+    DadGFX::sColor color = on ? foreground_color_ : background_color_;
+    // Use drawFillRect to draw a 1x1 pixel
+    layer_->drawFillRect(x, y, 1, 1, color);
+}
+
+void GFX2Adapter::DrawLine(uint_fast8_t x1, uint_fast8_t y1, 
+                           uint_fast8_t x2, uint_fast8_t y2, bool on) {
+    if (!layer_) return;
+    
+    DadGFX::sColor color = on ? foreground_color_ : background_color_;
+    layer_->drawLine(x1, y1, x2, y2, color);
+}
+
+void GFX2Adapter::DrawRect(uint_fast8_t x1, uint_fast8_t y1,
+                           uint_fast8_t x2, uint_fast8_t y2,
+                           bool on, bool fill) {
+    if (!layer_) return;
+    
+    DadGFX::sColor color = on ? foreground_color_ : background_color_;
+    
+    // Calculate width and height
+    uint16_t width = (x2 >= x1) ? (x2 - x1 + 1) : 1;
+    uint16_t height = (y2 >= y1) ? (y2 - y1 + 1) : 1;
+    
+    if (fill) {
+        layer_->drawFillRect(x1, y1, width, height, color);
+    } else {
+        layer_->drawRect(x1, y1, width, height, 1, color);
+    }
+}
+
+void GFX2Adapter::DrawArc(uint_fast8_t x, uint_fast8_t y, uint_fast8_t radius,
+                          int_fast16_t start_angle, int_fast16_t sweep, bool on) {
+    if (!layer_) return;
+    
+    DadGFX::sColor color = on ? foreground_color_ : background_color_;
+    
+    // GFX2 uses 0-360 degrees, Daisy uses tenths of degrees
+    // Convert: Daisy angle / 10 = degrees
+    uint16_t start_deg = start_angle / 10;
+    uint16_t end_deg = (start_angle + sweep) / 10;
+    
+    layer_->drawArc(x, y, radius, start_deg, end_deg, color);
+}
+
+char GFX2Adapter::WriteChar(char c, FontDef font, bool on) {
+    // For now, just return the font width so UI can calculate positions
+    // Actual text rendering can come later
+    return font.FontWidth;
+}
+
+char GFX2Adapter::WriteString(const char* str, FontDef font, bool on) {
+    if (!str) return 0;
+    // Return total width
+    return strlen(str) * font.FontWidth;
+}
+
+daisy::Rectangle GFX2Adapter::WriteStringAligned(const char* str,
+                                          const FontDef& font,
+                                          daisy::Rectangle boundingBox,
+                                          daisy::Alignment alignment,
+                                          bool on) {
+    if (!str || !layer_) return daisy::Rectangle(0, 0, 0, 0);
+    
+    // Calculate text dimensions
+    uint16_t textWidth = strlen(str) * font.FontWidth;
+    uint16_t textHeight = font.FontHeight;
+    
+    // Actually draw the text background box so we can see SOMETHING
+    DadGFX::sColor color = on ? foreground_color_ : background_color_;
+    layer_->drawFillRect(boundingBox.GetX(), boundingBox.GetY(), 
+                         boundingBox.GetWidth(), boundingBox.GetHeight(), color);
+    
+    // Return a rectangle representing where the text would be
+    return daisy::Rectangle(boundingBox.GetX(), boundingBox.GetY(), textWidth, textHeight);
+}
+
 void GFX2Adapter::Fill(bool on) {
     if (!layer_) return;
     
@@ -50,8 +130,28 @@ void GFX2Adapter::Fill(bool on) {
 }
 
 void GFX2Adapter::Update() {
-    // Flush all pending changes to the display
+    // Three-layer protection against blocking:
+    
+    // 1. Rate limit to 20Hz
+    static uint32_t lastFlush = 0;
+    uint32_t now = daisy::System::GetNow();
+    
+    if (now - lastFlush < 50) {
+        return;  // Too soon, skip this update
+    }
+    
+    // 2. Check if we're already in a flush (shouldn't happen but be safe)
+    static bool flushing = false;
+    if (flushing) {
+        return;  // Already flushing, don't re-enter
+    }
+    
+    // 3. Perform the flush with re-entry protection
+    flushing = true;
     display_.flush();
+    flushing = false;
+    
+    lastFlush = now;
 }
 
 void GFX2Adapter::TestFill(uint8_t r, uint8_t g, uint8_t b) {

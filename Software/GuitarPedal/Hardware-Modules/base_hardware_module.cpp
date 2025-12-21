@@ -218,6 +218,18 @@ void BaseHardwareModule::InitDisplay(Pin dcPin, Pin resetPin) {
     // (keeping them for API compatibility with other hardware modules)
     display.Init();
     m_supportsDisplay = true;
+     // ADD THIS DEBUG:
+    // Flash LEDs to confirm we got here
+    for(int i = 0; i < 5; i++) {
+        SetLed(0, 1.0f);
+        SetLed(1, 1.0f);
+        UpdateLeds();
+        DelayMs(100);
+        SetLed(0, 0.0f);
+        SetLed(1, 0.0f);
+        UpdateLeds();
+        DelayMs(100);
+    }
 }
 
 void BaseHardwareModule::InitTrueBypass(Pin relayPin, Pin mutePin) {

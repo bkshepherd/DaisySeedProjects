@@ -345,18 +345,34 @@ void GuitarPedalUI::InitGlobalSettingsUIPages() {
 
 void GuitarPedalUI::GenerateUIEvents() {
     if (!hardware.SupportsDisplay()) {
+        hardware.seed.PrintLine("ERROR: SupportsDisplay returned false!");
         return;
     }
 
     if (hardware.encoders[0].RisingEdge()) {
         m_eventQueue.AddButtonPressed(0, 1);
+        hardware.seed.PrintLine("Encoder button pressed");
     }
 
     if (hardware.encoders[0].FallingEdge()) {
         m_eventQueue.AddButtonReleased(0);
+        hardware.seed.PrintLine("Encoder button released");
     }
 
     const auto increments = hardware.encoders[0].Increment();
+    
+    if (increments != 0) {
+        hardware.seed.PrintLine("Encoder turned: %d", increments);
+    }
+
+    if (increments != 0 &&
+        !hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)].Pressed()) {
+        m_eventQueue.AddEncoderTurned(0, increments, 12);
+        hardware.seed.PrintLine("Added encoder event to queue: %d", increments);
+    } else if (increments != 0) {
+        hardware.seed.PrintLine("Encoder blocked - alt switch pressed");
+    }
+
 
     // Process the encoder increment for the UI ONLY if the alternate footswitch
     // is not pressed, because that is used for quick effect switching
@@ -371,6 +387,25 @@ void GuitarPedalUI::UpdateUI(float elapsedTime) {
     Settings &settings = storage.GetSettings();
 
     activeEffect->UpdateUI(elapsedTime);
+
+    if (hardware.SupportsDisplay()) {
+    // Check which effect the Menu system thinks is active
+    int menuEffectID = GetActiveEffectIDFromSettingsMenu();
+    
+    static int lastPrintedMenuID = -999;
+    if (menuEffectID != lastPrintedMenuID) {
+        hardware.seed.PrintLine("UI: Menu effect ID changed: %d -> %d", lastPrintedMenuID, menuEffectID);
+        lastPrintedMenuID = menuEffectID;
+    }
+    
+    BaseEffectModule *selectedEffect = availableEffects[menuEffectID];
+
+    if (activeEffect != selectedEffect) {
+        hardware.seed.PrintLine("UI: Effect mismatch detected! activeEffect=%p, selectedEffect=%p", 
+                               activeEffect, selectedEffect);
+        hardware.seed.PrintLine("UI: This mismatch should trigger switching in guitar_pedal.cpp");
+    }
+}
 
     // Properly Handle returning the screen from a parameter change
     if (m_secondsTilReturnFromParamChange > 0.0f) {
@@ -473,5 +508,17 @@ void GuitarPedalUI::UpdateUI(float elapsedTime) {
     settings.globalMidiChannel = m_midiChannelSettingValue.Get();
 
     // Process the UI
-    m_ui.Process();
+static uint32_t processCount = 0;
+processCount++;
+if (processCount % 100 == 0) {  // Print every 100 calls
+    hardware.seed.PrintLine("UI Process called %d times", processCount);
+}
+     // Process the UI at a lower rate to avoid blocking encoder
+    static uint32_t lastUIProcess = 0;
+    uint32_t now = System::GetNow();
+    
+    if (now - lastUIProcess >= 100) {  // Only process UI every 100ms
+        m_ui.Process();
+        lastUIProcess = now;
+    }
 }

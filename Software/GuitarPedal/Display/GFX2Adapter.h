@@ -21,62 +21,44 @@ public:
     // ===== OneBitGraphicsDisplay PURE VIRTUAL interface =====
     // Note: Return types and signatures must match exactly!
     
-    // 1. Dimensions - return uint16_t (not size_t)
-    uint16_t Height() const override { return TFT_HEIGHT; }
-    uint16_t Width() const override { return TFT_WIDTH; }
-    
-    // 2. Fill
-    void Fill(bool on) override;
-    
-    // 3. Pixel drawing
-    void DrawPixel(uint_fast8_t x, uint_fast8_t y, bool on) override {
-        // Stub for now
-    }
-    
-    // 4. Line drawing
-    void DrawLine(uint_fast8_t x1, uint_fast8_t y1, 
-                  uint_fast8_t x2, uint_fast8_t y2, bool on) override {
-        // Stub for now
-    }
-    
-    // 5. Rectangle drawing
-    void DrawRect(uint_fast8_t x1, uint_fast8_t y1,
-                  uint_fast8_t x2, uint_fast8_t y2,
-                  bool on, bool fill = false) override {
-        // Stub for now
-    }
-    
-    // 6. Arc drawing (used by DrawCircle)
-    void DrawArc(uint_fast8_t x, uint_fast8_t y, uint_fast8_t radius,
-                 int_fast16_t start_angle, int_fast16_t sweep, bool on) override {
-        // Stub for now
-    }
-    
-    // 7. Text functions - return 'char' (width of drawn character/string)
-    char WriteChar(char c, FontDef font, bool on) override {
-        // Stub for now - return dummy width
-        return 7;  // Assume 7 pixels wide for now
-    }
-    
-    char WriteString(const char* str, FontDef font, bool on) override {
-        // Stub for now - return dummy width
-        if (!str) return 0;
-        return strlen(str) * 7;  // Rough estimate
-    }
-    
-    // 8. Aligned text - return Rectangle (not void), takes const FontDef&
-    Rectangle WriteStringAligned(const char* str,
-                                 const FontDef& font,  // NOTE: const reference!
-                                 Rectangle boundingBox,
-                                 Alignment alignment,
-                                 bool on) override {
-        // Stub for now - return dummy rectangle
-        return Rectangle(0, 0, 10, 10);
-    }
-    
-    // 9. Update functions
-    void Update() override;
-    bool UpdateFinished() override { return true; }  // Always finished for now
+    // 1. Dimensions
+uint16_t Height() const override { return TFT_HEIGHT; }
+uint16_t Width() const override { return TFT_WIDTH; }
+
+// 2. Fill
+void Fill(bool on) override;
+
+// 3. Pixel drawing
+void DrawPixel(uint_fast8_t x, uint_fast8_t y, bool on) override;
+
+// 4. Line drawing
+void DrawLine(uint_fast8_t x1, uint_fast8_t y1, 
+              uint_fast8_t x2, uint_fast8_t y2, bool on) override;
+
+// 5. Rectangle drawing
+void DrawRect(uint_fast8_t x1, uint_fast8_t y1,
+              uint_fast8_t x2, uint_fast8_t y2,
+              bool on, bool fill = false) override;
+
+// 6. Arc drawing
+void DrawArc(uint_fast8_t x, uint_fast8_t y, uint_fast8_t radius,
+             int_fast16_t start_angle, int_fast16_t sweep, bool on) override;
+
+// 7. Text functions
+char WriteChar(char c, FontDef font, bool on) override;
+
+char WriteString(const char* str, FontDef font, bool on) override;
+
+// 8. Aligned text
+daisy::Rectangle WriteStringAligned(const char* str,
+                                   const FontDef& font,
+                                   daisy::Rectangle boundingBox,
+                                   daisy::Alignment alignment,
+                                   bool on) override;
+
+// 9. Update functions
+void Update() override;
+bool UpdateFinished() override { return true; }
 
     // ===== REMOVED: These are NON-VIRTUAL helpers in base class =====
     // DO NOT override these - they're already implemented in OneBitGraphicsDisplay

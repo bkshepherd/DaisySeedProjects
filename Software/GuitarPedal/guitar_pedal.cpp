@@ -657,7 +657,7 @@ if (hardware.SupportsDisplay()) {
     lastTimeStampUS = System::GetUs();
 
     // Setup Debug Logging
-    // hardware.seed.StartLog();
+     hardware.seed.StartLog();
 
     while (1) {
         // Handle Clock Time
@@ -713,17 +713,33 @@ if (hardware.SupportsDisplay()) {
         }
 
         if (hardware.SupportsDisplay()) {
-            // Handle a Change in the Active Effect from the Menu System
+    // Handle a Change in the Active Effect from the Menu System
 
-            // Check which effect the Menu system thinks is active
-            int menuEffectID = guitarPedalUI.GetActiveEffectIDFromSettingsMenu();
-            BaseEffectModule *selectedEffect = availableEffects[menuEffectID];
+    // Check which effect the Menu system thinks is active
+    int menuEffectID = guitarPedalUI.GetActiveEffectIDFromSettingsMenu();
+    
+    static int lastPrintedMenuID = -999;
+    static uint32_t lastPrintTime = 0;
+    
+    // Print current state every 2 seconds
+    if (System::GetNow() - lastPrintTime > 2000) {
+        hardware.seed.PrintLine("=== Effect State === Time = ", System::GetNow());
+        hardware.seed.PrintLine("menuEffectID: %d", menuEffectID);
+        hardware.seed.PrintLine("activeEffectID: %d", activeEffectID);
+        hardware.seed.PrintLine("activeEffect ptr: %p", activeEffect);
+        lastPrintTime = System::GetNow();
+    }
+    
+    BaseEffectModule *selectedEffect = availableEffects[menuEffectID];
 
-            // If the effect differs from the active effect, change the active effect
-            if (activeEffect != selectedEffect) {
-                SetActiveEffect(menuEffectID);
-            }
-        }
+    // If the effect differs from the active effect, change the active effect
+    if (activeEffect != selectedEffect) {
+        hardware.seed.PrintLine("SWITCHING EFFECT: %d -> %d", activeEffectID, menuEffectID);
+        hardware.seed.PrintLine("activeEffect: %p, selectedEffect: %p", activeEffect, selectedEffect);
+        SetActiveEffect(menuEffectID);
+        hardware.seed.PrintLine("Effect switched! New activeEffectID: %d", activeEffectID);
+    }
+}
 
         // Set the latest cpu load to the effect
         activeEffect->SetCPUUsage(cpuLoadMeter.GetAvgCpuLoad());
