@@ -4,6 +4,7 @@
 
 #include "Delays/delayline_reverse.h"
 #include "Delays/delayline_revoct.h"
+#include "../Util/tape_modulator.h"
 #include "base_effect_module.h"
 #include "daisysp.h"
 #include <stdint.h>
@@ -141,6 +142,7 @@ class DelayModule : public BaseEffectModule {
     Oscillator modOsc;
     float m_modOscFreqMin;
     float m_modOscFreqMax;
+    TapeModulator modTape;
 
     // Delays
     delayRevOct delayLeft;
