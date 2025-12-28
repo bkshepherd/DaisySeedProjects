@@ -72,6 +72,18 @@ jobs:
           name: 1590B-SMD-Firmware
           path: dist/1590B-SMD.bin
 
+      - name: Build GuitarPedal firmware Funbox
+        working-directory: Software/GuitarPedal/
+        run: ./ci/build_app.sh VARIANT=FUNBOX
+      - name: Save Funbox .bin
+        run: cp Software/GuitarPedal/build/guitarpedal.bin dist/Funbox.bin
+      - name: Archive Funbox artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: Funbox-Firmware
+          path: dist/Funbox.bin
+
+
       # TODO: This would require a personal access token with repo scope to work
       # correctly with manually created releases in the Github UI
       # Upload all firmware files to the GitHub release if this is a release

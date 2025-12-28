@@ -17,6 +17,7 @@ using namespace bkshepherd;
 // #define VARIANT_1590B
 // #define VARIANT_1590B_SMD
 // #define VARIANT_TERRARIUM
+// #define VARIANT_FUNBOX
 
 #if defined(VARIANT_TERRARIUM)
 #include "Hardware-Modules/guitar_pedal_terrarium.h"
@@ -30,6 +31,10 @@ GuitarPedal1590B hardware;
 #include "Hardware-Modules/guitar_pedal_1590b-SMD.h"
 constexpr bool has_alternate_footswitch = false;
 GuitarPedal1590BSMD hardware;
+#elif defined(VARIANT_FUNBOX)
+#include "Hardware-Modules/guitar_pedal_funbox.h"
+constexpr bool has_alternate_footswitch = true;
+GuitarPedalFunbox hardware;
 #else
 #include "Hardware-Modules/guitar_pedal_125b.h"
 constexpr bool has_alternate_footswitch = true;
