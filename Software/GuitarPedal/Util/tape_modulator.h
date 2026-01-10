@@ -1,19 +1,48 @@
 #pragma once
 #include "daisysp.h"
 
+/**
+    Tape modulation effect that simulates analog tape wow and flutter using Perlin noise.
+
+    Uses 1D Perlin noise with Fractal Brownian Motion (FBM) to generate smooth,
+    natural-sounding speed variations that mimic the imperfections of analog tape machines.
+*/
 class TapeModulator {
     public:
+        /** Initializes the TapeModulator module.
+            \param sample_rate - The sample rate of the audio engine being run.
+        */
         void Init(float sample_rate);
+
+        /** Generates tape speed variation based on wow and flutter parameters.
+            \param wow_rate - Rate of the slow wow modulation in Hz
+            \param flutter_rate - Rate of the fast flutter modulation in Hz
+            \param wow_depth - Depth/amount of wow effect (scaling factor)
+            \param flutter_depth - Depth/amount of flutter effect (scaling factor)
+            \return Speed variation value based on combined modulation sources
+        */
         float GetTapeSpeed(float wow_rate, float flutter_rate, float wow_depth, float flutter_depth);
 
     private:
-        float sample_rate_;
-        float t_wow_;
-        float t_flutter_;
-        int octaves_wow_ = 2;
-        int octaves_flutter_ = 1; 
+        float sample_rate_;         ///< Audio engine sample rate
+        float t_wow_;               ///< Time accumulator for wow modulation
+        float t_flutter_;           ///< Time accumulator for flutter modulation
+        int octaves_wow_ = 2;       ///< Number of octaves for wow FBM
+        int octaves_flutter_ = 1;   ///< Number of octaves for flutter FBM
 
+        /** Generates 1D Perlin noise value.
+            \param x - Input coordinate for noise lookup
+            \return Noise value in approximate range [-1, 1]
+        */
         float Perlin1D(float x);
+
+        /** Generates Fractal Brownian Motion using layered Perlin noise.
+            \param x - Input coordinate for noise lookup
+            \param octaves - Number of noise layers to combine
+            \param lacunarity - Frequency multiplier between octaves (typically 2.0)
+            \param gain - Amplitude multiplier between octaves (typically 0.5)
+            \return Normalized FBM value in range [-1, 1]
+        */
         float Fbm1D(float x, int octaves, float lacunarity, float gain);
 
         // Original permutation table from Ken Perlin
@@ -35,9 +64,15 @@ class TapeModulator {
             204,176,115,121,50,45,127, 4,150,254,138,236,205, 93,222,114,
             67,29,24,72,243,141,128,195,78,66,215,61,156,180
         };
-        // Duplicate into perm[512] for wraparound
+        /// Permutation table duplicated for wraparound (perm[512] from p[256])
         static uint8_t perm_[512];
+
+        /// Perlin fade curve: 6t^5 - 15t^4 + 10t^3
         inline float fade(float t) { return t * t * t * (t * (t * 6 - 15) + 10); }
+
+        /// Linear interpolation
         inline float lerp(float t, float a, float b) { return a + t * (b - a); }
+
+        /// Simple 1D gradient function for Perlin noise
         inline float grad(int hash, float x) { return (hash & 1) == 0 ? x : -x; }
 };

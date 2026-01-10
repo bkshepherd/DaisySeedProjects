@@ -50,7 +50,7 @@ float TapeModulator::GetTapeSpeed(float wow_rate, float flutter_rate, float wow_
 
     // Tiny FLUTTER component (faster, low amplitude)
     float flutter = Fbm1D(t_flutter_, octaves_flutter_, 2.0f, 0.5f);
-    
+
     // Advance time for next sample
     t_wow_ += wow_rate / sample_rate_;
     t_flutter_ += flutter_rate / sample_rate_;
