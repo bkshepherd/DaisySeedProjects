@@ -40,7 +40,7 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         name : "Delay Mix",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : {.float_value = 1.0f},
+        defaultValue : {.float_value = 0.5f},
         knobMapping : 2,
         midiCCMapping : 16
     },
