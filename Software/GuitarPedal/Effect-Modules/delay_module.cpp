@@ -41,7 +41,7 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 1.0f},
-        knobMapping : -1,
+        knobMapping : 2,
         midiCCMapping : 16
     },
 
@@ -51,7 +51,7 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         valueBinCount : 3,
         valueBinNames : s_delayModes,
         defaultValue : {.uint_value = 0},
-        knobMapping : -1,
+        knobMapping : 3,
         midiCCMapping : 17
     },
     {
@@ -60,7 +60,7 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         valueBinCount : 6,
         valueBinNames : s_delayTypes,
         defaultValue : {.uint_value = 0},
-        knobMapping : -1,
+        knobMapping : 4,
         midiCCMapping : 18
     },
 
@@ -69,7 +69,7 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
-        knobMapping : -1,
+        knobMapping : 5,
         midiCCMapping : 19
     }, // mod
     {
@@ -86,7 +86,7 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
-        knobMapping : 3,
+        knobMapping : -1,
         midiCCMapping : 21
     },
     {
@@ -94,7 +94,7 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
-        knobMapping : 4,
+        knobMapping : -1,
         midiCCMapping : 22
     },
     {
@@ -102,7 +102,7 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         valueType : ParameterValueType::Binned,
         valueBinCount : 4,
         valueBinNames : s_modParamNames,
-        defaultValue : {.uint_value = 2},
+        defaultValue : {.uint_value = 0},
         knobMapping : -1,
         midiCCMapping : 23
     },
@@ -112,7 +112,7 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         valueBinCount : 6,
         valueBinNames : s_waveBinNames,
         defaultValue : {.uint_value = 0},
-        knobMapping : 5,
+        knobMapping : -1,
         midiCCMapping : 24
     },
     {name : "Sync Mod F",
