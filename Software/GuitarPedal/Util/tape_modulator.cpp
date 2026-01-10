@@ -55,6 +55,15 @@ float TapeModulator::GetTapeSpeed(float wow_rate, float flutter_rate, float wow_
     t_wow_ += wow_rate / sample_rate_;
     t_flutter_ += flutter_rate / sample_rate_;
 
+    // Wrap time accumulators to prevent floating-point precision loss
+    // Wrap at 256.0 since Perlin uses modulo 256 for lattice coordinates
+    if(t_wow_ >= 256.0f) {
+        t_wow_ -= 256.0f;
+    }
+    if(t_flutter_ >= 256.0f) {
+        t_flutter_ -= 256.0f;
+    }
+
     // Combine, scaled by depth
     // Assume potentiometer controls the main depth for wow; flutter is small fraction
     float speed = wow_depth * wow + (flutter_depth * 0.2f) * flutter;
