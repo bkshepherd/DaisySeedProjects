@@ -247,7 +247,7 @@ void DelayModule::ProcessModulation() {
         float flutterRate = 2.0f + 5.0f * freq;
         m_currentMod = modTape.GetTapeSpeed(wowRate, flutterRate, wowDepth, flutterDepth);
     } else {
-        modOsc.SetWaveform(GetParameterAsBinnedValue(10) - 1);
+        modOsc.SetWaveform(waveForm);
 
         if (GetParameterAsBool(11)) { // If mod frequency synced to delay time, override mod rate setting
             float dividor;
