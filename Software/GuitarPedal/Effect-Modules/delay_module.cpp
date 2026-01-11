@@ -3,8 +3,8 @@
 
 using namespace bkshepherd;
 
-static const char *s_waveBinNames[5] = {"Sine", "Triangle", "Saw", "Ramp",
-                                        "Square"}; //, "Poly Tri", "Poly Saw", "Poly Sqr"};  // Horrible loud sound when switching to
+static const char *s_waveBinNames[6] = {"Sine", "Triangle", "Saw", "Ramp",
+                                        "Square", "Tape"}; //, "Poly Tri", "Poly Saw", "Poly Sqr"};  // Horrible loud sound when switching to
                                                    // poly tri, not every time, TODO whats going on? (I suspect electro smith broke
                                                    // the poly tri osc, the same happens in the tremolo too)
 static const char *s_modParamNames[4] = {"None", "DelayTime", "DelayLevel", "DelayPan"};
@@ -109,7 +109,7 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
     {
         name : "Mod Wave",
         valueType : ParameterValueType::Binned,
-        valueBinCount : 5,
+        valueBinCount : 6,
         valueBinNames : s_waveBinNames,
         defaultValue : {.uint_value = 0},
         knobMapping : -1,
@@ -202,6 +202,8 @@ void DelayModule::Init(float sample_rate) {
     modOsc.Init(sample_rate);
     modOsc.SetAmp(1.0);
 
+    modTape.Init(sample_rate);
+
     CalculateDelayMix();
 }
 
@@ -235,32 +237,67 @@ void DelayModule::ParameterChanged(int parameter_id) {
 void DelayModule::ProcessModulation() {
     int modParam = (GetParameterAsBinnedValue(9) - 1);
     // Calculate Modulation
-    modOsc.SetWaveform(GetParameterAsBinnedValue(10) - 1);
 
-    if (GetParameterAsBool(11)) { // If mod frequency synced to delay time, override mod rate setting
-        float dividor;
-        if (modParam == 2 || modParam == 3) {
-            dividor = 2.0;
-        } else {
-            dividor = 4.0;
-        }
-        float freq = (effect_samplerate / delayLeft.delayTarget) / dividor;
-        modOsc.SetFreq(freq);
+    int waveForm = GetParameterAsBinnedValue(10) - 1;
+    float wowDepth = 2.0f;
+    float flutterDepth = 2.0f;
+    if (waveForm == 5) { // If using tape modulation
+        float freq = GetParameterAsFloat(8);
+        float wowRate = 0.2f + 2.0f * freq;
+        float flutterRate = 2.0f + 5.0f * freq;
+        m_currentMod = modTape.GetTapeSpeed(wowRate, flutterRate, wowDepth, flutterDepth);
     } else {
-        modOsc.SetFreq(m_modOscFreqMin + (m_modOscFreqMax - m_modOscFreqMin) * GetParameterAsFloat(8));
+        modOsc.SetWaveform(waveForm);
+
+        if (GetParameterAsBool(11)) { // If mod frequency synced to delay time, override mod rate setting
+            float dividor;
+            if (modParam == 2 || modParam == 3) {
+                dividor = 2.0;
+            } else {
+                dividor = 4.0;
+            }
+            float freq = (effect_samplerate / delayLeft.delayTarget) / dividor;
+            modOsc.SetFreq(freq);
+        } else {
+            modOsc.SetFreq(m_modOscFreqMin + (m_modOscFreqMax - m_modOscFreqMin) * GetParameterAsFloat(8));
+        }
+
+        // Ease the effect value into it's target to avoid clipping with square or sawtooth waves
+        fonepole(m_currentMod, modOsc.Process(), .01f);
     }
 
-    // Ease the effect value into it's target to avoid clipping with square or sawtooth waves
-    fonepole(m_currentMod, modOsc.Process(), .01f);
     float mod = m_currentMod;
     float mod_amount = GetParameterAsFloat(7);
 
     // {"None", "DelayTime", "DelayLevel", "Level", "DelayPan"};
     if (modParam == 1) {
+        float delayTarget;
         float timeParam = GetParameterAsFloat(0);
-        delayLeft.delayTarget = m_delaySamplesMin + (m_delaySamplesMax - m_delaySamplesMin) * timeParam + mod * mod_amount * 500;
-        delayRight.delayTarget = m_delaySamplesMin + (m_delaySamplesMax - m_delaySamplesMin) * timeParam + mod * mod_amount * 500;
+        const float D_min = 1.0f; // minimum allowable delay time: 1 sample
 
+        if (waveForm == 5) {
+            // Tape flutter mode with dynamic min
+            const float M     = wowDepth + 0.2f * flutterDepth; // Max amplitude of tape modulation.
+            const float depth = 500.0f;
+
+            float baseMin = D_min + M * mod_amount * depth;
+            float baseMax = m_delaySamplesMax;
+
+            float base = baseMin + (baseMax - baseMin) * timeParam;
+
+            delayTarget = base + mod * mod_amount * depth;
+        } else {        
+            delayTarget = m_delaySamplesMin + (m_delaySamplesMax - m_delaySamplesMin) * timeParam + mod * mod_amount * 500;
+        }
+        if (delayTarget < D_min) {
+            delayTarget = D_min;
+        }
+        if (delayTarget > MAX_DELAY_NORM - 2) {
+            delayTarget = MAX_DELAY_NORM - 2;
+        }
+
+        delayLeft.delayTarget  = delayTarget;
+        delayRight.delayTarget = delayTarget;
     } else if (modParam == 2) {
         float mod_level = mod * mod_amount + (1.0 - mod_amount);
         delayLeft.level = mod_level;
