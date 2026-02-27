@@ -22,23 +22,28 @@ using namespace bkshepherd;
 #if defined(VARIANT_TERRARIUM)
 #include "Hardware-Modules/guitar_pedal_terrarium.h"
 constexpr bool has_alternate_footswitch = true;
-GuitarPedalTerrarium hardware;
+#define TEXT_SECTION __attribute__((section(".text")))
+GuitarPedalTerrarium TEXT_SECTION hardware;
 #elif defined(VARIANT_1590B)
 #include "Hardware-Modules/guitar_pedal_1590b.h"
 constexpr bool has_alternate_footswitch = false;
-GuitarPedal1590B hardware;
+#define TEXT_SECTION __attribute__((section(".text")))
+GuitarPedal1590B TEXT_SECTION hardware;
 #elif defined(VARIANT_1590B_SMD)
 #include "Hardware-Modules/guitar_pedal_1590b-SMD.h"
 constexpr bool has_alternate_footswitch = false;
-GuitarPedal1590BSMD hardware;
+#define TEXT_SECTION __attribute__((section(".text")))
+GuitarPedal1590BSMD TEXT_SECTION hardware;
 #elif defined(VARIANT_FUNBOX)
 #include "Hardware-Modules/guitar_pedal_funbox.h"
 constexpr bool has_alternate_footswitch = true;
-GuitarPedalFunbox hardware;
+#define TEXT_SECTION __attribute__((section(".text")))
+GuitarPedalFunbox TEXT_SECTION hardware;
 #else
 #include "Hardware-Modules/guitar_pedal_125b.h"
 constexpr bool has_alternate_footswitch = true;
-GuitarPedal125B hardware;
+#define TEXT_SECTION __attribute__((section(".text")))
+GuitarPedal125B TEXT_SECTION hardware;
 #endif
 
 // Persistant Storage
