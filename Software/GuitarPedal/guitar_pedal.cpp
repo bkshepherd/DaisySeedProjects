@@ -19,26 +19,29 @@ using namespace bkshepherd;
 // #define VARIANT_TERRARIUM
 // #define VARIANT_FUNBOX
 
+// Store the hardware in SRAM to save DTCMRAM for the dynamic
+// variables and buffers, this saves a large amount of DTCMRAM
+#define TEXT_SECTION __attribute__((section(".text")))
 #if defined(VARIANT_TERRARIUM)
 #include "Hardware-Modules/guitar_pedal_terrarium.h"
 constexpr bool has_alternate_footswitch = true;
-GuitarPedalTerrarium hardware;
+GuitarPedalTerrarium TEXT_SECTION hardware;
 #elif defined(VARIANT_1590B)
 #include "Hardware-Modules/guitar_pedal_1590b.h"
 constexpr bool has_alternate_footswitch = false;
-GuitarPedal1590B hardware;
+GuitarPedal1590B TEXT_SECTION hardware;
 #elif defined(VARIANT_1590B_SMD)
 #include "Hardware-Modules/guitar_pedal_1590b-SMD.h"
 constexpr bool has_alternate_footswitch = false;
-GuitarPedal1590BSMD hardware;
+GuitarPedal1590BSMD TEXT_SECTION hardware;
 #elif defined(VARIANT_FUNBOX)
 #include "Hardware-Modules/guitar_pedal_funbox.h"
 constexpr bool has_alternate_footswitch = true;
-GuitarPedalFunbox hardware;
+GuitarPedalFunbox TEXT_SECTION hardware;
 #else
 #include "Hardware-Modules/guitar_pedal_125b.h"
 constexpr bool has_alternate_footswitch = true;
-GuitarPedal125B hardware;
+GuitarPedal125B TEXT_SECTION hardware;
 #endif
 
 // Persistant Storage
