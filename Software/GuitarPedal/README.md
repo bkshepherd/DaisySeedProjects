@@ -26,7 +26,6 @@ Check to make sure that the following directories have files in them:
 1. `Software/GuitarPedal/dependencies/q/infra`
 1. `Software/GuitarPedal/dependencies/gcem`
 1. `Software/GuitarPedal/dependencies/RTNeural`
-1. `Software/GuitarPedal/dependencies/eigen`
 
 If they do not have anything in them, you may need to do a `git submodule update --init --recursive`.
 
@@ -48,7 +47,6 @@ If this doesn't work, you can do it manually:
 #### Additional information for this step:
 
 - Note - You may not need to do all parts of this step if the project pulled down from GitHub with the dependencies already included as sub-modules. The desktop GUI client always should pull down submodules. If it still doesn't pull down and you have libDaisy and DaisySP installed somehwere else, you can follow the steps below, (note that you will still need to setup cycfi/q and cycfi/infra dependencies separately so the submodule way should be preferred):
-
   - You'll need to update the paths in the **Makefile**.
   - You'll also need to update the paths in the **c_cpp_properties.json** file in the **.vscode/** folder.
   - You'll also need to update the paths in the **task.json** file in the **.vscode/** folder.

@@ -12,7 +12,7 @@ CPP_SOURCES += Effect-Modules/base_effect_module.cpp
 # Naming the module sources explicitly to make it easier to add/remove from build. Otherwise all global attributes
 #  will be included in the build and take up memory resources, even when the .h file is commented out. 
 
-CPP_SOURCES += Effect-Modules/amp_module.cpp
+# CPP_SOURCES += Effect-Modules/amp_module.cpp
 CPP_SOURCES += Effect-Modules/autopan_module.cpp
 CPP_SOURCES += Effect-Modules/Chopper/chopper.cpp
 CPP_SOURCES += Effect-Modules/chopper_module.cpp
@@ -26,9 +26,6 @@ CPP_SOURCES += Effect-Modules/flanger_module.cpp
 CPP_SOURCES += Effect-Modules/geq_module.cpp
 CPP_SOURCES += Effect-Modules/granulardelay_module.cpp
 CPP_SOURCES += Effect-Modules/distortion_module.cpp
-CPP_SOURCES += Effect-Modules/ImpulseResponse/ImpulseResponse.cpp
-CPP_SOURCES += Effect-Modules/ImpulseResponse/dsp.cpp
-CPP_SOURCES += Effect-Modules/ir_module.cpp
 CPP_SOURCES += Effect-Modules/looper_module.cpp
 CPP_SOURCES += Effect-Modules/metro_module.cpp
 CPP_SOURCES += Effect-Modules/modulated_tremolo_module.cpp
@@ -54,12 +51,23 @@ CPP_SOURCES += Effect-Modules/tuner_module.cpp
 #CPP_SOURCES += Effect-Modules/pluckecho_module.cpp
 #CPP_SOURCES += Effect-Modules/string_keys_module.cpp
 
+CPP_SOURCES += dependencies/nam-binary-loader/namb/get_dsp_namb.cpp\
+               dependencies/NeuralAmpModelerCore/NAM/activations.cpp \
+               dependencies/NeuralAmpModelerCore/NAM/conv1d.cpp \
+               dependencies/NeuralAmpModelerCore/NAM/convnet.cpp \
+               dependencies/NeuralAmpModelerCore/NAM/dsp.cpp \
+               dependencies/NeuralAmpModelerCore/NAM/get_dsp.cpp \
+               dependencies/NeuralAmpModelerCore/NAM/lstm.cpp \
+               dependencies/NeuralAmpModelerCore/NAM/ring_buffer.cpp \
+               dependencies/NeuralAmpModelerCore/NAM/util.cpp \
+               dependencies/NeuralAmpModelerCore/NAM/wavenet.cpp
+
 # Compiler options
 OPT=-Ofast
 # OPT=-Og -g
 
 # Boot options
-APP_TYPE = BOOT_SRAM
+APP_TYPE = BOOT_QSPI
 
 # Library Locations
 DAISYSP_DIR ?= dependencies/DaisySP
@@ -76,10 +84,17 @@ include $(SYSTEM_FILES_DIR)/Makefile
 C_INCLUDES += -isystem ./dependencies/q/q/q_lib/include
 C_INCLUDES += -isystem ./dependencies/q/infra/include
 C_INCLUDES += -isystem ./dependencies/gcem/include
-C_INCLUDES += -isystem ./dependencies/eigen
-C_INCLUDES += -isystem ./dependencies/RTNeural
+C_INCLUDES += -isystem ./dependencies/NeuralAmpModelerCore
+C_INCLUDES += -isystem ./dependencies/NeuralAmpModelerCore/Dependencies/eigen
+C_INCLUDES += -isystem ./dependencies/NeuralAmpModelerCore/Dependencies/nlohmann
+C_INCLUDES += -isystem ./dependencies/nam-binary-loader
 
-CPPFLAGS += -DRTNEURAL_DEFAULT_ALIGNMENT=8 -DRTNEURAL_NO_DEBUG=1 -DRTNEURAL_USE_EIGEN=1
+C_DEFS += \
+  -DNAM_SAMPLE_FLOAT \
+  -DNAM_USE_INLINE_GEMM \
+  -D__ARM_ARCH_7EM__
+
+CPPFLAGS += -fexceptions -ffast-math -funroll-loops -ftree-vectorize -fmove-loop-invariants
 
 C_INCLUDES += -isystem ./dependencies/CloudSeed
 LIBS += -lcloudseed

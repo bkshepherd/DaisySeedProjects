@@ -8,7 +8,6 @@
 #include "Effect-Modules/base_effect_module.h"
 
 // Include all effect modules
-#include "Effect-Modules/amp_module.h"
 #include "Effect-Modules/autopan_module.h"
 #include "Effect-Modules/chopper_module.h"
 #include "Effect-Modules/chorus_module.h"
@@ -20,7 +19,6 @@
 #include "Effect-Modules/flanger_module.h"
 #include "Effect-Modules/geq_module.h"
 #include "Effect-Modules/granulardelay_module.h"
-#include "Effect-Modules/ir_module.h"
 #include "Effect-Modules/looper_module.h"
 #include "Effect-Modules/metro_module.h"
 #include "Effect-Modules/modulated_tremolo_module.h"
@@ -65,7 +63,6 @@ void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffec
         new ParametricEQModule(),
         new NoiseGateModule(),
         new CloudSeedModule(),
-        new AmpModule(),
         new DelayModule(),
         new NamModule(),
         new SciFiModule(),
@@ -73,7 +70,6 @@ void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffec
         new SpectralDelayModule(),
         new DistortionModule(),
         new GranularDelayModule(), 
-        new IrModule(),
         new DrumModule(),  // This module can be used with MIDI keyboard as a drum machine
         new PhaserModule(),
         new FlangerModule(),

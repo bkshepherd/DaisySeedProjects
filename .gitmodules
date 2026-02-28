@@ -13,9 +13,12 @@ url = https://github.com/cycfi/q.git
 [submodule "Software/GuitarPedal/dependencies/gcem"]
 path = Software/GuitarPedal/dependencies/gcem
 url = https://github.com/kthohr/gcem.git
-[submodule "Software/GuitarPedal/dependencies/RTNeural"]
-path = Software/GuitarPedal/dependencies/RTNeural
-url = https://github.com/jatinchowdhury18/RTNeural
 [submodule "Software/GuitarPedal/dependencies/eigen"]
 path = Software/GuitarPedal/dependencies/eigen
 url = https://gitlab.com/libeigen/eigen
+[submodule "Software/GuitarPedal/dependencies/NeuralAmpModelerCore"]
+path = Software/GuitarPedal/dependencies/NeuralAmpModelerCore
+url = https://github.com/sdatkinson/NeuralAmpModelerCore.git
+[submodule "Software/GuitarPedal/dependencies/nam-binary-loader"]
+path = Software/GuitarPedal/dependencies/nam-binary-loader
+url = https://github.com/tone-3000/nam-binary-loader.git

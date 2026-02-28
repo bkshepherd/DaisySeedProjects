@@ -1,8 +1,10 @@
 #include "nam_module.h"
 #include "../Util/audio_utilities.h"
-#include "../dependencies/RTNeural-NAM-modified/wavenet/wavenet_model.hpp"
-#include "Nam/model_data_nam.h"
-#include <RTNeural/RTNeural.h>
+#include "../dependencies/NeuralAmpModelerCore/NAM/activations.h"
+#include "../dependencies/NeuralAmpModelerCore/NAM/dsp.h"
+#include "../dependencies/nam-binary-loader/namb/get_dsp_namb.h"
+#include "Nam/1_namb.h" // Embedded .namb model as C array
+#include <memory>
 #include <q/fx/biquad.hpp>
 
 using namespace bkshepherd;
@@ -24,19 +26,6 @@ const size_t k_numModels = 10;
 
 static const char *s_modelBinNames[k_numModels] = {
     "Mesa", "Match30", "DumHighG", "DumLowG", "Ethos", "Splawn", "PRSArch", "JCM800", "SansAmp", "BE-100",
-};
-struct NAMMathsProvider {
-#if RTNEURAL_USE_EIGEN
-    template <typename Matrix> static auto tanh(const Matrix &x) {
-        // See: math_approx::tanh<3>
-        const auto x_poly = x.array() * (1.0f + 0.183428244899f * x.array().square());
-        return x_poly.array() * (x_poly.array().square() + 1.0f).array().rsqrt();
-        // return x.array().tanh(); // Tried using Eigen's built in tanh(), also works, failed on the same larger models as above
-        // custom tanh
-    }
-#elif RTNEURAL_USE_XSIMD
-    template <typename T> static T tanh(const T &x) { return math_approx::tanh<3>(x); }
-#endif
 };
 
 static const int s_paramCount = 8;
@@ -108,22 +97,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
 
 };
 
-// NOTE NAM Standard arch?
-/*
-using Dilations = wavenet::Dilations<1, 2, 4, 8, 16, 32, 64, 128, 256, 512>;
-wavenet::Wavenet_Model<float,
-                       1,
-                       wavenet::Layer_Array<float, 1, 1, 8, 16, 3, Dilations, false, NAMMathsProvider>,
-                       wavenet::Layer_Array<float, 16, 1, 1, 8, 3, Dilations, true, NAMMathsProvider>>
-    rtneural_wavenet;
-*/
-
-// NOTE NAM "Pico" (unnoficial model type)
-using Dilations = wavenet::Dilations<1, 2, 4, 8, 16, 32, 64>;
-using Dilations2 = wavenet::Dilations<128, 256, 512, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512>;
-wavenet::Wavenet_Model<float, 1, wavenet::Layer_Array<float, 1, 1, 2, 2, 3, Dilations, false, NAMMathsProvider>,
-                       wavenet::Layer_Array<float, 2, 1, 1, 2, 3, Dilations2, true, NAMMathsProvider>>
-    rtneural_wavenet;
+// NeuralAmpModelerCore model instance
+static std::unique_ptr<nam::DSP> nam_model;
+static constexpr size_t kMaxBlockSize = 48; // adjust as needed
 
 // NOTES:
 // nano models:
@@ -151,7 +127,6 @@ NamModule::~NamModule() {
 
 void NamModule::Init(float sample_rate) {
     BaseEffectModule::Init(sample_rate);
-    setupWeightsNam(); // in the model data nam .h file
     SelectModel();
 
     filter_nam[0].config(GetParameterAsFloat(3), centerFrequencyNam[0], sample_rate, q_nam[0]);
@@ -177,10 +152,11 @@ void NamModule::SelectModel() {
     if (m_currentModelindex != modelIndex) {
         // Temporarily disable output as we switch models
         m_muteOutput = true;
-        rtneural_wavenet.load_weights(model_collection_nam[modelIndex].weights);
-        static constexpr size_t N = 1; // number of samples sent through model at once
-        rtneural_wavenet.prepare(N);   // This is needed, including this allowed the led to come on before freezing
-        rtneural_wavenet.prewarm();    // Note: looks like this just sends some 0's through the model
+        // Directly load the embedded .namb model from 1_namb.h
+        nam_model = nam::get_dsp_namb(__1_namb, __1_namb_len);
+        if (nam_model) {
+            nam_model->ResetAndPrewarm(GetSampleRate(), kMaxBlockSize);
+        }
         m_currentModelindex = modelIndex;
         // Re-enable output
         m_muteOutput = false;
@@ -200,15 +176,10 @@ void NamModule::ProcessMono(float in) {
     float input_arr[1] = {0.0}; // Neural Net Input
     input_arr[0] = m_audioLeft * (m_gainMin + (m_gainMax - m_gainMin) * GetParameterAsFloat(0));
 
-    // NEURAL MODEL //
-    if (GetParameterAsBool(6)) {
-        ampOut =
-            rtneural_wavenet.forward(input_arr[0]) * 0.4; // TODO Try this again, was sending the whole array, wants just the float
-
-        // Apply level normalization factor
-        if (m_currentModelindex >= 0 && m_currentModelindex < static_cast<int>(k_numModels)) {
-            ampOut *= model_collection_nam[m_currentModelindex].levelAdjust;
-        }
+    if (GetParameterAsBool(6) && nam_model) {
+        float *input_ptr = input_arr;
+        float *output_ptr = &ampOut;
+        nam_model->process(&input_ptr, &output_ptr, 1); // process 1 sample
     } else {
         ampOut = input_arr[0];
     }
