@@ -3,7 +3,7 @@
 
 using namespace bkshepherd;
 
-static const int s_paramCount = 4;
+static constexpr int s_paramCount = PhaserModule::PARAM_COUNT;
 static const ParameterMetaData s_metaData[s_paramCount] = {
     {
         // 0 Mix (dry/wet)
@@ -94,18 +94,18 @@ void PhaserModule::Init(float sample_rate) {
 
 void PhaserModule::ParameterChanged(int parameter_id) {
     switch (parameter_id) {
-    case 1: { // Rate: 0..1 -> 0.10–8 Hz (exp mapping favors slow)
-        float rate = MapExp(GetParameterAsFloat(1), 0.10f, 8.0f);
+    case RATE: { // Rate: 0..1 -> 0.10–8 Hz (exp mapping favors slow)
+        float rate = MapExp(GetParameterAsFloat(RATE), 0.10f, 8.0f);
         m_targetRate = rate;
         break;
     }
-    case 2: { // Depth
-        m_targetDepth = fminf(fmaxf(GetParameterAsFloat(2), 0.0f), 0.98f);
+    case DEPTH: { // Depth
+        m_targetDepth = fminf(fmaxf(GetParameterAsFloat(DEPTH), 0.0f), 0.98f);
         m_phaser.set_depth(m_targetDepth);
         break;
     }
-    case 3: { // Feedback
-        float fb = GetParameterAsFloat(3) * 0.45f;
+    case FEEDBACK: { // Feedback
+        float fb = GetParameterAsFloat(FEEDBACK) * 0.45f;
         m_phaser.set_feedback(fb);
         break;
     }
@@ -130,7 +130,7 @@ void PhaserModule::ProcessMono(float in) {
     float wet = 2.0f * sp_out - x;
 
     float dryGain, wetGain;
-    EqualPowerMix(GetParameterAsFloat(0), dryGain, wetGain);
+    EqualPowerMix(GetParameterAsFloat(MIX), dryGain, wetGain);
 
     const float post = 0.95f;
     const float out = (x * dryGain + wet * wetGain) * post;

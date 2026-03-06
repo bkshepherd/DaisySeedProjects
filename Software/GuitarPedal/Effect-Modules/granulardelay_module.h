@@ -20,6 +20,18 @@ class GranularDelayModule : public BaseEffectModule {
     GranularDelayModule();
     ~GranularDelayModule();
 
+    enum Param {
+        SIZE = 0,
+        MIX,
+        PITCH,
+        SPREAD,
+        GRAIN_ENV,
+        SPEED,
+        WIDTH,
+        PARAM_COUNT
+    };
+
+
     void Init(float sample_rate) override;
     void ParameterChanged(int parameter_id) override;
     void ProcessMono(float in) override;

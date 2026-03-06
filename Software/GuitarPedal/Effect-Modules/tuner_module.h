@@ -20,6 +20,12 @@ class TunerModule : public BaseEffectModule {
     TunerModule();
     ~TunerModule();
 
+    enum Param {
+        MUTE = 0,
+        PARAM_COUNT
+    };
+
+
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;

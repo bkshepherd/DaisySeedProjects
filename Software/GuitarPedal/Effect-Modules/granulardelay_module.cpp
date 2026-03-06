@@ -11,7 +11,7 @@ float DSY_SDRAM_BSS buffer_gran_delay[MAX_SAMPLE_GRAN];
 
 static const char *s_grainEnvNames[3] = {"Cos", "SlowAtk", "FastAtk"};
 
-static const int s_paramCount = 7;
+static constexpr int s_paramCount = GranularDelayModule::PARAM_COUNT;
 static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                                name : "Size(ms)",
                                                                valueType : ParameterValueType::Float,
@@ -122,26 +122,26 @@ void GranularDelayModule::Init(float sample_rate) {
 
 void GranularDelayModule::ParameterChanged(int parameter_id) {
 
-    if (parameter_id == 0) { // Size (handled in processmono)
+    if (parameter_id == SIZE) { // Size (handled in processmono)
 
-    } else if (parameter_id == 1) { // Mix (handled in processmono)
+    } else if (parameter_id == MIX) { // Mix (handled in processmono)
 
-    } else if (parameter_id == 2) {
+    } else if (parameter_id == PITCH) {
         // For now rounding to semitones, may change later (separate semitone and cent control?)
-        int rounded_pitch = static_cast<int>(GetParameterAsFloat(2));
+        int rounded_pitch = static_cast<int>(GetParameterAsFloat(PITCH));
         m_pitch = rounded_pitch * 100;
 
-    } else if (parameter_id == 3) { // Stereo Spread
-        granular.setStereoSpread(GetParameterAsFloat(3));
+    } else if (parameter_id == SPREAD) { // Stereo Spread
+        granular.setStereoSpread(GetParameterAsFloat(SPREAD));
 
-    } else if (parameter_id == 4) { // Grain Env
-        int option = GetParameterAsBinnedValue(4) - 1;
+    } else if (parameter_id == GRAIN_ENV) { // Grain Env
+        int option = GetParameterAsBinnedValue(GRAIN_ENV) - 1;
 
         granular.setEnvelopeMode(option);
 
-    } else if (parameter_id == 5) { // Speed (handled in processmono)
+    } else if (parameter_id == SPEED) { // Speed (handled in processmono)
 
-    } else if (parameter_id == 6) { // Width (handled in processmono)
+    } else if (parameter_id == WIDTH) { // Width (handled in processmono)
     }
 }
 
@@ -185,7 +185,7 @@ void GranularDelayModule::ProcessMono(float in) {
     float gran_out_right = 0.0;
     float gran_out_left = 0.0;
 
-    fonepole(m_current_grainsize, GetParameterAsFloat(0), .0001f); // decrease decimal to slow down transfer
+    fonepole(m_current_grainsize, GetParameterAsFloat(SIZE), .0001f); // decrease decimal to slow down transfer
 
     // Each GranularPlayerMod in the swarm starts at a different phase so the
     //  grains are offest from eachother to create a smoother sound. They also have
@@ -193,14 +193,14 @@ void GranularDelayModule::ProcessMono(float in) {
     //  new textures.
 
     // Can only handle one?
-    granular.Process(GetParameterAsFloat(5), m_pitch, m_current_grainsize, GetParameterAsFloat(6));
+    granular.Process(GetParameterAsFloat(SPEED), m_pitch, m_current_grainsize, GetParameterAsFloat(WIDTH));
     gran_out_left += granular.getLeftOut();
     gran_out_right += granular.getRightOut();
 
     // NOTE: Only able to use one GranularPlayerMod, or getting really bad noise with more than 1
 
-    m_audioLeft = gran_out_left * GetParameterAsFloat(1) + input * (1.0 - GetParameterAsFloat(1));
-    m_audioRight = gran_out_right * GetParameterAsFloat(1) + input * (1.0 - GetParameterAsFloat(1));
+    m_audioLeft = gran_out_left * GetParameterAsFloat(MIX) + input * (1.0 - GetParameterAsFloat(MIX));
+    m_audioRight = gran_out_right * GetParameterAsFloat(MIX) + input * (1.0 - GetParameterAsFloat(MIX));
 }
 
 void GranularDelayModule::ProcessStereo(float inL, float inR) {

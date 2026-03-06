@@ -14,7 +14,7 @@ static const char *s_loopModeNames[4] = {"Normal", "One-time", "Replace", "Fripp
 
 static const char *s_loopSpeedMode[3] = {"None", "Stepped", "Smooth"};
 
-static const int s_paramCount = 7;
+static constexpr int s_paramCount = LooperModule::PARAM_COUNT;
 static const ParameterMetaData s_metaData[s_paramCount] = {
     {
         name : "Input Level",
@@ -111,13 +111,13 @@ void LooperModule::Init(float sample_rate) {
 }
 
 void LooperModule::SetLooperMode() {
-    const int modeIndex = GetParameterAsBinnedValue(2) - 1;
+    const int modeIndex = GetParameterAsBinnedValue(MODE) - 1;
     m_looper.SetMode(static_cast<daisysp::Looper::Mode>(modeIndex));
     m_looperR.SetMode(static_cast<daisysp::Looper::Mode>(modeIndex));
 }
 
 void LooperModule::ParameterChanged(int parameter_id) {
-    if (parameter_id == 2) {
+    if (parameter_id == MODE) {
         SetLooperMode();
     }
 }
@@ -136,21 +136,21 @@ void LooperModule::AlternateFootswitchHeldFor1Second() {
 void LooperModule::ProcessMono(float in) {
     BaseEffectModule::ProcessMono(in);
 
-    const float inputLevel = m_inputLevelMin + (GetParameterAsFloat(0) * (m_inputLevelMax - m_inputLevelMin));
+    const float inputLevel = m_inputLevelMin + (GetParameterAsFloat(INPUT_LEVEL) * (m_inputLevelMax - m_inputLevelMin));
 
-    const float loopLevel = m_loopLevelMin + (GetParameterAsFloat(1) * (m_loopLevelMax - m_loopLevelMin));
+    const float loopLevel = m_loopLevelMin + (GetParameterAsFloat(LOOP_LEVEL) * (m_loopLevelMax - m_loopLevelMin));
 
     float input = in * inputLevel;
 
     // Set low pass filter as exponential taper
-    tone.SetFreq(m_toneFreqMin + GetParameterAsFloat(5) * GetParameterAsFloat(5) * (m_toneFreqMax - m_toneFreqMin));
+    tone.SetFreq(m_toneFreqMin + GetParameterAsFloat(LP_FILTER) * GetParameterAsFloat(LP_FILTER) * (m_toneFreqMax - m_toneFreqMin));
 
     // Handle speed and direction changes smoothly (like a tape reel)
     // TODO maybe move out to only do this when speed param changes
-    int speedModeIndex = GetParameterAsBinnedValue(3) - 1;
+    int speedModeIndex = GetParameterAsBinnedValue(SPEED_MODE) - 1;
 
     if (speedModeIndex == 2) {
-        float speed = GetParameterAsFloat(4);
+        float speed = GetParameterAsFloat(SPEED);
         daisysp::fonepole(currentSpeed, speed, .00006f);
         if (currentSpeed < 0.0) {
             m_looper.SetReverse(true);
@@ -161,7 +161,7 @@ void LooperModule::ProcessMono(float in) {
         m_looper.SetIncrementSize(speed_input_abs);
 
     } else if (speedModeIndex == 1) {
-        float speed = GetParameterAsFloat(4) * 2;
+        float speed = GetParameterAsFloat(SPEED) * 2;
         int temp_speed = speed;
         float ftemp_speed = temp_speed;
         float stepped_speed = ftemp_speed / 2;
@@ -196,28 +196,28 @@ void LooperModule::ProcessStereo(float inL, float inR) {
 
     BaseEffectModule::ProcessStereo(inL, inR);
 
-    const float inputLevel = m_inputLevelMin + (GetParameterAsFloat(0) * (m_inputLevelMax - m_inputLevelMin));
+    const float inputLevel = m_inputLevelMin + (GetParameterAsFloat(INPUT_LEVEL) * (m_inputLevelMax - m_inputLevelMin));
 
-    const float loopLevel = m_loopLevelMin + (GetParameterAsFloat(1) * (m_loopLevelMax - m_loopLevelMin));
+    const float loopLevel = m_loopLevelMin + (GetParameterAsFloat(LOOP_LEVEL) * (m_loopLevelMax - m_loopLevelMin));
 
     float inputR = 0.0;
     float input = m_audioLeft * inputLevel;
-    if (!GetParameterAsBool(6)) { // If "MISO" is on, copy left input to right, otherwise do true stereo
+    if (!GetParameterAsBool(MISO)) { // If "MISO" is on, copy left input to right, otherwise do true stereo
         inputR = m_audioRight * inputLevel;
     } else {
         inputR = input;
     }
 
     // Set low pass filter as exponential taper
-    tone.SetFreq(m_toneFreqMin + GetParameterAsFloat(5) * GetParameterAsFloat(5) * (m_toneFreqMax - m_toneFreqMin));
-    toneR.SetFreq(m_toneFreqMin + GetParameterAsFloat(5) * GetParameterAsFloat(5) * (m_toneFreqMax - m_toneFreqMin));
+    tone.SetFreq(m_toneFreqMin + GetParameterAsFloat(LP_FILTER) * GetParameterAsFloat(LP_FILTER) * (m_toneFreqMax - m_toneFreqMin));
+    toneR.SetFreq(m_toneFreqMin + GetParameterAsFloat(LP_FILTER) * GetParameterAsFloat(LP_FILTER) * (m_toneFreqMax - m_toneFreqMin));
 
     // Handle speed and direction changes smoothly (like a tape reel)
     // TODO maybe move out to only do this when speed param changes
-    int speedModeIndex = GetParameterAsBinnedValue(3) - 1;
+    int speedModeIndex = GetParameterAsBinnedValue(SPEED_MODE) - 1;
 
     if (speedModeIndex == 2) {
-        float speed = GetParameterAsFloat(4);
+        float speed = GetParameterAsFloat(SPEED);
         daisysp::fonepole(currentSpeed, speed, .00006f);
         if (currentSpeed < 0.0) {
             m_looper.SetReverse(true);
@@ -231,7 +231,7 @@ void LooperModule::ProcessStereo(float inL, float inR) {
         m_looperR.SetIncrementSize(speed_input_abs);
 
     } else if (speedModeIndex == 1) {
-        float speed = GetParameterAsFloat(4) * 2;
+        float speed = GetParameterAsFloat(SPEED) * 2;
         int temp_speed = speed;
         float ftemp_speed = temp_speed;
         float stepped_speed = ftemp_speed / 2;

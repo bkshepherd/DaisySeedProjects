@@ -23,7 +23,7 @@ cycfi::q::peaking filterHighs = {0, defaultHighFreq, 48000, qHigh[1]};
 
 static const char *s_qBinNames[3] = {"Narrow", "Medium", "Wide"};
 
-static constexpr uint8_t s_paramCount = 9;
+static constexpr int s_paramCount = ParametricEQModule::PARAM_COUNT;
 static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                                name : "Low Freq",
                                                                valueType : ParameterValueType::Float,
@@ -135,13 +135,13 @@ ParametricEQModule::~ParametricEQModule() {
 void ParametricEQModule::Init(float sample_rate) {
     BaseEffectModule::Init(sample_rate);
 
-    const int qLowIndex = GetParameterAsBinnedValue(6) - 1;
-    const int qMidIndex = GetParameterAsBinnedValue(7) - 1;
-    const int qHighIndex = GetParameterAsBinnedValue(8) - 1;
+    const int qLowIndex = GetParameterAsBinnedValue(LOW_Q) - 1;
+    const int qMidIndex = GetParameterAsBinnedValue(MID_Q) - 1;
+    const int qHighIndex = GetParameterAsBinnedValue(HIGH_Q) - 1;
 
-    filterLows.config(GetParameterAsFloat(3), GetParameterAsFloat(0), sample_rate, qLow[qLowIndex]);
-    filterMids.config(GetParameterAsFloat(4), GetParameterAsFloat(1), sample_rate, qMid[qMidIndex]);
-    filterHighs.config(GetParameterAsFloat(5), GetParameterAsFloat(2), sample_rate, qHigh[qHighIndex]);
+    filterLows.config(GetParameterAsFloat(LOW_GAIN), GetParameterAsFloat(LOW_FREQ), sample_rate, qLow[qLowIndex]);
+    filterMids.config(GetParameterAsFloat(MID_GAIN), GetParameterAsFloat(MID_FREQ), sample_rate, qMid[qMidIndex]);
+    filterHighs.config(GetParameterAsFloat(HIGH_GAIN), GetParameterAsFloat(HIGH_FREQ), sample_rate, qHigh[qHighIndex]);
 }
 
 void ParametricEQModule::ProcessMono(float in) {
@@ -162,25 +162,25 @@ void ParametricEQModule::ProcessStereo(float inL, float inR) {
 
 void ParametricEQModule::ParameterChanged(int parameter_id) {
     switch (parameter_id) {
-    case 0:
-    case 3:
-    case 6: {
-        const int qLowIndex = GetParameterAsBinnedValue(6) - 1;
-        filterLows.config(GetParameterAsFloat(3), GetParameterAsFloat(0), GetSampleRate(), qLow[qLowIndex]);
+    case LOW_FREQ:
+    case LOW_GAIN:
+    case LOW_Q: {
+        const int qLowIndex = GetParameterAsBinnedValue(LOW_Q) - 1;
+        filterLows.config(GetParameterAsFloat(LOW_GAIN), GetParameterAsFloat(LOW_FREQ), GetSampleRate(), qLow[qLowIndex]);
         break;
     }
-    case 1:
-    case 4:
-    case 7: {
-        const int qMidIndex = GetParameterAsBinnedValue(7) - 1;
-        filterMids.config(GetParameterAsFloat(4), GetParameterAsFloat(1), GetSampleRate(), qMid[qMidIndex]);
+    case MID_FREQ:
+    case MID_GAIN:
+    case MID_Q: {
+        const int qMidIndex = GetParameterAsBinnedValue(MID_Q) - 1;
+        filterMids.config(GetParameterAsFloat(MID_GAIN), GetParameterAsFloat(MID_FREQ), GetSampleRate(), qMid[qMidIndex]);
         break;
     }
-    case 2:
-    case 5:
-    case 8: {
-        const int qHighIndex = GetParameterAsBinnedValue(8) - 1;
-        filterHighs.config(GetParameterAsFloat(5), GetParameterAsFloat(2), GetSampleRate(), qHigh[qHighIndex]);
+    case HIGH_FREQ:
+    case HIGH_GAIN:
+    case HIGH_Q: {
+        const int qHighIndex = GetParameterAsBinnedValue(HIGH_Q) - 1;
+        filterHighs.config(GetParameterAsFloat(HIGH_GAIN), GetParameterAsFloat(HIGH_FREQ), GetSampleRate(), qHigh[qHighIndex]);
         break;
     }
     }
@@ -205,8 +205,8 @@ void ParametricEQModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex
     // Don't default this to 0 so that the "3" bars stay centered
     int x = stepWidth / 2;
     for (int i = 0; i < 3; i++) {
-        const int gainParamId = i + 3;
-        const int qParamId = i + 6;
+        const int gainParamId = LOW_GAIN + i;
+        const int qParamId = LOW_Q + i;
 
         const int q = GetParameterAsBinnedValue(qParamId) - 1;
 

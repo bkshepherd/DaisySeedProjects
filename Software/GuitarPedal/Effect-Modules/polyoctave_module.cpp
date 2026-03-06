@@ -20,7 +20,7 @@ static OctaveGenerator octave(sample_rate_temp / resample_factor); // resample_f
 static q::highshelf eq1(-11, 140_Hz, sample_rate_temp);
 static q::lowshelf eq2(5, 160_Hz, sample_rate_temp);
 
-static const int s_paramCount = 4;
+static constexpr int s_paramCount = PolyOctaveModule::PARAM_COUNT;
 static const ParameterMetaData s_metaData[s_paramCount] = {
     {name : "Dry", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 0, midiCCMapping : 14},
     {
@@ -80,10 +80,10 @@ void PolyOctaveModule::ProcessMono(float in) {
 
     buff[bin_counter] = in; // making a workaround for only processing sample by sample instead of block, will add 6 samples of latency
 
-    float dryLevel = GetParameterAsFloat(0);
-    float down1Level = GetParameterAsFloat(1);
-    float down2Level = GetParameterAsFloat(2);
-    float up1Level = GetParameterAsFloat(3);
+    float dryLevel = GetParameterAsFloat(DRY);
+    float down1Level = GetParameterAsFloat(TWO_OCT_DOWN);
+    float down2Level = GetParameterAsFloat(ONE_OCT_DOWN);
+    float up1Level = GetParameterAsFloat(ONE_OCT_UP);
 
     // for (size_t i = 0; i <= (size - resample_factor); i += resample_factor)  // Every 6 samples until block size
     //{

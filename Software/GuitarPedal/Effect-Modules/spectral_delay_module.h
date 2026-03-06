@@ -35,6 +35,17 @@ class SpectralDelayModule : public BaseEffectModule {
     SpectralDelayModule();
     ~SpectralDelayModule();
 
+    enum Param {
+        MIX = 0,
+        TIME,
+        FDBK,
+        TIME_MODE,
+        FDBK_MODE,
+        TONE,
+        PARAM_COUNT
+    };
+
+
     void Init(float sample_rate) override;
     void ParameterChanged(int parameter_id) override;
     void ProcessMono(float in) override;

@@ -5,7 +5,7 @@ using namespace bkshepherd;
 
 static VoiceManager<8> voice_handler; // 24 or 16 was too much for 125B pedal, froze when effect engaged, 12 works
 
-static const int s_paramCount = 2;
+static constexpr int s_paramCount = MidiKeysModule::PARAM_COUNT;
 static const ParameterMetaData s_metaData[s_paramCount] = {
     {
         name : "CutoffFreq",
@@ -59,10 +59,10 @@ void MidiKeysModule::ProcessMono(float in) {
     float through_audioL = m_audioLeft;
     // float through_audioR = m_audioRight;
 
-    voice_handler.SetCutoff(m_freqMin + GetParameterAsFloat(0) * (m_freqMax - m_freqMin));
+    voice_handler.SetCutoff(m_freqMin + GetParameterAsFloat(CUTOFF_FREQ) * (m_freqMax - m_freqMin));
 
     float sum = 0.f;
-    sum = voice_handler.Process() * 0.4f * GetParameterAsFloat(1); // was 0.5f, needs more volume reduction
+    sum = voice_handler.Process() * 0.4f * GetParameterAsFloat(LEVEL); // was 0.5f, needs more volume reduction
     m_audioLeft = sum + through_audioL;
     m_audioRight = m_audioLeft;
 }
@@ -77,10 +77,10 @@ void MidiKeysModule::ProcessStereo(float inL, float inR) {
     float through_audioL = m_audioLeft;
     float through_audioR = m_audioRight;
 
-    voice_handler.SetCutoff(m_freqMin + GetParameterAsFloat(0) * (m_freqMax - m_freqMin));
+    voice_handler.SetCutoff(m_freqMin + GetParameterAsFloat(CUTOFF_FREQ) * (m_freqMax - m_freqMin));
 
     float sum = 0.f;
-    sum = voice_handler.Process() * 0.4f * GetParameterAsFloat(1); // was 0.5f, needs more volume reduction
+    sum = voice_handler.Process() * 0.4f * GetParameterAsFloat(LEVEL); // was 0.5f, needs more volume reduction
     m_audioLeft = sum + through_audioL;
     m_audioRight = m_audioLeft + through_audioR;
 }

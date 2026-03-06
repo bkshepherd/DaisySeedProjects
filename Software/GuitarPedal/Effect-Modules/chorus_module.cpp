@@ -2,7 +2,7 @@
 
 using namespace bkshepherd;
 
-static const int s_paramCount = 5;
+static constexpr int s_paramCount = ChorusModule::PARAM_COUNT;
 static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                                name : "Wet",
                                                                valueType : ParameterValueType::Float,
@@ -74,15 +74,15 @@ void ChorusModule::ProcessMono(float in) {
     BaseEffectModule::ProcessMono(in);
 
     // Calculate the effect
-    m_chorus.SetDelay(GetParameterAsFloat(1));
-    m_chorus.SetLfoFreq(m_lfoFreqMin + (GetParameterAsFloat(2) * GetParameterAsFloat(2) * (m_lfoFreqMax - m_lfoFreqMin)));
-    m_chorus.SetLfoDepth(GetParameterAsFloat(3));
-    m_chorus.SetFeedback(GetParameterAsFloat(4));
+    m_chorus.SetDelay(GetParameterAsFloat(DELAY));
+    m_chorus.SetLfoFreq(m_lfoFreqMin + (GetParameterAsFloat(LFO_FREQ) * GetParameterAsFloat(LFO_FREQ) * (m_lfoFreqMax - m_lfoFreqMin)));
+    m_chorus.SetLfoDepth(GetParameterAsFloat(LFO_DEPTH));
+    m_chorus.SetFeedback(GetParameterAsFloat(FEEDBACK));
 
     m_chorus.Process(m_audioLeft);
 
-    m_audioLeft = m_chorus.GetLeft() * GetParameterAsFloat(0) + m_audioLeft * (1.0f - GetParameterAsFloat(0));
-    m_audioRight = m_chorus.GetRight() * GetParameterAsFloat(0) + m_audioRight * (1.0f - GetParameterAsFloat(0));
+    m_audioLeft = m_chorus.GetLeft() * GetParameterAsFloat(WET) + m_audioLeft * (1.0f - GetParameterAsFloat(WET));
+    m_audioRight = m_chorus.GetRight() * GetParameterAsFloat(WET) + m_audioRight * (1.0f - GetParameterAsFloat(WET));
 }
 
 void ChorusModule::ProcessStereo(float inL, float inR) {
@@ -93,14 +93,14 @@ void ChorusModule::ProcessStereo(float inL, float inR) {
     BaseEffectModule::ProcessStereo(m_audioLeft, inR);
 
     // Calculate the effect
-    m_audioRight = m_chorus.GetRight() * GetParameterAsFloat(0) + m_audioRight * (1.0f - GetParameterAsFloat(0));
+    m_audioRight = m_chorus.GetRight() * GetParameterAsFloat(WET) + m_audioRight * (1.0f - GetParameterAsFloat(WET));
 }
 
 float ChorusModule::GetBrightnessForLED(int led_id) const {
     float value = BaseEffectModule::GetBrightnessForLED(led_id);
 
     if (led_id == 1) {
-        return value * GetParameterAsFloat(0);
+        return value * GetParameterAsFloat(WET);
     }
 
     return value;

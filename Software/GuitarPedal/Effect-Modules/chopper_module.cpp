@@ -3,7 +3,7 @@
 
 using namespace bkshepherd;
 
-static const int s_paramCount = 4;
+static constexpr int s_paramCount = ChopperModule::PARAM_COUNT;
 static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                                name : "Wet",
                                                                valueType : ParameterValueType::Float,
@@ -68,10 +68,10 @@ void ChopperModule::ProcessMono(float in) {
     BaseEffectModule::ProcessMono(in);
 
     // Setup the Effect
-    m_chopper.SetFreq(m_tempoFreqMin + (GetParameterAsFloat(1) * (m_tempoFreqMax - m_tempoFreqMin)));
+    m_chopper.SetFreq(m_tempoFreqMin + (GetParameterAsFloat(TEMPO) * (m_tempoFreqMax - m_tempoFreqMin)));
     m_chopper.SetAmp(1.0f);
-    m_chopper.SetPw(m_pulseWidthMin + (GetParameterAsFloat(2) * (m_pulseWidthMax - m_pulseWidthMin)));
-    m_chopper.SetPattern(GetParameterAsBinnedValue(3) - 1);
+    m_chopper.SetPw(m_pulseWidthMin + (GetParameterAsFloat(DUTY) * (m_pulseWidthMax - m_pulseWidthMin)));
+    m_chopper.SetPattern(GetParameterAsBinnedValue(PATTERN) - 1);
 
     // Calculate the Effect
     // Ease the effect value into it's target to avoid clipping
@@ -80,7 +80,7 @@ void ChopperModule::ProcessMono(float in) {
     float audioLeftWet = m_cachedEffectMagnitudeValue * m_audioLeft;
 
     // Handle the wet / dry mix
-    m_audioLeft = audioLeftWet * GetParameterAsFloat(0) + m_audioLeft * (1.0f - GetParameterAsFloat(0));
+    m_audioLeft = audioLeftWet * GetParameterAsFloat(WET) + m_audioLeft * (1.0f - GetParameterAsFloat(WET));
     m_audioRight = m_audioLeft;
 }
 
@@ -96,7 +96,7 @@ void ChopperModule::ProcessStereo(float inL, float inR) {
     float audioRightWet = m_cachedEffectMagnitudeValue * m_audioRight;
 
     // Handle the wet / dry mix
-    m_audioRight = audioRightWet * GetParameterAsFloat(0) + m_audioRight * (1.0f - GetParameterAsFloat(0));
+    m_audioRight = audioRightWet * GetParameterAsFloat(WET) + m_audioRight * (1.0f - GetParameterAsFloat(WET));
 }
 
 void ChopperModule::SetTempo(uint32_t bpm) {
@@ -129,7 +129,7 @@ void ChopperModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int
                            bool isEditing) {
     BaseEffectModule::DrawUI(display, currentIndex, numItemsTotal, boundsToDrawIn, isEditing);
 
-    Pattern pattern = m_chopper.GetPattern(GetParameterAsBinnedValue(3) - 1);
+    Pattern pattern = m_chopper.GetPattern(GetParameterAsBinnedValue(PATTERN) - 1);
     int width = boundsToDrawIn.GetWidth();
     int stepWidth = (width / PATTERN_STEPS_MAX);
     int top = 30;

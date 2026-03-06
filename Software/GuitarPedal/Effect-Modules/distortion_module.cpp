@@ -15,7 +15,7 @@ cycfi::q::lowpass upsamplingLowpassFilter(0.0f, 48000);   // Dummy values that g
 
 constexpr uint8_t oversamplingFactor = 16;
 
-static const int s_paramCount = 6;
+static constexpr int s_paramCount = DistortionModule::PARAM_COUNT;
 static const ParameterMetaData s_metaData[s_paramCount] = {
     {
         name : "Level",
@@ -90,9 +90,9 @@ void DistortionModule::Init(float sample_rate) {
     m_tone.Init(sample_rate);
 
     // Pivot between 500 Hz and 2 kHz as the tone amount changes
-    m_tone.SetFreq(500.0f + 1500.0f * GetParameterAsFloat(2));
+    m_tone.SetFreq(500.0f + 1500.0f * GetParameterAsFloat(TONE));
 
-    m_oversampling = GetParameterAsBool(5);
+    m_oversampling = GetParameterAsBool(OVERSAMP);
     InitializeFilters();
 }
 
@@ -109,12 +109,12 @@ void DistortionModule::InitializeFilters() {
 }
 
 void DistortionModule::ParameterChanged(int parameter_id) {
-    if (parameter_id == 5) {
-        m_oversampling = GetParameterAsBool(5);
+    if (parameter_id == OVERSAMP) {
+        m_oversampling = GetParameterAsBool(OVERSAMP);
         InitializeFilters();
-    } else if (parameter_id == 2) {
+    } else if (parameter_id == TONE) {
         // Pivot between 500 Hz and 2 kHz as the tone amount changes
-        m_tone.SetFreq(500.0f + 1500.0f * GetParameterAsFloat(2));
+        m_tone.SetFreq(500.0f + 1500.0f * GetParameterAsFloat(TONE));
     }
 }
 
@@ -248,9 +248,9 @@ void DistortionModule::ProcessMono(float in) {
     preFilter.config(dynamicPreFilterCutoff(energy), GetSampleRate());
     distorted = preFilter(distorted);
 
-    const float gain = m_gainMin + (GetParameterAsFloat(1) * (m_gainMax - m_gainMin));
-    const int clippingType = GetParameterAsBinnedValue(3) - 1;
-    const float intensity = GetParameterAsFloat(4);
+    const float gain = m_gainMin + (GetParameterAsFloat(GAIN) * (m_gainMax - m_gainMin));
+    const int clippingType = GetParameterAsBinnedValue(DIST_TYPE) - 1;
+    const float intensity = GetParameterAsFloat(INTENSITY);
 
     // Reduce signal amplitude before clipping
     distorted = distorted * 0.5f;
@@ -287,7 +287,7 @@ void DistortionModule::ProcessMono(float in) {
     // Apply tilt-tone filter
     const float filter_out = ProcessTiltToneControl(distorted);
 
-    const float level = m_levelMin + (GetParameterAsFloat(0) * (m_levelMax - m_levelMin));
+    const float level = m_levelMin + (GetParameterAsFloat(LEVEL) * (m_levelMax - m_levelMin));
     m_audioLeft = filter_out * level;
     m_audioRight = m_audioLeft;
 }
@@ -298,7 +298,7 @@ void DistortionModule::ProcessStereo(float inL, float inR) {
 }
 
 float DistortionModule::ProcessTiltToneControl(float input) {
-    const float toneAmount = GetParameterAsFloat(2);
+    const float toneAmount = GetParameterAsFloat(TONE);
 
     // Process input with one-pole low-pass
     const float lp = m_tone.Process(input);

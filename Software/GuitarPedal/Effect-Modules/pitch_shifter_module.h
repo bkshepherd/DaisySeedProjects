@@ -16,6 +16,17 @@ class PitchShifterModule : public BaseEffectModule {
     PitchShifterModule();
     ~PitchShifterModule();
 
+    enum Param {
+        SEMITONE = 0,
+        CROSSFADE,
+        DIRECTION,
+        MODE,
+        SHIFT,
+        RETURN,
+        PARAM_COUNT
+    };
+
+
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;

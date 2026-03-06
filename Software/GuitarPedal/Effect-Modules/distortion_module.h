@@ -20,6 +20,17 @@ class DistortionModule : public BaseEffectModule {
     DistortionModule();
     ~DistortionModule();
 
+    enum Param {
+        LEVEL = 0,
+        GAIN,
+        TONE,
+        DIST_TYPE,
+        INTENSITY,
+        OVERSAMP,
+        PARAM_COUNT
+    };
+
+
     void Init(float sample_rate) override;
     void ParameterChanged(int parameter_id) override;
     void ProcessMono(float in) override;

@@ -5,7 +5,7 @@ using namespace bkshepherd;
 
 DelayLine<float, MAX_DELAY_PLUCKECHO> DSY_SDRAM_BSS delay;
 
-static const int s_paramCount = 4;
+static constexpr int s_paramCount = PluckEchoModule::PARAM_COUNT;
 static const ParameterMetaData s_metaData[s_paramCount] = {
     {
         name : "StringDecay",
@@ -69,8 +69,8 @@ void PluckEchoModule::Init(float sample_rate) {
 }
 
 void PluckEchoModule::ParameterChanged(int parameter_id) {
-    if (parameter_id == 0) {
-        float decay = 0.5f + GetParameterAsFloat(0) * 0.5f;
+    if (parameter_id == STRING_DECAY) {
+        float decay = 0.5f + GetParameterAsFloat(STRING_DECAY) * 0.5f;
         synth.SetDecay(decay);
     }
 }
@@ -95,10 +95,10 @@ void PluckEchoModule::ProcessMono(float in) {
     float through_audioL = m_audioLeft;
     // float through_audioR = m_audioRight;
 
-    float kval = GetParameterAsFloat(1);
+    float kval = GetParameterAsFloat(DELAY_TIME);
     float deltime = (0.001f + (kval * kval) * 5.0f) * 48000; // samplerate=48000
 
-    float delfb = GetParameterAsFloat(2);
+    float delfb = GetParameterAsFloat(DELAY_FDBK);
 
     // Smooth delaytime, and set.
     fonepole(smooth_time, deltime, 0.0005f);
@@ -119,8 +119,8 @@ void PluckEchoModule::ProcessMono(float in) {
     // verb.Process(send, send, &wetl, &wetr);
 
     // Output
-    m_audioLeft = (dry)*GetParameterAsFloat(3) * 1.5 + through_audioL; // 50/50 dry wet mix and level adjust
-    m_audioRight = (dry)*GetParameterAsFloat(3) * 1.5 + through_audioL;
+    m_audioLeft = (dry)*GetParameterAsFloat(LEVEL) * 1.5 + through_audioL; // 50/50 dry wet mix and level adjust
+    m_audioRight = (dry)*GetParameterAsFloat(LEVEL) * 1.5 + through_audioL;
 }
 
 void PluckEchoModule::ProcessStereo(float inL, float inR) {
@@ -133,10 +133,10 @@ void PluckEchoModule::ProcessStereo(float inL, float inR) {
     float through_audioL = m_audioLeft;
     float through_audioR = m_audioRight;
 
-    float kval = GetParameterAsFloat(1);
+    float kval = GetParameterAsFloat(DELAY_TIME);
     float deltime = (0.001f + (kval * kval) * 5.0f) * 48000; // samplerate=48000
 
-    float delfb = GetParameterAsFloat(2);
+    float delfb = GetParameterAsFloat(DELAY_FDBK);
 
     // Smooth delaytime, and set.
     fonepole(smooth_time, deltime, 0.0005f);
@@ -157,8 +157,8 @@ void PluckEchoModule::ProcessStereo(float inL, float inR) {
     // verb.Process(send, send, &wetl, &wetr);
 
     // Output
-    m_audioLeft = (dry)*GetParameterAsFloat(3) * 1.5 + through_audioL; // 50/50 dry wet mix and level adjust
-    m_audioRight = (dry)*GetParameterAsFloat(3) * 1.5 + through_audioR;
+    m_audioLeft = (dry)*GetParameterAsFloat(LEVEL) * 1.5 + through_audioL; // 50/50 dry wet mix and level adjust
+    m_audioRight = (dry)*GetParameterAsFloat(LEVEL) * 1.5 + through_audioR;
 }
 
 float PluckEchoModule::GetBrightnessForLED(int led_id) const {

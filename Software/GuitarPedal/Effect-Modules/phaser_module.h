@@ -17,6 +17,15 @@ class PhaserModule : public BaseEffectModule {
     PhaserModule();
     ~PhaserModule();
 
+    enum Param {
+        MIX = 0,
+        RATE,
+        DEPTH,
+        FEEDBACK,
+        PARAM_COUNT
+    };
+
+
     void Init(float sample_rate) override;
     void ParameterChanged(int parameter_id) override;
     void ProcessMono(float in) override;

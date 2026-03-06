@@ -20,6 +20,13 @@ class IrModule : public BaseEffectModule {
     IrModule();
     ~IrModule();
 
+    enum Param {
+        IR = 0,
+        LEVEL,
+        PARAM_COUNT
+    };
+
+
     void Init(float sample_rate) override;
     void ParameterChanged(int parameter_id) override;
 

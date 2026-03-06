@@ -16,6 +16,18 @@ class LooperModule : public BaseEffectModule {
     LooperModule();
     ~LooperModule();
 
+    enum Param {
+        INPUT_LEVEL = 0,
+        LOOP_LEVEL,
+        MODE,
+        SPEED_MODE,
+        SPEED,
+        LP_FILTER,
+        MISO,
+        PARAM_COUNT
+    };
+
+
     void Init(float sample_rate) override;
     void ParameterChanged(int parameter_id) override;
     void ProcessMono(float in) override;

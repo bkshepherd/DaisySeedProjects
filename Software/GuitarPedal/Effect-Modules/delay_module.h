@@ -119,6 +119,23 @@ class DelayModule : public BaseEffectModule {
     DelayModule();
     ~DelayModule();
 
+    enum Param {
+        DELAY_TIME = 0,
+        D_FEEDBACK,
+        DELAY_MIX,
+        DELAY_MODE,
+        DELAY_TYPE,
+        DELAY_LPF,
+        D_SPREAD,
+        MOD_AMT,
+        MOD_RATE,
+        MOD_PARAM,
+        MOD_WAVE,
+        SYNC_MOD_F,
+        PARAM_COUNT
+    };
+
+
     void Init(float sample_rate) override;
     void UpdateLEDRate();
     void CalculateDelayMix();

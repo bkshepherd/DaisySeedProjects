@@ -3,7 +3,7 @@
 
 using namespace bkshepherd;
 
-static const int s_paramCount = 4;
+static constexpr int s_paramCount = ModalKeysModule::PARAM_COUNT;
 static const ParameterMetaData s_metaData[s_paramCount] = {
     {
         name : "Structure",
@@ -55,14 +55,14 @@ void ModalKeysModule::Init(float sample_rate) {
 }
 
 void ModalKeysModule::ParameterChanged(int parameter_id) {
-    if (parameter_id == 0) {
-        modalvoice.SetStructure(GetParameterAsFloat(0));
+    if (parameter_id == STRUCTURE) {
+        modalvoice.SetStructure(GetParameterAsFloat(STRUCTURE));
 
-    } else if (parameter_id == 1) {
-        modalvoice.SetBrightness(GetParameterAsFloat(1));
+    } else if (parameter_id == BRIGHTNESS) {
+        modalvoice.SetBrightness(GetParameterAsFloat(BRIGHTNESS));
 
-    } else if (parameter_id == 3) {
-        modalvoice.SetDamping(GetParameterAsFloat(3));
+    } else if (parameter_id == DAMPING) {
+        modalvoice.SetDamping(GetParameterAsFloat(DAMPING));
     }
 }
 
@@ -90,8 +90,8 @@ void ModalKeysModule::ProcessMono(float in) {
 
     float voice_out = modalvoice.Process();
 
-    m_audioLeft = (voice_out)*GetParameterAsFloat(2) * 0.1 + through_audioL; // Doing 50/50 mix of dry/reverb, 0.2 is volume reduction
-    m_audioRight = (voice_out)*GetParameterAsFloat(2) * 0.1 + through_audioL;
+    m_audioLeft = (voice_out)*GetParameterAsFloat(LEVEL) * 0.1 + through_audioL; // Doing 50/50 mix of dry/reverb, 0.2 is volume reduction
+    m_audioRight = (voice_out)*GetParameterAsFloat(LEVEL) * 0.1 + through_audioL;
 }
 
 void ModalKeysModule::ProcessStereo(float inL, float inR) {
@@ -106,8 +106,8 @@ void ModalKeysModule::ProcessStereo(float inL, float inR) {
 
     float voice_out = modalvoice.Process();
 
-    m_audioLeft = (voice_out)*GetParameterAsFloat(2) * 0.1 + through_audioL; // Doing 50/50 mix of dry/reverb, 0.2 is volume reduction
-    m_audioRight = (voice_out)*GetParameterAsFloat(2) * 0.1 + through_audioR;
+    m_audioLeft = (voice_out)*GetParameterAsFloat(LEVEL) * 0.1 + through_audioL; // Doing 50/50 mix of dry/reverb, 0.2 is volume reduction
+    m_audioRight = (voice_out)*GetParameterAsFloat(LEVEL) * 0.1 + through_audioR;
 }
 
 float ModalKeysModule::GetBrightnessForLED(int led_id) const {

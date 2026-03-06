@@ -19,6 +19,21 @@ class DrumModule : public BaseEffectModule {
     DrumModule();
     ~DrumModule();
 
+    enum Param {
+        LEVEL = 0,
+        VOICE,
+        BEATS,
+        TEMPO,
+        MIDI_VOICE,
+        TIMBRE,
+        TONE,
+        DECAY,
+        MODE,
+        DRY_THRU,
+        PARAM_COUNT
+    };
+
+
     void Init(float sample_rate) override;
     void ParameterChanged(int parameter_id) override;
     void ProcessMono(float in) override;

@@ -7,7 +7,7 @@ using namespace bkshepherd;
 //  With added carrier env control, 16 glitches, 12 works
 //  moved param changing to outside function, can run 18
 
-static const int s_paramCount = 12;
+static constexpr int s_paramCount = FmKeysModule::PARAM_COUNT;
 static const ParameterMetaData s_metaData[s_paramCount] = {
     {name : "Level", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 0, midiCCMapping : 14},
     {
@@ -121,49 +121,49 @@ void FmKeysModule::Init(float sample_rate) {
 
 void FmKeysModule::ParameterChanged(int parameter_id) {
 
-    if (parameter_id == 0) {
-        m_voice_handler.SetCarrierLevel(GetParameterAsFloat(0));
+    if (parameter_id == LEVEL) {
+        m_voice_handler.SetCarrierLevel(GetParameterAsFloat(LEVEL));
 
-    } else if (parameter_id == 1) {
-        float temp = GetParameterAsFloat(1) * 2; // scale 0 to 16... 0 to 32
+    } else if (parameter_id == RATIO) {
+        float temp = GetParameterAsFloat(RATIO) * 2; // scale 0 to 16... 0 to 32
         int temp2 = static_cast<int>(temp);      // round by converting to int
         float temp3 = static_cast<float>(temp2);
         float float_val = temp3 / 2.0; // 0 to 16 increments of 0.5
         m_voice_handler.SetCarrierRatio(float_val);
 
-    } else if (parameter_id == 2) {
-        m_voice_handler.SetModulatorLevel(GetParameterAsFloat(2) * GetParameterAsFloat(2)); // exponential
+    } else if (parameter_id == MOD_LEVEL) {
+        m_voice_handler.SetModulatorLevel(GetParameterAsFloat(MOD_LEVEL) * GetParameterAsFloat(MOD_LEVEL)); // exponential
 
-    } else if (parameter_id == 3) {
-        float temp = GetParameterAsFloat(3) * 2; // scale 0 to 16... 0 to 32
+    } else if (parameter_id == MOD_RATIO) {
+        float temp = GetParameterAsFloat(MOD_RATIO) * 2; // scale 0 to 16... 0 to 32
         int temp2 = static_cast<int>(temp);      // round by converting to int
         float temp3 = static_cast<float>(temp2);
         float float_val = temp3 / 2.0; // 0 to 16 increments of 0.5
         m_voice_handler.SetModulatorRatio(float_val);
 
-    } else if (parameter_id == 4) {
-        m_voice_handler.SetCarrierAttack(GetParameterAsFloat(4) * GetParameterAsFloat(4) * 0.9999 + 0.0001); // exponential
+    } else if (parameter_id == CAR_ATTACK) {
+        m_voice_handler.SetCarrierAttack(GetParameterAsFloat(CAR_ATTACK) * GetParameterAsFloat(CAR_ATTACK) * 0.9999 + 0.0001); // exponential
 
-    } else if (parameter_id == 5) {
-        m_voice_handler.SetCarrierDecay(GetParameterAsFloat(5) * GetParameterAsFloat(5) * 0.9999 + 0.0001); // exponential
+    } else if (parameter_id == CAR_DECAY) {
+        m_voice_handler.SetCarrierDecay(GetParameterAsFloat(CAR_DECAY) * GetParameterAsFloat(CAR_DECAY) * 0.9999 + 0.0001); // exponential
 
-    } else if (parameter_id == 6) {
-        m_voice_handler.SetCarrierSustain(GetParameterAsFloat(6) * 0.999 + 0.001);
+    } else if (parameter_id == CAR_SUSTAIN) {
+        m_voice_handler.SetCarrierSustain(GetParameterAsFloat(CAR_SUSTAIN) * 0.999 + 0.001);
 
-    } else if (parameter_id == 7) {
-        m_voice_handler.SetCarrierRelease(GetParameterAsFloat(7) * 0.999 + 0.001);
+    } else if (parameter_id == CAR_RELEASE) {
+        m_voice_handler.SetCarrierRelease(GetParameterAsFloat(CAR_RELEASE) * 0.999 + 0.001);
 
-    } else if (parameter_id == 8) {
-        m_voice_handler.SetModAttack(GetParameterAsFloat(8) * GetParameterAsFloat(8) * 0.9999 + 0.0001); // exponential
+    } else if (parameter_id == MOD_ATTACK) {
+        m_voice_handler.SetModAttack(GetParameterAsFloat(MOD_ATTACK) * GetParameterAsFloat(MOD_ATTACK) * 0.9999 + 0.0001); // exponential
 
-    } else if (parameter_id == 9) {
-        m_voice_handler.SetModDecay(GetParameterAsFloat(9) * GetParameterAsFloat(9) * 0.9999 + 0.0001); // exponential
+    } else if (parameter_id == MOD_DECAY) {
+        m_voice_handler.SetModDecay(GetParameterAsFloat(MOD_DECAY) * GetParameterAsFloat(MOD_DECAY) * 0.9999 + 0.0001); // exponential
 
-    } else if (parameter_id == 10) {
-        m_voice_handler.SetModSustain(GetParameterAsFloat(10) * 0.999 + 0.001);
+    } else if (parameter_id == MOD_SUSTAIN) {
+        m_voice_handler.SetModSustain(GetParameterAsFloat(MOD_SUSTAIN) * 0.999 + 0.001);
 
-    } else if (parameter_id == 11) {
-        m_voice_handler.SetModRelease(GetParameterAsFloat(11) * 0.999 + 0.001);
+    } else if (parameter_id == MOD_RELEASE) {
+        m_voice_handler.SetModRelease(GetParameterAsFloat(MOD_RELEASE) * 0.999 + 0.001);
     }
 }
 

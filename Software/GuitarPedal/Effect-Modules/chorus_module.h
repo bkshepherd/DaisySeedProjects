@@ -18,6 +18,16 @@ class ChorusModule : public BaseEffectModule {
     ChorusModule();
     ~ChorusModule();
 
+    enum Param {
+        WET = 0,
+        DELAY,
+        LFO_FREQ,
+        LFO_DEPTH,
+        FEEDBACK,
+        PARAM_COUNT
+    };
+
+
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;

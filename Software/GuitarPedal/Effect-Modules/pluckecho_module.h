@@ -21,6 +21,15 @@ class PluckEchoModule : public BaseEffectModule {
     PluckEchoModule();
     ~PluckEchoModule();
 
+    enum Param {
+        STRING_DECAY = 0,
+        DELAY_TIME,
+        DELAY_FDBK,
+        LEVEL,
+        PARAM_COUNT
+    };
+
+
     void Init(float sample_rate) override;
     void ParameterChanged(int parameter_id) override;
     void OnNoteOn(float notenumber, float velocity) override;

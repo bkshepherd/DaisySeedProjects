@@ -40,6 +40,14 @@ class CrusherModule : public BaseEffectModule {
     CrusherModule();
     ~CrusherModule();
 
+    enum Param {
+        LEVEL = 0,
+        BITS,
+        CUTOFF,
+        PARAM_COUNT
+    };
+
+
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;

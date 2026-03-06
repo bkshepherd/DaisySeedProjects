@@ -1,7 +1,7 @@
 #include "geq_module.h"
 #include <q/fx/biquad.hpp>
 
-constexpr uint8_t NUM_FILTERS = 6;
+constexpr uint8_t NUM_FILTERS = bkshepherd::GraphicEQModule::PARAM_COUNT;
 
 using namespace bkshepherd;
 
@@ -17,7 +17,7 @@ cycfi::q::peaking filter[NUM_FILTERS] = {{0, centerFrequency[0], 48000, q[0]}, {
                                          {0, centerFrequency[4], 48000, q[4]}, {0, centerFrequency[5], 48000, q[5]}};
 } // namespace
 
-static constexpr uint8_t s_paramCount = NUM_FILTERS;
+static constexpr int s_paramCount = GraphicEQModule::PARAM_COUNT;
 static const ParameterMetaData s_metaData[s_paramCount] = {
     {
         name : "100",
@@ -102,7 +102,7 @@ void GraphicEQModule::Init(float sample_rate) {
     BaseEffectModule::Init(sample_rate);
 
     for (uint8_t i = 0; i < NUM_FILTERS; i++) {
-        filter[i].config(GetParameterAsFloat(i), centerFrequency[i], sample_rate, q[i]);
+        filter[i].config(GetParameterAsFloat(BAND_100 + i), centerFrequency[i], sample_rate, q[i]);
     }
 }
 
@@ -145,7 +145,7 @@ void GraphicEQModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, i
 
     int x = 0;
     for (int i = 0; i < NUM_FILTERS; i++) {
-        const int gainParamId = i;
+        const int gainParamId = BAND_100 + i;
         const bool positive = GetParameterAsFloat(gainParamId) > 0.0f;
         const float magnitude = std::abs(GetParameterAsFloat(gainParamId)) * magnitudeMultiplier;
         const int y = positive ? top - magnitude : top;

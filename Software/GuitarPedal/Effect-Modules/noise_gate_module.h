@@ -18,6 +18,16 @@ class NoiseGateModule : public BaseEffectModule {
     NoiseGateModule();
     ~NoiseGateModule();
 
+    enum Param {
+        THRESHOLD = 0,
+        ATTACK_MS,
+        RELEASE_MS,
+        HOLD_MS,
+        FADE_MS,
+        PARAM_COUNT
+    };
+
+
     void Init(float sample_rate) override;
     void ParameterChanged(int parameter_id) override;
     void ProcessMono(float in) override;

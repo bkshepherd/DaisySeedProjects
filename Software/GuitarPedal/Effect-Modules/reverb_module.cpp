@@ -2,7 +2,7 @@
 
 using namespace bkshepherd;
 
-static const int s_paramCount = 3;
+static constexpr int s_paramCount = ReverbModule::PARAM_COUNT;
 static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                                name : "Time",
                                                                valueType : ParameterValueType::Float,
@@ -63,15 +63,15 @@ void ReverbModule::ProcessMono(float in) {
     sendr = m_audioRight;
 
     // Calculate the effect
-    m_reverbStereo->SetFeedback(m_timeMin + GetParameterAsFloat(0) * (m_timeMax - m_timeMin));
+    m_reverbStereo->SetFeedback(m_timeMin + GetParameterAsFloat(TIME) * (m_timeMax - m_timeMin));
     float invertedFreq =
-        1.0 - GetParameterAsFloat(1); // Invert the damping param so that knob left is less dampening, knob right is more dampening
+        1.0 - GetParameterAsFloat(DAMP); // Invert the damping param so that knob left is less dampening, knob right is more dampening
     invertedFreq = invertedFreq * invertedFreq; // also square it for exponential taper (more control over lower frequencies)
     m_reverbStereo->SetLpFreq(m_lpFreqMin + invertedFreq * (m_lpFreqMax - m_lpFreqMin));
 
     m_reverbStereo->Process(sendl, sendr, &wetl, &wetr);
-    m_audioLeft = wetl * GetParameterAsFloat(2) + sendl * (1.0 - GetParameterAsFloat(2));
-    m_audioRight = wetr * GetParameterAsFloat(2) + sendr * (1.0 - GetParameterAsFloat(2));
+    m_audioLeft = wetl * GetParameterAsFloat(MIX) + sendl * (1.0 - GetParameterAsFloat(MIX));
+    m_audioRight = wetr * GetParameterAsFloat(MIX) + sendr * (1.0 - GetParameterAsFloat(MIX));
 }
 
 void ReverbModule::ProcessStereo(float inL, float inR) {
@@ -83,22 +83,22 @@ void ReverbModule::ProcessStereo(float inL, float inR) {
     sendr = m_audioRight;
 
     // Calculate the effect
-    m_reverbStereo->SetFeedback(m_timeMin + GetParameterAsFloat(0) * (m_timeMax - m_timeMin));
+    m_reverbStereo->SetFeedback(m_timeMin + GetParameterAsFloat(TIME) * (m_timeMax - m_timeMin));
     float invertedFreq =
-        1.0 - GetParameterAsFloat(1); // Invert the damping param so that knob left is less dampening, knob right is more dampening
+        1.0 - GetParameterAsFloat(DAMP); // Invert the damping param so that knob left is less dampening, knob right is more dampening
     invertedFreq = invertedFreq * invertedFreq; // also square it for exponential taper (more control over lower frequencies)
     m_reverbStereo->SetLpFreq(m_lpFreqMin + invertedFreq * (m_lpFreqMax - m_lpFreqMin));
 
     m_reverbStereo->Process(sendl, sendr, &wetl, &wetr);
-    m_audioLeft = wetl * GetParameterAsFloat(2) + inL * (1.0 - GetParameterAsFloat(2));
-    m_audioRight = wetr * GetParameterAsFloat(2) + inR * (1.0 - GetParameterAsFloat(2));
+    m_audioLeft = wetl * GetParameterAsFloat(MIX) + inL * (1.0 - GetParameterAsFloat(MIX));
+    m_audioRight = wetr * GetParameterAsFloat(MIX) + inR * (1.0 - GetParameterAsFloat(MIX));
 }
 
 float ReverbModule::GetBrightnessForLED(int led_id) const {
     float value = BaseEffectModule::GetBrightnessForLED(led_id);
 
     if (led_id == 1) {
-        return value; // * GetParameterAsFloat(0);
+        return value; // * GetParameterAsFloat(TIME);
     }
 
     return value;

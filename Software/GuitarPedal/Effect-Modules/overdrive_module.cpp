@@ -2,7 +2,7 @@
 
 using namespace bkshepherd;
 
-static const int s_paramCount = 2;
+static constexpr int s_paramCount = OverdriveModule::PARAM_COUNT;
 static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                                name : "Drive",
                                                                valueType : ParameterValueType::Float,
@@ -51,11 +51,11 @@ void OverdriveModule::ProcessMono(float in) {
     BaseEffectModule::ProcessMono(in);
 
     // Calculate the effect
-    m_overdriveLeft.SetDrive(m_driveMin + (GetParameterAsFloat(0) * (m_driveMax - m_driveMin)));
+    m_overdriveLeft.SetDrive(m_driveMin + (GetParameterAsFloat(DRIVE) * (m_driveMax - m_driveMin)));
     m_audioLeft = m_overdriveLeft.Process(m_audioLeft);
 
     // Adjust the level
-    m_audioLeft = m_audioLeft * (m_levelMin + (GetParameterAsFloat(1) * (m_levelMax - m_levelMin)));
+    m_audioLeft = m_audioLeft * (m_levelMin + (GetParameterAsFloat(LEVEL) * (m_levelMax - m_levelMin)));
     m_audioRight = m_audioLeft;
 }
 
@@ -67,18 +67,18 @@ void OverdriveModule::ProcessStereo(float inL, float inR) {
     BaseEffectModule::ProcessStereo(m_audioLeft, inR);
 
     // Calculate the effect
-    m_overdriveRight.SetDrive(m_driveMin + (GetParameterAsFloat(0) * (m_driveMax - m_driveMin)));
+    m_overdriveRight.SetDrive(m_driveMin + (GetParameterAsFloat(DRIVE) * (m_driveMax - m_driveMin)));
     m_audioRight = m_overdriveRight.Process(m_audioRight);
 
     // Adjust the level
-    m_audioRight = m_audioRight * (m_levelMin + (GetParameterAsFloat(1) * (m_levelMax - m_levelMin)));
+    m_audioRight = m_audioRight * (m_levelMin + (GetParameterAsFloat(LEVEL) * (m_levelMax - m_levelMin)));
 }
 
 float OverdriveModule::GetBrightnessForLED(int led_id) const {
     float value = BaseEffectModule::GetBrightnessForLED(led_id);
 
     if (led_id == 1) {
-        return value * GetParameterAsFloat(0);
+        return value * GetParameterAsFloat(DRIVE);
     }
 
     return value;

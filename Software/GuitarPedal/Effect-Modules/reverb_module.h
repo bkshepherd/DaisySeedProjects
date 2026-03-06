@@ -18,6 +18,14 @@ class ReverbModule : public BaseEffectModule {
     ReverbModule();
     ~ReverbModule();
 
+    enum Param {
+        TIME = 0,
+        DAMP,
+        MIX,
+        PARAM_COUNT
+    };
+
+
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;

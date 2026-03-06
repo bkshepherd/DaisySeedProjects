@@ -18,6 +18,24 @@ class MultiDelayModule : public BaseEffectModule {
     MultiDelayModule();
     ~MultiDelayModule();
 
+    enum Param {
+        WET = 0,
+        DELAY_L_MS,
+        DELAY_R_MS,
+        FEEDBACK,
+        TAP_MODE,
+        SHIFT_TAP_1,
+        SHIFT_TAP_2,
+        SHIFT_TAP_3,
+        SHIFT_TAP_4,
+        DELAY_TAP_1,
+        DELAY_TAP_2,
+        DELAY_TAP_3,
+        DELAY_TAP_4,
+        PARAM_COUNT
+    };
+
+
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;

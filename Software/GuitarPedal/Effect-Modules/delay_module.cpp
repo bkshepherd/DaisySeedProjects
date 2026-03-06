@@ -17,8 +17,7 @@ DelayLineReverse<float, MAX_DELAY_REV> DSY_SDRAM_BSS delayLineRevLeft;
 DelayLineReverse<float, MAX_DELAY_REV> DSY_SDRAM_BSS delayLineRevRight;
 DelayLine<float, MAX_DELAY_SPREAD> DSY_SDRAM_BSS delayLineSpread;
 
-static const int s_paramCount =
-    12; // TODO: TEST STARTING WITH THE EXTREMES OF ALL PARAMETERS (high and low, this is where errors tend to occur)
+static constexpr int s_paramCount = DelayModule::PARAM_COUNT; // TODO: TEST STARTING WITH THE EXTREMES OF ALL PARAMETERS (high and low, this is where errors tend to occur)
 static const ParameterMetaData s_metaData[s_paramCount] = {
     {
         name : "Delay Time",
@@ -143,7 +142,7 @@ DelayModule::~DelayModule() {
 
 void DelayModule::UpdateLEDRate() {
     // Update the LED oscillator frequency based on the current timeParam
-    float timeParam = GetParameterAsFloat(0);
+    float timeParam = GetParameterAsFloat(DELAY_TIME);
     float delaySamples = m_delaySamplesMin + (m_delaySamplesMax - m_delaySamplesMin) * timeParam;
     float delayFreq = effect_samplerate / delaySamples;
     led_osc.SetFreq(delayFreq / 2.0);
@@ -154,7 +153,7 @@ void DelayModule::CalculateDelayMix() {
     //    A computationally cheap mostly energy constant crossfade from SignalSmith Blog
     //    https://signalsmith-audio.co.uk/writing/2021/cheap-energy-crossfade/
 
-    float delMixKnob = GetParameterAsFloat(2);
+    float delMixKnob = GetParameterAsFloat(DELAY_MIX);
     float x2 = 1.0 - delMixKnob;
     float A = delMixKnob * x2;
     float B = A * (1.0 + 1.4186 * A);
@@ -208,12 +207,12 @@ void DelayModule::Init(float sample_rate) {
 }
 
 void DelayModule::ParameterChanged(int parameter_id) {
-    if (parameter_id == 0) { // Delay Time
+    if (parameter_id == DELAY_TIME) { // Delay Time
         UpdateLEDRate();
-    } else if (parameter_id == 2) { // Delay Mix
+    } else if (parameter_id == DELAY_MIX) { // Delay Mix
         CalculateDelayMix();
-    } else if (parameter_id == 3) { // Delay Mode
-        int delay_mode_temp = (GetParameterAsBinnedValue(3) - 1);
+    } else if (parameter_id == DELAY_MODE) { // Delay Mode
+        int delay_mode_temp = (GetParameterAsBinnedValue(DELAY_MODE) - 1);
         if (delay_mode_temp > 0) {
             delayLeft.secondTapOn = true;  // triplett, dotted 8th
             delayRight.secondTapOn = true; // triplett, dotted 8th
@@ -228,28 +227,28 @@ void DelayModule::ParameterChanged(int parameter_id) {
             delayLeft.secondTapOn = false;
             delayRight.secondTapOn = false;
         }
-    } else if (parameter_id == 5) {
-        delayLeft.toneOctLP.SetFreq(m_delaylpFreqMin + (m_delaylpFreqMax - m_delaylpFreqMin) * GetParameterAsFloat(5));
-        delayRight.toneOctLP.SetFreq(m_delaylpFreqMin + (m_delaylpFreqMax - m_delaylpFreqMin) * GetParameterAsFloat(5));
+    } else if (parameter_id == DELAY_LPF) {
+        delayLeft.toneOctLP.SetFreq(m_delaylpFreqMin + (m_delaylpFreqMax - m_delaylpFreqMin) * GetParameterAsFloat(DELAY_LPF));
+        delayRight.toneOctLP.SetFreq(m_delaylpFreqMin + (m_delaylpFreqMax - m_delaylpFreqMin) * GetParameterAsFloat(DELAY_LPF));
     }
 }
 
 void DelayModule::ProcessModulation() {
-    int modParam = (GetParameterAsBinnedValue(9) - 1);
+    int modParam = (GetParameterAsBinnedValue(MOD_PARAM) - 1);
     // Calculate Modulation
 
-    int waveForm = GetParameterAsBinnedValue(10) - 1;
+    int waveForm = GetParameterAsBinnedValue(MOD_WAVE) - 1;
     float wowDepth = 2.0f;
     float flutterDepth = 2.0f;
     if (waveForm == 5) { // If using tape modulation
-        float freq = GetParameterAsFloat(8);
+        float freq = GetParameterAsFloat(MOD_RATE);
         float wowRate = 0.2f + 2.0f * freq;
         float flutterRate = 2.0f + 5.0f * freq;
         m_currentMod = modTape.GetTapeSpeed(wowRate, flutterRate, wowDepth, flutterDepth);
     } else {
         modOsc.SetWaveform(waveForm);
 
-        if (GetParameterAsBool(11)) { // If mod frequency synced to delay time, override mod rate setting
+        if (GetParameterAsBool(SYNC_MOD_F)) { // If mod frequency synced to delay time, override mod rate setting
             float dividor;
             if (modParam == 2 || modParam == 3) {
                 dividor = 2.0;
@@ -259,7 +258,7 @@ void DelayModule::ProcessModulation() {
             float freq = (effect_samplerate / delayLeft.delayTarget) / dividor;
             modOsc.SetFreq(freq);
         } else {
-            modOsc.SetFreq(m_modOscFreqMin + (m_modOscFreqMax - m_modOscFreqMin) * GetParameterAsFloat(8));
+            modOsc.SetFreq(m_modOscFreqMin + (m_modOscFreqMax - m_modOscFreqMin) * GetParameterAsFloat(MOD_RATE));
         }
 
         // Ease the effect value into it's target to avoid clipping with square or sawtooth waves
@@ -267,12 +266,12 @@ void DelayModule::ProcessModulation() {
     }
 
     float mod = m_currentMod;
-    float mod_amount = GetParameterAsFloat(7);
+    float mod_amount = GetParameterAsFloat(MOD_AMT);
 
     // {"None", "DelayTime", "DelayLevel", "Level", "DelayPan"};
     if (modParam == 1) {
         float delayTarget;
-        float timeParam = GetParameterAsFloat(0);
+        float timeParam = GetParameterAsFloat(DELAY_TIME);
         const float D_min = 1.0f; // minimum allowable delay time: 1 sample
 
         if (waveForm == 5) {
@@ -323,15 +322,15 @@ void DelayModule::ProcessMono(float in) {
     m_LEDValue = led_osc.Process(); // update the tempo LED
 
     // Calculate the effect
-    int delayType = GetParameterAsBinnedValue(4) - 1;
+    int delayType = GetParameterAsBinnedValue(DELAY_TYPE) - 1;
 
-    float timeParam = GetParameterAsFloat(0);
+    float timeParam = GetParameterAsFloat(DELAY_TIME);
 
     delayLeft.delayTarget = m_delaySamplesMin + (m_delaySamplesMax - m_delaySamplesMin) * timeParam;
     delayRight.delayTarget = m_delaySamplesMin + (m_delaySamplesMax - m_delaySamplesMin) * timeParam;
 
-    delayLeft.feedback = GetParameterAsFloat(1);
-    delayRight.feedback = GetParameterAsFloat(1);
+    delayLeft.feedback = GetParameterAsFloat(D_FEEDBACK);
+    delayRight.feedback = GetParameterAsFloat(D_FEEDBACK);
     if (delayType == 1 || delayType == 3) {
         delayLeft.reverseMode = true;
         delayRight.reverseMode = true;
@@ -355,11 +354,11 @@ void DelayModule::ProcessMono(float in) {
     }
 
     if (delayType == 4 || delayType == 5) { // If dual delay is turned on, spread controls the L/R panning of the two delays
-        delayLeft.level = GetParameterAsFloat(6) + 1.0;
-        delayRight.level = 1.0 - GetParameterAsFloat(6);
+        delayLeft.level = GetParameterAsFloat(D_SPREAD) + 1.0;
+        delayRight.level = 1.0 - GetParameterAsFloat(D_SPREAD);
 
-        delayLeft.level_reverse = 1.0 - GetParameterAsFloat(6);
-        delayRight.level_reverse = GetParameterAsFloat(6) + 1.0;
+        delayLeft.level_reverse = 1.0 - GetParameterAsFloat(D_SPREAD);
+        delayRight.level_reverse = GetParameterAsFloat(D_SPREAD) + 1.0;
 
     } else { // If dual delay is off reset the levels to normal, spread controls the amount of additional delay applied to the right
              // channel
@@ -378,9 +377,9 @@ void DelayModule::ProcessMono(float in) {
     // float delRight_out = delLeft_out;
 
     // Calculate any delay spread
-    delaySpread.delayTarget = m_delaySpreadMin + (m_delaySpreadMax - m_delaySpreadMin) * GetParameterAsFloat(6);
+    delaySpread.delayTarget = m_delaySpreadMin + (m_delaySpreadMax - m_delaySpreadMin) * GetParameterAsFloat(D_SPREAD);
     float delSpread_out = delaySpread.Process(delRight_out);
-    if (GetParameterRaw(6) > 0 && delayType != 4 && delayType != 5) {
+    if (GetParameterRaw(D_SPREAD) > 0 && delayType != 4 && delayType != 5) {
         delRight_out = delSpread_out;
     }
 
@@ -398,15 +397,15 @@ void DelayModule::ProcessStereo(float inL, float inR) {
     m_LEDValue = led_osc.Process(); // update the tempo LED
 
     // Calculate the effect
-    int delayType = GetParameterAsBinnedValue(4) - 1;
+    int delayType = GetParameterAsBinnedValue(DELAY_TYPE) - 1;
 
-    float timeParam = GetParameterAsFloat(0);
+    float timeParam = GetParameterAsFloat(DELAY_TIME);
 
     delayLeft.delayTarget = m_delaySamplesMin + (m_delaySamplesMax - m_delaySamplesMin) * timeParam;
     delayRight.delayTarget = m_delaySamplesMin + (m_delaySamplesMax - m_delaySamplesMin) * timeParam;
 
-    delayLeft.feedback = GetParameterAsFloat(1);
-    delayRight.feedback = GetParameterAsFloat(1);
+    delayLeft.feedback = GetParameterAsFloat(D_FEEDBACK);
+    delayRight.feedback = GetParameterAsFloat(D_FEEDBACK);
     if (delayType == 1 || delayType == 3) {
         delayLeft.reverseMode = true;
         delayRight.reverseMode = true;
@@ -430,11 +429,11 @@ void DelayModule::ProcessStereo(float inL, float inR) {
     }
 
     if (delayType == 4 || delayType == 5) { // If dual delay is turned on, spread controls the L/R panning of the two delays
-        delayLeft.level = GetParameterAsFloat(6) + 1.0;
-        delayRight.level = 1.0 - GetParameterAsFloat(6);
+        delayLeft.level = GetParameterAsFloat(D_SPREAD) + 1.0;
+        delayRight.level = 1.0 - GetParameterAsFloat(D_SPREAD);
 
-        delayLeft.level_reverse = 1.0 - GetParameterAsFloat(6);
-        delayRight.level_reverse = GetParameterAsFloat(6) + 1.0;
+        delayLeft.level_reverse = 1.0 - GetParameterAsFloat(D_SPREAD);
+        delayRight.level_reverse = GetParameterAsFloat(D_SPREAD) + 1.0;
 
     } else { // If dual delay is off reset the levels to normal, spread controls the amount of additional delay applied to the right
              // channel
@@ -453,9 +452,9 @@ void DelayModule::ProcessStereo(float inL, float inR) {
     // float delRight_out = delLeft_out;
 
     // Calculate any delay spread
-    delaySpread.delayTarget = m_delaySpreadMin + (m_delaySpreadMax - m_delaySpreadMin) * GetParameterAsFloat(6);
+    delaySpread.delayTarget = m_delaySpreadMin + (m_delaySpreadMax - m_delaySpreadMin) * GetParameterAsFloat(D_SPREAD);
     float delSpread_out = delaySpread.Process(delRight_out);
-    if (GetParameterRaw(6) > 0 && delayType != 4 && delayType != 5) {
+    if (GetParameterRaw(D_SPREAD) > 0 && delayType != 4 && delayType != 5) {
         delRight_out = delSpread_out;
     }
 

@@ -2,7 +2,7 @@
 
 using namespace bkshepherd;
 
-static const int s_paramCount = 3;
+static constexpr int s_paramCount = CrusherModule::PARAM_COUNT;
 static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                                name : "Level",
                                                                valueType : ParameterValueType::Float,
@@ -55,9 +55,9 @@ void CrusherModule::Init(float sample_rate) {
 void CrusherModule::ProcessMono(float in) {
     BaseEffectModule::ProcessMono(in);
 
-    float level = m_levelMin + (GetParameterAsFloat(0) * (m_levelMax - m_levelMin));
-    float cutoff = m_cutoffMin + GetParameterAsFloat(2) * (m_cutoffMax - m_cutoffMin);
-    float bits = (float)GetParameterAsBinnedValue(1);
+    float level = m_levelMin + (GetParameterAsFloat(LEVEL) * (m_levelMax - m_levelMin));
+    float cutoff = m_cutoffMin + GetParameterAsFloat(CUTOFF) * (m_cutoffMax - m_cutoffMin);
+    float bits = (float)GetParameterAsBinnedValue(BITS);
 
     m_tone.SetFreq(cutoff);
     m_bitcrusher.setNumberOfBits(bits);
@@ -69,9 +69,9 @@ void CrusherModule::ProcessMono(float in) {
 void CrusherModule::ProcessStereo(float inL, float inR) {
     BaseEffectModule::ProcessStereo(inL, inR);
 
-    float level = m_levelMin + (GetParameterAsFloat(0) * (m_levelMax - m_levelMin));
-    float cutoff = m_cutoffMin + GetParameterAsFloat(2) * (m_cutoffMax - m_cutoffMin);
-    float bits = (float)GetParameterAsBinnedValue(1);
+    float level = m_levelMin + (GetParameterAsFloat(LEVEL) * (m_levelMax - m_levelMin));
+    float cutoff = m_cutoffMin + GetParameterAsFloat(CUTOFF) * (m_cutoffMax - m_cutoffMin);
+    float bits = (float)GetParameterAsBinnedValue(BITS);
 
     m_tone.SetFreq(cutoff);
     m_bitcrusher.setNumberOfBits(bits);

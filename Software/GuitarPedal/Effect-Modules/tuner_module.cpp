@@ -9,7 +9,7 @@ using namespace daisysp;
 
 const char k_notes[12][3] = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
 
-static const int s_paramCount = 1;
+static constexpr int s_paramCount = TunerModule::PARAM_COUNT;
 static const ParameterMetaData s_metaData[s_paramCount] = {
     {name : "Mute", valueType : ParameterValueType::Bool, defaultValue : {.uint_value = 1}, knobMapping : 0, midiCCMapping : -1},
 };
@@ -36,7 +36,7 @@ TunerModule::~TunerModule() {
 void TunerModule::Init(float sample_rate) {
     BaseEffectModule::Init(sample_rate);
 
-    m_muteOutput = GetParameterAsBool(0);
+    m_muteOutput = GetParameterAsBool(MUTE);
 
     m_frequencyDetector->Init(sample_rate);
 }
@@ -50,8 +50,8 @@ uint8_t Note(float frequency) { return round(12.0f * (log(frequency / 440.0f) / 
 uint8_t Octave(float frequency) { return Note(frequency) / 12.0f - 1.0f; }
 
 void TunerModule::ParameterChanged(int parameter_id) {
-    if (parameter_id == 0) {
-        m_muteOutput = GetParameterAsBool(0);
+    if (parameter_id == MUTE) {
+        m_muteOutput = GetParameterAsBool(MUTE);
     }
 }
 

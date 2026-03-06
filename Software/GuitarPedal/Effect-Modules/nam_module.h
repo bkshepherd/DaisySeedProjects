@@ -16,6 +16,19 @@ class NamModule : public BaseEffectModule {
     NamModule();
     ~NamModule();
 
+    enum Param {
+        GAIN = 0,
+        LEVEL,
+        MODEL,
+        BASS,
+        MID,
+        TREBLE,
+        NEURAL_MODEL,
+        EQ,
+        PARAM_COUNT
+    };
+
+
     void Init(float sample_rate) override;
     void ParameterChanged(int parameter_id) override;
     void SelectModel();

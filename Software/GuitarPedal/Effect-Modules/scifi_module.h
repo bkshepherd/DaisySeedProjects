@@ -24,6 +24,20 @@ class SciFiModule : public BaseEffectModule {
     SciFiModule();
     ~SciFiModule();
 
+    enum Param {
+        DRY = 0,
+        OCT_DOWN,
+        OCT_UP,
+        TIME,
+        DRIVE,
+        MIX,
+        DAMP,
+        LEVEL,
+        OD_MIX,
+        PARAM_COUNT
+    };
+
+
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;

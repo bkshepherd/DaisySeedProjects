@@ -50,7 +50,7 @@ static const uint16_t TimeSignatureBase[3] = {4, 3, 2};
 constexpr uint32_t minTempo = 35;
 constexpr uint32_t maxTempo = 250;
 
-static const int s_paramCount = 3;
+static constexpr int s_paramCount = MetroModule::PARAM_COUNT;
 static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                                name : "Tempo",
                                                                valueType : ParameterValueType::Float,
@@ -117,21 +117,21 @@ void MetroModule::Init(float sample_rate) {
     m_env.SetSustainLevel(.5);
 
     // Set metronome
-    m_bpm = static_cast<uint32_t>(GetParameterAsFloat(0));
+    m_bpm = static_cast<uint32_t>(GetParameterAsFloat(TEMPO));
     const float freq = tempo_to_freq(m_bpm);
     m_metro.Init(freq, sample_rate);
 }
 
 void MetroModule::ParameterChanged(int parameter_id) {
-    if (parameter_id == 0) {
-        m_bpm = static_cast<uint32_t>(GetParameterAsFloat(0));
+    if (parameter_id == TEMPO) {
+        m_bpm = static_cast<uint32_t>(GetParameterAsFloat(TEMPO));
     }
 }
 
 float MetroModule::Process() {
     const float freq = tempo_to_freq(m_bpm);
 
-    uint16_t tsig = GetParameterAsBinnedValue(2) - 1;
+    uint16_t tsig = GetParameterAsBinnedValue(METER) - 1;
     if (tsig != m_timeSignature)
         m_timeSignature = static_cast<TimeSignature>(tsig);
 
@@ -155,7 +155,7 @@ void MetroModule::ProcessMono(float in) {
     BaseEffectModule::ProcessMono(in);
     float sig = Process();
     // Adjust the level
-    float level = (m_levelMin + (GetParameterAsFloat(1) * (m_levelMax - m_levelMin)));
+    float level = (m_levelMin + (GetParameterAsFloat(MIX) * (m_levelMax - m_levelMin)));
     m_audioLeft = sig * level + in * (1.0f - level);
     m_audioRight = m_audioLeft;
 }
@@ -164,7 +164,7 @@ void MetroModule::ProcessStereo(float inL, float inR) {
     BaseEffectModule::ProcessStereo(inL, inR);
     float sig = Process();
     // Adjust the level
-    float level = (m_levelMin + (GetParameterAsFloat(1) * (m_levelMax - m_levelMin)));
+    float level = (m_levelMin + (GetParameterAsFloat(MIX) * (m_levelMax - m_levelMin)));
     m_audioLeft = sig * level + inL * (1.0f - level);
     m_audioRight = sig * level + inR * (1.0f - level);
 }

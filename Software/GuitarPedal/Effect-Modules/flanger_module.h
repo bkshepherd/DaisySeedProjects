@@ -18,6 +18,16 @@ class FlangerModule : public BaseEffectModule {
     FlangerModule();
     ~FlangerModule();
 
+    enum Param {
+        MIX = 0,
+        MANUAL,
+        RATE,
+        DEPTH,
+        FEEDBACK,
+        PARAM_COUNT
+    };
+
+
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;

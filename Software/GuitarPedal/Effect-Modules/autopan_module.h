@@ -18,6 +18,15 @@ class AutoPanModule : public BaseEffectModule {
     AutoPanModule();
     ~AutoPanModule();
 
+    enum Param {
+        WET = 0,
+        OSC_WAVE,
+        OSC_FREQ,
+        STEREO,
+        PARAM_COUNT
+    };
+
+
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;

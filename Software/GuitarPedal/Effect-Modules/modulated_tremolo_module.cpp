@@ -5,7 +5,7 @@ using namespace bkshepherd;
 
 static const char *s_waveBinNames[8] = {"Sine", "Triangle", "Saw", "Ramp", "Square", "Poly Tri", "Poly Saw", "Poly Sqr"};
 
-static const int s_paramCount = 5;
+static constexpr int s_paramCount = ModulatedTremoloModule::PARAM_COUNT;
 static const ParameterMetaData s_metaData[s_paramCount] = {
     {
         name : "Wave",
@@ -65,19 +65,19 @@ void ModulatedTremoloModule::ProcessMono(float in) {
     BaseEffectModule::ProcessMono(in);
 
     // Calculate Tremolo Frequency Oscillation
-    m_freqOsc.SetWaveform(GetParameterAsBinnedValue(3) - 1);
+    m_freqOsc.SetWaveform(GetParameterAsBinnedValue(OSC_WAVE) - 1);
     m_freqOsc.SetAmp(0.5f);
-    m_freqOsc.SetFreq(m_freqOscFreqMin + (GetParameterAsFloat(4) * m_freqOscFreqMax));
+    m_freqOsc.SetFreq(m_freqOscFreqMin + (GetParameterAsFloat(OSC_FREQ) * m_freqOscFreqMax));
     float mod = 0.5f + m_freqOsc.Process();
 
-    if (GetParameterAsFloat(4) <= 0.01f) {
+    if (GetParameterAsFloat(OSC_FREQ) <= 0.01f) {
         mod = 1.0f;
     }
 
     // Calculate the effect
-    m_tremolo.SetWaveform(GetParameterAsBinnedValue(0) - 1);
-    m_tremolo.SetDepth(GetParameterAsFloat(1));
-    m_tremolo.SetFreq(m_tremoloFreqMin + ((GetParameterAsFloat(2) * m_tremoloFreqMax) * mod));
+    m_tremolo.SetWaveform(GetParameterAsBinnedValue(WAVE) - 1);
+    m_tremolo.SetDepth(GetParameterAsFloat(DEPTH));
+    m_tremolo.SetFreq(m_tremoloFreqMin + ((GetParameterAsFloat(FREQ) * m_tremoloFreqMax) * mod));
 
     // Ease the effect value into it's target to avoid clipping with square or sawtooth waves
     fonepole(m_cachedEffectMagnitudeValue, m_tremolo.Process(1.0f), .01f);

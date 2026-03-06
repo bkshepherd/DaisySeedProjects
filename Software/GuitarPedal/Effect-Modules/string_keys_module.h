@@ -19,6 +19,15 @@ class StringKeysModule : public BaseEffectModule {
     StringKeysModule();
     ~StringKeysModule();
 
+    enum Param {
+        STRUCTURE = 0,
+        BRIGHTNESS,
+        LEVEL,
+        DAMPING,
+        PARAM_COUNT
+    };
+
+
     void Init(float sample_rate) override;
     void ParameterChanged(int parameter_id) override;
     void OnNoteOn(float notenumber, float velocity) override;

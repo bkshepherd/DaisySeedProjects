@@ -17,7 +17,7 @@ static const char *s_modelBinNames[7] = {"Fender57", "Matchless", "Klon", "Mesa 
 
 static const char *s_irNames[4] = {"Marsh", "Proteus", "US Deluxe", "British"};
 
-static const int s_paramCount = 8;
+static constexpr int s_paramCount = AmpModule::PARAM_COUNT;
 static const ParameterMetaData s_metaData[s_paramCount] = {
     {
         name : "Gain",
@@ -92,18 +92,18 @@ void AmpModule::Init(float sample_rate) {
 }
 
 void AmpModule::ParameterChanged(int parameter_id) {
-    if (parameter_id == 4) { // Change Model
+    if (parameter_id == MODEL) { // Change Model
         SelectModel();
-    } else if (parameter_id == 1) {
+    } else if (parameter_id == MIX) {
         CalculateMix();
-    } else if (parameter_id == 3) {
+    } else if (parameter_id == TONE) {
         CalculateTone();
-    } else if (parameter_id == 5) { // Change IR
+    } else if (parameter_id == IR) { // Change IR
         SelectIR();
     }
 }
 void AmpModule::SelectModel() {
-    int modelIndex = GetParameterAsBinnedValue(4) - 1;
+    int modelIndex = GetParameterAsBinnedValue(MODEL) - 1;
     if (m_currentModelindex != modelIndex) {
         auto &gru = (model).template get<0>();
         auto &dense = (model).template get<1>();
@@ -119,7 +119,7 @@ void AmpModule::SelectModel() {
 }
 
 void AmpModule::SelectIR() {
-    int irIndex = GetParameterAsBinnedValue(5) - 1;
+    int irIndex = GetParameterAsBinnedValue(IR) - 1;
     if (irIndex != m_currentIRindex) {
         mIR.Init(ir_collection[irIndex]); // ir_data is from ir_data.h
     }
@@ -130,7 +130,7 @@ void AmpModule::CalculateMix() {
     //    A computationally cheap mostly energy constant crossfade from SignalSmith Blog
     //    https://signalsmith-audio.co.uk/writing/2021/cheap-energy-crossfade/
 
-    float mixKnob = GetParameterAsFloat(1);
+    float mixKnob = GetParameterAsFloat(MIX);
     float x2 = 1.0 - mixKnob;
     float A = mixKnob * x2;
     float B = A * (1.0 + 1.4186 * A);
@@ -143,7 +143,7 @@ void AmpModule::CalculateMix() {
 
 void AmpModule::CalculateTone() {
     // Set low pass filter as exponential taper
-    tone.SetFreq(m_toneFreqMin + GetParameterAsFloat(3) * GetParameterAsFloat(3) * (m_toneFreqMax - m_toneFreqMin));
+    tone.SetFreq(m_toneFreqMin + GetParameterAsFloat(TONE) * GetParameterAsFloat(TONE) * (m_toneFreqMax - m_toneFreqMin));
 }
 
 void AmpModule::ProcessMono(float in) {
@@ -154,10 +154,10 @@ void AmpModule::ProcessMono(float in) {
 
     float ampOut;
     float input_arr[1] = {0.0}; // Neural Net Input
-    input_arr[0] = m_audioLeft * (m_gainMin + (m_gainMax - m_gainMin) * GetParameterAsFloat(0));
+    input_arr[0] = m_audioLeft * (m_gainMin + (m_gainMax - m_gainMin) * GetParameterAsFloat(GAIN));
 
     // NEURAL MODEL //
-    if (GetParameterAsBool(6)) {
+    if (GetParameterAsBool(NEURAL_MODEL)) {
         ampOut = model.forward(input_arr) + input_arr[0]; // Run Model and add Skip Connection
         ampOut *= nnLevelAdjust * 0.4;                    // Level adjustment
     } else {
@@ -171,10 +171,10 @@ void AmpModule::ProcessMono(float in) {
     // MIX //
     float mix_out = filter_out * wetMix + input_arr[0] * dryMix; // Applies model level adjustment ("/4.0"), wet/dry mix
 
-    const float level = m_levelMin + (GetParameterAsFloat(2) * (m_levelMax - m_levelMin));
+    const float level = m_levelMin + (GetParameterAsFloat(LEVEL) * (m_levelMax - m_levelMin));
 
     // IMPULSE RESPONSE //
-    if (GetParameterAsBool(7)) {
+    if (GetParameterAsBool(IR_ON)) {
         m_audioLeft = mIR.Process(mix_out) * level * 0.2; // 0.2 is level adjust for loud output
     } else {
         m_audioLeft = mix_out * level;

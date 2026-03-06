@@ -18,6 +18,16 @@ class ModulatedTremoloModule : public BaseEffectModule {
     ModulatedTremoloModule();
     ~ModulatedTremoloModule();
 
+    enum Param {
+        WAVE = 0,
+        DEPTH,
+        FREQ,
+        OSC_WAVE,
+        OSC_FREQ,
+        PARAM_COUNT
+    };
+
+
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;

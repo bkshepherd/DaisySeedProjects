@@ -2,7 +2,7 @@
 
 using namespace bkshepherd;
 
-static const int s_paramCount = 5;
+static constexpr int s_paramCount = FlangerModule::PARAM_COUNT;
 static const ParameterMetaData s_metaData[s_paramCount] = {{
                                                                name : "Mix",
                                                                valueType : ParameterValueType::Float,
@@ -66,11 +66,11 @@ void FlangerModule::Init(float sample_rate) {
     m_flanger.Init(sample_rate);
 
     // Seed smoothed params from current UI values
-    const float manualNorm = GetParameterAsFloat(1);
-    const float rateNorm = GetParameterAsFloat(2);
-    const float depthNorm = GetParameterAsFloat(3);
-    const float fbNorm = GetParameterAsFloat(4);
-    const float mix = GetParameterAsFloat(0);
+    const float manualNorm = GetParameterAsFloat(MANUAL);
+    const float rateNorm = GetParameterAsFloat(RATE);
+    const float depthNorm = GetParameterAsFloat(DEPTH);
+    const float fbNorm = GetParameterAsFloat(FEEDBACK);
+    const float mix = GetParameterAsFloat(MIX);
 
     m_delaySm = manualNorm;
     m_rateSm = m_lfoFreqMin + (rateNorm * rateNorm) * (m_lfoFreqMax - m_lfoFreqMin);
@@ -91,11 +91,11 @@ void FlangerModule::ProcessMono(float in) {
     const float x = m_audioLeft;
 
     // Targets from UI
-    const float manualNorm = GetParameterAsFloat(1);
-    const float rateNorm = GetParameterAsFloat(2);
-    const float depthNorm = GetParameterAsFloat(3);
-    const float fbNorm = GetParameterAsFloat(4);
-    const float mix = GetParameterAsFloat(0);
+    const float manualNorm = GetParameterAsFloat(MANUAL);
+    const float rateNorm = GetParameterAsFloat(RATE);
+    const float depthNorm = GetParameterAsFloat(DEPTH);
+    const float fbNorm = GetParameterAsFloat(FEEDBACK);
+    const float mix = GetParameterAsFloat(MIX);
 
     // Map and smooth
     const float rateHzTgt = m_lfoFreqMin + (rateNorm * rateNorm) * (m_lfoFreqMax - m_lfoFreqMin);
@@ -142,7 +142,7 @@ float FlangerModule::GetBrightnessForLED(int led_id) const {
     float value = BaseEffectModule::GetBrightnessForLED(led_id);
 
     if (led_id == 1) {
-        return value * GetParameterAsFloat(0);
+        return value * GetParameterAsFloat(MIX);
     }
 
     return value;

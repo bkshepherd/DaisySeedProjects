@@ -17,6 +17,17 @@ class GraphicEQModule : public BaseEffectModule {
     GraphicEQModule();
     ~GraphicEQModule();
 
+    enum Param {
+        BAND_100 = 0,
+        BAND_200,
+        BAND_400,
+        BAND_800,
+        BAND_1600,
+        BAND_3200,
+        PARAM_COUNT
+    };
+
+
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;

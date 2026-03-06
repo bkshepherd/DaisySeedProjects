@@ -21,6 +21,19 @@ class AmpModule : public BaseEffectModule {
     AmpModule();
     ~AmpModule();
 
+    enum Param {
+        GAIN = 0,
+        MIX,
+        LEVEL,
+        TONE,
+        MODEL,
+        IR,
+        NEURAL_MODEL,
+        IR_ON,
+        PARAM_COUNT
+    };
+
+
     void Init(float sample_rate) override;
     void ParameterChanged(int parameter_id) override;
     void SelectModel();

@@ -18,6 +18,13 @@ class OverdriveModule : public BaseEffectModule {
     OverdriveModule();
     ~OverdriveModule();
 
+    enum Param {
+        DRIVE = 0,
+        LEVEL,
+        PARAM_COUNT
+    };
+
+
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;

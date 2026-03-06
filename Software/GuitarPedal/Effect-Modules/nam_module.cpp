@@ -39,7 +39,7 @@ struct NAMMathsProvider {
 #endif
 };
 
-static const int s_paramCount = 8;
+static constexpr int s_paramCount = NamModule::PARAM_COUNT;
 static const ParameterMetaData s_metaData[s_paramCount] = {
     {
         name : "Gain",
@@ -154,25 +154,25 @@ void NamModule::Init(float sample_rate) {
     setupWeightsNam(); // in the model data nam .h file
     SelectModel();
 
-    filter_nam[0].config(GetParameterAsFloat(3), centerFrequencyNam[0], sample_rate, q_nam[0]);
-    filter_nam[1].config(GetParameterAsFloat(4), centerFrequencyNam[1], sample_rate, q_nam[1]);
-    filter_nam[2].config(GetParameterAsFloat(5), centerFrequencyNam[2], sample_rate, q_nam[2]);
+    filter_nam[0].config(GetParameterAsFloat(BASS), centerFrequencyNam[0], sample_rate, q_nam[0]);
+    filter_nam[1].config(GetParameterAsFloat(MID), centerFrequencyNam[1], sample_rate, q_nam[1]);
+    filter_nam[2].config(GetParameterAsFloat(TREBLE), centerFrequencyNam[2], sample_rate, q_nam[2]);
 }
 
 void NamModule::ParameterChanged(int parameter_id) {
-    if (parameter_id == 2) { // Change Model
+    if (parameter_id == MODEL) { // Change Model
         SelectModel();
-    } else if (parameter_id == 3) {
-        filter_nam[0].config(GetParameterAsFloat(3), centerFrequencyNam[0], GetSampleRate(), q_nam[0]);
-    } else if (parameter_id == 4) {
-        filter_nam[1].config(GetParameterAsFloat(4), centerFrequencyNam[1], GetSampleRate(), q_nam[1]);
-    } else if (parameter_id == 5) {
-        filter_nam[2].config(GetParameterAsFloat(5), centerFrequencyNam[2], GetSampleRate(), q_nam[2]);
+    } else if (parameter_id == BASS) {
+        filter_nam[0].config(GetParameterAsFloat(BASS), centerFrequencyNam[0], GetSampleRate(), q_nam[0]);
+    } else if (parameter_id == MID) {
+        filter_nam[1].config(GetParameterAsFloat(MID), centerFrequencyNam[1], GetSampleRate(), q_nam[1]);
+    } else if (parameter_id == TREBLE) {
+        filter_nam[2].config(GetParameterAsFloat(TREBLE), centerFrequencyNam[2], GetSampleRate(), q_nam[2]);
     }
 }
 
 void NamModule::SelectModel() {
-    const int modelIndex = GetParameterAsBinnedValue(2) - 1;
+    const int modelIndex = GetParameterAsBinnedValue(MODEL) - 1;
 
     if (m_currentModelindex != modelIndex) {
         // Temporarily disable output as we switch models
@@ -198,10 +198,10 @@ void NamModule::ProcessMono(float in) {
 
     float ampOut;
     float input_arr[1] = {0.0}; // Neural Net Input
-    input_arr[0] = m_audioLeft * (m_gainMin + (m_gainMax - m_gainMin) * GetParameterAsFloat(0));
+    input_arr[0] = m_audioLeft * (m_gainMin + (m_gainMax - m_gainMin) * GetParameterAsFloat(GAIN));
 
     // NEURAL MODEL //
-    if (GetParameterAsBool(6)) {
+    if (GetParameterAsBool(NEURAL_MODEL)) {
         ampOut =
             rtneural_wavenet.forward(input_arr[0]) * 0.4; // TODO Try this again, was sending the whole array, wants just the float
 
@@ -214,13 +214,13 @@ void NamModule::ProcessMono(float in) {
     }
 
     // Apply 3 band EQ
-    if (GetParameterAsBool(7)) {
+    if (GetParameterAsBool(EQ)) {
         for (uint8_t i = 0; i < NUM_FILTERS_NAM; i++) {
             ampOut = filter_nam[i](ampOut);
         }
     }
 
-    const float level = m_levelMin + (GetParameterAsFloat(1) * (m_levelMax - m_levelMin));
+    const float level = m_levelMin + (GetParameterAsFloat(LEVEL) * (m_levelMax - m_levelMin));
 
     m_audioRight = m_audioLeft = ampOut * level;
 }

@@ -6,7 +6,7 @@ using namespace bkshepherd;
 
 static const char *s_irNames_large[2] = {"Rhythm", "Lead"};
 
-static const int s_paramCount = 2;
+static constexpr int s_paramCount = IrModule::PARAM_COUNT;
 static const ParameterMetaData s_metaData[s_paramCount] = {
     {
         name : "IR",
@@ -45,19 +45,19 @@ void IrModule::Init(float sample_rate) {
 }
 
 void IrModule::ParameterChanged(int parameter_id) {
-    if (parameter_id == 0) { // Change IR
+    if (parameter_id == IR) { // Change IR
         SelectIR();
-    } else if (parameter_id == 1) { // Level
+    } else if (parameter_id == LEVEL) { // Level
     }
 }
 
 // void IrModule::AlternateFootswitchPressed() {
 // Increment the IR selection by pressing alternate footswitch
-// unsigned int irIndex = GetParameterAsBinnedValue(0); // not doing -1 here to increment index by 1
+// unsigned int irIndex = GetParameterAsBinnedValue(IR); // not doing -1 here to increment index by 1
 // if (irIndex == ir_collection_large.size()) {
 //    irIndex = 0; // reset back to 0
 //}
-// SetParameterAsBinnedValue(0,irIndex + 1);
+// SetParameterAsBinnedValue(IR, irIndex + 1);
 // if (irIndex != m_currentIRindex) {
 //    mIR.Init(ir_collection_large[irIndex]); // ir_data is from ir_data_large.h
 //}
@@ -66,7 +66,7 @@ void IrModule::ParameterChanged(int parameter_id) {
 //}
 
 void IrModule::SelectIR() {
-    unsigned int irIndex = GetParameterAsBinnedValue(0) - 1;
+    unsigned int irIndex = GetParameterAsBinnedValue(IR) - 1;
     if (irIndex != m_currentIRindex) {
         mIR.Init(ir_collection_large[irIndex]); // ir_data is from ir_data_large.h
     }
@@ -77,7 +77,7 @@ void IrModule::ProcessMono(float in) {
     BaseEffectModule::ProcessMono(in);
 
     float input = m_audioLeft;
-    const float level = m_levelMin + (GetParameterAsFloat(1) * (m_levelMax - m_levelMin));
+    const float level = m_levelMin + (GetParameterAsFloat(LEVEL) * (m_levelMax - m_levelMin));
 
     // IMPULSE RESPONSE //
     m_audioLeft = mIR.Process(input) * level * 0.5; // 0.5 is level adjust for loud output

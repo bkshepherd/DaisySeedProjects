@@ -17,6 +17,20 @@ class ParametricEQModule : public BaseEffectModule {
     ParametricEQModule();
     ~ParametricEQModule();
 
+    enum Param {
+        LOW_FREQ = 0,
+        MID_FREQ,
+        HIGH_FREQ,
+        LOW_GAIN,
+        MID_GAIN,
+        HIGH_GAIN,
+        LOW_Q,
+        MID_Q,
+        HIGH_Q,
+        PARAM_COUNT
+    };
+
+
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;
