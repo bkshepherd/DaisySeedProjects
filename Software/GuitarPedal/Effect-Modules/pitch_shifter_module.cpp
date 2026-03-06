@@ -1,4 +1,5 @@
 #include "pitch_shifter_module.h"
+#include <array>
 
 #include <algorithm>
 
@@ -25,9 +26,10 @@ const uint32_t k_maxSamplesMaxTime = 48000 * 2;
 const uint32_t k_defaultSamplesDelayPitchShifter = 2048;
 const uint32_t k_maxSamplesDelayPitchShifter = 6000;
 
-static constexpr int s_paramCount = PitchShifterModule::PARAM_COUNT;
-static const ParameterMetaData s_metaData[s_paramCount] = {
-    {
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, PitchShifterModule::PARAM_COUNT> params{};
+
+    params[PitchShifterModule::SEMITONE] = {
         name : "Semitone",
         valueType : ParameterValueType::Binned,
         valueBinCount : 8,
@@ -35,16 +37,18 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : 0,
         midiCCMapping : -1
-    },
-    {
+    };
+
+    params[PitchShifterModule::CROSSFADE] = {
         name : "Crossfade",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 1.0f},
         knobMapping : 1,
         midiCCMapping : -1
-    },
-    {
+    };
+
+    params[PitchShifterModule::DIRECTION] = {
         name : "Direction",
         valueType : ParameterValueType::Binned,
         valueBinCount : 2,
@@ -52,8 +56,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : 2,
         midiCCMapping : -1
-    },
-    {
+    };
+
+    params[PitchShifterModule::MODE] = {
         name : "Mode",
         valueType : ParameterValueType::Binned,
         valueBinCount : 2,
@@ -61,24 +66,28 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : 3,
         midiCCMapping : -1
-    },
-    {
+    };
+
+    params[PitchShifterModule::SHIFT] = {
         name : "Shift",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.0f},
         knobMapping : 4,
         midiCCMapping : -1
-    },
-    {
+    };
+
+    params[PitchShifterModule::RETURN] = {
         name : "Return",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.0f},
         knobMapping : 5,
         midiCCMapping : -1
-    },
-};
+    };
+
+    return params;
+}();
 
 DSY_SDRAM_BSS float pitch_delay_buffer_a[k_maxSamplesDelayPitchShifter];
 DSY_SDRAM_BSS float pitch_delay_buffer_b[k_maxSamplesDelayPitchShifter];
@@ -91,10 +100,10 @@ PitchShifterModule::PitchShifterModule() : BaseEffectModule() {
     m_name = "Pitch";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor

@@ -15,9 +15,6 @@ namespace bkshepherd {
 
 class ChorusModule : public BaseEffectModule {
   public:
-    ChorusModule();
-    ~ChorusModule();
-
     enum Param {
         WET = 0,
         DELAY,
@@ -27,6 +24,8 @@ class ChorusModule : public BaseEffectModule {
         PARAM_COUNT
     };
 
+    ChorusModule();
+    ~ChorusModule();
 
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;

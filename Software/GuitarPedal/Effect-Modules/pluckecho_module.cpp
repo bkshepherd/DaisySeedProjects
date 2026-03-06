@@ -1,38 +1,48 @@
 #include "pluckecho_module.h"
 #include "../Util/audio_utilities.h"
+#include <array>
 
 using namespace bkshepherd;
 
 DelayLine<float, MAX_DELAY_PLUCKECHO> DSY_SDRAM_BSS delay;
 
-static constexpr int s_paramCount = PluckEchoModule::PARAM_COUNT;
-static const ParameterMetaData s_metaData[s_paramCount] = {
-    {
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, PluckEchoModule::PARAM_COUNT> params{};
+
+    params[PluckEchoModule::STRING_DECAY] = {
         name : "StringDecay",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 0,
         midiCCMapping : 14
-    },
-    {
+    };
+
+    params[PluckEchoModule::DELAY_TIME] = {
         name : "DelayTime",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 1,
         midiCCMapping : 15
-    },
-    {
+    };
+
+    params[PluckEchoModule::DELAY_FDBK] = {
         name : "DelayFdbk",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 2,
         midiCCMapping : 16
-    },
-    {name : "Level",
-     valueType : ParameterValueType::Float,
-     defaultValue : {.float_value = 0.5f},
-     knobMapping : 3,
-     midiCCMapping : 17}};
+    };
+
+    params[PluckEchoModule::LEVEL] = {
+        name : "Level",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 3,
+        midiCCMapping : 17
+    };
+
+    return params;
+}();
 
 // Default Constructor
 PluckEchoModule::PluckEchoModule()
@@ -44,10 +54,10 @@ PluckEchoModule::PluckEchoModule()
     m_name = "PluckEcho";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor

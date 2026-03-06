@@ -17,14 +17,13 @@ namespace bkshepherd {
 
 class TunerModule : public BaseEffectModule {
   public:
-    TunerModule();
-    ~TunerModule();
-
     enum Param {
         MUTE = 0,
         PARAM_COUNT
     };
 
+    TunerModule();
+    ~TunerModule();
 
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;

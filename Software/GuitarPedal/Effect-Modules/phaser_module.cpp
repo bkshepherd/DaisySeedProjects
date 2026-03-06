@@ -1,43 +1,50 @@
 #include "phaser_module.h"
 #include <math.h>
+#include <array>
 
 using namespace bkshepherd;
 
-static constexpr int s_paramCount = PhaserModule::PARAM_COUNT;
-static const ParameterMetaData s_metaData[s_paramCount] = {
-    {
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, PhaserModule::PARAM_COUNT> params{};
+
+    params[PhaserModule::MIX] = {
         // 0 Mix (dry/wet)
         name : "Mix",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 0,
         midiCCMapping : -1
-    },
-    {
+    };
+
+    params[PhaserModule::RATE] = {
         // 1 Rate
         name : "Rate",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.25f},
         knobMapping : 1,
         midiCCMapping : -1
-    },
-    {
+    };
+
+    params[PhaserModule::DEPTH] = {
         // 2 Depth
         name : "Depth",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 1.0f},
         knobMapping : 2,
         midiCCMapping : -1
-    },
-    {
+    };
+
+    params[PhaserModule::FEEDBACK] = {
         // 3 Feedback
         name : "Feedback",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.25f},
         knobMapping : 3,
         midiCCMapping : -1
-    },
-};
+    };
+
+    return params;
+}();
 
 // Default Constructor
 PhaserModule::PhaserModule() : BaseEffectModule() {
@@ -45,10 +52,10 @@ PhaserModule::PhaserModule() : BaseEffectModule() {
     m_name = "Phaser";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor

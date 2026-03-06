@@ -1,5 +1,6 @@
 #include "reverb_delay_module.h"
 #include "../Util/audio_utilities.h"
+#include <array>
 
 using namespace bkshepherd;
 
@@ -15,57 +16,64 @@ DelayLineReverse<float, MAX_DELAY_REV> DSY_SDRAM_BSS delayLineRevLeft;
 DelayLineReverse<float, MAX_DELAY_REV> DSY_SDRAM_BSS delayLineRevRight;
 DelayLine<float, MAX_DELAY_SPREAD> DSY_SDRAM_BSS delayLineSpread;
 
-static constexpr int s_paramCount = ReverbDelayModule::PARAM_COUNT; // TODO: TEST STARTING WITH THE EXTREMES OF ALL PARAMETERS (high and low, this is where errors tend to occur)
-static const ParameterMetaData s_metaData[s_paramCount] = {
-    {
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, ReverbDelayModule::PARAM_COUNT> params{};
+
+    params[ReverbDelayModule::DELAY_TIME] = {
         name : "Delay Time",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.45f},
         knobMapping : 0,
         midiCCMapping : 1
-    }, // mod
-    {
+    };
+
+    params[ReverbDelayModule::D_FEEDBACK] = {
         name : "D Feedback",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.45f},
         knobMapping : 1,
         midiCCMapping : 22
-    },
-    {
+    };
+
+    params[ReverbDelayModule::DELAY_MIX] = {
         name : "Delay Mix",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.45f},
         knobMapping : 2,
         midiCCMapping : 23
-    },
-    {
+    };
+
+    params[ReverbDelayModule::REVERB_TIME] = {
         name : "Reverb Time",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.45f},
         knobMapping : 3,
         midiCCMapping : 24
-    },
-    {
+    };
+
+    params[ReverbDelayModule::REVERB_DAMP] = {
         name : "Reverb Damp",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.4f},
         knobMapping : 4,
         midiCCMapping : 25
-    }, // mod
-    {
+    };
+
+    params[ReverbDelayModule::REVERB_MIX] = {
         name : "Reverb Mix",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.45f},
         knobMapping : 5,
         midiCCMapping : 26
-    },
-    {
+    };
+
+    params[ReverbDelayModule::DELAY_MODE] = {
         name : "Delay Mode",
         valueType : ParameterValueType::Binned,
         valueBinCount : 3,
@@ -73,73 +81,81 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : -1,
         midiCCMapping : 27
-    },
-    {
+    };
+
+    params[ReverbDelayModule::SERIES_D_TO_R] = {
         name : "Series D>R",
         valueType : ParameterValueType::Bool,
         valueBinCount : 0,
         defaultValue : {.uint_value = 0},
         knobMapping : -1,
         midiCCMapping : 28
-    },
-    {
+    };
+
+    params[ReverbDelayModule::REVERSE] = {
         name : "Reverse",
         valueType : ParameterValueType::Bool,
         valueBinCount : 0,
         defaultValue : {.uint_value = 0},
         knobMapping : -1,
         midiCCMapping : 29
-    },
-    {
+    };
+
+    params[ReverbDelayModule::OCTAVE] = {
         name : "Octave",
         valueType : ParameterValueType::Bool,
         valueBinCount : 0,
         defaultValue : {.uint_value = 0},
         knobMapping : -1,
         midiCCMapping : 30
-    },
-    {
+    };
+
+    params[ReverbDelayModule::DELAY_LPF] = {
         name : "Delay LPF",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.95f},
         knobMapping : -1,
         midiCCMapping : 31
-    }, // mod
-    /*11*/ {
+    };
+
+    params[ReverbDelayModule::D_SPREAD] = {
         name : "D Spread",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.25f},
         knobMapping : -1,
         midiCCMapping : 32
-    },
-    //{name: "Ping Pong", valueType: ParameterValueType::Bool, valueBinCount: 0, defaultValue: 0, knobMapping: -1, midiCCMapping: 33},
-    /*12*/ {
+    };
+
+    params[ReverbDelayModule::DUAL_DELAY] = {
         name : "Dual Delay",
         valueType : ParameterValueType::Bool,
         valueBinCount : 0,
         defaultValue : {.uint_value = 0},
         knobMapping : -1,
         midiCCMapping : 33
-    },
-    {
+    };
+
+    params[ReverbDelayModule::MOD_AMT] = {
         name : "Mod Amt",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.15f},
         knobMapping : -1,
         midiCCMapping : 34
-    },
-    {
+    };
+
+    params[ReverbDelayModule::MOD_RATE] = {
         name : "Mod Rate",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.25f},
         knobMapping : -1,
         midiCCMapping : 35
-    },
-    {
+    };
+
+    params[ReverbDelayModule::MOD_PARAM] = {
         name : "Mod Param",
         valueType : ParameterValueType::Binned,
         valueBinCount : 5,
@@ -147,8 +163,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : -1,
         midiCCMapping : 36
-    },
-    {
+    };
+
+    params[ReverbDelayModule::MOD_WAVE] = {
         name : "Mod Wave",
         valueType : ParameterValueType::Binned,
         valueBinCount : 5,
@@ -156,15 +173,19 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : -1,
         midiCCMapping : 37
-    },
-    {
+    };
+
+    params[ReverbDelayModule::SYNC_MOD_F] = {
         name : "Sync Mod F",
         valueType : ParameterValueType::Bool,
         valueBinCount : 0,
         defaultValue : {.uint_value = 0},
         knobMapping : -1,
         midiCCMapping : 38
-    }};
+    };
+
+    return params;
+}();
 
 // Default Constructor
 ReverbDelayModule::ReverbDelayModule()
@@ -178,10 +199,10 @@ ReverbDelayModule::ReverbDelayModule()
     m_name = "Verb Delay";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor

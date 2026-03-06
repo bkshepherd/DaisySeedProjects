@@ -1,4 +1,5 @@
 #include "granulardelay_module.h"
+#include <array>
 
 #include "../Util/audio_utilities.h"
 
@@ -11,75 +12,83 @@ float DSY_SDRAM_BSS buffer_gran_delay[MAX_SAMPLE_GRAN];
 
 static const char *s_grainEnvNames[3] = {"Cos", "SlowAtk", "FastAtk"};
 
-static constexpr int s_paramCount = GranularDelayModule::PARAM_COUNT;
-static const ParameterMetaData s_metaData[s_paramCount] = {{
-                                                               name : "Size(ms)",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 150.0f},
-                                                               knobMapping : 0,
-                                                               midiCCMapping : 14,
-                                                               minValue : 1,
-                                                               maxValue : 300
-                                                           },
-                                                           {
-                                                               name : "Mix",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 0.5f},
-                                                               knobMapping : 1,
-                                                               midiCCMapping : 15
-                                                           },
-                                                           {
-                                                               name : "Pitch",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 0.0f},
-                                                               knobMapping : 2,
-                                                               midiCCMapping : 16,
-                                                               minValue : -12,
-                                                               maxValue : 12
-                                                           },
-                                                           {
-                                                               name : "Spread",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 0.4f},
-                                                               knobMapping : 3,
-                                                               midiCCMapping : 17
-                                                           },
-                                                           {
-                                                               name : "GrainEnv",
-                                                               valueType : ParameterValueType::Binned,
-                                                               valueBinCount : 3,
-                                                               valueBinNames : s_grainEnvNames,
-                                                               defaultValue : {.uint_value = 0},
-                                                               knobMapping : 4,
-                                                               midiCCMapping : 18
-                                                           },
-                                                           {
-                                                               name : "Speed",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 0.5f},
-                                                               knobMapping : 5,
-                                                               midiCCMapping : 19,
-                                                               minValue : -2,
-                                                               maxValue : 2
-                                                           },
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, GranularDelayModule::PARAM_COUNT> params{};
 
-                                                           {
-                                                               name : "Width",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 25.0f},
-                                                               knobMapping : -1,
-                                                               midiCCMapping : 20,
-                                                               minValue : 0,
-                                                               maxValue : 50
-                                                           }
+    params[GranularDelayModule::SIZE] = {
+        name : "Size(ms)",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 150.0f},
+        knobMapping : 0,
+        midiCCMapping : 14,
+        minValue : 1,
+        maxValue : 300
+    };
 
-};
+    params[GranularDelayModule::MIX] = {
+        name : "Mix",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 1,
+        midiCCMapping : 15
+    };
+
+    params[GranularDelayModule::PITCH] = {
+        name : "Pitch",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 0.0f},
+        knobMapping : 2,
+        midiCCMapping : 16,
+        minValue : -12,
+        maxValue : 12
+    };
+
+    params[GranularDelayModule::SPREAD] = {
+        name : "Spread",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 0.4f},
+        knobMapping : 3,
+        midiCCMapping : 17
+    };
+
+    params[GranularDelayModule::GRAIN_ENV] = {
+        name : "GrainEnv",
+        valueType : ParameterValueType::Binned,
+        valueBinCount : 3,
+        valueBinNames : s_grainEnvNames,
+        defaultValue : {.uint_value = 0},
+        knobMapping : 4,
+        midiCCMapping : 18
+    };
+
+    params[GranularDelayModule::SPEED] = {
+        name : "Speed",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 5,
+        midiCCMapping : 19,
+        minValue : -2,
+        maxValue : 2
+    };
+
+    params[GranularDelayModule::WIDTH] = {
+        name : "Width",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 25.0f},
+        knobMapping : -1,
+        midiCCMapping : 20,
+        minValue : 0,
+        maxValue : 50
+    };
+
+    return params;
+}();
 
 // Default Constructor
 GranularDelayModule::GranularDelayModule() : BaseEffectModule(), m_speed(0.5f), m_pitch(0.0f), m_grain_size(150.0f), m_width(0.5f) {
@@ -87,10 +96,10 @@ GranularDelayModule::GranularDelayModule() : BaseEffectModule(), m_speed(0.5f), 
     m_name = "GranDelay";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor

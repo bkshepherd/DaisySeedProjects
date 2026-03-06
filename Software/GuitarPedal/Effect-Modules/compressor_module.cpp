@@ -1,50 +1,58 @@
 #include "compressor_module.h"
+#include <array>
 
 using namespace bkshepherd;
 
-static constexpr int s_paramCount = CompressorModule::PARAM_COUNT;
-static const ParameterMetaData s_metaData[s_paramCount] = {
-    {
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, CompressorModule::PARAM_COUNT> params{};
+
+    params[CompressorModule::LEVEL] = {
         name : "Level",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 0,
         midiCCMapping : -1
-    },
-    {
+    };
+
+    params[CompressorModule::RATIO] = {
         name : "Ratio",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 1,
         midiCCMapping : -1
-    },
-    {
+    };
+
+    params[CompressorModule::THRESHOLD] = {
         name : "Thresh",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 2,
         midiCCMapping : -1
-    },
-    {
+    };
+
+    params[CompressorModule::ATTACK] = {
         name : "Attack",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 3,
         midiCCMapping : -1
-    },
-    {
+    };
+
+    params[CompressorModule::RELEASE] = {
         name : "Release",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 4,
         midiCCMapping : -1
-    },
-};
+    };
+
+    return params;
+}();
 
 // Default Constructor
 CompressorModule::CompressorModule() : BaseEffectModule() {
@@ -52,10 +60,10 @@ CompressorModule::CompressorModule() : BaseEffectModule() {
     m_name = "Comp";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor

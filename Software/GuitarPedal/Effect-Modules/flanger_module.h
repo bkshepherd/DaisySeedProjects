@@ -15,9 +15,6 @@ namespace bkshepherd {
 
 class FlangerModule : public BaseEffectModule {
   public:
-    FlangerModule();
-    ~FlangerModule();
-
     enum Param {
         MIX = 0,
         MANUAL,
@@ -27,6 +24,8 @@ class FlangerModule : public BaseEffectModule {
         PARAM_COUNT
     };
 
+    FlangerModule();
+    ~FlangerModule();
 
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;

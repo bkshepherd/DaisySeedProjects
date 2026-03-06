@@ -1,4 +1,5 @@
 #include "looper_module.h"
+#include <array>
 
 #include "../Util/audio_utilities.h"
 
@@ -14,25 +15,28 @@ static const char *s_loopModeNames[4] = {"Normal", "One-time", "Replace", "Fripp
 
 static const char *s_loopSpeedMode[3] = {"None", "Stepped", "Smooth"};
 
-static constexpr int s_paramCount = LooperModule::PARAM_COUNT;
-static const ParameterMetaData s_metaData[s_paramCount] = {
-    {
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, LooperModule::PARAM_COUNT> params{};
+
+    params[LooperModule::INPUT_LEVEL] = {
         name : "Input Level",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 0,
         midiCCMapping : 14
-    },
-    {
+    };
+
+    params[LooperModule::LOOP_LEVEL] = {
         name : "Loop Level",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 1,
         midiCCMapping : 15
-    },
-    {
+    };
+
+    params[LooperModule::MODE] = {
         name : "Mode",
         valueType : ParameterValueType::Binned,
         valueBinCount : 4,
@@ -40,8 +44,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : 2,
         midiCCMapping : 16
-    },
-    {
+    };
+
+    params[LooperModule::SPEED_MODE] = {
         name : "SpeedMode",
         valueType : ParameterValueType::Binned,
         valueBinCount : 3,
@@ -49,8 +54,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : 3,
         midiCCMapping : 17
-    },
-    {
+    };
+
+    params[LooperModule::SPEED] = {
         name : "Speed",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
@@ -59,24 +65,28 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         midiCCMapping : 18,
         minValue : -3,
         maxValue : 3
-    },
-    {
+    };
+
+    params[LooperModule::LP_FILTER] = {
         name : "LP Filter",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 1.0f},
         knobMapping : 5,
         midiCCMapping : 19
-    },
-    {
+    };
+
+    params[LooperModule::MISO] = {
         name : "MISO",
         valueType : ParameterValueType::Bool,
         valueBinCount : 0,
         defaultValue : {.uint_value = 0},
         knobMapping : -1,
         midiCCMapping : 20
-    },
-};
+    };
+
+    return params;
+}();
 
 // Default Constructor
 LooperModule::LooperModule()
@@ -86,10 +96,10 @@ LooperModule::LooperModule()
     m_name = "Looper";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor

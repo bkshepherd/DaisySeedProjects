@@ -1,5 +1,6 @@
 #include "noise_gate_module.h"
 #include <q/fx/envelope.hpp>
+#include <array>
 
 using namespace bkshepherd;
 
@@ -11,55 +12,64 @@ const float maxThreshold = 0.2;
 // These are placeholder values that will get overwritten with the attack and release parameters at initialization
 cycfi::q::ar_envelope_follower env_follower(48000.0, 0.002f, 0.020f);
 
-static constexpr int s_paramCount = NoiseGateModule::PARAM_COUNT;
-static const ParameterMetaData s_metaData[s_paramCount] = {{
-                                                               name : "Threshold",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 0.5f},
-                                                               knobMapping : 0,
-                                                               midiCCMapping : -1
-                                                           },
-                                                           {
-                                                               name : "Atk [ms]",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 1.0f},
-                                                               knobMapping : 1,
-                                                               midiCCMapping : -1,
-                                                               minValue : static_cast<int>(1),
-                                                               maxValue : static_cast<int>(20)
-                                                           },
-                                                           {
-                                                               name : "Rel [ms]",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 50.0f},
-                                                               knobMapping : 2,
-                                                               midiCCMapping : -1,
-                                                               minValue : static_cast<int>(1),
-                                                               maxValue : static_cast<int>(500)
-                                                           },
-                                                           {
-                                                               name : "Hold [ms]",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 50.0f},
-                                                               knobMapping : 3,
-                                                               midiCCMapping : -1,
-                                                               minValue : static_cast<int>(0),
-                                                               maxValue : static_cast<int>(1000)
-                                                           },
-                                                           {
-                                                               name : "Fade [ms]",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 200.0f},
-                                                               knobMapping : 4,
-                                                               midiCCMapping : -1,
-                                                               minValue : static_cast<int>(0),
-                                                               maxValue : static_cast<int>(500)
-                                                           }};
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, NoiseGateModule::PARAM_COUNT> params{};
+
+    params[NoiseGateModule::THRESHOLD] = {
+        name : "Threshold",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 0,
+        midiCCMapping : -1
+    };
+
+    params[NoiseGateModule::ATTACK_MS] = {
+        name : "Atk [ms]",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 1.0f},
+        knobMapping : 1,
+        midiCCMapping : -1,
+        minValue : static_cast<int>(1),
+        maxValue : static_cast<int>(20)
+    };
+
+    params[NoiseGateModule::RELEASE_MS] = {
+        name : "Rel [ms]",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 50.0f},
+        knobMapping : 2,
+        midiCCMapping : -1,
+        minValue : static_cast<int>(1),
+        maxValue : static_cast<int>(500)
+    };
+
+    params[NoiseGateModule::HOLD_MS] = {
+        name : "Hold [ms]",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 50.0f},
+        knobMapping : 3,
+        midiCCMapping : -1,
+        minValue : static_cast<int>(0),
+        maxValue : static_cast<int>(1000)
+    };
+
+    params[NoiseGateModule::FADE_MS] = {
+        name : "Fade [ms]",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 200.0f},
+        knobMapping : 4,
+        midiCCMapping : -1,
+        minValue : static_cast<int>(0),
+        maxValue : static_cast<int>(500)
+    };
+
+    return params;
+}();
 
 // Default Constructor
 NoiseGateModule::NoiseGateModule() : BaseEffectModule() {
@@ -67,10 +77,10 @@ NoiseGateModule::NoiseGateModule() : BaseEffectModule() {
     m_name = "Noise Gate";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor

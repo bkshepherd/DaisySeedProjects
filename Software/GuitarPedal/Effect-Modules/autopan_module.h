@@ -15,9 +15,6 @@ namespace bkshepherd {
 
 class AutoPanModule : public BaseEffectModule {
   public:
-    AutoPanModule();
-    ~AutoPanModule();
-
     enum Param {
         WET = 0,
         OSC_WAVE,
@@ -26,6 +23,8 @@ class AutoPanModule : public BaseEffectModule {
         PARAM_COUNT
     };
 
+    AutoPanModule();
+    ~AutoPanModule();
 
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;

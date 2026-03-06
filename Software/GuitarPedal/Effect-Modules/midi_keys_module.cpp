@@ -1,23 +1,34 @@
 #include "midi_keys_module.h"
 #include "../Util/audio_utilities.h"
+#include <array>
 
 using namespace bkshepherd;
 
 static VoiceManager<8> voice_handler; // 24 or 16 was too much for 125B pedal, froze when effect engaged, 12 works
 
-static constexpr int s_paramCount = MidiKeysModule::PARAM_COUNT;
-static const ParameterMetaData s_metaData[s_paramCount] = {
-    {
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, MidiKeysModule::PARAM_COUNT> params{};
+
+    params[MidiKeysModule::CUTOFF_FREQ] = {
         name : "CutoffFreq",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 0,
         midiCCMapping : 14
-    },
-    {name : "Level", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 1, midiCCMapping : 15}
+    };
+
+    params[MidiKeysModule::LEVEL] = {
+        name : "Level",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 1,
+        midiCCMapping : 15
+    }
     //{name: "Osc Wave", valueType: ParameterValueType::Binned, valueBinCount: 8, valueBinNames: s_waveBinNames, defaultValue:
-    //{.uint_value = 0}, knobMapping: 4, midiCCMapping: 23}
-};
+    //{.uint_value = 0}, knobMapping: 4, midiCCMapping: 23};
+
+    return params;
+}();
 
 // Default Constructor
 MidiKeysModule::MidiKeysModule() : BaseEffectModule(), m_freqMin(250.0f), m_freqMax(8500.0f), m_cachedEffectMagnitudeValue(1.0f) {
@@ -25,10 +36,10 @@ MidiKeysModule::MidiKeysModule() : BaseEffectModule(), m_freqMin(250.0f), m_freq
     m_name = "MidiKeys";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor

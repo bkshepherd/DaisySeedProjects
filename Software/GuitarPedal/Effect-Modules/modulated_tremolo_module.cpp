@@ -1,13 +1,15 @@
 #include "modulated_tremolo_module.h"
 #include "../Util/audio_utilities.h"
+#include <array>
 
 using namespace bkshepherd;
 
 static const char *s_waveBinNames[8] = {"Sine", "Triangle", "Saw", "Ramp", "Square", "Poly Tri", "Poly Saw", "Poly Sqr"};
 
-static constexpr int s_paramCount = ModulatedTremoloModule::PARAM_COUNT;
-static const ParameterMetaData s_metaData[s_paramCount] = {
-    {
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, ModulatedTremoloModule::PARAM_COUNT> params{};
+
+    params[ModulatedTremoloModule::WAVE] = {
         name : "Wave",
         valueType : ParameterValueType::Binned,
         valueBinCount : 8,
@@ -15,10 +17,25 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : 3,
         midiCCMapping : 20
-    },
-    {name : "Depth", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 1, midiCCMapping : 21},
-    {name : "Freq", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 0, midiCCMapping : 1},
-    {
+    };
+
+    params[ModulatedTremoloModule::DEPTH] = {
+        name : "Depth",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 1,
+        midiCCMapping : 21
+    };
+
+    params[ModulatedTremoloModule::FREQ] = {
+        name : "Freq",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 0,
+        midiCCMapping : 1
+    };
+
+    params[ModulatedTremoloModule::OSC_WAVE] = {
         name : "Osc Wave",
         valueType : ParameterValueType::Binned,
         valueBinCount : 8,
@@ -26,14 +43,18 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : 4,
         midiCCMapping : 23
-    },
-    {
+    };
+
+    params[ModulatedTremoloModule::OSC_FREQ] = {
         name : "Osc Freq",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.1f},
         knobMapping : 2,
         midiCCMapping : 24
-    }};
+    };
+
+    return params;
+}();
 
 // Default Constructor
 ModulatedTremoloModule::ModulatedTremoloModule()
@@ -43,10 +64,10 @@ ModulatedTremoloModule::ModulatedTremoloModule()
     m_name = "Tremolo";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor

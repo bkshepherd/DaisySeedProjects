@@ -1,5 +1,6 @@
 #include "scifi_module.h"
 #include "../Util/audio_utilities.h"
+#include <array>
 
 #include <q/fx/biquad.hpp>
 #include <q/support/literals.hpp>
@@ -9,6 +10,7 @@
 #include "../Util/OctaveGenerator.h"
 
 using namespace bkshepherd;
+
 namespace q = cycfi::q;
 using namespace q::literals;
 
@@ -23,71 +25,89 @@ static q::lowshelf eq2_scifi(5, 160_Hz, sample_rate_temp);
 
 ReverbSc DSY_SDRAM_BSS reverbStereo_scifi;
 
-static constexpr int s_paramCount = SciFiModule::PARAM_COUNT;
-static const ParameterMetaData s_metaData[s_paramCount] = {
-    {name : "Dry", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 0, midiCCMapping : 14},
-    {
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, SciFiModule::PARAM_COUNT> params{};
+
+    params[SciFiModule::DRY] = {
+        name : "Dry",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 0,
+        midiCCMapping : 14
+    };
+
+    params[SciFiModule::OCT_DOWN] = {
         name : "OctDown",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 1,
         midiCCMapping : 15
-    },
-    //{name: "1 OctDown", valueType: ParameterValueType::Float, defaultValue: {.float_value = 0.5f}, knobMapping: 2, midiCCMapping:
-    // 16},
-    {name : "OctUp", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 2, midiCCMapping : 16},
-    {
+    };
+
+    params[SciFiModule::OCT_UP] = {
+        name : "OctUp",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 2,
+        midiCCMapping : 16
+    };
+
+    params[SciFiModule::TIME] = {
         name : "Time",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.8f},
         knobMapping : 3,
         midiCCMapping : 17
-    },
-    {
+    };
+
+    params[SciFiModule::DRIVE] = {
         name : "Drive",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 4,
         midiCCMapping : 18
-    },
-    {
+    };
+
+    params[SciFiModule::MIX] = {
         name : "Mix",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 5,
         midiCCMapping : 19
-    },
-    {
+    };
+
+    params[SciFiModule::DAMP] = {
         name : "Damp",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.3f},
         knobMapping : -1,
         midiCCMapping : 20
-    },
+    };
 
-    {
+    params[SciFiModule::LEVEL] = {
         name : "Level",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : -1,
         midiCCMapping : 21
-    },
+    };
 
-    {
+    params[SciFiModule::OD_MIX] = {
         name : "OD Mix",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 1.0f},
         knobMapping : -1,
         midiCCMapping : 22
-    }
+    };
 
-};
+    return params;
+}();
 
 // Default Constructor
 SciFiModule::SciFiModule()
@@ -97,10 +117,10 @@ SciFiModule::SciFiModule()
     m_name = "SciFi";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor

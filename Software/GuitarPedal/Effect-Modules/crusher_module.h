@@ -37,9 +37,6 @@ class Bitcrusher {
 
 class CrusherModule : public BaseEffectModule {
   public:
-    CrusherModule();
-    ~CrusherModule();
-
     enum Param {
         LEVEL = 0,
         BITS,
@@ -47,6 +44,8 @@ class CrusherModule : public BaseEffectModule {
         PARAM_COUNT
     };
 
+    CrusherModule();
+    ~CrusherModule();
 
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;

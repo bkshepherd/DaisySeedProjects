@@ -1,5 +1,6 @@
 #include "fm_keys_module.h"
 #include "../Util/audio_utilities.h"
+#include <array>
 
 using namespace bkshepherd;
 
@@ -7,10 +8,18 @@ using namespace bkshepherd;
 //  With added carrier env control, 16 glitches, 12 works
 //  moved param changing to outside function, can run 18
 
-static constexpr int s_paramCount = FmKeysModule::PARAM_COUNT;
-static const ParameterMetaData s_metaData[s_paramCount] = {
-    {name : "Level", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 0, midiCCMapping : 14},
-    {
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, FmKeysModule::PARAM_COUNT> params{};
+
+    params[FmKeysModule::LEVEL] = {
+        name : "Level",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 0,
+        midiCCMapping : 14
+    };
+
+    params[FmKeysModule::RATIO] = {
         name : "Ratio",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 1.0f},
@@ -18,16 +27,17 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         midiCCMapping : 15,
         minValue : 0,
         maxValue : 16
-    },
+    };
 
-    {
+    params[FmKeysModule::MOD_LEVEL] = {
         name : "ModLevel",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.2f},
         knobMapping : 2,
         midiCCMapping : 16
-    },
-    {
+    };
+
+    params[FmKeysModule::MOD_RATIO] = {
         name : "ModRatio",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 16.0f},
@@ -35,66 +45,75 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         midiCCMapping : 17,
         minValue : 0,
         maxValue : 16
-    }, // try fine/coarse step sizes 0.5 (not in lighthouse yet?)
+    };
 
-    {
+    // TODO: Try fine/coarse step sizes of 0.5 (not in lighthouse yet?)
+    params[FmKeysModule::CAR_ATTACK] = {
         name : "CarAttack",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 4,
         midiCCMapping : 18
-    },
-    {
+    };
+
+    params[FmKeysModule::CAR_DECAY] = {
         name : "CarDecay",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 5,
         midiCCMapping : 19
-    },
-    {
+    };
+
+    params[FmKeysModule::CAR_SUSTAIN] = {
         name : "CarSustain",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : -1,
         midiCCMapping : 20
-    },
-    {
+    };
+
+    params[FmKeysModule::CAR_RELEASE] = {
         name : "CarRelease",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : -1,
         midiCCMapping : 21
-    },
+    };
 
-    {
+    params[FmKeysModule::MOD_ATTACK] = {
         name : "ModAttack",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : -1,
         midiCCMapping : 22
-    },
-    {
+    };
+
+    params[FmKeysModule::MOD_DECAY] = {
         name : "ModDecay",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : -1,
         midiCCMapping : 23
-    },
-    {
+    };
+
+    params[FmKeysModule::MOD_SUSTAIN] = {
         name : "ModSustain",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : -1,
         midiCCMapping : 24
-    },
-    {
+    };
+
+    params[FmKeysModule::MOD_RELEASE] = {
         name : "ModRelease",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : -1,
         midiCCMapping : 25
-    },
-};
+    };
+
+    return params;
+}();
 
 // Default Constructor
 FmKeysModule::FmKeysModule() : BaseEffectModule(), m_freqMin(250.0f), m_freqMax(16000.0f), m_cachedEffectMagnitudeValue(1.0f) {
@@ -102,10 +121,10 @@ FmKeysModule::FmKeysModule() : BaseEffectModule(), m_freqMin(250.0f), m_freqMax(
     m_name = "FmKeys";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor

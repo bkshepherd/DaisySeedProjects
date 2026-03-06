@@ -2,8 +2,10 @@
 #include "../Util/audio_utilities.h"
 #include "ImpulseResponse/ir_data.h"
 #include "NeuralModels/model_data_gru9.h"
+#include <array>
 
 using namespace bkshepherd;
+
 /*
 static const char* s_modelBinNames[14] = {"Klon", "Fender57", "TS9", "Bassman", "5150 G75",
                                           "5150 G5", "ENGLInvG5", "ENGLInvG75", "TS7 Hot", "Matchless",
@@ -17,20 +19,43 @@ static const char *s_modelBinNames[7] = {"Fender57", "Matchless", "Klon", "Mesa 
 
 static const char *s_irNames[4] = {"Marsh", "Proteus", "US Deluxe", "British"};
 
-static constexpr int s_paramCount = AmpModule::PARAM_COUNT;
-static const ParameterMetaData s_metaData[s_paramCount] = {
-    {
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, AmpModule::PARAM_COUNT> params{};
+
+    params[AmpModule::GAIN] = {
         name : "Gain",
         valueType : ParameterValueType::Float,
         valueCurve : ParameterValueCurve::Log,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 0,
         midiCCMapping : 14
-    },
-    {name : "Mix", valueType : ParameterValueType::Float, defaultValue : {.float_value = 1.0f}, knobMapping : 1, midiCCMapping : 15},
-    {name : "Level", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 2, midiCCMapping : 16},
-    {name : "Tone", valueType : ParameterValueType::Float, defaultValue : {.float_value = 1.0f}, knobMapping : 3, midiCCMapping : 17},
-    {
+    };
+
+    params[AmpModule::MIX] = {
+        name : "Mix",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 1.0f},
+        knobMapping : 1,
+        midiCCMapping : 15
+    };
+
+    params[AmpModule::LEVEL] = {
+        name : "Level",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 2,
+        midiCCMapping : 16
+    };
+
+    params[AmpModule::TONE] = {
+        name : "Tone",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 1.0f},
+        knobMapping : 3,
+        midiCCMapping : 17
+    };
+
+    params[AmpModule::MODEL] = {
         name : "Model",
         valueType : ParameterValueType::Binned,
         valueBinCount : 7,
@@ -38,8 +63,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : 4,
         midiCCMapping : 18
-    },
-    {
+    };
+
+    params[AmpModule::IR] = {
         name : "IR",
         valueType : ParameterValueType::Binned,
         valueBinCount : 4,
@@ -47,15 +73,26 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : 5,
         midiCCMapping : 19
-    },
-    {
+    };
+
+    params[AmpModule::NEURAL_MODEL] = {
         name : "NeuralModel",
         valueType : ParameterValueType::Bool,
         defaultValue : {.uint_value = 1},
         knobMapping : -1,
         midiCCMapping : 20
-    },
-    {name : "IR On", valueType : ParameterValueType::Bool, defaultValue : {.uint_value = 1}, knobMapping : -1, midiCCMapping : 21}};
+    };
+
+    params[AmpModule::IR_ON] = {
+        name : "IR On",
+        valueType : ParameterValueType::Bool,
+        defaultValue : {.uint_value = 1},
+        knobMapping : -1,
+        midiCCMapping : 21
+    };
+
+    return params;
+}();
 
 RTNeural::ModelT<float, 1, 1, RTNeural::GRULayerT<float, 1, 9>, RTNeural::DenseT<float, 9, 1>> model;
 // 12 is currently the max size GRU I was able to get working with OPT flag on, 13 froze it
@@ -69,10 +106,10 @@ AmpModule::AmpModule()
     m_name = "Amp";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor

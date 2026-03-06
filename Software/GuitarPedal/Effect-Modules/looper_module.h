@@ -13,9 +13,6 @@ namespace bkshepherd {
 
 class LooperModule : public BaseEffectModule {
   public:
-    LooperModule();
-    ~LooperModule();
-
     enum Param {
         INPUT_LEVEL = 0,
         LOOP_LEVEL,
@@ -27,6 +24,8 @@ class LooperModule : public BaseEffectModule {
         PARAM_COUNT
     };
 
+    LooperModule();
+    ~LooperModule();
 
     void Init(float sample_rate) override;
     void ParameterChanged(int parameter_id) override;

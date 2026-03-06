@@ -23,9 +23,6 @@ namespace bkshepherd {
 
 class CloudSeedModule : public BaseEffectModule {
   public:
-    CloudSeedModule();
-    ~CloudSeedModule();
-
     enum Param {
         PRE_DELAY = 0,
         MIX,
@@ -41,6 +38,8 @@ class CloudSeedModule : public BaseEffectModule {
         PARAM_COUNT
     };
 
+    CloudSeedModule();
+    ~CloudSeedModule();
 
     void Init(float sample_rate) override;
     void ParameterChanged(int parameter_id) override;

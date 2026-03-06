@@ -14,9 +14,6 @@ namespace bkshepherd {
 
 class PhaserModule : public BaseEffectModule {
   public:
-    PhaserModule();
-    ~PhaserModule();
-
     enum Param {
         MIX = 0,
         RATE,
@@ -25,6 +22,8 @@ class PhaserModule : public BaseEffectModule {
         PARAM_COUNT
     };
 
+    PhaserModule();
+    ~PhaserModule();
 
     void Init(float sample_rate) override;
     void ParameterChanged(int parameter_id) override;

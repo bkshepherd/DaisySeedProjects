@@ -13,9 +13,6 @@ namespace bkshepherd {
 
 class PitchShifterModule : public BaseEffectModule {
   public:
-    PitchShifterModule();
-    ~PitchShifterModule();
-
     enum Param {
         SEMITONE = 0,
         CROSSFADE,
@@ -26,6 +23,8 @@ class PitchShifterModule : public BaseEffectModule {
         PARAM_COUNT
     };
 
+    PitchShifterModule();
+    ~PitchShifterModule();
 
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;

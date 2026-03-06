@@ -1,5 +1,6 @@
 #include "drum_module.h"
 #include "../Util/audio_utilities.h"
+#include <array>
 
 using namespace bkshepherd;
 
@@ -25,10 +26,18 @@ const int beats34[4][12] = {{1, -1, 4, -1, 4, -1, 1, -1, 2, -1, 4, -1},  // 3/4 
                             {1, -1, 4, -1, 4, -1, 2, -1, 4, -1, 4, -1},  // 6/8 Rock1
                             {1, -1, 4, -1, 1, -1, 2, -1, 4, -1, 1, -1}}; // 6/8 Rock2
 
-static constexpr int s_paramCount = DrumModule::PARAM_COUNT;
-static const ParameterMetaData s_metaData[s_paramCount] = {
-    {name : "Level", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 0, midiCCMapping : 14},
-    {
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, DrumModule::PARAM_COUNT> params{};
+
+    params[DrumModule::LEVEL] = {
+        name : "Level",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 0,
+        midiCCMapping : 14
+    };
+
+    params[DrumModule::VOICE] = {
         name : "Voice",
         valueType : ParameterValueType::Binned,
         valueBinCount : 4,
@@ -36,8 +45,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : 1,
         midiCCMapping : 15
-    },
-    {
+    };
+
+    params[DrumModule::BEATS] = {
         name : "Beats",
         valueType : ParameterValueType::Binned,
         valueBinCount : 8,
@@ -45,8 +55,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : 2,
         midiCCMapping : 16
-    },
-    {
+    };
+
+    params[DrumModule::TEMPO] = {
         name : "Tempo",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
@@ -55,8 +66,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         midiCCMapping : 17,
         minValue : minTempoDrum,
         maxValue : maxTempoDrum
-    },
-    {
+    };
+
+    params[DrumModule::MIDI_VOICE] = {
         name : "MidiVoice",
         valueType : ParameterValueType::Binned,
         valueBinCount : 6,
@@ -64,23 +76,33 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : 4,
         midiCCMapping : 18
-    },
-    {
+    };
+
+    params[DrumModule::TIMBRE] = {
         name : "Timbre",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 5,
         midiCCMapping : 19
-    },
-    {name : "Tone", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : -1, midiCCMapping : 20},
-    {
+    };
+
+    params[DrumModule::TONE] = {
+        name : "Tone",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : -1,
+        midiCCMapping : 20
+    };
+
+    params[DrumModule::DECAY] = {
         name : "Decay",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : -1,
         midiCCMapping : 21
-    },
-    {
+    };
+
+    params[DrumModule::MODE] = {
         name : "Mode",
         valueType : ParameterValueType::Binned,
         valueBinCount : 2,
@@ -88,8 +110,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : -1,
         midiCCMapping : 22
-    },
-    {
+    };
+
+    params[DrumModule::DRY_THRU] = {
         name : "DryThru",
         valueType : ParameterValueType::Binned,
         valueBinCount : 3,
@@ -97,7 +120,10 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 1},
         knobMapping : -1,
         midiCCMapping : 23
-    }};
+    };
+
+    return params;
+}();
 
 // Default Constructor
 DrumModule::DrumModule() : BaseEffectModule(), m_cachedEffectMagnitudeValue(1.0f) {
@@ -105,10 +131,10 @@ DrumModule::DrumModule() : BaseEffectModule(), m_cachedEffectMagnitudeValue(1.0f
     m_name = "Drum";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor

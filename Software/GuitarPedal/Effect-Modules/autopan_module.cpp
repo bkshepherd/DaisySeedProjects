@@ -1,14 +1,23 @@
 #include "autopan_module.h"
 #include "../Util/audio_utilities.h"
+#include <array>
 
 using namespace bkshepherd;
 
 static const char *s_waveBinNames[8] = {"Sine", "Triangle", "Saw", "Ramp", "Square", "Poly Tri", "Poly Saw", "Poly Sqr"};
 
-static constexpr int s_paramCount = AutoPanModule::PARAM_COUNT;
-static const ParameterMetaData s_metaData[s_paramCount] = {
-    {name : "Wet", valueType : ParameterValueType::Float, defaultValue : {.float_value = 1.0f}, knobMapping : 0, midiCCMapping : 20},
-    {
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, AutoPanModule::PARAM_COUNT> params{};
+
+    params[AutoPanModule::WET] = {
+        name : "Wet",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 1.0f},
+        knobMapping : 0,
+        midiCCMapping : 20
+    };
+
+    params[AutoPanModule::OSC_WAVE] = {
         name : "Osc Wave",
         valueType : ParameterValueType::Binned,
         valueBinCount : 8,
@@ -16,19 +25,26 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : 2,
         midiCCMapping : 21
-    },
-    {
+    };
+
+    params[AutoPanModule::OSC_FREQ] = {
         name : "Osc Freq",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.1f},
         knobMapping : 1,
         midiCCMapping : 1
-    },
-    {name : "Stereo",
-     valueType : ParameterValueType::Bool,
-     defaultValue : {.uint_value = 0},
-     knobMapping : 3,
-     midiCCMapping : 23}}; // 0 is Mono (even if fed stereo) 1 is Stereo
+    };
+
+    params[AutoPanModule::STEREO] = {
+        name : "Stereo",
+        valueType : ParameterValueType::Bool,
+        defaultValue : {.uint_value = 0},
+        knobMapping : 3,
+        midiCCMapping : 23
+    };
+
+    return params;
+}(); // 0 is Mono (even if fed stereo) 1 is Stereo
 
 // Default Constructor
 AutoPanModule::AutoPanModule()
@@ -39,10 +55,10 @@ AutoPanModule::AutoPanModule()
     m_name = "AutoPan";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor

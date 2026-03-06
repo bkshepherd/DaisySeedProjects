@@ -1,5 +1,6 @@
 #include "metro_module.h"
 #include "../Util/audio_utilities.h"
+#include <array>
 
 using namespace bkshepherd;
 
@@ -50,34 +51,41 @@ static const uint16_t TimeSignatureBase[3] = {4, 3, 2};
 constexpr uint32_t minTempo = 35;
 constexpr uint32_t maxTempo = 250;
 
-static constexpr int s_paramCount = MetroModule::PARAM_COUNT;
-static const ParameterMetaData s_metaData[s_paramCount] = {{
-                                                               name : "Tempo",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 165.f},
-                                                               knobMapping : 0,
-                                                               midiCCMapping : 23,
-                                                               minValue : minTempo,
-                                                               maxValue : maxTempo
-                                                           },
-                                                           {
-                                                               name : "Mix",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 0.08f},
-                                                               knobMapping : 1,
-                                                               midiCCMapping : 21
-                                                           },
-                                                           {
-                                                               name : "Meter",
-                                                               valueType : ParameterValueType::Binned,
-                                                               valueBinCount : 3,
-                                                               valueBinNames : TimeSignatureLabels,
-                                                               defaultValue : {.uint_value = 0},
-                                                               knobMapping : 2,
-                                                               midiCCMapping : -1
-                                                           }};
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, MetroModule::PARAM_COUNT> params{};
+
+    params[MetroModule::TEMPO] = {
+        name : "Tempo",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 165.f},
+        knobMapping : 0,
+        midiCCMapping : 23,
+        minValue : minTempo,
+        maxValue : maxTempo
+    };
+
+    params[MetroModule::MIX] = {
+        name : "Mix",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 0.08f},
+        knobMapping : 1,
+        midiCCMapping : 21
+    };
+
+    params[MetroModule::METER] = {
+        name : "Meter",
+        valueType : ParameterValueType::Binned,
+        valueBinCount : 3,
+        valueBinNames : TimeSignatureLabels,
+        defaultValue : {.uint_value = 0},
+        knobMapping : 2,
+        midiCCMapping : -1
+    };
+
+    return params;
+}();
 
 // Default Constructor
 MetroModule::MetroModule() : BaseEffectModule(), m_levelMin(0.0f), m_levelMax(1.0f) {
@@ -85,10 +93,10 @@ MetroModule::MetroModule() : BaseEffectModule(), m_levelMin(0.0f), m_levelMax(1.
     m_name = "Metronome";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor

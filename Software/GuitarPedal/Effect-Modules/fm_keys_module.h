@@ -235,9 +235,6 @@ template <size_t max_voices> class VoiceManagerFm {
 
 class FmKeysModule : public BaseEffectModule {
   public:
-    FmKeysModule();
-    ~FmKeysModule();
-
     enum Param {
         LEVEL = 0,
         RATIO,
@@ -254,6 +251,8 @@ class FmKeysModule : public BaseEffectModule {
         PARAM_COUNT
     };
 
+    FmKeysModule();
+    ~FmKeysModule();
 
     void Init(float sample_rate) override;
     void ParameterChanged(int parameter_id) override;

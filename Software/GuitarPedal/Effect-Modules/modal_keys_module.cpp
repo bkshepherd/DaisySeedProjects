@@ -1,32 +1,46 @@
 #include "modal_keys_module.h"
 #include "../Util/audio_utilities.h"
+#include <array>
 
 using namespace bkshepherd;
 
-static constexpr int s_paramCount = ModalKeysModule::PARAM_COUNT;
-static const ParameterMetaData s_metaData[s_paramCount] = {
-    {
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, ModalKeysModule::PARAM_COUNT> params{};
+
+    params[ModalKeysModule::STRUCTURE] = {
         name : "Structure",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 0,
         midiCCMapping : 14
-    },
-    {
+    };
+
+    params[ModalKeysModule::BRIGHTNESS] = {
         name : "Brightness",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 1,
         midiCCMapping : 15
-    },
-    {name : "Level", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 2, midiCCMapping : 16},
-    {
+    };
+
+    params[ModalKeysModule::LEVEL] = {
+        name : "Level",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 2,
+        midiCCMapping : 16
+    };
+
+    params[ModalKeysModule::DAMPING] = {
         name : "Damping",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 3,
         midiCCMapping : 17
-    }};
+    };
+
+    return params;
+}();
 
 // Default Constructor
 ModalKeysModule::ModalKeysModule()
@@ -37,10 +51,10 @@ ModalKeysModule::ModalKeysModule()
     m_name = "ModalKeys";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor

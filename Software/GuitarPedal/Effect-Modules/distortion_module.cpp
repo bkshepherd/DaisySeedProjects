@@ -1,6 +1,7 @@
 #include "distortion_module.h"
 #include <algorithm>
 #include <q/fx/biquad.hpp>
+#include <array>
 
 using namespace bkshepherd;
 
@@ -15,33 +16,37 @@ cycfi::q::lowpass upsamplingLowpassFilter(0.0f, 48000);   // Dummy values that g
 
 constexpr uint8_t oversamplingFactor = 16;
 
-static constexpr int s_paramCount = DistortionModule::PARAM_COUNT;
-static const ParameterMetaData s_metaData[s_paramCount] = {
-    {
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, DistortionModule::PARAM_COUNT> params{};
+
+    params[DistortionModule::LEVEL] = {
         name : "Level",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 0,
         midiCCMapping : -1
-    },
-    {
+    };
+
+    params[DistortionModule::GAIN] = {
         name : "Gain",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 1,
         midiCCMapping : -1,
-    },
-    {
+    };
+
+    params[DistortionModule::TONE] = {
         name : "Tone",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 2,
         midiCCMapping : -1,
-    },
-    {
+    };
+
+    params[DistortionModule::DIST_TYPE] = {
         name : "Dist Type",
         valueType : ParameterValueType::Binned,
         valueBinCount : 6,
@@ -49,24 +54,28 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : 3,
         midiCCMapping : -1
-    },
-    {
+    };
+
+    params[DistortionModule::INTENSITY] = {
         name : "Intensity",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 4,
         midiCCMapping : -1,
-    },
-    {
+    };
+
+    params[DistortionModule::OVERSAMP] = {
         name : "Oversamp",
         valueType : ParameterValueType::Bool,
         valueBinCount : 0,
         defaultValue : {.uint_value = 1},
         knobMapping : 5,
         midiCCMapping : -1
-    },
-};
+    };
+
+    return params;
+}();
 
 // Default Constructor
 DistortionModule::DistortionModule() : BaseEffectModule() {
@@ -74,10 +83,10 @@ DistortionModule::DistortionModule() : BaseEffectModule() {
     m_name = "Distortion";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor

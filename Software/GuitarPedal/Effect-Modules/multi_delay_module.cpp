@@ -3,6 +3,7 @@
 #include "Delays/delayline_reverse.h"
 #include "Delays/delayline_revoct.h"
 #include "daisysp.h"
+#include <array>
 
 using namespace bkshepherd;
 
@@ -34,146 +35,163 @@ struct delay {
 delay delays[2];
 
 static const char *s_typeBinNames[] = {"Follower", "Time"};
-static constexpr int s_paramCount = MultiDelayModule::PARAM_COUNT;
-static const ParameterMetaData s_metaData[s_paramCount] = {{
-                                                               name : "Wet %",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 0.0f},
-                                                               knobMapping : 0,
-                                                               midiCCMapping : 20,
-                                                               minValue : 0,
-                                                               maxValue : 1
-                                                           },
-                                                           {
-                                                               name : "Delay L ms",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 0.0f},
-                                                               knobMapping : 1,
-                                                               midiCCMapping : 21,
-                                                               minValue : 0,
-                                                               maxValue : 4000,
-                                                               fineStepSize : 0.000025f
-                                                           },
-                                                           {
-                                                               name : "Delay R ms",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 0.0f},
-                                                               knobMapping : 2,
-                                                               midiCCMapping : 22,
-                                                               minValue : 0,
-                                                               maxValue : 4000,
-                                                               fineStepSize : 0.000025f
-                                                           },
-                                                           {
-                                                               name : "Feedback",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 0.0f},
-                                                               knobMapping : 3,
-                                                               midiCCMapping : 31,
-                                                               minValue : 0,
-                                                               maxValue : 1,
-                                                           },
-                                                           {
-                                                               name : "Tap Mode",
-                                                               valueType : ParameterValueType::Binned,
-                                                               valueBinCount : 2,
-                                                               valueBinNames : s_typeBinNames,
-                                                               defaultValue : {.uint_value = 0},
-                                                               knobMapping : 1,
-                                                               midiCCMapping : 20
-                                                           },
-                                                           {
-                                                               name : "Shift Tap 1",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 0.0f},
-                                                               knobMapping : -1,
-                                                               midiCCMapping : 27,
-                                                               minValue : -12,
-                                                               maxValue : 12,
-                                                               fineStepSize : 0.004166f
-                                                           },
-                                                           {
-                                                               name : "Shift Tap 2",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 0.0f},
-                                                               knobMapping : -1,
-                                                               midiCCMapping : 28,
-                                                               minValue : -12,
-                                                               maxValue : 12,
-                                                               fineStepSize : 0.004166f
-                                                           },
-                                                           {
-                                                               name : "Shift Tap 3",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 0.0f},
-                                                               knobMapping : -1,
-                                                               midiCCMapping : 29,
-                                                               minValue : -12,
-                                                               maxValue : 12,
-                                                               fineStepSize : 0.004166f
-                                                           },
-                                                           {
-                                                               name : "Shift Tap 4",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 0.0f},
-                                                               knobMapping : -1,
-                                                               midiCCMapping : 30,
-                                                               minValue : -12,
-                                                               maxValue : 12,
-                                                               fineStepSize : 0.004166f
-                                                           },
-                                                           {
-                                                               name : "Delay Tap 1",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 0.0f},
-                                                               knobMapping : -1,
-                                                               midiCCMapping : 23,
-                                                               minValue : 0,
-                                                               maxValue : 4000,
-                                                               fineStepSize : 0.00025f
-                                                           },
-                                                           {
-                                                               name : "Delay Tap 2",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 0.0f},
-                                                               knobMapping : -1,
-                                                               midiCCMapping : 24,
-                                                               minValue : 0,
-                                                               maxValue : 4000,
-                                                               fineStepSize : 0.00025f
-                                                           },
-                                                           {
-                                                               name : "Delay Tap 3",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 0.0f},
-                                                               knobMapping : -1,
-                                                               midiCCMapping : 25,
-                                                               minValue : 0,
-                                                               maxValue : 4000,
-                                                               fineStepSize : 0.00025f
-                                                           },
-                                                           {
-                                                               name : "Delay Tap 4",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 0.0f},
-                                                               knobMapping : -1,
-                                                               midiCCMapping : 26,
-                                                               minValue : 0,
-                                                               maxValue : 4000,
-                                                               fineStepSize : 0.00025f
-                                                           }};
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, MultiDelayModule::PARAM_COUNT> params{};
+
+    params[MultiDelayModule::WET] = {
+        name : "Wet %",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 0.0f},
+        knobMapping : 0,
+        midiCCMapping : 20,
+        minValue : 0,
+        maxValue : 1
+    };
+
+    params[MultiDelayModule::DELAY_L_MS] = {
+        name : "Delay L ms",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 0.0f},
+        knobMapping : 1,
+        midiCCMapping : 21,
+        minValue : 0,
+        maxValue : 4000,
+        fineStepSize : 0.000025f
+    };
+
+    params[MultiDelayModule::DELAY_R_MS] = {
+        name : "Delay R ms",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 0.0f},
+        knobMapping : 2,
+        midiCCMapping : 22,
+        minValue : 0,
+        maxValue : 4000,
+        fineStepSize : 0.000025f
+    };
+
+    params[MultiDelayModule::FEEDBACK] = {
+        name : "Feedback",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 0.0f},
+        knobMapping : 3,
+        midiCCMapping : 31,
+        minValue : 0,
+        maxValue : 1,
+    };
+
+    params[MultiDelayModule::TAP_MODE] = {
+        name : "Tap Mode",
+        valueType : ParameterValueType::Binned,
+        valueBinCount : 2,
+        valueBinNames : s_typeBinNames,
+        defaultValue : {.uint_value = 0},
+        knobMapping : 1,
+        midiCCMapping : 20
+    };
+
+    params[MultiDelayModule::SHIFT_TAP_1] = {
+        name : "Shift Tap 1",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 0.0f},
+        knobMapping : -1,
+        midiCCMapping : 27,
+        minValue : -12,
+        maxValue : 12,
+        fineStepSize : 0.004166f
+    };
+
+    params[MultiDelayModule::SHIFT_TAP_2] = {
+        name : "Shift Tap 2",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 0.0f},
+        knobMapping : -1,
+        midiCCMapping : 28,
+        minValue : -12,
+        maxValue : 12,
+        fineStepSize : 0.004166f
+    };
+
+    params[MultiDelayModule::SHIFT_TAP_3] = {
+        name : "Shift Tap 3",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 0.0f},
+        knobMapping : -1,
+        midiCCMapping : 29,
+        minValue : -12,
+        maxValue : 12,
+        fineStepSize : 0.004166f
+    };
+
+    params[MultiDelayModule::SHIFT_TAP_4] = {
+        name : "Shift Tap 4",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 0.0f},
+        knobMapping : -1,
+        midiCCMapping : 30,
+        minValue : -12,
+        maxValue : 12,
+        fineStepSize : 0.004166f
+    };
+
+    params[MultiDelayModule::DELAY_TAP_1] = {
+        name : "Delay Tap 1",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 0.0f},
+        knobMapping : -1,
+        midiCCMapping : 23,
+        minValue : 0,
+        maxValue : 4000,
+        fineStepSize : 0.00025f
+    };
+
+    params[MultiDelayModule::DELAY_TAP_2] = {
+        name : "Delay Tap 2",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 0.0f},
+        knobMapping : -1,
+        midiCCMapping : 24,
+        minValue : 0,
+        maxValue : 4000,
+        fineStepSize : 0.00025f
+    };
+
+    params[MultiDelayModule::DELAY_TAP_3] = {
+        name : "Delay Tap 3",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 0.0f},
+        knobMapping : -1,
+        midiCCMapping : 25,
+        minValue : 0,
+        maxValue : 4000,
+        fineStepSize : 0.00025f
+    };
+
+    params[MultiDelayModule::DELAY_TAP_4] = {
+        name : "Delay Tap 4",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 0.0f},
+        knobMapping : -1,
+        midiCCMapping : 26,
+        minValue : 0,
+        maxValue : 4000,
+        fineStepSize : 0.00025f
+    };
+
+    return params;
+}();
 
 // Default Constructor
 MultiDelayModule::MultiDelayModule()
@@ -183,10 +201,10 @@ MultiDelayModule::MultiDelayModule()
     m_name = "Multi Delay";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 
     m_isInitialized = true;
 }

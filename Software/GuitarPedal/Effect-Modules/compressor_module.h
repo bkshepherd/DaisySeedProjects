@@ -17,9 +17,6 @@ namespace bkshepherd {
 
 class CompressorModule : public BaseEffectModule {
   public:
-    CompressorModule();
-    ~CompressorModule();
-
     enum Param {
         LEVEL = 0,
         RATIO,
@@ -29,6 +26,8 @@ class CompressorModule : public BaseEffectModule {
         PARAM_COUNT
     };
 
+    CompressorModule();
+    ~CompressorModule();
 
     void Init(float sample_rate) override;
     void ParameterChanged(int parameter_id) override;

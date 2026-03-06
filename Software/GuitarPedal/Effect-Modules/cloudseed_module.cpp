@@ -1,5 +1,6 @@
 #include "cloudseed_module.h"
 #include "../Util/audio_utilities.h"
+#include <array>
 
 // This is used in the modified CloudSeed code for allocating
 // delay line memory to SDRAM (64MB available on Daisy)
@@ -24,33 +25,58 @@ using namespace bkshepherd;
 
 static const char *s_presetNames[8] = {"FChorus", "DullEchos", "Hyperplane", "MedSpace", "Hallway", "RubiKa", "SmallRoom", "90s"};
 
-static constexpr int s_paramCount = CloudSeedModule::PARAM_COUNT;
-static ParameterMetaData s_metaData[s_paramCount] = {
-    {
+static auto s_metaData = [] {
+    std::array<ParameterMetaData, CloudSeedModule::PARAM_COUNT> params{};
+
+    params[CloudSeedModule::PRE_DELAY] = {
         name : "PreDelay",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.0f},
         knobMapping : 0,
         midiCCMapping : 14
-    },
-    {name : "Mix", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 1, midiCCMapping : 15},
-    {name : "Decay", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 2, midiCCMapping : 16},
-    {
+    };
+
+    params[CloudSeedModule::MIX] = {
+        name : "Mix",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 1,
+        midiCCMapping : 15
+    };
+
+    params[CloudSeedModule::DECAY] = {
+        name : "Decay",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 2,
+        midiCCMapping : 16
+    };
+
+    params[CloudSeedModule::MOD_AMT] = {
         name : "Mod Amt",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 3,
         midiCCMapping : 17
-    },
-    {
+    };
+
+    params[CloudSeedModule::MOD_RATE] = {
         name : "Mod Rate",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 4,
         midiCCMapping : 18
-    },
-    {name : "Tone", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 5, midiCCMapping : 19},
-    {
+    };
+
+    params[CloudSeedModule::TONE] = {
+        name : "Tone",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 5,
+        midiCCMapping : 19
+    };
+
+    params[CloudSeedModule::PRESET] = {
         name : "Preset",
         valueType : ParameterValueType::Binned,
         valueBinCount : 8,
@@ -58,19 +84,44 @@ static ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 6},
         knobMapping : -1,
         midiCCMapping : 20
-    },
-    {name : "Sum2Mono", valueType : ParameterValueType::Bool, defaultValue : {.uint_value = 0}, knobMapping : -1, midiCCMapping : 21},
-    {name : "StereoIn", valueType : ParameterValueType::Bool, defaultValue : {.uint_value = 0}, knobMapping : -1, midiCCMapping : 22},
-    {
+    };
+
+    params[CloudSeedModule::SUM2MONO] = {
+        name : "Sum2Mono",
+        valueType : ParameterValueType::Bool,
+        defaultValue : {.uint_value = 0},
+        knobMapping : -1,
+        midiCCMapping : 21
+    };
+
+    params[CloudSeedModule::STEREO_IN] = {
+        name : "StereoIn",
+        valueType : ParameterValueType::Bool,
+        defaultValue : {.uint_value = 0},
+        knobMapping : -1,
+        midiCCMapping : 22
+    };
+
+    // "KnobsOverride(Presets)" - If true, current knob settings override the selected preset.
+    // If false, preset changes apply until a knob is moved.
+    params[CloudSeedModule::KNOBS_OVRD] = {
         name : "KnobsOvrd",
         valueType : ParameterValueType::Bool,
         defaultValue : {.uint_value = 0},
         knobMapping : -1,
         midiCCMapping : 23
-    }, // "KnobsOverride(Presets)" - Making this True always makes the knob settings override the preset settings. If false, changing
-      // the preset changes all settings until a knob is moved.
-    {name : "DryVolume", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : -1, midiCCMapping : 24}
-};
+    };
+
+    params[CloudSeedModule::DRY_VOLUME] = {
+        name : "DryVolume",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : -1,
+        midiCCMapping : 24
+    };
+
+    return params;
+}();
 
 // NOTES ABOUT THE CLOUDSEED PARAMETERS
 // 1. I changed the "Parameter" class to be "Parameter2" to deconflict with the DaisySP Parameter. Likely there was a much easier way
@@ -89,10 +140,10 @@ CloudSeedModule::CloudSeedModule() : BaseEffectModule(), m_gainMin(0.0f), m_gain
     m_name = "CloudSeed";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor
@@ -120,7 +171,7 @@ void CloudSeedModule::ParameterChanged(int parameter_id) // Somewhere here is ca
         // Change the preset and then override with current knob settings
         changePreset();
         if (GetParameterAsBool(
-                9)) { // If true, apply current knob settings over the chosen preset. If false, don't update until knob is moved.
+                KNOBS_OVRD)) { // If true, apply current knob settings over the chosen preset. If false, don't update until knob is moved.
             reverb->SetParameter(::Parameter2::PreDelay, GetParameterAsFloat(PRE_DELAY) * 0.95); // Was freezing pedal when set to 127
             reverb->SetParameter(::Parameter2::LineDecay, GetParameterAsFloat(DECAY));
             reverb->SetParameter(::Parameter2::LineModAmount, GetParameterAsFloat(MOD_AMT));
@@ -178,15 +229,15 @@ void CloudSeedModule::AlternateFootswitchPressed() {
         linearChangeDryLevel.activate(currentMix.dry, GetParameterAsFloat(DRY_VOLUME), linearChangeDryLevelSteps);
 
          // remap 'mix' knob to 'dry-volume' knob when wet-input is frozen
-        s_metaData[10].knobMapping = s_metaData[1].knobMapping;
-        s_metaData[1].knobMapping = -1;
+        s_metaData[DRY_VOLUME].knobMapping = s_metaData[MIX].knobMapping;
+        s_metaData[MIX].knobMapping = -1;
     } else {
         // Don't set dryMix immediately, let it ramp in ProcessStereo/ProcessMono
         linearChangeDryLevel.activate(currentMix.dry, CalculateMix(GetParameterAsFloat(MIX)).dry, linearChangeDryLevelSteps);
 
         // remap 'dry-volume' knob to 'mix' knob when wet-input is active
-        s_metaData[1].knobMapping = s_metaData[10].knobMapping;
-        s_metaData[10].knobMapping = -1;
+        s_metaData[MIX].knobMapping = s_metaData[DRY_VOLUME].knobMapping;
+        s_metaData[DRY_VOLUME].knobMapping = -1;
     }
 }
 

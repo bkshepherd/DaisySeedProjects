@@ -17,9 +17,6 @@ namespace bkshepherd {
 
 class GranularDelayModule : public BaseEffectModule {
   public:
-    GranularDelayModule();
-    ~GranularDelayModule();
-
     enum Param {
         SIZE = 0,
         MIX,
@@ -31,6 +28,8 @@ class GranularDelayModule : public BaseEffectModule {
         PARAM_COUNT
     };
 
+    GranularDelayModule();
+    ~GranularDelayModule();
 
     void Init(float sample_rate) override;
     void ParameterChanged(int parameter_id) override;

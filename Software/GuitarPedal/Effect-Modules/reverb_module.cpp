@@ -1,32 +1,40 @@
 #include "reverb_module.h"
+#include <array>
 
 using namespace bkshepherd;
 
-static constexpr int s_paramCount = ReverbModule::PARAM_COUNT;
-static const ParameterMetaData s_metaData[s_paramCount] = {{
-                                                               name : "Time",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 0.45f},
-                                                               knobMapping : 0,
-                                                               midiCCMapping : 1
-                                                           },
-                                                           {
-                                                               name : "Damp",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 0.3f},
-                                                               knobMapping : 1,
-                                                               midiCCMapping : 21
-                                                           },
-                                                           {
-                                                               name : "Mix",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 0.45f},
-                                                               knobMapping : 2,
-                                                               midiCCMapping : 22
-                                                           }};
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, ReverbModule::PARAM_COUNT> params{};
+
+    params[ReverbModule::TIME] = {
+        name : "Time",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 0.45f},
+        knobMapping : 0,
+        midiCCMapping : 1
+    };
+
+    params[ReverbModule::DAMP] = {
+        name : "Damp",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 0.3f},
+        knobMapping : 1,
+        midiCCMapping : 21
+    };
+
+    params[ReverbModule::MIX] = {
+        name : "Mix",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 0.45f},
+        knobMapping : 2,
+        midiCCMapping : 22
+    };
+
+    return params;
+}();
 
 ReverbSc DSY_SDRAM_BSS reverbStereo;
 // Default Constructor
@@ -38,10 +46,10 @@ ReverbModule::ReverbModule()
     m_name = "Reverb";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor

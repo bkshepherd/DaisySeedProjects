@@ -17,15 +17,14 @@ namespace bkshepherd {
 
 class IrModule : public BaseEffectModule {
   public:
-    IrModule();
-    ~IrModule();
-
     enum Param {
         IR = 0,
         LEVEL,
         PARAM_COUNT
     };
 
+    IrModule();
+    ~IrModule();
 
     void Init(float sample_rate) override;
     void ParameterChanged(int parameter_id) override;

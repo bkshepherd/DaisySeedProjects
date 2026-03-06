@@ -21,9 +21,6 @@ namespace bkshepherd {
 
 class SciFiModule : public BaseEffectModule {
   public:
-    SciFiModule();
-    ~SciFiModule();
-
     enum Param {
         DRY = 0,
         OCT_DOWN,
@@ -37,6 +34,8 @@ class SciFiModule : public BaseEffectModule {
         PARAM_COUNT
     };
 
+    SciFiModule();
+    ~SciFiModule();
 
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;

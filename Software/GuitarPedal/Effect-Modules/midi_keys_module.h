@@ -138,15 +138,14 @@ template <size_t max_voices> class VoiceManager {
 
 class MidiKeysModule : public BaseEffectModule {
   public:
-    MidiKeysModule();
-    ~MidiKeysModule();
-
     enum Param {
         CUTOFF_FREQ = 0,
         LEVEL,
         PARAM_COUNT
     };
 
+    MidiKeysModule();
+    ~MidiKeysModule();
 
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;

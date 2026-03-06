@@ -15,9 +15,6 @@ namespace bkshepherd {
 
 class ReverbModule : public BaseEffectModule {
   public:
-    ReverbModule();
-    ~ReverbModule();
-
     enum Param {
         TIME = 0,
         DAMP,
@@ -25,6 +22,8 @@ class ReverbModule : public BaseEffectModule {
         PARAM_COUNT
     };
 
+    ReverbModule();
+    ~ReverbModule();
 
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;

@@ -15,9 +15,6 @@ namespace bkshepherd {
 
 class NoiseGateModule : public BaseEffectModule {
   public:
-    NoiseGateModule();
-    ~NoiseGateModule();
-
     enum Param {
         THRESHOLD = 0,
         ATTACK_MS,
@@ -27,6 +24,8 @@ class NoiseGateModule : public BaseEffectModule {
         PARAM_COUNT
     };
 
+    NoiseGateModule();
+    ~NoiseGateModule();
 
     void Init(float sample_rate) override;
     void ParameterChanged(int parameter_id) override;

@@ -16,9 +16,6 @@ namespace bkshepherd {
 
 class DrumModule : public BaseEffectModule {
   public:
-    DrumModule();
-    ~DrumModule();
-
     enum Param {
         LEVEL = 0,
         VOICE,
@@ -33,6 +30,8 @@ class DrumModule : public BaseEffectModule {
         PARAM_COUNT
     };
 
+    DrumModule();
+    ~DrumModule();
 
     void Init(float sample_rate) override;
     void ParameterChanged(int parameter_id) override;

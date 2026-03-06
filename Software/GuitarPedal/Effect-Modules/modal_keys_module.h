@@ -16,9 +16,6 @@ namespace bkshepherd {
 
 class ModalKeysModule : public BaseEffectModule {
   public:
-    ModalKeysModule();
-    ~ModalKeysModule();
-
     enum Param {
         STRUCTURE = 0,
         BRIGHTNESS,
@@ -27,6 +24,8 @@ class ModalKeysModule : public BaseEffectModule {
         PARAM_COUNT
     };
 
+    ModalKeysModule();
+    ~ModalKeysModule();
 
     void Init(float sample_rate) override;
     void ParameterChanged(int parameter_id) override;

@@ -15,9 +15,6 @@ namespace bkshepherd {
 
 class MultiDelayModule : public BaseEffectModule {
   public:
-    MultiDelayModule();
-    ~MultiDelayModule();
-
     enum Param {
         WET = 0,
         DELAY_L_MS,
@@ -35,6 +32,8 @@ class MultiDelayModule : public BaseEffectModule {
         PARAM_COUNT
     };
 
+    MultiDelayModule();
+    ~MultiDelayModule();
 
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;

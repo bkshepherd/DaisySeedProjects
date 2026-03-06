@@ -1,5 +1,6 @@
 #include "delay_module.h"
 #include "../Util/audio_utilities.h"
+#include <array>
 
 using namespace bkshepherd;
 
@@ -17,34 +18,37 @@ DelayLineReverse<float, MAX_DELAY_REV> DSY_SDRAM_BSS delayLineRevLeft;
 DelayLineReverse<float, MAX_DELAY_REV> DSY_SDRAM_BSS delayLineRevRight;
 DelayLine<float, MAX_DELAY_SPREAD> DSY_SDRAM_BSS delayLineSpread;
 
-static constexpr int s_paramCount = DelayModule::PARAM_COUNT; // TODO: TEST STARTING WITH THE EXTREMES OF ALL PARAMETERS (high and low, this is where errors tend to occur)
-static const ParameterMetaData s_metaData[s_paramCount] = {
-    {
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, DelayModule::PARAM_COUNT> params{};
+
+    params[DelayModule::DELAY_TIME] = {
         name : "Delay Time",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 0,
         midiCCMapping : 14
-    }, // mod
-    {
+    };
+
+    params[DelayModule::D_FEEDBACK] = {
         name : "D Feedback",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 1,
         midiCCMapping : 15
-    },
-    {
+    };
+
+    params[DelayModule::DELAY_MIX] = {
         name : "Delay Mix",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 2,
         midiCCMapping : 16
-    },
+    };
 
-    {
+    params[DelayModule::DELAY_MODE] = {
         name : "Delay Mode",
         valueType : ParameterValueType::Binned,
         valueBinCount : 3,
@@ -52,8 +56,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : 3,
         midiCCMapping : 17
-    },
-    {
+    };
+
+    params[DelayModule::DELAY_TYPE] = {
         name : "Delay Type",
         valueType : ParameterValueType::Binned,
         valueBinCount : 6,
@@ -61,42 +66,45 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : 4,
         midiCCMapping : 18
-    },
+    };
 
-    {
+    params[DelayModule::DELAY_LPF] = {
         name : "Delay LPF",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 5,
         midiCCMapping : 19
-    }, // mod
-    {
+    };
+
+    params[DelayModule::D_SPREAD] = {
         name : "D Spread",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : -1,
         midiCCMapping : 20
-    },
+    };
 
-    {
+    params[DelayModule::MOD_AMT] = {
         name : "Mod Amt",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : -1,
         midiCCMapping : 21
-    },
-    {
+    };
+
+    params[DelayModule::MOD_RATE] = {
         name : "Mod Rate",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : -1,
         midiCCMapping : 22
-    },
-    {
+    };
+
+    params[DelayModule::MOD_PARAM] = {
         name : "Mod Param",
         valueType : ParameterValueType::Binned,
         valueBinCount : 4,
@@ -104,8 +112,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : -1,
         midiCCMapping : 23
-    },
-    {
+    };
+
+    params[DelayModule::MOD_WAVE] = {
         name : "Mod Wave",
         valueType : ParameterValueType::Binned,
         valueBinCount : 6,
@@ -113,12 +122,18 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : -1,
         midiCCMapping : 24
-    },
-    {name : "Sync Mod F",
-     valueType : ParameterValueType::Bool,
-     defaultValue : {.uint_value = 0},
-     knobMapping : -1,
-     midiCCMapping : 25}};
+    };
+
+    params[DelayModule::SYNC_MOD_F] = {
+        name : "Sync Mod F",
+        valueType : ParameterValueType::Bool,
+        defaultValue : {.uint_value = 0},
+        knobMapping : -1,
+        midiCCMapping : 25
+    };
+
+    return params;
+}();
 
 // Default Constructor
 DelayModule::DelayModule()
@@ -129,10 +144,10 @@ DelayModule::DelayModule()
     m_name = "Delay";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor

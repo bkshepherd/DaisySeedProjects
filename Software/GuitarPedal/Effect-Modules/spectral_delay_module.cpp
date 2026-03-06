@@ -1,7 +1,9 @@
 #include "spectral_delay_module.h"
 #include "../Util/audio_utilities.h"
+#include <array>
 
 using namespace bkshepherd;
+
 using namespace soundmath;
 
 #define PI 3.1415926535897932384626433832795
@@ -98,12 +100,34 @@ inline void spectraldelay(const float *in, float *out) {
 static const char *s_timeMode[5] = {"Random", "Sine", "LinearUp", "LinearDn", "Const"};
 static const char *s_fdbkMode[5] = {"Random", "Sine", "LinearUp", "LinearDn", "Const"};
 
-static constexpr int s_paramCount = SpectralDelayModule::PARAM_COUNT;
-static const ParameterMetaData s_metaData[s_paramCount] = {
-    {name : "Mix", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 0, midiCCMapping : 14},
-    {name : "Time", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 1, midiCCMapping : 15},
-    {name : "FDBK", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 2, midiCCMapping : 16},
-    {
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, SpectralDelayModule::PARAM_COUNT> params{};
+
+    params[SpectralDelayModule::MIX] = {
+        name : "Mix",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 0,
+        midiCCMapping : 14
+    };
+
+    params[SpectralDelayModule::TIME] = {
+        name : "Time",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 1,
+        midiCCMapping : 15
+    };
+
+    params[SpectralDelayModule::FDBK] = {
+        name : "FDBK",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 2,
+        midiCCMapping : 16
+    };
+
+    params[SpectralDelayModule::TIME_MODE] = {
         name : "TimeMode",
         valueType : ParameterValueType::Binned,
         valueBinCount : 5,
@@ -111,8 +135,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : 3,
         midiCCMapping : 17
-    },
-    {
+    };
+
+    params[SpectralDelayModule::FDBK_MODE] = {
         name : "FDBK Mode",
         valueType : ParameterValueType::Binned,
         valueBinCount : 5,
@@ -120,9 +145,18 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : 4,
         midiCCMapping : 18
-    },
-    {name : "Tone", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.0f}, knobMapping : 5, midiCCMapping : 19},
-};
+    };
+
+    params[SpectralDelayModule::TONE] = {
+        name : "Tone",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.0f},
+        knobMapping : 5,
+        midiCCMapping : 19
+    };
+
+    return params;
+}();
 
 // Default Constructor
 SpectralDelayModule::SpectralDelayModule() : BaseEffectModule(), m_cachedEffectMagnitudeValue(1.0f) {
@@ -130,10 +164,10 @@ SpectralDelayModule::SpectralDelayModule() : BaseEffectModule(), m_cachedEffectM
     m_name = "SpctDelay";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor

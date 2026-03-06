@@ -32,9 +32,6 @@ namespace bkshepherd {
 
 class SpectralDelayModule : public BaseEffectModule {
   public:
-    SpectralDelayModule();
-    ~SpectralDelayModule();
-
     enum Param {
         MIX = 0,
         TIME,
@@ -45,6 +42,8 @@ class SpectralDelayModule : public BaseEffectModule {
         PARAM_COUNT
     };
 
+    SpectralDelayModule();
+    ~SpectralDelayModule();
 
     void Init(float sample_rate) override;
     void ParameterChanged(int parameter_id) override;

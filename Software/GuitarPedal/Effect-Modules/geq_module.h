@@ -14,9 +14,6 @@ namespace bkshepherd {
 
 class GraphicEQModule : public BaseEffectModule {
   public:
-    GraphicEQModule();
-    ~GraphicEQModule();
-
     enum Param {
         BAND_100 = 0,
         BAND_200,
@@ -27,6 +24,8 @@ class GraphicEQModule : public BaseEffectModule {
         PARAM_COUNT
     };
 
+    GraphicEQModule();
+    ~GraphicEQModule();
 
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;

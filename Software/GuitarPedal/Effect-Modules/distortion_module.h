@@ -17,9 +17,6 @@ namespace bkshepherd {
 
 class DistortionModule : public BaseEffectModule {
   public:
-    DistortionModule();
-    ~DistortionModule();
-
     enum Param {
         LEVEL = 0,
         GAIN,
@@ -30,6 +27,8 @@ class DistortionModule : public BaseEffectModule {
         PARAM_COUNT
     };
 
+    DistortionModule();
+    ~DistortionModule();
 
     void Init(float sample_rate) override;
     void ParameterChanged(int parameter_id) override;

@@ -1,41 +1,50 @@
 #include "chopper_module.h"
 #include "../Util/audio_utilities.h"
+#include <array>
 
 using namespace bkshepherd;
 
-static constexpr int s_paramCount = ChopperModule::PARAM_COUNT;
-static const ParameterMetaData s_metaData[s_paramCount] = {{
-                                                               name : "Wet",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 0.5f},
-                                                               knobMapping : 0,
-                                                               midiCCMapping : 20
-                                                           },
-                                                           {
-                                                               name : "Tempo",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 0.5f},
-                                                               knobMapping : 1,
-                                                               midiCCMapping : 23
-                                                           },
-                                                           {
-                                                               name : "Duty",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 0.25f},
-                                                               knobMapping : 2,
-                                                               midiCCMapping : 24
-                                                           },
-                                                           {
-                                                               name : "Pattern",
-                                                               valueType : ParameterValueType::Binned,
-                                                               valueBinCount : 14,
-                                                               defaultValue : {.uint_value = 0},
-                                                               knobMapping : 3,
-                                                               midiCCMapping : 25
-                                                           }};
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, ChopperModule::PARAM_COUNT> params{};
+
+    params[ChopperModule::WET] = {
+        name : "Wet",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 0,
+        midiCCMapping : 20
+    };
+
+    params[ChopperModule::TEMPO] = {
+        name : "Tempo",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 1,
+        midiCCMapping : 23
+    };
+
+    params[ChopperModule::DUTY] = {
+        name : "Duty",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 0.25f},
+        knobMapping : 2,
+        midiCCMapping : 24
+    };
+
+    params[ChopperModule::PATTERN] = {
+        name : "Pattern",
+        valueType : ParameterValueType::Binned,
+        valueBinCount : 14,
+        defaultValue : {.uint_value = 0},
+        knobMapping : 3,
+        midiCCMapping : 25
+    };
+
+    return params;
+}();
 
 // Default Constructor
 ChopperModule::ChopperModule()
@@ -47,10 +56,10 @@ ChopperModule::ChopperModule()
     m_name = "Chopper";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor

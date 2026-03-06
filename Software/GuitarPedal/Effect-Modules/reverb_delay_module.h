@@ -115,9 +115,6 @@ namespace bkshepherd {
 
 class ReverbDelayModule : public BaseEffectModule {
   public:
-    ReverbDelayModule();
-    ~ReverbDelayModule();
-
     enum Param {
         DELAY_TIME = 0,
         D_FEEDBACK,
@@ -140,6 +137,8 @@ class ReverbDelayModule : public BaseEffectModule {
         PARAM_COUNT
     };
 
+    ReverbDelayModule();
+    ~ReverbDelayModule();
 
     void Init(float sample_rate) override;
     void UpdateLEDRate();

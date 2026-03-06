@@ -13,9 +13,6 @@ namespace bkshepherd {
 
 class NamModule : public BaseEffectModule {
   public:
-    NamModule();
-    ~NamModule();
-
     enum Param {
         GAIN = 0,
         LEVEL,
@@ -28,6 +25,8 @@ class NamModule : public BaseEffectModule {
         PARAM_COUNT
     };
 
+    NamModule();
+    ~NamModule();
 
     void Init(float sample_rate) override;
     void ParameterChanged(int parameter_id) override;

@@ -16,9 +16,6 @@ namespace bkshepherd {
 
 class ChopperModule : public BaseEffectModule {
   public:
-    ChopperModule();
-    ~ChopperModule();
-
     enum Param {
         WET = 0,
         TEMPO,
@@ -27,6 +24,8 @@ class ChopperModule : public BaseEffectModule {
         PARAM_COUNT
     };
 
+    ChopperModule();
+    ~ChopperModule();
 
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;

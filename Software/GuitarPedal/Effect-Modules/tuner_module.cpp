@@ -1,4 +1,5 @@
 #include "tuner_module.h"
+#include <array>
 
 #include "../Util/frequency_detector_q.h"
 
@@ -9,18 +10,27 @@ using namespace daisysp;
 
 const char k_notes[12][3] = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
 
-static constexpr int s_paramCount = TunerModule::PARAM_COUNT;
-static const ParameterMetaData s_metaData[s_paramCount] = {
-    {name : "Mute", valueType : ParameterValueType::Bool, defaultValue : {.uint_value = 1}, knobMapping : 0, midiCCMapping : -1},
-};
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, TunerModule::PARAM_COUNT> params{};
+
+    params[TunerModule::MUTE] = {
+        name : "Mute",
+        valueType : ParameterValueType::Bool,
+        defaultValue : {.uint_value = 1},
+        knobMapping : 0,
+        midiCCMapping : -1
+    };
+
+    return params;
+}();
 
 // Default Constructor
 TunerModule::TunerModule() : BaseEffectModule() {
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 
     m_name = "Tuner";
 

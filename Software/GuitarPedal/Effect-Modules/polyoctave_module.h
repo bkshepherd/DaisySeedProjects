@@ -19,9 +19,6 @@ namespace bkshepherd {
 
 class PolyOctaveModule : public BaseEffectModule {
   public:
-    PolyOctaveModule();
-    ~PolyOctaveModule();
-
     enum Param {
         DRY = 0,
         TWO_OCT_DOWN,
@@ -30,6 +27,8 @@ class PolyOctaveModule : public BaseEffectModule {
         PARAM_COUNT
     };
 
+    PolyOctaveModule();
+    ~PolyOctaveModule();
 
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;

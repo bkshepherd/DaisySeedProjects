@@ -15,9 +15,6 @@ namespace bkshepherd {
 
 class ModulatedTremoloModule : public BaseEffectModule {
   public:
-    ModulatedTremoloModule();
-    ~ModulatedTremoloModule();
-
     enum Param {
         WAVE = 0,
         DEPTH,
@@ -27,6 +24,8 @@ class ModulatedTremoloModule : public BaseEffectModule {
         PARAM_COUNT
     };
 
+    ModulatedTremoloModule();
+    ~ModulatedTremoloModule();
 
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;

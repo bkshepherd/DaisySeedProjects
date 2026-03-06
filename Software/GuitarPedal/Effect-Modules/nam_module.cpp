@@ -4,6 +4,7 @@
 #include "Nam/model_data_nam.h"
 #include <RTNeural/RTNeural.h>
 #include <q/fx/biquad.hpp>
+#include <array>
 
 using namespace bkshepherd;
 
@@ -39,18 +40,27 @@ struct NAMMathsProvider {
 #endif
 };
 
-static constexpr int s_paramCount = NamModule::PARAM_COUNT;
-static const ParameterMetaData s_metaData[s_paramCount] = {
-    {
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, NamModule::PARAM_COUNT> params{};
+
+    params[NamModule::GAIN] = {
         name : "Gain",
         valueType : ParameterValueType::Float,
         valueCurve : ParameterValueCurve::Log,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 0,
         midiCCMapping : 14,
-    },
-    {name : "Level", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 1, midiCCMapping : 15},
-    {
+    };
+
+    params[NamModule::LEVEL] = {
+        name : "Level",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 1,
+        midiCCMapping : 15
+    };
+
+    params[NamModule::MODEL] = {
         name : "Model",
         valueType : ParameterValueType::Binned,
         valueBinCount : k_numModels,
@@ -58,8 +68,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : 2,
         midiCCMapping : 16
-    },
-    {
+    };
+
+    params[NamModule::BASS] = {
         name : "Bass",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
@@ -68,8 +79,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         midiCCMapping : 17,
         minValue : static_cast<int>(minGain),
         maxValue : static_cast<int>(maxGain)
-    },
-    {
+    };
+
+    params[NamModule::MID] = {
         name : "Mid",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
@@ -78,8 +90,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         midiCCMapping : 18,
         minValue : static_cast<int>(minGain),
         maxValue : static_cast<int>(maxGain)
-    },
-    {
+    };
+
+    params[NamModule::TREBLE] = {
         name : "Treble",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
@@ -88,25 +101,28 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         midiCCMapping : 19,
         minValue : static_cast<int>(minGain),
         maxValue : static_cast<int>(maxGain)
-    },
-    {
+    };
+
+    params[NamModule::NEURAL_MODEL] = {
         name : "NeuralModel",
         valueType : ParameterValueType::Bool,
         valueBinCount : 0,
         defaultValue : {.uint_value = 1},
         knobMapping : -1,
         midiCCMapping : 20
-    },
-    {
+    };
+
+    params[NamModule::EQ] = {
         name : "EQ",
         valueType : ParameterValueType::Bool,
         valueBinCount : 0,
         defaultValue : {.uint_value = 1},
         knobMapping : -1,
         midiCCMapping : 21
-    },
+    };
 
-};
+    return params;
+}();
 
 // NOTE NAM Standard arch?
 /*
@@ -138,10 +154,10 @@ NamModule::NamModule()
     m_name = "NAM";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor

@@ -14,9 +14,6 @@ namespace bkshepherd {
 
 class ParametricEQModule : public BaseEffectModule {
   public:
-    ParametricEQModule();
-    ~ParametricEQModule();
-
     enum Param {
         LOW_FREQ = 0,
         MID_FREQ,
@@ -30,6 +27,8 @@ class ParametricEQModule : public BaseEffectModule {
         PARAM_COUNT
     };
 
+    ParametricEQModule();
+    ~ParametricEQModule();
 
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;

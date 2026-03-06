@@ -16,9 +16,6 @@ namespace bkshepherd {
 
 class StringKeysModule : public BaseEffectModule {
   public:
-    StringKeysModule();
-    ~StringKeysModule();
-
     enum Param {
         STRUCTURE = 0,
         BRIGHTNESS,
@@ -27,6 +24,8 @@ class StringKeysModule : public BaseEffectModule {
         PARAM_COUNT
     };
 
+    StringKeysModule();
+    ~StringKeysModule();
 
     void Init(float sample_rate) override;
     void ParameterChanged(int parameter_id) override;

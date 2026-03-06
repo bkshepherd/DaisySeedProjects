@@ -1,14 +1,16 @@
 #include "ir_module.h"
 #include "../Util/audio_utilities.h"
 #include "ImpulseResponse/ir_data_large.h"
+#include <array>
 
 using namespace bkshepherd;
 
 static const char *s_irNames_large[2] = {"Rhythm", "Lead"};
 
-static constexpr int s_paramCount = IrModule::PARAM_COUNT;
-static const ParameterMetaData s_metaData[s_paramCount] = {
-    {
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, IrModule::PARAM_COUNT> params{};
+
+    params[IrModule::IR] = {
         name : "IR",
         valueType : ParameterValueType::Binned,
         valueBinCount : 2,
@@ -16,11 +18,18 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : 0,
         midiCCMapping : 14
-    },
+    };
 
-    {name : "Level", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 1, midiCCMapping : 15},
+    params[IrModule::LEVEL] = {
+        name : "Level",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 1,
+        midiCCMapping : 15
+    };
 
-};
+    return params;
+}();
 
 // Default Constructor
 IrModule::IrModule() : BaseEffectModule(), m_levelMin(0.0f), m_levelMax(2.0f), m_cachedEffectMagnitudeValue(1.0f) {
@@ -28,10 +37,10 @@ IrModule::IrModule() : BaseEffectModule(), m_levelMin(0.0f), m_levelMax(2.0f), m
     m_name = "IR";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor

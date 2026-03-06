@@ -61,9 +61,6 @@ enum TimeSignature { meter4x4 = 0, meter3x4 = 1, meter2x4 = 2 };
 
 class MetroModule : public BaseEffectModule {
   public:
-    MetroModule();
-    ~MetroModule();
-
     enum Param {
         TEMPO = 0,
         MIX,
@@ -71,6 +68,8 @@ class MetroModule : public BaseEffectModule {
         PARAM_COUNT
     };
 
+    MetroModule();
+    ~MetroModule();
 
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;

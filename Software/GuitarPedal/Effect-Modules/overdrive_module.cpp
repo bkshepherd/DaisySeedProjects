@@ -1,24 +1,31 @@
 #include "overdrive_module.h"
+#include <array>
 
 using namespace bkshepherd;
 
-static constexpr int s_paramCount = OverdriveModule::PARAM_COUNT;
-static const ParameterMetaData s_metaData[s_paramCount] = {{
-                                                               name : "Drive",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 0.45f},
-                                                               knobMapping : 1,
-                                                               midiCCMapping : 1
-                                                           },
-                                                           {
-                                                               name : "Level",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 0.3f},
-                                                               knobMapping : 0,
-                                                               midiCCMapping : 21
-                                                           }};
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, OverdriveModule::PARAM_COUNT> params{};
+
+    params[OverdriveModule::DRIVE] = {
+        name : "Drive",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 0.45f},
+        knobMapping : 1,
+        midiCCMapping : 1
+    };
+
+    params[OverdriveModule::LEVEL] = {
+        name : "Level",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 0.3f},
+        knobMapping : 0,
+        midiCCMapping : 21
+    };
+
+    return params;
+}();
 
 // Default Constructor
 OverdriveModule::OverdriveModule()
@@ -29,10 +36,10 @@ OverdriveModule::OverdriveModule()
     m_name = "Overdrive";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor

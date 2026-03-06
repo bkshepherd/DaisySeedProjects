@@ -18,9 +18,6 @@ namespace bkshepherd {
 
 class AmpModule : public BaseEffectModule {
   public:
-    AmpModule();
-    ~AmpModule();
-
     enum Param {
         GAIN = 0,
         MIX,
@@ -33,6 +30,8 @@ class AmpModule : public BaseEffectModule {
         PARAM_COUNT
     };
 
+    AmpModule();
+    ~AmpModule();
 
     void Init(float sample_rate) override;
     void ParameterChanged(int parameter_id) override;

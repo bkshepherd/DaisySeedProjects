@@ -1,48 +1,58 @@
 #include "chorus_module.h"
+#include <array>
 
 using namespace bkshepherd;
 
-static constexpr int s_paramCount = ChorusModule::PARAM_COUNT;
-static const ParameterMetaData s_metaData[s_paramCount] = {{
-                                                               name : "Wet",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 0.65f},
-                                                               knobMapping : 0,
-                                                               midiCCMapping : 20
-                                                           },
-                                                           {
-                                                               name : "Delay",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 0.5f},
-                                                               knobMapping : 1,
-                                                               midiCCMapping : 21
-                                                           },
-                                                           {
-                                                               name : "LFO Freq",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 0.25f},
-                                                               knobMapping : 2,
-                                                               midiCCMapping : 22
-                                                           },
-                                                           {
-                                                               name : "LFO Depth",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 0.3f},
-                                                               knobMapping : 3,
-                                                               midiCCMapping : 23
-                                                           },
-                                                           {
-                                                               name : "Feedback",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 0.25f},
-                                                               knobMapping : 4,
-                                                               midiCCMapping : 24
-                                                           }};
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, ChorusModule::PARAM_COUNT> params{};
+
+    params[ChorusModule::WET] = {
+        name : "Wet",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 0.65f},
+        knobMapping : 0,
+        midiCCMapping : 20
+    };
+
+    params[ChorusModule::DELAY] = {
+        name : "Delay",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 1,
+        midiCCMapping : 21
+    };
+
+    params[ChorusModule::LFO_FREQ] = {
+        name : "LFO Freq",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 0.25f},
+        knobMapping : 2,
+        midiCCMapping : 22
+    };
+
+    params[ChorusModule::LFO_DEPTH] = {
+        name : "LFO Depth",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 0.3f},
+        knobMapping : 3,
+        midiCCMapping : 23
+    };
+
+    params[ChorusModule::FEEDBACK] = {
+        name : "Feedback",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 0.25f},
+        knobMapping : 4,
+        midiCCMapping : 24
+    };
+
+    return params;
+}();
 
 // Default Constructor
 ChorusModule::ChorusModule()
@@ -53,10 +63,10 @@ ChorusModule::ChorusModule()
     m_name = "Chorus";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor

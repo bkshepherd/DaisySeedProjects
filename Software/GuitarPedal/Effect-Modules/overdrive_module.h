@@ -15,15 +15,14 @@ namespace bkshepherd {
 
 class OverdriveModule : public BaseEffectModule {
   public:
-    OverdriveModule();
-    ~OverdriveModule();
-
     enum Param {
         DRIVE = 0,
         LEVEL,
         PARAM_COUNT
     };
 
+    OverdriveModule();
+    ~OverdriveModule();
 
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;

@@ -18,9 +18,6 @@ namespace bkshepherd {
 
 class PluckEchoModule : public BaseEffectModule {
   public:
-    PluckEchoModule();
-    ~PluckEchoModule();
-
     enum Param {
         STRING_DECAY = 0,
         DELAY_TIME,
@@ -29,6 +26,8 @@ class PluckEchoModule : public BaseEffectModule {
         PARAM_COUNT
     };
 
+    PluckEchoModule();
+    ~PluckEchoModule();
 
     void Init(float sample_rate) override;
     void ParameterChanged(int parameter_id) override;
