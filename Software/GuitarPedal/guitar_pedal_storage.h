@@ -3,7 +3,8 @@
 #define GUITAR_PEDAL_STORAGE_H
 
 // Persistent Storage Settings
-#define SETTINGS_FILE_FORMAT_VERSION 8
+// Increment this when the Settings struct layout changes.
+#define SETTINGS_FILE_FORMAT_VERSION 9
 
 // Arbitrarily limiting this to 4KB of stored presets since this sits in DTCMRAM which is limited to 128KB.
 // TODO: In the future it would be better if this worked with the QSPI directly instead of using
@@ -15,6 +16,7 @@
 // Save System Variables
 struct Settings {
     int fileFormatVersion;
+    uint32_t globalEffectsLayoutHash;
     int globalActiveEffectID;
     bool globalMidiEnabled;
     bool globalMidiThrough;
@@ -29,7 +31,8 @@ struct Settings {
     uint32_t globalEffectsSettings[SETTINGS_ABSOLUTE_MAX_PARAM_COUNT];
 
     bool operator==(const Settings &rhs) {
-        if (fileFormatVersion != rhs.fileFormatVersion || globalActiveEffectID != rhs.globalActiveEffectID ||
+        if (fileFormatVersion != rhs.fileFormatVersion || globalEffectsLayoutHash != rhs.globalEffectsLayoutHash ||
+            globalActiveEffectID != rhs.globalActiveEffectID ||
             globalMidiEnabled != rhs.globalMidiEnabled || globalMidiThrough != rhs.globalMidiThrough ||
             globalMidiChannel != rhs.globalMidiChannel || globalRelayBypassEnabled != rhs.globalRelayBypassEnabled ||
             globalSplitMonoInputToStereo != rhs.globalSplitMonoInputToStereo) {

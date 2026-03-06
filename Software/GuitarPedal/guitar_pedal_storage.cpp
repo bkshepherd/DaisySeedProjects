@@ -9,6 +9,40 @@ extern BaseEffectModule **availableEffects;
 extern int activeEffectID;
 extern BaseEffectModule *activeEffect;
 
+// 32-bit FNV-1a constants used to fingerprint the effect layout.
+static constexpr uint32_t offset_basis = 2166136261u;
+static constexpr uint32_t FNV_prime = 16777619u;
+
+static inline uint32_t HashLayoutValue(uint32_t hash, uint32_t value) {
+    // One FNV-1a round: xor in the new value, then multiply by FNV prime.
+    return (hash ^ value) * FNV_prime;
+}
+
+static uint32_t ComputeCurrentEffectsLayoutHash() {
+    // Build a compact fingerprint of the *current* effect layout.
+    // If effect list/order/param types change, this hash changes too.
+    uint32_t hash = offset_basis;
+    hash = HashLayoutValue(hash, static_cast<uint32_t>(availableEffectsCount));
+
+    for (int effectID = 0; effectID < availableEffectsCount; effectID++) {
+        const char *effectName = availableEffects[effectID]->GetName();
+        while (*effectName != '\0') {
+            hash = HashLayoutValue(hash, static_cast<uint32_t>(static_cast<unsigned char>(*effectName)));
+            ++effectName;
+        }
+        hash = HashLayoutValue(hash, 0xffU);
+
+        const uint32_t paramCount = static_cast<uint32_t>(availableEffects[effectID]->GetParameterCount());
+        hash = HashLayoutValue(hash, paramCount);
+
+        for (uint32_t paramID = 0; paramID < paramCount; paramID++) {
+            hash = HashLayoutValue(hash, static_cast<uint32_t>(availableEffects[effectID]->GetParameterType(paramID)));
+        }
+    }
+
+    return hash;
+}
+
 uint32_t GetDefaultTotalIdxOfGlobalSettingsBlock() {
     uint32_t tempSize = 0;
 
@@ -22,6 +56,7 @@ uint32_t GetDefaultTotalIdxOfGlobalSettingsBlock() {
 void InitPersistantStorage() {
     Settings defaultSettings;
     defaultSettings.fileFormatVersion = SETTINGS_FILE_FORMAT_VERSION;
+    defaultSettings.globalEffectsLayoutHash = ComputeCurrentEffectsLayoutHash();
     defaultSettings.globalActiveEffectID = 0;
     defaultSettings.globalMidiEnabled = true;
     defaultSettings.globalMidiChannel = 1;
@@ -70,8 +105,9 @@ void InitPersistantStorage() {
 
     Settings &settings = storage.GetSettings();
 
-    // If the stored data is not the current version do a factory reset
-    if (settings.fileFormatVersion != SETTINGS_FILE_FORMAT_VERSION) {
+    // Reset defaults if persisted data does not match the current storage schema/layout.
+    if (settings.fileFormatVersion != SETTINGS_FILE_FORMAT_VERSION ||
+        settings.globalEffectsLayoutHash != defaultSettings.globalEffectsLayoutHash) {
         storage.RestoreDefaults();
     }
 
@@ -278,7 +314,7 @@ void SetSettingsParameterValueForEffect(int effectID, int paramID, uint32_t para
     if (effectID < 0 || effectID > availableEffectsCount - 1 || paramID < 0) {
         return;
     }
-    if (paramID > availableEffects[effectID]->GetParameterCount()) {
+    if (paramID >= availableEffects[effectID]->GetParameterCount()) {
         return;
     }
 
