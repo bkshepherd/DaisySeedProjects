@@ -3,7 +3,6 @@
 #define GUITAR_PEDAL_STORAGE_H
 
 // Persistent Storage Settings
-// Increment this when the Settings struct layout changes.
 #define SETTINGS_FILE_FORMAT_VERSION 9
 
 // Arbitrarily limiting this to 4KB of stored presets since this sits in DTCMRAM which is limited to 128KB.
