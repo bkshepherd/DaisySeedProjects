@@ -6,6 +6,23 @@ constexpr uint8_t NUM_FILTERS = bkshepherd::GraphicEQModule::PARAM_COUNT;
 
 using namespace bkshepherd;
 
+namespace {
+const float minGain = -15.f;
+const float maxGain = 15.f;
+
+const float centerFrequency[NUM_FILTERS] = {100.f, 200.f, 400.f, 800.f, 1600.f, 3200.f};
+const float q[NUM_FILTERS] = {0.7f, 0.8f, 1.1f, 1.4f, 1.6f, 1.8f};
+
+cycfi::q::peaking filter[NUM_FILTERS] = {
+    {0, centerFrequency[0], 48000, q[0]},
+    {0, centerFrequency[1], 48000, q[1]},
+    {0, centerFrequency[2], 48000, q[2]},
+    {0, centerFrequency[3], 48000, q[3]},
+    {0, centerFrequency[4], 48000, q[4]},
+    {0, centerFrequency[5], 48000, q[5]},
+};
+} // namespace
+
 static const auto s_metaData = [] {
     std::array<ParameterMetaData, GraphicEQModule::PARAM_COUNT> params{};
 
