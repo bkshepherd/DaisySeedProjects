@@ -18,6 +18,14 @@ namespace bkshepherd {
 
 class PluckEchoModule : public BaseEffectModule {
   public:
+    enum Param {
+        STRING_DECAY = 0,
+        DELAY_TIME,
+        DELAY_FDBK,
+        LEVEL,
+        PARAM_COUNT
+    };
+
     PluckEchoModule();
     ~PluckEchoModule();
 

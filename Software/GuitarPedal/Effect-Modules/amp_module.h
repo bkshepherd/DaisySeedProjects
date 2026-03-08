@@ -18,6 +18,18 @@ namespace bkshepherd {
 
 class AmpModule : public BaseEffectModule {
   public:
+    enum Param {
+        GAIN = 0,
+        MIX,
+        LEVEL,
+        TONE,
+        MODEL,
+        IR,
+        NEURAL_MODEL,
+        IR_ON,
+        PARAM_COUNT
+    };
+
     AmpModule();
     ~AmpModule();
 

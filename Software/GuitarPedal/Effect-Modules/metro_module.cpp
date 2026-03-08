@@ -1,5 +1,6 @@
 #include "metro_module.h"
 #include "../Util/audio_utilities.h"
+#include <array>
 
 using namespace bkshepherd;
 
@@ -50,34 +51,41 @@ static const uint16_t TimeSignatureBase[3] = {4, 3, 2};
 constexpr uint32_t minTempo = 35;
 constexpr uint32_t maxTempo = 250;
 
-static const int s_paramCount = 3;
-static const ParameterMetaData s_metaData[s_paramCount] = {{
-                                                               name : "Tempo",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 165.f},
-                                                               knobMapping : 0,
-                                                               midiCCMapping : 23,
-                                                               minValue : minTempo,
-                                                               maxValue : maxTempo
-                                                           },
-                                                           {
-                                                               name : "Mix",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 0.08f},
-                                                               knobMapping : 1,
-                                                               midiCCMapping : 21
-                                                           },
-                                                           {
-                                                               name : "Meter",
-                                                               valueType : ParameterValueType::Binned,
-                                                               valueBinCount : 3,
-                                                               valueBinNames : TimeSignatureLabels,
-                                                               defaultValue : {.uint_value = 0},
-                                                               knobMapping : 2,
-                                                               midiCCMapping : -1
-                                                           }};
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, MetroModule::PARAM_COUNT> params{};
+
+    params[MetroModule::TEMPO] = {
+        name : "Tempo",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 165.f},
+        knobMapping : 0,
+        midiCCMapping : 23,
+        minValue : minTempo,
+        maxValue : maxTempo
+    };
+
+    params[MetroModule::MIX] = {
+        name : "Mix",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 0.08f},
+        knobMapping : 1,
+        midiCCMapping : 21
+    };
+
+    params[MetroModule::METER] = {
+        name : "Meter",
+        valueType : ParameterValueType::Binned,
+        valueBinCount : 3,
+        valueBinNames : TimeSignatureLabels,
+        defaultValue : {.uint_value = 0},
+        knobMapping : 2,
+        midiCCMapping : -1
+    };
+
+    return params;
+}();
 
 // Default Constructor
 MetroModule::MetroModule() : BaseEffectModule(), m_levelMin(0.0f), m_levelMax(1.0f) {
@@ -85,10 +93,10 @@ MetroModule::MetroModule() : BaseEffectModule(), m_levelMin(0.0f), m_levelMax(1.
     m_name = "Metronome";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor
@@ -117,21 +125,21 @@ void MetroModule::Init(float sample_rate) {
     m_env.SetSustainLevel(.5);
 
     // Set metronome
-    m_bpm = static_cast<uint32_t>(GetParameterAsFloat(0));
+    m_bpm = static_cast<uint32_t>(GetParameterAsFloat(TEMPO));
     const float freq = tempo_to_freq(m_bpm);
     m_metro.Init(freq, sample_rate);
 }
 
 void MetroModule::ParameterChanged(int parameter_id) {
-    if (parameter_id == 0) {
-        m_bpm = static_cast<uint32_t>(GetParameterAsFloat(0));
+    if (parameter_id == TEMPO) {
+        m_bpm = static_cast<uint32_t>(GetParameterAsFloat(TEMPO));
     }
 }
 
 float MetroModule::Process() {
     const float freq = tempo_to_freq(m_bpm);
 
-    uint16_t tsig = GetParameterAsBinnedValue(2) - 1;
+    uint16_t tsig = GetParameterAsBinnedValue(METER) - 1;
     if (tsig != m_timeSignature)
         m_timeSignature = static_cast<TimeSignature>(tsig);
 
@@ -155,7 +163,7 @@ void MetroModule::ProcessMono(float in) {
     BaseEffectModule::ProcessMono(in);
     float sig = Process();
     // Adjust the level
-    float level = (m_levelMin + (GetParameterAsFloat(1) * (m_levelMax - m_levelMin)));
+    float level = (m_levelMin + (GetParameterAsFloat(MIX) * (m_levelMax - m_levelMin)));
     m_audioLeft = sig * level + in * (1.0f - level);
     m_audioRight = m_audioLeft;
 }
@@ -164,7 +172,7 @@ void MetroModule::ProcessStereo(float inL, float inR) {
     BaseEffectModule::ProcessStereo(inL, inR);
     float sig = Process();
     // Adjust the level
-    float level = (m_levelMin + (GetParameterAsFloat(1) * (m_levelMax - m_levelMin)));
+    float level = (m_levelMin + (GetParameterAsFloat(MIX) * (m_levelMax - m_levelMin)));
     m_audioLeft = sig * level + inL * (1.0f - level);
     m_audioRight = sig * level + inR * (1.0f - level);
 }

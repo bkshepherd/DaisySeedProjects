@@ -17,6 +17,17 @@ namespace bkshepherd {
 
 class GranularDelayModule : public BaseEffectModule {
   public:
+    enum Param {
+        SIZE = 0,
+        MIX,
+        PITCH,
+        SPREAD,
+        GRAIN_ENV,
+        SPEED,
+        WIDTH,
+        PARAM_COUNT
+    };
+
     GranularDelayModule();
     ~GranularDelayModule();
 

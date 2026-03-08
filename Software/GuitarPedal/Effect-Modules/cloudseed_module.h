@@ -23,6 +23,21 @@ namespace bkshepherd {
 
 class CloudSeedModule : public BaseEffectModule {
   public:
+    enum Param {
+        PRE_DELAY = 0,
+        MIX,
+        DECAY,
+        MOD_AMT,
+        MOD_RATE,
+        TONE,
+        PRESET,
+        SUM2MONO,
+        STEREO_IN,
+        KNOBS_OVRD,
+        DRY_VOLUME,
+        PARAM_COUNT
+    };
+
     CloudSeedModule();
     ~CloudSeedModule();
 

@@ -138,6 +138,12 @@ template <size_t max_voices> class VoiceManager {
 
 class MidiKeysModule : public BaseEffectModule {
   public:
+    enum Param {
+        CUTOFF_FREQ = 0,
+        LEVEL,
+        PARAM_COUNT
+    };
+
     MidiKeysModule();
     ~MidiKeysModule();
 

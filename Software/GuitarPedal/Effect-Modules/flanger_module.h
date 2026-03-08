@@ -15,6 +15,15 @@ namespace bkshepherd {
 
 class FlangerModule : public BaseEffectModule {
   public:
+    enum Param {
+        MIX = 0,
+        MANUAL,
+        RATE,
+        DEPTH,
+        FEEDBACK,
+        PARAM_COUNT
+    };
+
     FlangerModule();
     ~FlangerModule();
 

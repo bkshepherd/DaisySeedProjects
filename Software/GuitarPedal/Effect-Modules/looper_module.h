@@ -13,6 +13,17 @@ namespace bkshepherd {
 
 class LooperModule : public BaseEffectModule {
   public:
+    enum Param {
+        INPUT_LEVEL = 0,
+        LOOP_LEVEL,
+        MODE,
+        SPEED_MODE,
+        SPEED,
+        LP_FILTER,
+        MISO,
+        PARAM_COUNT
+    };
+
     LooperModule();
     ~LooperModule();
 

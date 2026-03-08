@@ -15,6 +15,23 @@ namespace bkshepherd {
 
 class MultiDelayModule : public BaseEffectModule {
   public:
+    enum Param {
+        WET = 0,
+        DELAY_L_MS,
+        DELAY_R_MS,
+        FEEDBACK,
+        TAP_MODE,
+        SHIFT_TAP_1,
+        SHIFT_TAP_2,
+        SHIFT_TAP_3,
+        SHIFT_TAP_4,
+        DELAY_TAP_1,
+        DELAY_TAP_2,
+        DELAY_TAP_3,
+        DELAY_TAP_4,
+        PARAM_COUNT
+    };
+
     MultiDelayModule();
     ~MultiDelayModule();
 

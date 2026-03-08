@@ -15,6 +15,12 @@ namespace bkshepherd {
 
 class OverdriveModule : public BaseEffectModule {
   public:
+    enum Param {
+        DRIVE = 0,
+        LEVEL,
+        PARAM_COUNT
+    };
+
     OverdriveModule();
     ~OverdriveModule();
 

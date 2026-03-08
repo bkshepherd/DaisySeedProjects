@@ -1,5 +1,6 @@
 #include "drum_module.h"
 #include "../Util/audio_utilities.h"
+#include <array>
 
 using namespace bkshepherd;
 
@@ -25,10 +26,18 @@ const int beats34[4][12] = {{1, -1, 4, -1, 4, -1, 1, -1, 2, -1, 4, -1},  // 3/4 
                             {1, -1, 4, -1, 4, -1, 2, -1, 4, -1, 4, -1},  // 6/8 Rock1
                             {1, -1, 4, -1, 1, -1, 2, -1, 4, -1, 1, -1}}; // 6/8 Rock2
 
-static const int s_paramCount = 10;
-static const ParameterMetaData s_metaData[s_paramCount] = {
-    {name : "Level", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 0, midiCCMapping : 14},
-    {
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, DrumModule::PARAM_COUNT> params{};
+
+    params[DrumModule::LEVEL] = {
+        name : "Level",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 0,
+        midiCCMapping : 14
+    };
+
+    params[DrumModule::VOICE] = {
         name : "Voice",
         valueType : ParameterValueType::Binned,
         valueBinCount : 4,
@@ -36,8 +45,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : 1,
         midiCCMapping : 15
-    },
-    {
+    };
+
+    params[DrumModule::BEATS] = {
         name : "Beats",
         valueType : ParameterValueType::Binned,
         valueBinCount : 8,
@@ -45,8 +55,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : 2,
         midiCCMapping : 16
-    },
-    {
+    };
+
+    params[DrumModule::TEMPO] = {
         name : "Tempo",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
@@ -55,8 +66,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         midiCCMapping : 17,
         minValue : minTempoDrum,
         maxValue : maxTempoDrum
-    },
-    {
+    };
+
+    params[DrumModule::MIDI_VOICE] = {
         name : "MidiVoice",
         valueType : ParameterValueType::Binned,
         valueBinCount : 6,
@@ -64,23 +76,33 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : 4,
         midiCCMapping : 18
-    },
-    {
+    };
+
+    params[DrumModule::TIMBRE] = {
         name : "Timbre",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 5,
         midiCCMapping : 19
-    },
-    {name : "Tone", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : -1, midiCCMapping : 20},
-    {
+    };
+
+    params[DrumModule::TONE] = {
+        name : "Tone",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : -1,
+        midiCCMapping : 20
+    };
+
+    params[DrumModule::DECAY] = {
         name : "Decay",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : -1,
         midiCCMapping : 21
-    },
-    {
+    };
+
+    params[DrumModule::MODE] = {
         name : "Mode",
         valueType : ParameterValueType::Binned,
         valueBinCount : 2,
@@ -88,8 +110,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : -1,
         midiCCMapping : 22
-    },
-    {
+    };
+
+    params[DrumModule::DRY_THRU] = {
         name : "DryThru",
         valueType : ParameterValueType::Binned,
         valueBinCount : 3,
@@ -97,7 +120,10 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 1},
         knobMapping : -1,
         midiCCMapping : 23
-    }};
+    };
+
+    return params;
+}();
 
 // Default Constructor
 DrumModule::DrumModule() : BaseEffectModule(), m_cachedEffectMagnitudeValue(1.0f) {
@@ -105,10 +131,10 @@ DrumModule::DrumModule() : BaseEffectModule(), m_cachedEffectMagnitudeValue(1.0f
     m_name = "Drum";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor
@@ -131,7 +157,7 @@ void DrumModule::Init(float sample_rate) {
     instrument_ = 0;
     voice_ = 0; // 0=bass; 1=synthbass; 2=snare; 3=synthsnare; 4=hihat
 
-    float initial_freq = tempo_to_freq(GetParameterAsFloat(3));
+    float initial_freq = tempo_to_freq(GetParameterAsFloat(TEMPO));
     metro.Init(initial_freq * 4.0,
                sample_rate); // Multiplying freq by 4, since beats are defined every sixteenth note, and we want BPM by quarter note
     beat_count = 0;
@@ -140,84 +166,84 @@ void DrumModule::Init(float sample_rate) {
 
 void DrumModule::ParameterChanged(int parameter_id) {
 
-    if (parameter_id == 0) { // Level
+    if (parameter_id == LEVEL) { // Level
 
-    } else if (parameter_id == 2) {             // Beats
-        if (GetParameterAsBinnedValue(2) < 5) { // Currently, first four beats are 4/4 time, second two are 3/4
+    } else if (parameter_id == BEATS) {             // Beats
+        if (GetParameterAsBinnedValue(BEATS) < 5) { // Currently, first four beats are 4/4 time, second two are 3/4
             time_sig = 0;                       // 0=4/4; 1=3/4
-            selected_beat = GetParameterAsBinnedValue(2) - 1;
+            selected_beat = GetParameterAsBinnedValue(BEATS) - 1;
         } else {
             time_sig = 1; // 0=4/4; 1=3/4
-            selected_beat = GetParameterAsBinnedValue(2) - 5;
+            selected_beat = GetParameterAsBinnedValue(BEATS) - 5;
         }
 
-    } else if (parameter_id == 3) { // Tempo
-        m_bpm = GetParameterAsFloat(3);
+    } else if (parameter_id == TEMPO) { // Tempo
+        m_bpm = GetParameterAsFloat(TEMPO);
         float freq = tempo_to_freq(m_bpm);
         metro.SetFreq(freq *
                       4.0); // Multiplying freq by 4, since beats are defined every sixteenth note, and we want BPM by quarter note
 
-    } else if (parameter_id == 4) { // Midi Voice
-        instrument_ = GetParameterAsBinnedValue(4) - 1;
+    } else if (parameter_id == MIDI_VOICE) { // Midi Voice
+        instrument_ = GetParameterAsBinnedValue(MIDI_VOICE) - 1;
 
-    } else if (parameter_id == 5) { // Timbre
-        instrument_ = GetParameterAsBinnedValue(4) - 1;
-
-        if (instrument_ == 0) {
-            bass.SetSelfFmAmount(GetParameterAsFloat(5)); // self fm amount
-
-        } else if (instrument_ == 1) {
-            synthbass.SetDirtiness(GetParameterAsFloat(5)); // dirtiness
-
-        } else if (instrument_ == 2) {
-            snare.SetSnappy(GetParameterAsFloat(5)); // snappy
-
-        } else if (instrument_ == 3) {
-            synthsnare.SetSnappy(GetParameterAsFloat(5)); // snappy
-
-        } else if (instrument_ == 4) {
-            hihat.SetNoisiness(GetParameterAsFloat(5)); // noisiness
-        }
-
-    } else if (parameter_id == 6) { // Tone
-        instrument_ = GetParameterAsBinnedValue(4) - 1;
-        if (instrument_ == 0) {
-            bass.SetTone(GetParameterAsFloat(6));
-
-        } else if (instrument_ == 1) {
-            synthbass.SetTone(GetParameterAsFloat(6));
-
-        } else if (instrument_ == 2) {
-            snare.SetTone(GetParameterAsFloat(6));
-
-        } else if (instrument_ == 3) {
-            synthsnare.SetFmAmount(GetParameterAsFloat(6)); // Different function
-
-        } else if (instrument_ == 4) {
-            hihat.SetTone(GetParameterAsFloat(6));
-        }
-
-    } else if (parameter_id == 7) { // Decay
-        instrument_ = GetParameterAsBinnedValue(4) - 1;
+    } else if (parameter_id == TIMBRE) { // Timbre
+        instrument_ = GetParameterAsBinnedValue(MIDI_VOICE) - 1;
 
         if (instrument_ == 0) {
-            bass.SetDecay(GetParameterAsFloat(7));
+            bass.SetSelfFmAmount(GetParameterAsFloat(TIMBRE)); // self fm amount
 
         } else if (instrument_ == 1) {
-            synthbass.SetDecay(GetParameterAsFloat(7));
+            synthbass.SetDirtiness(GetParameterAsFloat(TIMBRE)); // dirtiness
 
         } else if (instrument_ == 2) {
-            snare.SetDecay(GetParameterAsFloat(7));
+            snare.SetSnappy(GetParameterAsFloat(TIMBRE)); // snappy
 
         } else if (instrument_ == 3) {
-            synthsnare.SetDecay(GetParameterAsFloat(7));
+            synthsnare.SetSnappy(GetParameterAsFloat(TIMBRE)); // snappy
 
         } else if (instrument_ == 4) {
-            hihat.SetDecay(GetParameterAsFloat(7));
+            hihat.SetNoisiness(GetParameterAsFloat(TIMBRE)); // noisiness
         }
 
-    } else if (parameter_id == 8) { // Mode
-        if (GetParameterAsBinnedValue(8) == 1) {
+    } else if (parameter_id == TONE) { // Tone
+        instrument_ = GetParameterAsBinnedValue(MIDI_VOICE) - 1;
+        if (instrument_ == 0) {
+            bass.SetTone(GetParameterAsFloat(TONE));
+
+        } else if (instrument_ == 1) {
+            synthbass.SetTone(GetParameterAsFloat(TONE));
+
+        } else if (instrument_ == 2) {
+            snare.SetTone(GetParameterAsFloat(TONE));
+
+        } else if (instrument_ == 3) {
+            synthsnare.SetFmAmount(GetParameterAsFloat(TONE)); // Different function
+
+        } else if (instrument_ == 4) {
+            hihat.SetTone(GetParameterAsFloat(TONE));
+        }
+
+    } else if (parameter_id == DECAY) { // Decay
+        instrument_ = GetParameterAsBinnedValue(MIDI_VOICE) - 1;
+
+        if (instrument_ == 0) {
+            bass.SetDecay(GetParameterAsFloat(DECAY));
+
+        } else if (instrument_ == 1) {
+            synthbass.SetDecay(GetParameterAsFloat(DECAY));
+
+        } else if (instrument_ == 2) {
+            snare.SetDecay(GetParameterAsFloat(DECAY));
+
+        } else if (instrument_ == 3) {
+            synthsnare.SetDecay(GetParameterAsFloat(DECAY));
+
+        } else if (instrument_ == 4) {
+            hihat.SetDecay(GetParameterAsFloat(DECAY));
+        }
+
+    } else if (parameter_id == MODE) { // Mode
+        if (GetParameterAsBinnedValue(MODE) == 1) {
             auto_mode = true;
             beat_count = 0; // start beat at beginning
         } else {
@@ -330,16 +356,16 @@ void DrumModule::ProcessMono(float in) {
 
         // Select correct drum voice based on Voice setting
         // -1=rest, 0=bass, 1=synthbass, 2=snare, 3=synthsnare, 4=hihat
-        if (GetParameterAsBinnedValue(1) == 1) { // Analog
+        if (GetParameterAsBinnedValue(VOICE) == 1) { // Analog
             temp_instrument = (temp_instrument == 1) ? 0 : temp_instrument;
 
-        } else if (GetParameterAsBinnedValue(1) == 2) { // Synth
+        } else if (GetParameterAsBinnedValue(VOICE) == 2) { // Synth
             temp_instrument = (temp_instrument == 2) ? 3 : temp_instrument;
 
-        } else if (GetParameterAsBinnedValue(1) == 3) { // Mix1 (Synth Bass, Analog Snare)
+        } else if (GetParameterAsBinnedValue(VOICE) == 3) { // Mix1 (Synth Bass, Analog Snare)
             // Do nothing, this is how ithe beats were originally programmed
 
-        } else if (GetParameterAsBinnedValue(1) == 4) { // Mix2 (Analog Bass, Synth Snare)
+        } else if (GetParameterAsBinnedValue(VOICE) == 4) { // Mix2 (Analog Bass, Synth Snare)
             temp_instrument = (temp_instrument == 1) ? 0 : temp_instrument;
             temp_instrument = (temp_instrument == 2) ? 3 : temp_instrument;
         }
@@ -391,11 +417,11 @@ void DrumModule::ProcessMono(float in) {
     }
 
     float through_audioL = 0.0;
-    if (GetParameterAsBinnedValue(9) > 1) {
+    if (GetParameterAsBinnedValue(DRY_THRU) > 1) {
         through_audioL = m_audioLeft;
     }
 
-    m_audioLeft = sum * GetParameterAsFloat(0) * 0.5 + through_audioL; // "* 0.5" is just for volume reduction
+    m_audioLeft = sum * GetParameterAsFloat(LEVEL) * 0.5 + through_audioL; // "* 0.5" is just for volume reduction
     m_audioRight = m_audioLeft;
 }
 
@@ -404,7 +430,7 @@ void DrumModule::ProcessStereo(float inL, float inR) {
     ProcessMono(inL);
 
     float through_audioR = 0.0;
-    if (GetParameterAsBinnedValue(9) == 3) {
+    if (GetParameterAsBinnedValue(DRY_THRU) == 3) {
         through_audioR = inR;
         m_audioRight = m_audioRight + through_audioR - inL;
     }

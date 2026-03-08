@@ -14,6 +14,16 @@ namespace bkshepherd {
 
 class GraphicEQModule : public BaseEffectModule {
   public:
+    enum Param {
+        BAND_100 = 0,
+        BAND_200,
+        BAND_400,
+        BAND_800,
+        BAND_1600,
+        BAND_3200,
+        PARAM_COUNT
+    };
+
     GraphicEQModule();
     ~GraphicEQModule();
 

@@ -17,6 +17,16 @@ namespace bkshepherd {
 
 class DistortionModule : public BaseEffectModule {
   public:
+    enum Param {
+        LEVEL = 0,
+        GAIN,
+        TONE,
+        DIST_TYPE,
+        INTENSITY,
+        OVERSAMP,
+        PARAM_COUNT
+    };
+
     DistortionModule();
     ~DistortionModule();
 

@@ -19,6 +19,14 @@ namespace bkshepherd {
 
 class PolyOctaveModule : public BaseEffectModule {
   public:
+    enum Param {
+        DRY = 0,
+        TWO_OCT_DOWN,
+        ONE_OCT_DOWN,
+        ONE_OCT_UP,
+        PARAM_COUNT
+    };
+
     PolyOctaveModule();
     ~PolyOctaveModule();
 

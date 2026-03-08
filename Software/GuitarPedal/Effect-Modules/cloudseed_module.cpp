@@ -1,5 +1,6 @@
 #include "cloudseed_module.h"
 #include "../Util/audio_utilities.h"
+#include <array>
 
 // This is used in the modified CloudSeed code for allocating
 // delay line memory to SDRAM (64MB available on Daisy)
@@ -24,33 +25,58 @@ using namespace bkshepherd;
 
 static const char *s_presetNames[8] = {"FChorus", "DullEchos", "Hyperplane", "MedSpace", "Hallway", "RubiKa", "SmallRoom", "90s"};
 
-static const int s_paramCount = 11;
-static ParameterMetaData s_metaData[s_paramCount] = {
-    {
+static auto s_metaData = [] {
+    std::array<ParameterMetaData, CloudSeedModule::PARAM_COUNT> params{};
+
+    params[CloudSeedModule::PRE_DELAY] = {
         name : "PreDelay",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.0f},
         knobMapping : 0,
         midiCCMapping : 14
-    },
-    {name : "Mix", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 1, midiCCMapping : 15},
-    {name : "Decay", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 2, midiCCMapping : 16},
-    {
+    };
+
+    params[CloudSeedModule::MIX] = {
+        name : "Mix",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 1,
+        midiCCMapping : 15
+    };
+
+    params[CloudSeedModule::DECAY] = {
+        name : "Decay",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 2,
+        midiCCMapping : 16
+    };
+
+    params[CloudSeedModule::MOD_AMT] = {
         name : "Mod Amt",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 3,
         midiCCMapping : 17
-    },
-    {
+    };
+
+    params[CloudSeedModule::MOD_RATE] = {
         name : "Mod Rate",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 4,
         midiCCMapping : 18
-    },
-    {name : "Tone", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 5, midiCCMapping : 19},
-    {
+    };
+
+    params[CloudSeedModule::TONE] = {
+        name : "Tone",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 5,
+        midiCCMapping : 19
+    };
+
+    params[CloudSeedModule::PRESET] = {
         name : "Preset",
         valueType : ParameterValueType::Binned,
         valueBinCount : 8,
@@ -58,19 +84,44 @@ static ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 6},
         knobMapping : -1,
         midiCCMapping : 20
-    },
-    {name : "Sum2Mono", valueType : ParameterValueType::Bool, defaultValue : {.uint_value = 0}, knobMapping : -1, midiCCMapping : 21},
-    {name : "StereoIn", valueType : ParameterValueType::Bool, defaultValue : {.uint_value = 0}, knobMapping : -1, midiCCMapping : 22},
-    {
+    };
+
+    params[CloudSeedModule::SUM2MONO] = {
+        name : "Sum2Mono",
+        valueType : ParameterValueType::Bool,
+        defaultValue : {.uint_value = 0},
+        knobMapping : -1,
+        midiCCMapping : 21
+    };
+
+    params[CloudSeedModule::STEREO_IN] = {
+        name : "StereoIn",
+        valueType : ParameterValueType::Bool,
+        defaultValue : {.uint_value = 0},
+        knobMapping : -1,
+        midiCCMapping : 22
+    };
+
+    // "KnobsOverride(Presets)" - If true, current knob settings override the selected preset.
+    // If false, preset changes apply until a knob is moved.
+    params[CloudSeedModule::KNOBS_OVRD] = {
         name : "KnobsOvrd",
         valueType : ParameterValueType::Bool,
         defaultValue : {.uint_value = 0},
         knobMapping : -1,
         midiCCMapping : 23
-    }, // "KnobsOverride(Presets)" - Making this True always makes the knob settings override the preset settings. If false, changing
-      // the preset changes all settings until a knob is moved.
-    {name : "DryVolume", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : -1, midiCCMapping : 24}
-};
+    };
+
+    params[CloudSeedModule::DRY_VOLUME] = {
+        name : "DryVolume",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : -1,
+        midiCCMapping : 24
+    };
+
+    return params;
+}();
 
 // NOTES ABOUT THE CLOUDSEED PARAMETERS
 // 1. I changed the "Parameter" class to be "Parameter2" to deconflict with the DaisySP Parameter. Likely there was a much easier way
@@ -89,10 +140,10 @@ CloudSeedModule::CloudSeedModule() : BaseEffectModule(), m_gainMin(0.0f), m_gain
     m_name = "CloudSeed";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor
@@ -116,52 +167,52 @@ void CloudSeedModule::Init(float sample_rate) {
 void CloudSeedModule::ParameterChanged(int parameter_id) // Somewhere here is causeing issues on start up, if I take them out it works,
                                                          // adding them in breaks, but it worked once???
 {
-    if (parameter_id == 6) { // Preset
+    if (parameter_id == PRESET) { // Preset
         // Change the preset and then override with current knob settings
         changePreset();
         if (GetParameterAsBool(
-                9)) { // If true, apply current knob settings over the chosen preset. If false, don't update until knob is moved.
-            reverb->SetParameter(::Parameter2::PreDelay, GetParameterAsFloat(0) * 0.95); // Was freezing pedal when set to 127
-            reverb->SetParameter(::Parameter2::LineDecay, GetParameterAsFloat(2));
-            reverb->SetParameter(::Parameter2::LineModAmount, GetParameterAsFloat(3));
-            reverb->SetParameter(::Parameter2::LineModRate, GetParameterAsFloat(4));
+                KNOBS_OVRD)) { // If true, apply current knob settings over the chosen preset. If false, don't update until knob is moved.
+            reverb->SetParameter(::Parameter2::PreDelay, GetParameterAsFloat(PRE_DELAY) * 0.95); // Was freezing pedal when set to 127
+            reverb->SetParameter(::Parameter2::LineDecay, GetParameterAsFloat(DECAY));
+            reverb->SetParameter(::Parameter2::LineModAmount, GetParameterAsFloat(MOD_AMT));
+            reverb->SetParameter(::Parameter2::LineModRate, GetParameterAsFloat(MOD_RATE));
             reverb->SetParameter(
                 ::Parameter2::CutoffEnabled,
                 1.0); // If this knob is moved, turn on the cutoff filter, the presets will reset this on/off as needed
-            reverb->SetParameter(::Parameter2::PostCutoffFrequency, GetParameterAsFloat(5));
+            reverb->SetParameter(::Parameter2::PostCutoffFrequency, GetParameterAsFloat(TONE));
         }
     } else {
 
         if (throttle_counter > 5) {  // The calls to reverb settings need to be throttled, else it will freeze the pedal on startup
                                      // TODO: This will prevent single param change calls (such as a single programmed midi message) to
                                      // only work every 5 calls. Figure out a better fix
-            if (parameter_id == 0) { // {PreDelay
-                reverb->SetParameter(::Parameter2::PreDelay, GetParameterAsFloat(0) * 0.95); // Was freezing pedal when set to 127
-            } else if (parameter_id == 1) {                                                  // Mix
+            if (parameter_id == PRE_DELAY) { // {PreDelay
+                reverb->SetParameter(::Parameter2::PreDelay, GetParameterAsFloat(PRE_DELAY) * 0.95); // Was freezing pedal when set to 127
+            } else if (parameter_id == MIX) {                                                  // Mix
                 if (!inputMuteForWet) {
                     linearChangeDryLevel.deactivate();
                     // If the wet-input is not frozen, update the mix normally
                     CalculateMix();
                 } else {
                     // otherwise - update only the wet mix value
-                    currentMix.wet = CalculateMix(GetParameterAsFloat(1)).wet;
+                    currentMix.wet = CalculateMix(GetParameterAsFloat(MIX)).wet;
                 }
-            } else if (parameter_id == 2) { // Decay
-                reverb->SetParameter(::Parameter2::LineDecay, GetParameterAsFloat(2));
-            } else if (parameter_id == 3) { // Mod Amt
-                reverb->SetParameter(::Parameter2::LineModAmount, GetParameterAsFloat(3));
-            } else if (parameter_id == 4) { // Mod Rate
-                reverb->SetParameter(::Parameter2::LineModRate, GetParameterAsFloat(4));
-            } else if (parameter_id == 5) { // Tone
+            } else if (parameter_id == DECAY) { // Decay
+                reverb->SetParameter(::Parameter2::LineDecay, GetParameterAsFloat(DECAY));
+            } else if (parameter_id == MOD_AMT) { // Mod Amt
+                reverb->SetParameter(::Parameter2::LineModAmount, GetParameterAsFloat(MOD_AMT));
+            } else if (parameter_id == MOD_RATE) { // Mod Rate
+                reverb->SetParameter(::Parameter2::LineModRate, GetParameterAsFloat(MOD_RATE));
+            } else if (parameter_id == TONE) { // Tone
                 reverb->SetParameter(
                     ::Parameter2::CutoffEnabled,
                     1.0); // If this knob is moved, turn on the cutoff filter, the presets will reset this on/off as needed
-                reverb->SetParameter(::Parameter2::PostCutoffFrequency, GetParameterAsFloat(5));
-            } else if (parameter_id == 10) { // Dry Volume, when wet-input is muted
+                reverb->SetParameter(::Parameter2::PostCutoffFrequency, GetParameterAsFloat(TONE));
+            } else if (parameter_id == DRY_VOLUME) { // Dry Volume, when wet-input is muted
                 if (inputMuteForWet) {
                     linearChangeDryLevel.deactivate();
                     // When wet-input is frozen, this knob controls the dry input volume for the mix directly
-                    currentMix.dry = GetParameterAsFloat(10);
+                    currentMix.dry = GetParameterAsFloat(DRY_VOLUME);
                 }
             }
             throttle_counter = 0;
@@ -175,24 +226,24 @@ void CloudSeedModule::AlternateFootswitchPressed() {
 
     if (inputMuteForWet) {
         // Don't set dryMix immediately, let it ramp in ProcessStereo/ProcessMono
-        linearChangeDryLevel.activate(currentMix.dry, GetParameterAsFloat(10), linearChangeDryLevelSteps);
+        linearChangeDryLevel.activate(currentMix.dry, GetParameterAsFloat(DRY_VOLUME), linearChangeDryLevelSteps);
 
          // remap 'mix' knob to 'dry-volume' knob when wet-input is frozen
-        s_metaData[10].knobMapping = s_metaData[1].knobMapping;
-        s_metaData[1].knobMapping = -1;
+        s_metaData[DRY_VOLUME].knobMapping = s_metaData[MIX].knobMapping;
+        s_metaData[MIX].knobMapping = -1;
     } else {
         // Don't set dryMix immediately, let it ramp in ProcessStereo/ProcessMono
-        linearChangeDryLevel.activate(currentMix.dry, CalculateMix(GetParameterAsFloat(1)).dry, linearChangeDryLevelSteps);
+        linearChangeDryLevel.activate(currentMix.dry, CalculateMix(GetParameterAsFloat(MIX)).dry, linearChangeDryLevelSteps);
 
         // remap 'dry-volume' knob to 'mix' knob when wet-input is active
-        s_metaData[1].knobMapping = s_metaData[10].knobMapping;
-        s_metaData[10].knobMapping = -1;
+        s_metaData[MIX].knobMapping = s_metaData[DRY_VOLUME].knobMapping;
+        s_metaData[DRY_VOLUME].knobMapping = -1;
     }
 }
 
 void CloudSeedModule::changePreset() {
 
-    int c = (GetParameterAsBinnedValue(6) - 1);
+    int c = (GetParameterAsBinnedValue(PRESET) - 1);
     reverb->ClearBuffers();
 
     if (c == 0) {
@@ -215,7 +266,7 @@ void CloudSeedModule::changePreset() {
 }
 
 void CloudSeedModule::CalculateMix() {
-    currentMix = CalculateMix(GetParameterAsFloat(1));
+    currentMix = CalculateMix(GetParameterAsFloat(MIX));
 }
 
 CloudSeedModule::Mix CloudSeedModule::CalculateMix(float mixValue) {
@@ -257,7 +308,7 @@ void CloudSeedModule::ProcessMono(float in) {
         currentMix.dry = linearChangeDryLevel.getNextValue();
     }
 
-    if (GetParameterAsBool(7)) { // If "Sum2Mono" is on, combine L and R signals and half the level
+    if (GetParameterAsBool(SUM2MONO)) { // If "Sum2Mono" is on, combine L and R signals and half the level
         m_audioLeft = ((outL[0] + outR[0]) / 2.0) * currentMix.wet + inL[0] * currentMix.dry;
         m_audioRight = m_audioLeft;
     } else {
@@ -277,7 +328,7 @@ void CloudSeedModule::ProcessStereo(float inL, float inR) {
     float outR[1];
 
     inL2[0] = m_audioLeft;
-    if (GetParameterAsBool(8)) { // If Stereo In is true (TODO Verify this works)
+    if (GetParameterAsBool(STEREO_IN)) { // If Stereo In is true (TODO Verify this works)
         inR2[0] = m_audioRight;
     } else {
         inR2[0] = m_audioLeft;
@@ -294,7 +345,7 @@ void CloudSeedModule::ProcessStereo(float inL, float inR) {
         currentMix.dry = linearChangeDryLevel.getNextValue();
     }
 
-    if (GetParameterAsBool(7)) { // If "Sum2Mono" is on, combine L and R signals and half the level
+    if (GetParameterAsBool(SUM2MONO)) { // If "Sum2Mono" is on, combine L and R signals and half the level
         m_audioLeft = ((outL[0] + outR[0]) / 2.0) * currentMix.wet + inL2[0] * currentMix.dry;
         m_audioRight = m_audioLeft;
     } else {

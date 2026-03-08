@@ -1,13 +1,15 @@
 #include "modulated_tremolo_module.h"
 #include "../Util/audio_utilities.h"
+#include <array>
 
 using namespace bkshepherd;
 
 static const char *s_waveBinNames[8] = {"Sine", "Triangle", "Saw", "Ramp", "Square", "Poly Tri", "Poly Saw", "Poly Sqr"};
 
-static const int s_paramCount = 5;
-static const ParameterMetaData s_metaData[s_paramCount] = {
-    {
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, ModulatedTremoloModule::PARAM_COUNT> params{};
+
+    params[ModulatedTremoloModule::WAVE] = {
         name : "Wave",
         valueType : ParameterValueType::Binned,
         valueBinCount : 8,
@@ -15,10 +17,25 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : 3,
         midiCCMapping : 20
-    },
-    {name : "Depth", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 1, midiCCMapping : 21},
-    {name : "Freq", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 0, midiCCMapping : 1},
-    {
+    };
+
+    params[ModulatedTremoloModule::DEPTH] = {
+        name : "Depth",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 1,
+        midiCCMapping : 21
+    };
+
+    params[ModulatedTremoloModule::FREQ] = {
+        name : "Freq",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 0,
+        midiCCMapping : 1
+    };
+
+    params[ModulatedTremoloModule::OSC_WAVE] = {
         name : "Osc Wave",
         valueType : ParameterValueType::Binned,
         valueBinCount : 8,
@@ -26,14 +43,18 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : 4,
         midiCCMapping : 23
-    },
-    {
+    };
+
+    params[ModulatedTremoloModule::OSC_FREQ] = {
         name : "Osc Freq",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.1f},
         knobMapping : 2,
         midiCCMapping : 24
-    }};
+    };
+
+    return params;
+}();
 
 // Default Constructor
 ModulatedTremoloModule::ModulatedTremoloModule()
@@ -43,10 +64,10 @@ ModulatedTremoloModule::ModulatedTremoloModule()
     m_name = "Tremolo";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor
@@ -65,19 +86,19 @@ void ModulatedTremoloModule::ProcessMono(float in) {
     BaseEffectModule::ProcessMono(in);
 
     // Calculate Tremolo Frequency Oscillation
-    m_freqOsc.SetWaveform(GetParameterAsBinnedValue(3) - 1);
+    m_freqOsc.SetWaveform(GetParameterAsBinnedValue(OSC_WAVE) - 1);
     m_freqOsc.SetAmp(0.5f);
-    m_freqOsc.SetFreq(m_freqOscFreqMin + (GetParameterAsFloat(4) * m_freqOscFreqMax));
+    m_freqOsc.SetFreq(m_freqOscFreqMin + (GetParameterAsFloat(OSC_FREQ) * m_freqOscFreqMax));
     float mod = 0.5f + m_freqOsc.Process();
 
-    if (GetParameterAsFloat(4) <= 0.01f) {
+    if (GetParameterAsFloat(OSC_FREQ) <= 0.01f) {
         mod = 1.0f;
     }
 
     // Calculate the effect
-    m_tremolo.SetWaveform(GetParameterAsBinnedValue(0) - 1);
-    m_tremolo.SetDepth(GetParameterAsFloat(1));
-    m_tremolo.SetFreq(m_tremoloFreqMin + ((GetParameterAsFloat(2) * m_tremoloFreqMax) * mod));
+    m_tremolo.SetWaveform(GetParameterAsBinnedValue(WAVE) - 1);
+    m_tremolo.SetDepth(GetParameterAsFloat(DEPTH));
+    m_tremolo.SetFreq(m_tremoloFreqMin + ((GetParameterAsFloat(FREQ) * m_tremoloFreqMax) * mod));
 
     // Ease the effect value into it's target to avoid clipping with square or sawtooth waves
     fonepole(m_cachedEffectMagnitudeValue, m_tremolo.Process(1.0f), .01f);

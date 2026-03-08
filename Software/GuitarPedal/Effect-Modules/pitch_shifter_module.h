@@ -13,6 +13,16 @@ namespace bkshepherd {
 
 class PitchShifterModule : public BaseEffectModule {
   public:
+    enum Param {
+        SEMITONE = 0,
+        CROSSFADE,
+        DIRECTION,
+        MODE,
+        SHIFT,
+        RETURN,
+        PARAM_COUNT
+    };
+
     PitchShifterModule();
     ~PitchShifterModule();
 

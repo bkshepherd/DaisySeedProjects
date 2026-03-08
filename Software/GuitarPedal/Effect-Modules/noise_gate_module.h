@@ -15,6 +15,15 @@ namespace bkshepherd {
 
 class NoiseGateModule : public BaseEffectModule {
   public:
+    enum Param {
+        THRESHOLD = 0,
+        ATTACK_MS,
+        RELEASE_MS,
+        HOLD_MS,
+        FADE_MS,
+        PARAM_COUNT
+    };
+
     NoiseGateModule();
     ~NoiseGateModule();
 

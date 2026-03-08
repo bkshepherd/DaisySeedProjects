@@ -37,6 +37,13 @@ class Bitcrusher {
 
 class CrusherModule : public BaseEffectModule {
   public:
+    enum Param {
+        LEVEL = 0,
+        BITS,
+        CUTOFF,
+        PARAM_COUNT
+    };
+
     CrusherModule();
     ~CrusherModule();
 

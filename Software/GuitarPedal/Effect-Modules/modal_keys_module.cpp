@@ -1,32 +1,46 @@
 #include "modal_keys_module.h"
 #include "../Util/audio_utilities.h"
+#include <array>
 
 using namespace bkshepherd;
 
-static const int s_paramCount = 4;
-static const ParameterMetaData s_metaData[s_paramCount] = {
-    {
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, ModalKeysModule::PARAM_COUNT> params{};
+
+    params[ModalKeysModule::STRUCTURE] = {
         name : "Structure",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 0,
         midiCCMapping : 14
-    },
-    {
+    };
+
+    params[ModalKeysModule::BRIGHTNESS] = {
         name : "Brightness",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 1,
         midiCCMapping : 15
-    },
-    {name : "Level", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 2, midiCCMapping : 16},
-    {
+    };
+
+    params[ModalKeysModule::LEVEL] = {
+        name : "Level",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 2,
+        midiCCMapping : 16
+    };
+
+    params[ModalKeysModule::DAMPING] = {
         name : "Damping",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 3,
         midiCCMapping : 17
-    }};
+    };
+
+    return params;
+}();
 
 // Default Constructor
 ModalKeysModule::ModalKeysModule()
@@ -37,10 +51,10 @@ ModalKeysModule::ModalKeysModule()
     m_name = "ModalKeys";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor
@@ -55,14 +69,14 @@ void ModalKeysModule::Init(float sample_rate) {
 }
 
 void ModalKeysModule::ParameterChanged(int parameter_id) {
-    if (parameter_id == 0) {
-        modalvoice.SetStructure(GetParameterAsFloat(0));
+    if (parameter_id == STRUCTURE) {
+        modalvoice.SetStructure(GetParameterAsFloat(STRUCTURE));
 
-    } else if (parameter_id == 1) {
-        modalvoice.SetBrightness(GetParameterAsFloat(1));
+    } else if (parameter_id == BRIGHTNESS) {
+        modalvoice.SetBrightness(GetParameterAsFloat(BRIGHTNESS));
 
-    } else if (parameter_id == 3) {
-        modalvoice.SetDamping(GetParameterAsFloat(3));
+    } else if (parameter_id == DAMPING) {
+        modalvoice.SetDamping(GetParameterAsFloat(DAMPING));
     }
 }
 
@@ -90,8 +104,8 @@ void ModalKeysModule::ProcessMono(float in) {
 
     float voice_out = modalvoice.Process();
 
-    m_audioLeft = (voice_out)*GetParameterAsFloat(2) * 0.1 + through_audioL; // Doing 50/50 mix of dry/reverb, 0.2 is volume reduction
-    m_audioRight = (voice_out)*GetParameterAsFloat(2) * 0.1 + through_audioL;
+    m_audioLeft = (voice_out)*GetParameterAsFloat(LEVEL) * 0.1 + through_audioL; // Doing 50/50 mix of dry/reverb, 0.2 is volume reduction
+    m_audioRight = (voice_out)*GetParameterAsFloat(LEVEL) * 0.1 + through_audioL;
 }
 
 void ModalKeysModule::ProcessStereo(float inL, float inR) {
@@ -106,8 +120,8 @@ void ModalKeysModule::ProcessStereo(float inL, float inR) {
 
     float voice_out = modalvoice.Process();
 
-    m_audioLeft = (voice_out)*GetParameterAsFloat(2) * 0.1 + through_audioL; // Doing 50/50 mix of dry/reverb, 0.2 is volume reduction
-    m_audioRight = (voice_out)*GetParameterAsFloat(2) * 0.1 + through_audioR;
+    m_audioLeft = (voice_out)*GetParameterAsFloat(LEVEL) * 0.1 + through_audioL; // Doing 50/50 mix of dry/reverb, 0.2 is volume reduction
+    m_audioRight = (voice_out)*GetParameterAsFloat(LEVEL) * 0.1 + through_audioR;
 }
 
 float ModalKeysModule::GetBrightnessForLED(int led_id) const {

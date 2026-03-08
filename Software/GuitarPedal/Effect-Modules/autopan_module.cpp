@@ -1,14 +1,23 @@
 #include "autopan_module.h"
 #include "../Util/audio_utilities.h"
+#include <array>
 
 using namespace bkshepherd;
 
 static const char *s_waveBinNames[8] = {"Sine", "Triangle", "Saw", "Ramp", "Square", "Poly Tri", "Poly Saw", "Poly Sqr"};
 
-static const int s_paramCount = 4;
-static const ParameterMetaData s_metaData[s_paramCount] = {
-    {name : "Wet", valueType : ParameterValueType::Float, defaultValue : {.float_value = 1.0f}, knobMapping : 0, midiCCMapping : 20},
-    {
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, AutoPanModule::PARAM_COUNT> params{};
+
+    params[AutoPanModule::WET] = {
+        name : "Wet",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 1.0f},
+        knobMapping : 0,
+        midiCCMapping : 20
+    };
+
+    params[AutoPanModule::OSC_WAVE] = {
         name : "Osc Wave",
         valueType : ParameterValueType::Binned,
         valueBinCount : 8,
@@ -16,19 +25,26 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : 2,
         midiCCMapping : 21
-    },
-    {
+    };
+
+    params[AutoPanModule::OSC_FREQ] = {
         name : "Osc Freq",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.1f},
         knobMapping : 1,
         midiCCMapping : 1
-    },
-    {name : "Stereo",
-     valueType : ParameterValueType::Bool,
-     defaultValue : {.uint_value = 0},
-     knobMapping : -1,
-     midiCCMapping : 23}}; // 0 is Mono (even if fed stereo) 1 is Stereo
+    };
+
+    params[AutoPanModule::STEREO] = {
+        name : "Stereo",
+        valueType : ParameterValueType::Bool,
+        defaultValue : {.uint_value = 0},
+        knobMapping : 3,
+        midiCCMapping : 23
+    };
+
+    return params;
+}(); // 0 is Mono (even if fed stereo) 1 is Stereo
 
 // Default Constructor
 AutoPanModule::AutoPanModule()
@@ -39,10 +55,10 @@ AutoPanModule::AutoPanModule()
     m_name = "AutoPan";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor
@@ -60,12 +76,12 @@ void AutoPanModule::ProcessMono(float in) {
     BaseEffectModule::ProcessMono(in);
 
     // Calculate Pan Oscillation
-    m_freqOsc.SetWaveform(GetParameterAsBinnedValue(1) - 1);
+    m_freqOsc.SetWaveform(GetParameterAsBinnedValue(OSC_WAVE) - 1);
     m_freqOsc.SetAmp(0.5f);
-    m_freqOsc.SetFreq(m_freqOscFreqMin + (GetParameterAsFloat(2) * m_freqOscFreqMax));
+    m_freqOsc.SetFreq(m_freqOscFreqMin + (GetParameterAsFloat(OSC_FREQ) * m_freqOscFreqMax));
     float mod = 0.5f + m_freqOsc.Process();
 
-    if (GetParameterAsFloat(2) <= 0.01f) {
+    if (GetParameterAsFloat(OSC_FREQ) <= 0.01f) {
         mod = 0.5f;
         m_pan = mod;
     }
@@ -81,8 +97,8 @@ void AutoPanModule::ProcessMono(float in) {
     float audioRightWet = m_audioRight * (r * (cosf(angle) + sinf(angle)));
 
     // Handle the wet / dry mix
-    m_audioLeft = audioLeftWet * GetParameterAsFloat(0) + m_audioLeft * (1.0f - GetParameterAsFloat(0));
-    m_audioRight = audioRightWet * GetParameterAsFloat(0) + m_audioRight * (1.0f - GetParameterAsFloat(0));
+    m_audioLeft = audioLeftWet * GetParameterAsFloat(WET) + m_audioLeft * (1.0f - GetParameterAsFloat(WET));
+    m_audioRight = audioRightWet * GetParameterAsFloat(WET) + m_audioRight * (1.0f - GetParameterAsFloat(WET));
 }
 
 void AutoPanModule::ProcessStereo(float inL, float inR) {
@@ -90,7 +106,7 @@ void AutoPanModule::ProcessStereo(float inL, float inR) {
     ProcessMono(inL);
 
     // If we are processing in mono only no need to do anything
-    if (!GetParameterAsBool(3)) {
+    if (!GetParameterAsBool(STEREO)) {
         return;
     }
 
@@ -106,8 +122,8 @@ void AutoPanModule::ProcessStereo(float inL, float inR) {
     float audioRightWet = 0.5f * (1.0f - adjustedPan) * mSignal - sSignal;
 
     // Handle the wet / dry mix
-    m_audioLeft = audioLeftWet * GetParameterAsFloat(0) + m_audioLeft * (1.0f - GetParameterAsFloat(0));
-    m_audioRight = audioRightWet * GetParameterAsFloat(0) + m_audioRight * (1.0f - GetParameterAsFloat(0));
+    m_audioLeft = audioLeftWet * GetParameterAsFloat(WET) + m_audioLeft * (1.0f - GetParameterAsFloat(WET));
+    m_audioRight = audioRightWet * GetParameterAsFloat(WET) + m_audioRight * (1.0f - GetParameterAsFloat(WET));
 }
 
 void AutoPanModule::SetTempo(uint32_t bpm) {

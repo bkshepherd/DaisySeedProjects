@@ -17,6 +17,15 @@ namespace bkshepherd {
 
 class CompressorModule : public BaseEffectModule {
   public:
+    enum Param {
+        LEVEL = 0,
+        RATIO,
+        THRESHOLD,
+        ATTACK,
+        RELEASE,
+        PARAM_COUNT
+    };
+
     CompressorModule();
     ~CompressorModule();
 

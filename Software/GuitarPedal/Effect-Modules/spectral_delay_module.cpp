@@ -1,7 +1,9 @@
 #include "spectral_delay_module.h"
 #include "../Util/audio_utilities.h"
+#include <array>
 
 using namespace bkshepherd;
+
 using namespace soundmath;
 
 #define PI 3.1415926535897932384626433832795
@@ -98,12 +100,34 @@ inline void spectraldelay(const float *in, float *out) {
 static const char *s_timeMode[5] = {"Random", "Sine", "LinearUp", "LinearDn", "Const"};
 static const char *s_fdbkMode[5] = {"Random", "Sine", "LinearUp", "LinearDn", "Const"};
 
-static const int s_paramCount = 6;
-static const ParameterMetaData s_metaData[s_paramCount] = {
-    {name : "Mix", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 0, midiCCMapping : 14},
-    {name : "Time", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 1, midiCCMapping : 15},
-    {name : "FDBK", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 2, midiCCMapping : 16},
-    {
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, SpectralDelayModule::PARAM_COUNT> params{};
+
+    params[SpectralDelayModule::MIX] = {
+        name : "Mix",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 0,
+        midiCCMapping : 14
+    };
+
+    params[SpectralDelayModule::TIME] = {
+        name : "Time",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 1,
+        midiCCMapping : 15
+    };
+
+    params[SpectralDelayModule::FDBK] = {
+        name : "FDBK",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 2,
+        midiCCMapping : 16
+    };
+
+    params[SpectralDelayModule::TIME_MODE] = {
         name : "TimeMode",
         valueType : ParameterValueType::Binned,
         valueBinCount : 5,
@@ -111,8 +135,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : 3,
         midiCCMapping : 17
-    },
-    {
+    };
+
+    params[SpectralDelayModule::FDBK_MODE] = {
         name : "FDBK Mode",
         valueType : ParameterValueType::Binned,
         valueBinCount : 5,
@@ -120,9 +145,18 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : 4,
         midiCCMapping : 18
-    },
-    {name : "Tone", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.0f}, knobMapping : 5, midiCCMapping : 19},
-};
+    };
+
+    params[SpectralDelayModule::TONE] = {
+        name : "Tone",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.0f},
+        knobMapping : 5,
+        midiCCMapping : 19
+    };
+
+    return params;
+}();
 
 // Default Constructor
 SpectralDelayModule::SpectralDelayModule() : BaseEffectModule(), m_cachedEffectMagnitudeValue(1.0f) {
@@ -130,10 +164,10 @@ SpectralDelayModule::SpectralDelayModule() : BaseEffectModule(), m_cachedEffectM
     m_name = "SpctDelay";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor
@@ -172,9 +206,9 @@ void SpectralDelayModule::ParameterChanged(int parameter_id) // Somewhere here i
     // static const char *s_timeMode[5] = {"Random", "Sine", "LinearUp", "LinearDn", "Const" };
     // static const char *s_fdbkMode[4] = {"Random", "LinearUp", "LinearDn", "Const"};
 
-    if (parameter_id == 1 || parameter_id == 3) { // Time or Time Mode
-        float vdelay_time = GetParameterAsFloat(1);
-        int delay_time_mode = (GetParameterAsBinnedValue(3) - 1);
+    if (parameter_id == TIME || parameter_id == TIME_MODE) { // Time or Time Mode
+        float vdelay_time = GetParameterAsFloat(TIME);
+        int delay_time_mode = (GetParameterAsBinnedValue(TIME_MODE) - 1);
         float cycles = 4.0; // when time mode is sine wave, this changes the frequency of the sine wave across frequency bins
 
         for (int i = 0; i < delay_array_size; i++) {
@@ -202,10 +236,10 @@ void SpectralDelayModule::ParameterChanged(int parameter_id) // Somewhere here i
             }
         }
 
-    } else if (parameter_id == 2 || parameter_id == 4) { // FDBK or FDBK Mode
-        float vdelay_fdbk = GetParameterAsFloat(2);
+    } else if (parameter_id == FDBK || parameter_id == FDBK_MODE) { // FDBK or FDBK Mode
+        float vdelay_fdbk = GetParameterAsFloat(FDBK);
 
-        int delay_fdbk_mode = (GetParameterAsBinnedValue(4) - 1);
+        int delay_fdbk_mode = (GetParameterAsBinnedValue(FDBK_MODE) - 1);
         float cycles =
             4.0; // when fdbk mode is center for sine wave, this changes the frequency of the sine wave across frequency bins
 
@@ -230,8 +264,8 @@ void SpectralDelayModule::ParameterChanged(int parameter_id) // Somewhere here i
             }
         }
 
-    } else if (parameter_id == 5) { // Tone
-        vtone = GetParameterAsFloat(5);
+    } else if (parameter_id == TONE) { // Tone
+        vtone = GetParameterAsFloat(TONE);
     }
 }
 
@@ -241,7 +275,7 @@ void SpectralDelayModule::ProcessMono(float in) {
     float inputL = m_audioLeft;
     // float inputR = m_audioLeft;
 
-    float vmix = GetParameterAsFloat(0);
+    float vmix = GetParameterAsFloat(MIX);
     float delaygain = 3.0;
 
     stft->write(inputL);                                                   // put a new sample in the STFT

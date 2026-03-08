@@ -17,6 +17,11 @@ namespace bkshepherd {
 
 class TunerModule : public BaseEffectModule {
   public:
+    enum Param {
+        MUTE = 0,
+        PARAM_COUNT
+    };
+
     TunerModule();
     ~TunerModule();
 

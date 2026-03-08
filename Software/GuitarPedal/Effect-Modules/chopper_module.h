@@ -16,6 +16,14 @@ namespace bkshepherd {
 
 class ChopperModule : public BaseEffectModule {
   public:
+    enum Param {
+        WET = 0,
+        TEMPO,
+        DUTY,
+        PATTERN,
+        PARAM_COUNT
+    };
+
     ChopperModule();
     ~ChopperModule();
 

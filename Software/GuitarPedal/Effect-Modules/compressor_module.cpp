@@ -1,50 +1,58 @@
 #include "compressor_module.h"
+#include <array>
 
 using namespace bkshepherd;
 
-static const int s_paramCount = 5;
-static const ParameterMetaData s_metaData[s_paramCount] = {
-    {
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, CompressorModule::PARAM_COUNT> params{};
+
+    params[CompressorModule::LEVEL] = {
         name : "Level",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 0,
         midiCCMapping : -1
-    },
-    {
+    };
+
+    params[CompressorModule::RATIO] = {
         name : "Ratio",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 1,
         midiCCMapping : -1
-    },
-    {
+    };
+
+    params[CompressorModule::THRESHOLD] = {
         name : "Thresh",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 2,
         midiCCMapping : -1
-    },
-    {
+    };
+
+    params[CompressorModule::ATTACK] = {
         name : "Attack",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 3,
         midiCCMapping : -1
-    },
-    {
+    };
+
+    params[CompressorModule::RELEASE] = {
         name : "Release",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 4,
         midiCCMapping : -1
-    },
-};
+    };
+
+    return params;
+}();
 
 // Default Constructor
 CompressorModule::CompressorModule() : BaseEffectModule() {
@@ -52,10 +60,10 @@ CompressorModule::CompressorModule() : BaseEffectModule() {
     m_name = "Comp";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor
@@ -71,32 +79,32 @@ void CompressorModule::Init(float sample_rate) {
 
 void CompressorModule::ParameterChanged(int parameter_id) {
     switch (parameter_id) {
-    case 1: {
+    case RATIO: {
         const float ratioMin = 1.0f;
         const float ratioMax = 40.0f;
-        float ratio = ratioMin + (GetParameterAsFloat(1) * (ratioMax - ratioMin));
+        float ratio = ratioMin + (GetParameterAsFloat(RATIO) * (ratioMax - ratioMin));
         m_compressor.SetRatio(ratio);
         break;
     }
-    case 2: {
+    case THRESHOLD: {
         const float thresholdMin = 0.0f;
         const float thresholdMax = 80.0f;
-        float threshold = thresholdMin + (GetParameterAsFloat(2) * (thresholdMax - thresholdMin));
+        float threshold = thresholdMin + (GetParameterAsFloat(THRESHOLD) * (thresholdMax - thresholdMin));
         // This is in dB so it is supposed to be 0dB to -80dB
         m_compressor.SetThreshold(-threshold);
         break;
     }
-    case 3: {
+    case ATTACK: {
         const float attackMin = 0.001f;
         const float attackMax = 10.0f;
-        float attack = attackMin + (GetParameterAsFloat(3) * (attackMax - attackMin));
+        float attack = attackMin + (GetParameterAsFloat(ATTACK) * (attackMax - attackMin));
         m_compressor.SetAttack(attack);
         break;
     }
-    case 4: {
+    case RELEASE: {
         const float releaseMin = 0.001f;
         const float releaseMax = 10.0f;
-        float release = releaseMin + (GetParameterAsFloat(4) * (releaseMax - releaseMin));
+        float release = releaseMin + (GetParameterAsFloat(RELEASE) * (releaseMax - releaseMin));
         m_compressor.SetRelease(release);
         break;
     }
@@ -106,7 +114,7 @@ void CompressorModule::ParameterChanged(int parameter_id) {
 void CompressorModule::ProcessMono(float in) {
     const float compressor_out = m_compressor.Process(in);
 
-    const float level = m_levelMin + (GetParameterAsFloat(0) * (m_levelMax - m_levelMin));
+    const float level = m_levelMin + (GetParameterAsFloat(LEVEL) * (m_levelMax - m_levelMin));
 
     m_audioLeft = compressor_out * level;
     m_audioRight = m_audioLeft;

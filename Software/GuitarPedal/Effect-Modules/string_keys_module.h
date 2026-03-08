@@ -16,6 +16,14 @@ namespace bkshepherd {
 
 class StringKeysModule : public BaseEffectModule {
   public:
+    enum Param {
+        STRUCTURE = 0,
+        BRIGHTNESS,
+        LEVEL,
+        DAMPING,
+        PARAM_COUNT
+    };
+
     StringKeysModule();
     ~StringKeysModule();
 

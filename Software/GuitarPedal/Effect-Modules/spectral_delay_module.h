@@ -32,6 +32,16 @@ namespace bkshepherd {
 
 class SpectralDelayModule : public BaseEffectModule {
   public:
+    enum Param {
+        MIX = 0,
+        TIME,
+        FDBK,
+        TIME_MODE,
+        FDBK_MODE,
+        TONE,
+        PARAM_COUNT
+    };
+
     SpectralDelayModule();
     ~SpectralDelayModule();
 

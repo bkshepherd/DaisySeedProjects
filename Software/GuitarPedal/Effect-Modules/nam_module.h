@@ -13,6 +13,18 @@ namespace bkshepherd {
 
 class NamModule : public BaseEffectModule {
   public:
+    enum Param {
+        GAIN = 0,
+        LEVEL,
+        MODEL,
+        BASS,
+        MID,
+        TREBLE,
+        NEURAL_MODEL,
+        EQ,
+        PARAM_COUNT
+    };
+
     NamModule();
     ~NamModule();
 

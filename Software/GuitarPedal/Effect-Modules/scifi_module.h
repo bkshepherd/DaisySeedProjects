@@ -21,6 +21,19 @@ namespace bkshepherd {
 
 class SciFiModule : public BaseEffectModule {
   public:
+    enum Param {
+        DRY = 0,
+        OCT_DOWN,
+        OCT_UP,
+        TIME,
+        DRIVE,
+        MIX,
+        DAMP,
+        LEVEL,
+        OD_MIX,
+        PARAM_COUNT
+    };
+
     SciFiModule();
     ~SciFiModule();
 

@@ -17,6 +17,12 @@ namespace bkshepherd {
 
 class IrModule : public BaseEffectModule {
   public:
+    enum Param {
+        IR = 0,
+        LEVEL,
+        PARAM_COUNT
+    };
+
     IrModule();
     ~IrModule();
 

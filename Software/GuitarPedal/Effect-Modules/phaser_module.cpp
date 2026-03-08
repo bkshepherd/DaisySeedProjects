@@ -1,43 +1,50 @@
 #include "phaser_module.h"
 #include <math.h>
+#include <array>
 
 using namespace bkshepherd;
 
-static const int s_paramCount = 4;
-static const ParameterMetaData s_metaData[s_paramCount] = {
-    {
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, PhaserModule::PARAM_COUNT> params{};
+
+    params[PhaserModule::MIX] = {
         // 0 Mix (dry/wet)
         name : "Mix",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 0,
         midiCCMapping : -1
-    },
-    {
+    };
+
+    params[PhaserModule::RATE] = {
         // 1 Rate
         name : "Rate",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.25f},
         knobMapping : 1,
         midiCCMapping : -1
-    },
-    {
+    };
+
+    params[PhaserModule::DEPTH] = {
         // 2 Depth
         name : "Depth",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 1.0f},
         knobMapping : 2,
         midiCCMapping : -1
-    },
-    {
+    };
+
+    params[PhaserModule::FEEDBACK] = {
         // 3 Feedback
         name : "Feedback",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.25f},
         knobMapping : 3,
         midiCCMapping : -1
-    },
-};
+    };
+
+    return params;
+}();
 
 // Default Constructor
 PhaserModule::PhaserModule() : BaseEffectModule() {
@@ -45,10 +52,10 @@ PhaserModule::PhaserModule() : BaseEffectModule() {
     m_name = "Phaser";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor
@@ -94,18 +101,18 @@ void PhaserModule::Init(float sample_rate) {
 
 void PhaserModule::ParameterChanged(int parameter_id) {
     switch (parameter_id) {
-    case 1: { // Rate: 0..1 -> 0.10–8 Hz (exp mapping favors slow)
-        float rate = MapExp(GetParameterAsFloat(1), 0.10f, 8.0f);
+    case RATE: { // Rate: 0..1 -> 0.10–8 Hz (exp mapping favors slow)
+        float rate = MapExp(GetParameterAsFloat(RATE), 0.10f, 8.0f);
         m_targetRate = rate;
         break;
     }
-    case 2: { // Depth
-        m_targetDepth = fminf(fmaxf(GetParameterAsFloat(2), 0.0f), 0.98f);
+    case DEPTH: { // Depth
+        m_targetDepth = fminf(fmaxf(GetParameterAsFloat(DEPTH), 0.0f), 0.98f);
         m_phaser.set_depth(m_targetDepth);
         break;
     }
-    case 3: { // Feedback
-        float fb = GetParameterAsFloat(3) * 0.45f;
+    case FEEDBACK: { // Feedback
+        float fb = GetParameterAsFloat(FEEDBACK) * 0.45f;
         m_phaser.set_feedback(fb);
         break;
     }
@@ -130,7 +137,7 @@ void PhaserModule::ProcessMono(float in) {
     float wet = 2.0f * sp_out - x;
 
     float dryGain, wetGain;
-    EqualPowerMix(GetParameterAsFloat(0), dryGain, wetGain);
+    EqualPowerMix(GetParameterAsFloat(MIX), dryGain, wetGain);
 
     const float post = 0.95f;
     const float out = (x * dryGain + wet * wetGain) * post;

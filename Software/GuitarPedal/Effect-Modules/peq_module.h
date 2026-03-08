@@ -14,6 +14,19 @@ namespace bkshepherd {
 
 class ParametricEQModule : public BaseEffectModule {
   public:
+    enum Param {
+        LOW_FREQ = 0,
+        MID_FREQ,
+        HIGH_FREQ,
+        LOW_GAIN,
+        MID_GAIN,
+        HIGH_GAIN,
+        LOW_Q,
+        MID_Q,
+        HIGH_Q,
+        PARAM_COUNT
+    };
+
     ParametricEQModule();
     ~ParametricEQModule();
 

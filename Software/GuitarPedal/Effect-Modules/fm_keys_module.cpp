@@ -1,5 +1,6 @@
 #include "fm_keys_module.h"
 #include "../Util/audio_utilities.h"
+#include <array>
 
 using namespace bkshepherd;
 
@@ -7,10 +8,18 @@ using namespace bkshepherd;
 //  With added carrier env control, 16 glitches, 12 works
 //  moved param changing to outside function, can run 18
 
-static const int s_paramCount = 12;
-static const ParameterMetaData s_metaData[s_paramCount] = {
-    {name : "Level", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 0, midiCCMapping : 14},
-    {
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, FmKeysModule::PARAM_COUNT> params{};
+
+    params[FmKeysModule::LEVEL] = {
+        name : "Level",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 0,
+        midiCCMapping : 14
+    };
+
+    params[FmKeysModule::RATIO] = {
         name : "Ratio",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 1.0f},
@@ -18,16 +27,17 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         midiCCMapping : 15,
         minValue : 0,
         maxValue : 16
-    },
+    };
 
-    {
+    params[FmKeysModule::MOD_LEVEL] = {
         name : "ModLevel",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.2f},
         knobMapping : 2,
         midiCCMapping : 16
-    },
-    {
+    };
+
+    params[FmKeysModule::MOD_RATIO] = {
         name : "ModRatio",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 16.0f},
@@ -35,66 +45,75 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         midiCCMapping : 17,
         minValue : 0,
         maxValue : 16
-    }, // try fine/coarse step sizes 0.5 (not in lighthouse yet?)
+    };
 
-    {
+    // TODO: Try fine/coarse step sizes of 0.5 (not in lighthouse yet?)
+    params[FmKeysModule::CAR_ATTACK] = {
         name : "CarAttack",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 4,
         midiCCMapping : 18
-    },
-    {
+    };
+
+    params[FmKeysModule::CAR_DECAY] = {
         name : "CarDecay",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 5,
         midiCCMapping : 19
-    },
-    {
+    };
+
+    params[FmKeysModule::CAR_SUSTAIN] = {
         name : "CarSustain",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : -1,
         midiCCMapping : 20
-    },
-    {
+    };
+
+    params[FmKeysModule::CAR_RELEASE] = {
         name : "CarRelease",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : -1,
         midiCCMapping : 21
-    },
+    };
 
-    {
+    params[FmKeysModule::MOD_ATTACK] = {
         name : "ModAttack",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : -1,
         midiCCMapping : 22
-    },
-    {
+    };
+
+    params[FmKeysModule::MOD_DECAY] = {
         name : "ModDecay",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : -1,
         midiCCMapping : 23
-    },
-    {
+    };
+
+    params[FmKeysModule::MOD_SUSTAIN] = {
         name : "ModSustain",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : -1,
         midiCCMapping : 24
-    },
-    {
+    };
+
+    params[FmKeysModule::MOD_RELEASE] = {
         name : "ModRelease",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : -1,
         midiCCMapping : 25
-    },
-};
+    };
+
+    return params;
+}();
 
 // Default Constructor
 FmKeysModule::FmKeysModule() : BaseEffectModule(), m_freqMin(250.0f), m_freqMax(16000.0f), m_cachedEffectMagnitudeValue(1.0f) {
@@ -102,10 +121,10 @@ FmKeysModule::FmKeysModule() : BaseEffectModule(), m_freqMin(250.0f), m_freqMax(
     m_name = "FmKeys";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor
@@ -121,49 +140,49 @@ void FmKeysModule::Init(float sample_rate) {
 
 void FmKeysModule::ParameterChanged(int parameter_id) {
 
-    if (parameter_id == 0) {
-        m_voice_handler.SetCarrierLevel(GetParameterAsFloat(0));
+    if (parameter_id == LEVEL) {
+        m_voice_handler.SetCarrierLevel(GetParameterAsFloat(LEVEL));
 
-    } else if (parameter_id == 1) {
-        float temp = GetParameterAsFloat(1) * 2; // scale 0 to 16... 0 to 32
+    } else if (parameter_id == RATIO) {
+        float temp = GetParameterAsFloat(RATIO) * 2; // scale 0 to 16... 0 to 32
         int temp2 = static_cast<int>(temp);      // round by converting to int
         float temp3 = static_cast<float>(temp2);
         float float_val = temp3 / 2.0; // 0 to 16 increments of 0.5
         m_voice_handler.SetCarrierRatio(float_val);
 
-    } else if (parameter_id == 2) {
-        m_voice_handler.SetModulatorLevel(GetParameterAsFloat(2) * GetParameterAsFloat(2)); // exponential
+    } else if (parameter_id == MOD_LEVEL) {
+        m_voice_handler.SetModulatorLevel(GetParameterAsFloat(MOD_LEVEL) * GetParameterAsFloat(MOD_LEVEL)); // exponential
 
-    } else if (parameter_id == 3) {
-        float temp = GetParameterAsFloat(3) * 2; // scale 0 to 16... 0 to 32
+    } else if (parameter_id == MOD_RATIO) {
+        float temp = GetParameterAsFloat(MOD_RATIO) * 2; // scale 0 to 16... 0 to 32
         int temp2 = static_cast<int>(temp);      // round by converting to int
         float temp3 = static_cast<float>(temp2);
         float float_val = temp3 / 2.0; // 0 to 16 increments of 0.5
         m_voice_handler.SetModulatorRatio(float_val);
 
-    } else if (parameter_id == 4) {
-        m_voice_handler.SetCarrierAttack(GetParameterAsFloat(4) * GetParameterAsFloat(4) * 0.9999 + 0.0001); // exponential
+    } else if (parameter_id == CAR_ATTACK) {
+        m_voice_handler.SetCarrierAttack(GetParameterAsFloat(CAR_ATTACK) * GetParameterAsFloat(CAR_ATTACK) * 0.9999 + 0.0001); // exponential
 
-    } else if (parameter_id == 5) {
-        m_voice_handler.SetCarrierDecay(GetParameterAsFloat(5) * GetParameterAsFloat(5) * 0.9999 + 0.0001); // exponential
+    } else if (parameter_id == CAR_DECAY) {
+        m_voice_handler.SetCarrierDecay(GetParameterAsFloat(CAR_DECAY) * GetParameterAsFloat(CAR_DECAY) * 0.9999 + 0.0001); // exponential
 
-    } else if (parameter_id == 6) {
-        m_voice_handler.SetCarrierSustain(GetParameterAsFloat(6) * 0.999 + 0.001);
+    } else if (parameter_id == CAR_SUSTAIN) {
+        m_voice_handler.SetCarrierSustain(GetParameterAsFloat(CAR_SUSTAIN) * 0.999 + 0.001);
 
-    } else if (parameter_id == 7) {
-        m_voice_handler.SetCarrierRelease(GetParameterAsFloat(7) * 0.999 + 0.001);
+    } else if (parameter_id == CAR_RELEASE) {
+        m_voice_handler.SetCarrierRelease(GetParameterAsFloat(CAR_RELEASE) * 0.999 + 0.001);
 
-    } else if (parameter_id == 8) {
-        m_voice_handler.SetModAttack(GetParameterAsFloat(8) * GetParameterAsFloat(8) * 0.9999 + 0.0001); // exponential
+    } else if (parameter_id == MOD_ATTACK) {
+        m_voice_handler.SetModAttack(GetParameterAsFloat(MOD_ATTACK) * GetParameterAsFloat(MOD_ATTACK) * 0.9999 + 0.0001); // exponential
 
-    } else if (parameter_id == 9) {
-        m_voice_handler.SetModDecay(GetParameterAsFloat(9) * GetParameterAsFloat(9) * 0.9999 + 0.0001); // exponential
+    } else if (parameter_id == MOD_DECAY) {
+        m_voice_handler.SetModDecay(GetParameterAsFloat(MOD_DECAY) * GetParameterAsFloat(MOD_DECAY) * 0.9999 + 0.0001); // exponential
 
-    } else if (parameter_id == 10) {
-        m_voice_handler.SetModSustain(GetParameterAsFloat(10) * 0.999 + 0.001);
+    } else if (parameter_id == MOD_SUSTAIN) {
+        m_voice_handler.SetModSustain(GetParameterAsFloat(MOD_SUSTAIN) * 0.999 + 0.001);
 
-    } else if (parameter_id == 11) {
-        m_voice_handler.SetModRelease(GetParameterAsFloat(11) * 0.999 + 0.001);
+    } else if (parameter_id == MOD_RELEASE) {
+        m_voice_handler.SetModRelease(GetParameterAsFloat(MOD_RELEASE) * 0.999 + 0.001);
     }
 }
 

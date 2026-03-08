@@ -15,6 +15,15 @@ namespace bkshepherd {
 
 class ChorusModule : public BaseEffectModule {
   public:
+    enum Param {
+        WET = 0,
+        DELAY,
+        LFO_FREQ,
+        LFO_DEPTH,
+        FEEDBACK,
+        PARAM_COUNT
+    };
+
     ChorusModule();
     ~ChorusModule();
 

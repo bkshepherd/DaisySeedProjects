@@ -15,6 +15,15 @@ namespace bkshepherd {
 
 class ModulatedTremoloModule : public BaseEffectModule {
   public:
+    enum Param {
+        WAVE = 0,
+        DEPTH,
+        FREQ,
+        OSC_WAVE,
+        OSC_FREQ,
+        PARAM_COUNT
+    };
+
     ModulatedTremoloModule();
     ~ModulatedTremoloModule();
 

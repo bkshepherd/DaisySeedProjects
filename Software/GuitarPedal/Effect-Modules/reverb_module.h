@@ -15,6 +15,13 @@ namespace bkshepherd {
 
 class ReverbModule : public BaseEffectModule {
   public:
+    enum Param {
+        TIME = 0,
+        DAMP,
+        MIX,
+        PARAM_COUNT
+    };
+
     ReverbModule();
     ~ReverbModule();
 

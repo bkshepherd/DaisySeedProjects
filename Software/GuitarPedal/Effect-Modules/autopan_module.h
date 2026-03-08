@@ -15,6 +15,14 @@ namespace bkshepherd {
 
 class AutoPanModule : public BaseEffectModule {
   public:
+    enum Param {
+        WET = 0,
+        OSC_WAVE,
+        OSC_FREQ,
+        STEREO,
+        PARAM_COUNT
+    };
+
     AutoPanModule();
     ~AutoPanModule();
 

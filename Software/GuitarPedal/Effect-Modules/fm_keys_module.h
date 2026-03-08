@@ -235,6 +235,22 @@ template <size_t max_voices> class VoiceManagerFm {
 
 class FmKeysModule : public BaseEffectModule {
   public:
+    enum Param {
+        LEVEL = 0,
+        RATIO,
+        MOD_LEVEL,
+        MOD_RATIO,
+        CAR_ATTACK,
+        CAR_DECAY,
+        CAR_SUSTAIN,
+        CAR_RELEASE,
+        MOD_ATTACK,
+        MOD_DECAY,
+        MOD_SUSTAIN,
+        MOD_RELEASE,
+        PARAM_COUNT
+    };
+
     FmKeysModule();
     ~FmKeysModule();
 

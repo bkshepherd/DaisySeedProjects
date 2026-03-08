@@ -14,6 +14,14 @@ namespace bkshepherd {
 
 class PhaserModule : public BaseEffectModule {
   public:
+    enum Param {
+        MIX = 0,
+        RATE,
+        DEPTH,
+        FEEDBACK,
+        PARAM_COUNT
+    };
+
     PhaserModule();
     ~PhaserModule();
 

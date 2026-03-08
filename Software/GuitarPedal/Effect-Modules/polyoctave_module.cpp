@@ -1,5 +1,6 @@
 #include "polyoctave_module.h"
 #include "../Util/audio_utilities.h"
+#include <array>
 
 #include <q/fx/biquad.hpp>
 #include <q/support/literals.hpp>
@@ -9,6 +10,7 @@
 #include "../Util/OctaveGenerator.h"
 
 using namespace bkshepherd;
+
 namespace q = cycfi::q;
 using namespace q::literals;
 
@@ -20,31 +22,43 @@ static OctaveGenerator octave(sample_rate_temp / resample_factor); // resample_f
 static q::highshelf eq1(-11, 140_Hz, sample_rate_temp);
 static q::lowshelf eq2(5, 160_Hz, sample_rate_temp);
 
-static const int s_paramCount = 4;
-static const ParameterMetaData s_metaData[s_paramCount] = {
-    {name : "Dry", valueType : ParameterValueType::Float, defaultValue : {.float_value = 0.5f}, knobMapping : 0, midiCCMapping : 14},
-    {
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, PolyOctaveModule::PARAM_COUNT> params{};
+
+    params[PolyOctaveModule::DRY] = {
+        name : "Dry",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 0,
+        midiCCMapping : 14
+    };
+
+    params[PolyOctaveModule::TWO_OCT_DOWN] = {
         name : "2 OctDown",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 1,
         midiCCMapping : 15
-    },
-    {
+    };
+
+    params[PolyOctaveModule::ONE_OCT_DOWN] = {
         name : "1 OctDown",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 2,
         midiCCMapping : 16
-    },
-    {
+    };
+
+    params[PolyOctaveModule::ONE_OCT_UP] = {
         name : "1 OctUp",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 3,
         midiCCMapping : 17
-    },
-};
+    };
+
+    return params;
+}();
 
 // Default Constructor
 PolyOctaveModule::PolyOctaveModule()
@@ -54,10 +68,10 @@ PolyOctaveModule::PolyOctaveModule()
     m_name = "PolyOctave";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor
@@ -80,10 +94,10 @@ void PolyOctaveModule::ProcessMono(float in) {
 
     buff[bin_counter] = in; // making a workaround for only processing sample by sample instead of block, will add 6 samples of latency
 
-    float dryLevel = GetParameterAsFloat(0);
-    float down1Level = GetParameterAsFloat(1);
-    float down2Level = GetParameterAsFloat(2);
-    float up1Level = GetParameterAsFloat(3);
+    float dryLevel = GetParameterAsFloat(DRY);
+    float down1Level = GetParameterAsFloat(TWO_OCT_DOWN);
+    float down2Level = GetParameterAsFloat(ONE_OCT_DOWN);
+    float up1Level = GetParameterAsFloat(ONE_OCT_UP);
 
     // for (size_t i = 0; i <= (size - resample_factor); i += resample_factor)  // Every 6 samples until block size
     //{

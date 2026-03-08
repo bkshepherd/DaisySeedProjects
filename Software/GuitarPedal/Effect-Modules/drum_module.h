@@ -16,6 +16,20 @@ namespace bkshepherd {
 
 class DrumModule : public BaseEffectModule {
   public:
+    enum Param {
+        LEVEL = 0,
+        VOICE,
+        BEATS,
+        TEMPO,
+        MIDI_VOICE,
+        TIMBRE,
+        TONE,
+        DECAY,
+        MODE,
+        DRY_THRU,
+        PARAM_COUNT
+    };
+
     DrumModule();
     ~DrumModule();
 

@@ -61,6 +61,13 @@ enum TimeSignature { meter4x4 = 0, meter3x4 = 1, meter2x4 = 2 };
 
 class MetroModule : public BaseEffectModule {
   public:
+    enum Param {
+        TEMPO = 0,
+        MIX,
+        METER,
+        PARAM_COUNT
+    };
+
     MetroModule();
     ~MetroModule();
 

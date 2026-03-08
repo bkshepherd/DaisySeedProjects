@@ -1,7 +1,8 @@
 #include "geq_module.h"
 #include <q/fx/biquad.hpp>
+#include <array>
 
-constexpr uint8_t NUM_FILTERS = 6;
+constexpr uint8_t NUM_FILTERS = bkshepherd::GraphicEQModule::PARAM_COUNT;
 
 using namespace bkshepherd;
 
@@ -12,14 +13,20 @@ const float maxGain = 15.f;
 const float centerFrequency[NUM_FILTERS] = {100.f, 200.f, 400.f, 800.f, 1600.f, 3200.f};
 const float q[NUM_FILTERS] = {0.7f, 0.8f, 1.1f, 1.4f, 1.6f, 1.8f};
 
-cycfi::q::peaking filter[NUM_FILTERS] = {{0, centerFrequency[0], 48000, q[0]}, {0, centerFrequency[1], 48000, q[1]},
-                                         {0, centerFrequency[2], 48000, q[2]}, {0, centerFrequency[3], 48000, q[3]},
-                                         {0, centerFrequency[4], 48000, q[4]}, {0, centerFrequency[5], 48000, q[5]}};
+cycfi::q::peaking filter[NUM_FILTERS] = {
+    {0, centerFrequency[0], 48000, q[0]},
+    {0, centerFrequency[1], 48000, q[1]},
+    {0, centerFrequency[2], 48000, q[2]},
+    {0, centerFrequency[3], 48000, q[3]},
+    {0, centerFrequency[4], 48000, q[4]},
+    {0, centerFrequency[5], 48000, q[5]},
+};
 } // namespace
 
-static constexpr uint8_t s_paramCount = NUM_FILTERS;
-static const ParameterMetaData s_metaData[s_paramCount] = {
-    {
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, GraphicEQModule::PARAM_COUNT> params{};
+
+    params[GraphicEQModule::BAND_100] = {
         name : "100",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
@@ -28,8 +35,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         midiCCMapping : -1,
         minValue : static_cast<int>(minGain),
         maxValue : static_cast<int>(maxGain)
-    },
-    {
+    };
+
+    params[GraphicEQModule::BAND_200] = {
         name : "200",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
@@ -38,8 +46,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         midiCCMapping : -1,
         minValue : static_cast<int>(minGain),
         maxValue : static_cast<int>(maxGain)
-    },
-    {
+    };
+
+    params[GraphicEQModule::BAND_400] = {
         name : "400",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
@@ -48,8 +57,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         midiCCMapping : -1,
         minValue : static_cast<int>(minGain),
         maxValue : static_cast<int>(maxGain)
-    },
-    {
+    };
+
+    params[GraphicEQModule::BAND_800] = {
         name : "800",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
@@ -58,8 +68,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         midiCCMapping : -1,
         minValue : static_cast<int>(minGain),
         maxValue : static_cast<int>(maxGain)
-    },
-    {
+    };
+
+    params[GraphicEQModule::BAND_1600] = {
         name : "1600",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
@@ -68,8 +79,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         midiCCMapping : -1,
         minValue : static_cast<int>(minGain),
         maxValue : static_cast<int>(maxGain)
-    },
-    {
+    };
+
+    params[GraphicEQModule::BAND_3200] = {
         name : "3200",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
@@ -78,8 +90,10 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         midiCCMapping : -1,
         minValue : static_cast<int>(minGain),
         maxValue : static_cast<int>(maxGain)
-    },
-};
+    };
+
+    return params;
+}();
 
 // Default Constructor
 GraphicEQModule::GraphicEQModule() : BaseEffectModule() {
@@ -87,10 +101,10 @@ GraphicEQModule::GraphicEQModule() : BaseEffectModule() {
     m_name = "GraphicEQ";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor
@@ -102,7 +116,7 @@ void GraphicEQModule::Init(float sample_rate) {
     BaseEffectModule::Init(sample_rate);
 
     for (uint8_t i = 0; i < NUM_FILTERS; i++) {
-        filter[i].config(GetParameterAsFloat(i), centerFrequency[i], sample_rate, q[i]);
+        filter[i].config(GetParameterAsFloat(BAND_100 + i), centerFrequency[i], sample_rate, q[i]);
     }
 }
 
@@ -145,7 +159,7 @@ void GraphicEQModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, i
 
     int x = 0;
     for (int i = 0; i < NUM_FILTERS; i++) {
-        const int gainParamId = i;
+        const int gainParamId = BAND_100 + i;
         const bool positive = GetParameterAsFloat(gainParamId) > 0.0f;
         const float magnitude = std::abs(GetParameterAsFloat(gainParamId)) * magnitudeMultiplier;
         const int y = positive ? top - magnitude : top;

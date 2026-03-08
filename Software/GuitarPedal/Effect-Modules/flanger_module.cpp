@@ -1,48 +1,58 @@
 #include "flanger_module.h"
+#include <array>
 
 using namespace bkshepherd;
 
-static const int s_paramCount = 5;
-static const ParameterMetaData s_metaData[s_paramCount] = {{
-                                                               name : "Mix",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 0.65f},
-                                                               knobMapping : 0,
-                                                               midiCCMapping : 20
-                                                           },
-                                                           {
-                                                               name : "Manual",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 0.5f},
-                                                               knobMapping : 1,
-                                                               midiCCMapping : 21
-                                                           },
-                                                           {
-                                                               name : "Rate",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 0.25f},
-                                                               knobMapping : 2,
-                                                               midiCCMapping : 22
-                                                           },
-                                                           {
-                                                               name : "Depth",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 0.3f},
-                                                               knobMapping : 3,
-                                                               midiCCMapping : 23
-                                                           },
-                                                           {
-                                                               name : "Feedback",
-                                                               valueType : ParameterValueType::Float,
-                                                               valueBinCount : 0,
-                                                               defaultValue : {.float_value = 0.25f},
-                                                               knobMapping : 4,
-                                                               midiCCMapping : 24
-                                                           }};
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, FlangerModule::PARAM_COUNT> params{};
+
+    params[FlangerModule::MIX] = {
+        name : "Mix",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 0.65f},
+        knobMapping : 0,
+        midiCCMapping : 20
+    };
+
+    params[FlangerModule::MANUAL] = {
+        name : "Manual",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 1,
+        midiCCMapping : 21
+    };
+
+    params[FlangerModule::RATE] = {
+        name : "Rate",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 0.25f},
+        knobMapping : 2,
+        midiCCMapping : 22
+    };
+
+    params[FlangerModule::DEPTH] = {
+        name : "Depth",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 0.3f},
+        knobMapping : 3,
+        midiCCMapping : 23
+    };
+
+    params[FlangerModule::FEEDBACK] = {
+        name : "Feedback",
+        valueType : ParameterValueType::Float,
+        valueBinCount : 0,
+        defaultValue : {.float_value = 0.25f},
+        knobMapping : 4,
+        midiCCMapping : 24
+    };
+
+    return params;
+}();
 
 // Default Constructor
 FlangerModule::FlangerModule() : BaseEffectModule(), m_lfoFreqMin(0.05f), m_lfoFreqMax(5.0f) {
@@ -50,10 +60,10 @@ FlangerModule::FlangerModule() : BaseEffectModule(), m_lfoFreqMin(0.05f), m_lfoF
     m_name = "Flanger";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor
@@ -66,11 +76,11 @@ void FlangerModule::Init(float sample_rate) {
     m_flanger.Init(sample_rate);
 
     // Seed smoothed params from current UI values
-    const float manualNorm = GetParameterAsFloat(1);
-    const float rateNorm = GetParameterAsFloat(2);
-    const float depthNorm = GetParameterAsFloat(3);
-    const float fbNorm = GetParameterAsFloat(4);
-    const float mix = GetParameterAsFloat(0);
+    const float manualNorm = GetParameterAsFloat(MANUAL);
+    const float rateNorm = GetParameterAsFloat(RATE);
+    const float depthNorm = GetParameterAsFloat(DEPTH);
+    const float fbNorm = GetParameterAsFloat(FEEDBACK);
+    const float mix = GetParameterAsFloat(MIX);
 
     m_delaySm = manualNorm;
     m_rateSm = m_lfoFreqMin + (rateNorm * rateNorm) * (m_lfoFreqMax - m_lfoFreqMin);
@@ -91,11 +101,11 @@ void FlangerModule::ProcessMono(float in) {
     const float x = m_audioLeft;
 
     // Targets from UI
-    const float manualNorm = GetParameterAsFloat(1);
-    const float rateNorm = GetParameterAsFloat(2);
-    const float depthNorm = GetParameterAsFloat(3);
-    const float fbNorm = GetParameterAsFloat(4);
-    const float mix = GetParameterAsFloat(0);
+    const float manualNorm = GetParameterAsFloat(MANUAL);
+    const float rateNorm = GetParameterAsFloat(RATE);
+    const float depthNorm = GetParameterAsFloat(DEPTH);
+    const float fbNorm = GetParameterAsFloat(FEEDBACK);
+    const float mix = GetParameterAsFloat(MIX);
 
     // Map and smooth
     const float rateHzTgt = m_lfoFreqMin + (rateNorm * rateNorm) * (m_lfoFreqMax - m_lfoFreqMin);
@@ -142,7 +152,7 @@ float FlangerModule::GetBrightnessForLED(int led_id) const {
     float value = BaseEffectModule::GetBrightnessForLED(led_id);
 
     if (led_id == 1) {
-        return value * GetParameterAsFloat(0);
+        return value * GetParameterAsFloat(MIX);
     }
 
     return value;

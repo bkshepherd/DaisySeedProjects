@@ -1,4 +1,5 @@
 #include "pitch_shifter_module.h"
+#include <array>
 
 #include <algorithm>
 
@@ -25,9 +26,10 @@ const uint32_t k_maxSamplesMaxTime = 48000 * 2;
 const uint32_t k_defaultSamplesDelayPitchShifter = 2048;
 const uint32_t k_maxSamplesDelayPitchShifter = 6000;
 
-static const int s_paramCount = 6;
-static const ParameterMetaData s_metaData[s_paramCount] = {
-    {
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, PitchShifterModule::PARAM_COUNT> params{};
+
+    params[PitchShifterModule::SEMITONE] = {
         name : "Semitone",
         valueType : ParameterValueType::Binned,
         valueBinCount : 8,
@@ -35,16 +37,18 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : 0,
         midiCCMapping : -1
-    },
-    {
+    };
+
+    params[PitchShifterModule::CROSSFADE] = {
         name : "Crossfade",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 1.0f},
         knobMapping : 1,
         midiCCMapping : -1
-    },
-    {
+    };
+
+    params[PitchShifterModule::DIRECTION] = {
         name : "Direction",
         valueType : ParameterValueType::Binned,
         valueBinCount : 2,
@@ -52,8 +56,9 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : 2,
         midiCCMapping : -1
-    },
-    {
+    };
+
+    params[PitchShifterModule::MODE] = {
         name : "Mode",
         valueType : ParameterValueType::Binned,
         valueBinCount : 2,
@@ -61,24 +66,28 @@ static const ParameterMetaData s_metaData[s_paramCount] = {
         defaultValue : {.uint_value = 0},
         knobMapping : 3,
         midiCCMapping : -1
-    },
-    {
+    };
+
+    params[PitchShifterModule::SHIFT] = {
         name : "Shift",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.0f},
         knobMapping : 4,
         midiCCMapping : -1
-    },
-    {
+    };
+
+    params[PitchShifterModule::RETURN] = {
         name : "Return",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.0f},
         knobMapping : 5,
         midiCCMapping : -1
-    },
-};
+    };
+
+    return params;
+}();
 
 DSY_SDRAM_BSS float pitch_delay_buffer_a[k_maxSamplesDelayPitchShifter];
 DSY_SDRAM_BSS float pitch_delay_buffer_b[k_maxSamplesDelayPitchShifter];
@@ -91,17 +100,17 @@ PitchShifterModule::PitchShifterModule() : BaseEffectModule() {
     m_name = "Pitch";
 
     // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
+    m_paramMetaData = s_metaData.data();
 
     // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor
 PitchShifterModule::~PitchShifterModule() {}
 
 void PitchShifterModule::ProcessSemitoneTargetChange() {
-    int semitoneNum = GetParameterAsBinnedValue(0);
+    int semitoneNum = GetParameterAsBinnedValue(SEMITONE);
 
     // If this is the last semitone option, convert it to be a full octave
     if (semitoneNum == 8) {
@@ -141,37 +150,37 @@ void PitchShifterModule::Init(float sample_rate) {
     pitchShifter.Init(sample_rate, pitch_delay_buffer_a, pitch_delay_buffer_b, k_maxSamplesDelayPitchShifter);
 
     pitchCrossfade.Init(CROSSFADE_CPOW);
-    pitchCrossfade.SetPos(GetParameterAsFloat(1));
+    pitchCrossfade.SetPos(GetParameterAsFloat(CROSSFADE));
 
-    m_latching = GetParameterAsBinnedValue(3) == 1;
+    m_latching = GetParameterAsBinnedValue(MODE) == 1;
 
-    m_directionDown = GetParameterAsBinnedValue(2) == 1;
+    m_directionDown = GetParameterAsBinnedValue(DIRECTION) == 1;
 
     ProcessSemitoneTargetChange();
 
     SetTranspose(m_semitoneTarget);
 
-    m_samplesToDelayShift = static_cast<uint32_t>(static_cast<float>(k_maxSamplesMaxTime) * GetParameterAsFloat(4));
-    m_samplesToDelayReturn = static_cast<uint32_t>(static_cast<float>(k_maxSamplesMaxTime) * GetParameterAsFloat(5));
+    m_samplesToDelayShift = static_cast<uint32_t>(static_cast<float>(k_maxSamplesMaxTime) * GetParameterAsFloat(SHIFT));
+    m_samplesToDelayReturn = static_cast<uint32_t>(static_cast<float>(k_maxSamplesMaxTime) * GetParameterAsFloat(RETURN));
 }
 
 void PitchShifterModule::ParameterChanged(int parameter_id) {
-    if (parameter_id == 0 || parameter_id == 2) {
-        m_directionDown = GetParameterAsBinnedValue(2) == 1;
+    if (parameter_id == SEMITONE || parameter_id == DIRECTION) {
+        m_directionDown = GetParameterAsBinnedValue(DIRECTION) == 1;
 
         // Change semitone when semitone knob is turned or direction is changed
         ProcessSemitoneTargetChange();
-    } else if (parameter_id == 1) {
-        pitchCrossfade.SetPos(GetParameterAsFloat(1));
-    } else if (parameter_id == 3) {
-        m_latching = GetParameterAsBinnedValue(3) == 1;
+    } else if (parameter_id == CROSSFADE) {
+        pitchCrossfade.SetPos(GetParameterAsFloat(CROSSFADE));
+    } else if (parameter_id == MODE) {
+        m_latching = GetParameterAsBinnedValue(MODE) == 1;
         if (!m_latching) {
             pitchShifter.SetDelSize(k_defaultSamplesDelayPitchShifter);
         }
-    } else if (parameter_id == 4) {
-        m_samplesToDelayShift = static_cast<uint32_t>(static_cast<float>(k_maxSamplesMaxTime) * GetParameterAsFloat(4));
-    } else if (parameter_id == 5) {
-        m_samplesToDelayReturn = static_cast<uint32_t>(static_cast<float>(k_maxSamplesMaxTime) * GetParameterAsFloat(5));
+    } else if (parameter_id == SHIFT) {
+        m_samplesToDelayShift = static_cast<uint32_t>(static_cast<float>(k_maxSamplesMaxTime) * GetParameterAsFloat(SHIFT));
+    } else if (parameter_id == RETURN) {
+        m_samplesToDelayReturn = static_cast<uint32_t>(static_cast<float>(k_maxSamplesMaxTime) * GetParameterAsFloat(RETURN));
     }
 
     // Parameters changed, reset the transposition target just in case (mostly

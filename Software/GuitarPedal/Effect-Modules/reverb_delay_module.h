@@ -115,6 +115,28 @@ namespace bkshepherd {
 
 class ReverbDelayModule : public BaseEffectModule {
   public:
+    enum Param {
+        DELAY_TIME = 0,
+        D_FEEDBACK,
+        DELAY_MIX,
+        REVERB_TIME,
+        REVERB_DAMP,
+        REVERB_MIX,
+        DELAY_MODE,
+        SERIES_D_TO_R,
+        REVERSE,
+        OCTAVE,
+        DELAY_LPF,
+        D_SPREAD,
+        DUAL_DELAY,
+        MOD_AMT,
+        MOD_RATE,
+        MOD_PARAM,
+        MOD_WAVE,
+        SYNC_MOD_F,
+        PARAM_COUNT
+    };
+
     ReverbDelayModule();
     ~ReverbDelayModule();
 
