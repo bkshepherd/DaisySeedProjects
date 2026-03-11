@@ -22,9 +22,11 @@ class FrequencyDetectorQ : public FrequencyDetectorInterface {
     bool IsInitialized() const;
 
   private:
-    static cycfi::q::pitch_detector *s_pitchDetector;
-    static cycfi::q::signal_conditioner *s_preProcessor;
     float m_cachedFrequency = 0.0f;
+    int m_bufferIndex = 0;
+
+    static cycfi::q::pitch_detector *m_pitchDetector;
+    static cycfi::q::signal_conditioner *m_preProcessor;
 
     // inputs:
     // estimated frequency: overwritten by timestamps at runtime and not used

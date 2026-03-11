@@ -10,28 +10,28 @@
 
 using namespace cycfi::q;
 
-cycfi::q::pitch_detector *FrequencyDetectorQ::s_pitchDetector = nullptr;
-cycfi::q::signal_conditioner *FrequencyDetectorQ::s_preProcessor = nullptr;
+cycfi::q::pitch_detector *FrequencyDetectorQ::m_pitchDetector = nullptr;
+cycfi::q::signal_conditioner *FrequencyDetectorQ::m_preProcessor = nullptr;
 
 FrequencyDetectorQ::FrequencyDetectorQ() {}
 
 FrequencyDetectorQ::~FrequencyDetectorQ() {}
 
-bool FrequencyDetectorQ::IsInitialized() const { return s_pitchDetector != nullptr && s_preProcessor != nullptr; }
+bool FrequencyDetectorQ::IsInitialized() const { return m_pitchDetector != nullptr && m_preProcessor != nullptr; }
 
 void FrequencyDetectorQ::Init(float sampleRate) {
     if (IsInitialized()) {
         return;
     }
 
-    if ((s_pitchDetector == nullptr) != (s_preProcessor == nullptr)) {
-        delete s_pitchDetector;
-        s_pitchDetector = nullptr;
-        delete s_preProcessor;
-        s_preProcessor = nullptr;
+    if ((m_pitchDetector == nullptr) != (m_preProcessor == nullptr)) {
+        delete m_pitchDetector;
+        m_pitchDetector = nullptr;
+        delete m_preProcessor;
+        m_preProcessor = nullptr;
     }
 
-    if (s_pitchDetector == nullptr && s_preProcessor == nullptr) {
+    if (m_pitchDetector == nullptr && m_preProcessor == nullptr) {
         // Use C1 as the detector floor and share a single heavy detector state
         // across all modules that use FrequencyDetectorQ.
         const frequency lowest_frequency = cycfi::q::pitch_names::C[1];
@@ -49,8 +49,8 @@ void FrequencyDetectorQ::Init(float sampleRate) {
             return;
         }
 
-        s_pitchDetector = pitchDetector;
-        s_preProcessor = preProcessor;
+        m_pitchDetector = pitchDetector;
+        m_preProcessor = preProcessor;
     }
 }
 
@@ -60,14 +60,14 @@ float FrequencyDetectorQ::Process(float in) {
     }
 
     // Pre-process the signal for pitch detection
-    const float preProcessedSignal = s_preProcessor->operator()(in);
+    const float preProcessedSignal = m_preProcessor->operator()(in);
 
     // Send the processed sample through the pitch detector
-    const bool ready = s_pitchDetector->operator()(preProcessedSignal);
+    const bool ready = m_pitchDetector->operator()(preProcessedSignal);
 
     // If result is ready, get the detected frequency
     if (ready) {
-        const float freq = s_pitchDetector->get_frequency();
+        const float freq = m_pitchDetector->get_frequency();
 
         // Run a smoothing filter on the detected frequency
         const float currentTimeInSeconds = static_cast<float>(daisy::System::GetNow()) / 1000.f;
