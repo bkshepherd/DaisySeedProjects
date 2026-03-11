@@ -25,7 +25,7 @@ static const auto s_metaData = [] {
         defaultValue : {.float_value = 0.3f},
         knobMapping : 0,
         midiCCMapping : -1
-    };
+    }; // Output level (linear gain from silent to unity).
 
     params[CrusherModule::BITS] = {
         name : "Bits",
@@ -34,7 +34,7 @@ static const auto s_metaData = [] {
         defaultValue : {.uint_value = 32},
         knobMapping : 1,
         midiCCMapping : -1
-    };
+    }; // Bit depth for quantization (lower bits = more digital distortion).
 
     params[CrusherModule::RATE] = {
         name : "Rate",
@@ -43,7 +43,7 @@ static const auto s_metaData = [] {
         defaultValue : {.float_value = 1.0f},
         knobMapping : 2,
         midiCCMapping : -1
-    };
+    }; // Sample-rate reduction frequency. In pitch-tracking mode this selects the harmonic bin multiplier.
 
     params[CrusherModule::PITCH_TRACKING] = {
         name : "Pitch Tracking",
@@ -52,7 +52,7 @@ static const auto s_metaData = [] {
         defaultValue : {.uint_value = 0},
         knobMapping : -1,
         midiCCMapping : -1
-    };
+    }; // When enabled, SRR frequency follows detected input pitch (RATE chooses multiplier bins: unison, fifth, octaves).
 
     params[CrusherModule::JITTER] = {
         name : "Jitter",
@@ -61,7 +61,7 @@ static const auto s_metaData = [] {
         defaultValue : {.float_value = 0.0f},
         knobMapping : 3,
         midiCCMapping : -1
-    };
+    }; // Random variation of the SRR hold interval (adds instability/grit to the alias texture).
 
     params[CrusherModule::CUTOFF] = {
         name : "Cutoff",
@@ -70,7 +70,7 @@ static const auto s_metaData = [] {
         defaultValue : {.float_value = 0.5f},
         knobMapping : 4,
         midiCCMapping : -1
-    };
+    }; // Post-crusher low-pass cutoff to tame high-frequency aliasing.
 
     params[CrusherModule::MIX] = {
         name : "Mix",
@@ -79,7 +79,7 @@ static const auto s_metaData = [] {
         defaultValue : {.float_value = 1.0f},
         knobMapping : 5,
         midiCCMapping : -1
-    };
+    }; // Dry/wet blend between input and crushed signal.
 
     return params;
 }();
