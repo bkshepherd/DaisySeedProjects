@@ -29,27 +29,41 @@ class Bitcrusher {
     }
 
     float Process(float in) {
+        // Convert the target SRR frequency into a hold interval measured in input samples.
         float base = sampleRate / targetRate;
+        // Cannot update more than once per sample.
         if(base < 1.0f) base = 1.0f;
 
+        // Safety init for first run / invalid state.
         if(nextInterval < 1.0f) nextInterval = base;
 
+        // Advance "time" by one sample.
         phaseAccum += 1.0f;
+        // Refresh the held value once enough samples have elapsed.
         if(phaseAccum >= nextInterval) {
+            // Keep fractional remainder to reduce timing drift over time.
             phaseAccum -= nextInterval;
 
+            // Sample-and-hold: quantize current input and hold it until next refresh.
             heldSample = nearbyintf(in * quant) / quant;
 
+            // Random bipolar term for interval modulation in [-1, 1].
             float jitter = rng.randSigned(-1.0f, 1.0f);
+            // Jitter scales the next hold interval around base.
+            // At jitterAmount = 1.0, this gives up to +/-25% variation.
             float interval = base * (1.0f + 0.25f * jitterAmount * jitter);
+            // Never hold for less than one sample.
             if(interval < 1.0f) interval = 1.0f;
 
+            // Cap very long random holds to keep response controlled.
             const float maxInterval = base * 4.0f;
             if(interval > maxInterval) interval = maxInterval;
 
+            // Use the randomized interval for the next sample-hold update.
             nextInterval = interval;
         }
 
+        // Output the currently held sample every call.
         return heldSample;
     }
 
