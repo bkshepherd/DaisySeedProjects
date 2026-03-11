@@ -1,7 +1,5 @@
 #include "frequency_detector_q.h"
 
-#include <new>
-
 #include <q/fx/signal_conditioner.hpp>
 #include <q/pitch/pitch_detector.hpp>
 #include <q/support/pitch_names.hpp>
@@ -24,30 +22,15 @@ void FrequencyDetectorQ::Init(float sampleRate) {
         return;
     }
 
-    if ((m_pitchDetector == nullptr) != (m_preProcessor == nullptr)) {
-        delete m_pitchDetector;
-        m_pitchDetector = nullptr;
-        delete m_preProcessor;
-        m_preProcessor = nullptr;
-    }
-
     if (m_pitchDetector == nullptr && m_preProcessor == nullptr) {
         // Use C1 as the detector floor and share a single heavy detector state
         // across all modules that use FrequencyDetectorQ.
         const frequency lowest_frequency = cycfi::q::pitch_names::C[1];
         const frequency highest_frequency = cycfi::q::pitch_names::C[5];
 
-        auto *pitchDetector = new (std::nothrow) pitch_detector{lowest_frequency, highest_frequency, sampleRate, lin_to_db(0)};
-        if (pitchDetector == nullptr) {
-            return;
-        }
-
+        auto *pitchDetector = new pitch_detector{lowest_frequency, highest_frequency, sampleRate, lin_to_db(0)};
         cycfi::q::signal_conditioner::config preprocessor_config;
-        auto *preProcessor = new (std::nothrow) signal_conditioner{preprocessor_config, lowest_frequency, highest_frequency, sampleRate};
-        if (preProcessor == nullptr) {
-            delete pitchDetector;
-            return;
-        }
+        auto *preProcessor = new signal_conditioner{preprocessor_config, lowest_frequency, highest_frequency, sampleRate};
 
         m_pitchDetector = pitchDetector;
         m_preProcessor = preProcessor;
