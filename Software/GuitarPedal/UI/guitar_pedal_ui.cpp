@@ -122,8 +122,10 @@ int GuitarPedalUI::GetActiveEffectIDFromSettingsMenu() { return m_availableEffec
 
 void GuitarPedalUI::InitUi() {
     UI::SpecialControlIds specialControlIds;
-    specialControlIds.okBttnId = 0;      // Encoder button is our okay button
-    specialControlIds.menuEncoderId = 0; // Encoder is used as the main menu navigation encoder
+    if (hardware.SupportsEncoder()) {
+        specialControlIds.okBttnId = 0;      // Encoder button is our okay button
+        specialControlIds.menuEncoderId = 0; // Encoder is used as the main menu navigation encoder
+    }
 
     // This is the canvas for the OLED display.
     UiCanvasDescriptor oledDisplayDescriptor;
@@ -344,7 +346,7 @@ void GuitarPedalUI::InitGlobalSettingsUIPages() {
 }
 
 void GuitarPedalUI::GenerateUIEvents() {
-    if (!hardware.SupportsDisplay()) {
+    if (!hardware.SupportsDisplay() || !hardware.SupportsEncoder()) {
         return;
     }
 

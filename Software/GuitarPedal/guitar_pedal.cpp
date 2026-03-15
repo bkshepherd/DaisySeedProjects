@@ -690,17 +690,19 @@ int main(void) {
         }
 
         // If alt footswitch held AND encoder turned, iterate to next/previous effect, also throttle the changes
-        const int encoderIncrement = hardware.encoders[0].Increment();
-        if (has_alternate_footswitch &&
+        if (hardware.SupportsEncoder() && has_alternate_footswitch &&
             hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)].Pressed() &&
-            encoderIncrement != 0 && System::GetNow() - last_effect_change_time >= 10) {
-            int desiredIndex = activeEffectID - encoderIncrement;
-            if (desiredIndex > availableEffectsCount - 1) {
-                desiredIndex = 0;
-            } else if (desiredIndex < 0) {
-                desiredIndex = availableEffectsCount - 1;
+            System::GetNow() - last_effect_change_time >= 10) {
+            const int encoderIncrement = hardware.encoders[0].Increment();
+            if (encoderIncrement != 0) {
+                int desiredIndex = activeEffectID - encoderIncrement;
+                if (desiredIndex > availableEffectsCount - 1) {
+                    desiredIndex = 0;
+                } else if (desiredIndex < 0) {
+                    desiredIndex = availableEffectsCount - 1;
+                }
+                SetActiveEffect(desiredIndex);
             }
-            SetActiveEffect(desiredIndex);
         }
 
         if (hardware.SupportsDisplay()) {
