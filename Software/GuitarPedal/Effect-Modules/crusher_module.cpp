@@ -1,6 +1,7 @@
 #include "crusher_module.h"
 #include <algorithm>
 #include <array>
+#include <cmath>
 
 using namespace bkshepherd;
 
@@ -15,6 +16,8 @@ static constexpr float s_pitchTrackMultipliers[8] = {
     16.0f,  // +4 octaves
 };
 
+static constexpr float s_rateKnobUnlockThreshold = 1.0f / 256.0f;
+
 static const auto s_metaData = [] {
     std::array<ParameterMetaData, CrusherModule::PARAM_COUNT> params{};
 
@@ -22,9 +25,9 @@ static const auto s_metaData = [] {
         name : "Level",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : {.float_value = 0.3f},
+        defaultValue : {.float_value = 1.0f},
         knobMapping : 0,
-        midiCCMapping : -1
+        midiCCMapping : 14
     }; // Output level (linear gain from silent to unity).
 
     params[CrusherModule::BITS] = {
@@ -33,7 +36,7 @@ static const auto s_metaData = [] {
         valueBinCount : 32,
         defaultValue : {.uint_value = 32},
         knobMapping : 1,
-        midiCCMapping : -1
+        midiCCMapping : 15
     }; // Bit depth for quantization (lower bits = more digital distortion).
 
     params[CrusherModule::RATE] = {
@@ -42,7 +45,7 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 1.0f},
         knobMapping : 2,
-        midiCCMapping : -1
+        midiCCMapping : 16
     }; // Sample-rate reduction frequency. In pitch-tracking mode this selects the harmonic bin multiplier.
 
     params[CrusherModule::PITCH_TRACKING] = {
@@ -60,16 +63,16 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.0f},
         knobMapping : 3,
-        midiCCMapping : -1
+        midiCCMapping : 17
     }; // Random variation of the SRR hold interval (adds instability/grit to the alias texture).
 
     params[CrusherModule::CUTOFF] = {
         name : "Cutoff",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : {.float_value = 0.5f},
+        defaultValue : {.float_value = 1.0f},
         knobMapping : 4,
-        midiCCMapping : -1
+        midiCCMapping : 18
     }; // Post-crusher low-pass cutoff to tame high-frequency aliasing.
 
     params[CrusherModule::MIX] = {
@@ -78,7 +81,7 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 1.0f},
         knobMapping : 5,
-        midiCCMapping : -1
+        midiCCMapping : 19
     }; // Dry/wet blend between input and crushed signal.
 
     return params;
@@ -87,7 +90,9 @@ static const auto s_metaData = [] {
 // Default Constructor
 CrusherModule::CrusherModule() :
     BaseEffectModule(), m_rateMin(100.0f), m_rateMax(48000.0f), m_cutoffMin(500.0f), m_cutoffMax(20000.0f),
-    m_lpFilter{cycfi::q::lowpass(m_cutoffMax, 48000.0f), cycfi::q::lowpass(m_cutoffMax, 48000.0f)} {
+    m_lpFilter{cycfi::q::lowpass(m_cutoffMax, 48000.0f), cycfi::q::lowpass(m_cutoffMax, 48000.0f)},
+    m_manualRateControl(1.0f), m_lastTrackedRate(100.0f), m_rateKnobLatchValue(1.0f), m_hasTrackedRate(false), m_manualRateLocked(false),
+    m_restoringManualRate(false) {
     // Set the name of the effect
     m_name = "Crusher";
 
@@ -106,6 +111,12 @@ CrusherModule::~CrusherModule() {
 void CrusherModule::Init(float sample_rate) {
     BaseEffectModule::Init(sample_rate);
     m_rateMax = sample_rate;
+    m_manualRateControl = GetParameterAsFloat(RATE);
+    m_lastTrackedRate = m_rateMin;
+    m_rateKnobLatchValue = m_manualRateControl;
+    m_hasTrackedRate = false;
+    m_manualRateLocked = false;
+    m_restoringManualRate = false;
 
     m_bitcrusherL.Init(sample_rate);
     m_bitcrusherR.Init(sample_rate);
@@ -113,6 +124,66 @@ void CrusherModule::Init(float sample_rate) {
 
 void CrusherModule::AlternateFootswitchPressed() {
     SetParameterAsBool(PITCH_TRACKING, !GetParameterAsBool(PITCH_TRACKING));
+}
+
+void CrusherModule::ParameterChanged(int parameter_id) {
+    if(parameter_id == RATE) {
+        const float rateControl = GetParameterAsFloat(RATE);
+
+        if(m_restoringManualRate) {
+            m_restoringManualRate = false;
+            return;
+        }
+
+        if(GetParameterAsBool(PITCH_TRACKING)) {
+            return;
+        }
+
+        if(m_manualRateLocked) {
+            if(fabsf(rateControl - m_rateKnobLatchValue) <= s_rateKnobUnlockThreshold) {
+                if(fabsf(rateControl - m_manualRateControl) > s_rateKnobUnlockThreshold) {
+                    m_restoringManualRate = true;
+                    SetParameterAsFloat(RATE, m_manualRateControl);
+                }
+                return;
+            }
+
+            m_manualRateLocked = false;
+        }
+
+        m_manualRateControl = rateControl;
+        return;
+    }
+
+    if(parameter_id == PITCH_TRACKING) {
+        if(GetParameterAsBool(PITCH_TRACKING)) {
+            m_hasTrackedRate = false;
+            return;
+        }
+
+        m_manualRateLocked = true;
+        m_rateKnobLatchValue = GetParameterAsFloat(RATE);
+
+        if(m_hasTrackedRate) {
+            m_manualRateControl = GetRateControlForFrequency(m_lastTrackedRate);
+        }
+
+        if(fabsf(GetParameterAsFloat(RATE) - m_manualRateControl) > s_rateKnobUnlockThreshold) {
+            m_restoringManualRate = true;
+            SetParameterAsFloat(RATE, m_manualRateControl);
+        }
+    }
+}
+
+float CrusherModule::GetRateControlForFrequency(float rate) const {
+    const float clampedRate = std::clamp(rate, m_rateMin, m_rateMax);
+    const float rateRange = m_rateMax / m_rateMin;
+
+    if(rateRange <= 1.0f) {
+        return 0.0f;
+    }
+
+    return std::clamp(logf(clampedRate / m_rateMin) / logf(rateRange), 0.0f, 1.0f);
 }
 
 float CrusherModule::GetBrightnessForLED(int led_id) const {
@@ -126,7 +197,7 @@ float CrusherModule::GetBrightnessForLED(int led_id) const {
 }
 
 float CrusherModule::GetSrrRate(float detectorInput) {
-    const float manualRate = m_rateMin * powf(m_rateMax / m_rateMin, GetParameterAsFloat(RATE));
+    const float manualRate = m_rateMin * powf(m_rateMax / m_rateMin, m_manualRateControl);
 
     if(!GetParameterAsBool(PITCH_TRACKING)) {
         return manualRate;
@@ -143,10 +214,12 @@ float CrusherModule::GetSrrRate(float detectorInput) {
         std::clamp(static_cast<int>(rateControl * static_cast<float>(std::size(s_pitchTrackMultipliers))), 0, static_cast<int>(std::size(s_pitchTrackMultipliers)) - 1);
     const float trackedRate = m_pitchDetector.Process(detectorInput) * s_pitchTrackMultipliers[multiplierIndex];
     if(trackedRate > 0.0f) {
-        return std::clamp(trackedRate, m_rateMin, m_rateMax);
+        m_lastTrackedRate = std::clamp(trackedRate, m_rateMin, m_rateMax);
+        m_hasTrackedRate = true;
+        return m_lastTrackedRate;
     }
 
-    return manualRate;
+    return m_rateMin * powf(m_rateMax / m_rateMin, rateControl);
 }
 
 void CrusherModule::ProcessMono(float in) {

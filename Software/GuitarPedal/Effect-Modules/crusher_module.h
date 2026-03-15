@@ -128,6 +128,7 @@ class CrusherModule : public BaseEffectModule {
     float GetBrightnessForLED(int led_id) const override;
     bool AlternateFootswitchForTempo() const override { return false; }
     void AlternateFootswitchPressed() override;
+    void ParameterChanged(int parameter_id) override;
 
   private:
     Bitcrusher m_bitcrusherL;
@@ -139,7 +140,14 @@ class CrusherModule : public BaseEffectModule {
     float m_cutoffMax;
     cycfi::q::lowpass m_lpFilter[2];
     FrequencyDetectorQ m_pitchDetector;
+    float m_manualRateControl;
+    float m_lastTrackedRate;
+    float m_rateKnobLatchValue;
+    bool m_hasTrackedRate;
+    bool m_manualRateLocked;
+    bool m_restoringManualRate;
 
+    float GetRateControlForFrequency(float rate) const;
     float GetSrrRate(float detectorInput);
 };
 } // namespace bkshepherd
