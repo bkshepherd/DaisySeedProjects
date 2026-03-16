@@ -14,6 +14,7 @@
 #include "Effect-Modules/chorus_module.h"
 #include "Effect-Modules/cloudseed_module.h" // Takes up significant SDRAM (about 30%)
 #include "Effect-Modules/compressor_module.h"
+#include "Effect-Modules/crusher_module.h"
 #include "Effect-Modules/delay_module.h"
 #include "Effect-Modules/distortion_module.h"
 #include "Effect-Modules/drum_module.h"
@@ -77,6 +78,7 @@ void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffec
         new DrumModule(),  // This module can be used with MIDI keyboard as a drum machine
         new PhaserModule(),
         new FlangerModule(),
+        new CrusherModule(),
 
         // The following require a MIDI keyboard
         // new MidiKeysModule(),
