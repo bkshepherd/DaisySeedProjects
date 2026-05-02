@@ -550,8 +550,7 @@ void DelayModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int n
 
     // If shift mode is active, display a "SHIFT" indicator on the UI
     if (m_shiftModeActive) {
-        // Draw "SHIFT" text in the top right corner
-        display.SetCursor(boundsToDrawIn.GetRight() - 40, boundsToDrawIn.GetTop() + 2);
+        display.SetCursor(boundsToDrawIn.GetRight() - 40, 2);
         display.WriteString("SHIFT", Font_6x8, true);
     }
 }
