@@ -185,6 +185,7 @@ class DelayModule : public BaseEffectModule {
 
     // Shift layer for alternate knob mapping
     bool m_shiftModeActive = false;
+        bool m_shiftModeToggled = false;  // Gate to prevent multiple toggles during single hold
 };
 } // namespace bkshepherd
 #endif

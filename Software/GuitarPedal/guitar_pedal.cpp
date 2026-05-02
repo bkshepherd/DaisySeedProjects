@@ -101,6 +101,7 @@ int switchEnabledIdleTimeInSamples;
 bool *switchEnabledCache = nullptr;
 bool *switchDoubleEnabledCache = nullptr;
 int *switchEnabledSamplesTilIdle = nullptr;
+bool alternateHeldFor1SecondTriggered = false;
 
 // Tempo
 bool needToChangeTempo = false;
@@ -285,12 +286,17 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
         }
 
         bool switchReleased = hardware.switches[i].FallingEdge();
+        if (switchReleased && i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)) {
+            alternateHeldFor1SecondTriggered = false;
+        }
         if (effectOn && switchReleased && i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)) {
             activeEffect->AlternateFootswitchReleased();
         }
 
         bool switchHeld = hardware.switches[i].TimeHeldMs() >= 1000.f;
-        if (effectOn && switchHeld && i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)) {
+        if (effectOn && switchHeld && !alternateHeldFor1SecondTriggered &&
+            i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)) {
+            alternateHeldFor1SecondTriggered = true;
             activeEffect->AlternateFootswitchHeldFor1Second();
         }
 
