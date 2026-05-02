@@ -144,6 +144,10 @@ class DelayModule : public BaseEffectModule {
     void ProcessStereo(float inL, float inR) override;
     void SetTempo(uint32_t bpm) override;
     float GetBrightnessForLED(int led_id) const override;
+    int GetMappedParameterIDForKnob(int knob_id) const override;
+    void AlternateFootswitchHeldFor1Second() override;
+    void DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int numItemsTotal, Rectangle boundsToDrawIn,
+                bool isEditing) override;
 
   private:
     float m_delaylpFreqMin;
@@ -178,6 +182,9 @@ class DelayModule : public BaseEffectModule {
     // Oscillator for blinking tempo LED
     Oscillator led_osc;
     float m_LEDValue;
+
+    // Shift layer for alternate knob mapping
+    bool m_shiftModeActive = false;
 };
 } // namespace bkshepherd
 #endif
