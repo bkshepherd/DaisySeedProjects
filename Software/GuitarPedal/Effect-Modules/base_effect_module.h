@@ -160,7 +160,7 @@ class BaseEffectModule {
      \param knob_id Id of the Knob to retrieve.
      \return the Parameter ID mapped to the specified knob, or -1 if no Parameter is Mapped to that Knob
     */
-    int GetMappedParameterIDForKnob(int knob_id) const;
+    virtual int GetMappedParameterIDForKnob(int knob_id) const;
 
     /** Gets the Parameter ID of the Effect Parameter mapped to this Midi CC ID.
      \param midiCC_id Id of the MidiCC to retrieve.

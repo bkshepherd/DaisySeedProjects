@@ -291,7 +291,7 @@ void DelayModule::ProcessModulation() {
 
         if (waveForm == 5) {
             // Tape flutter mode with dynamic min
-            const float M     = wowDepth + 0.2f * flutterDepth; // Max amplitude of tape modulation.
+            const float M = wowDepth + 0.2f * flutterDepth; // Max amplitude of tape modulation.
             const float depth = 500.0f;
 
             float baseMin = D_min + M * mod_amount * depth;
@@ -300,7 +300,7 @@ void DelayModule::ProcessModulation() {
             float base = baseMin + (baseMax - baseMin) * timeParam;
 
             delayTarget = base + mod * mod_amount * depth;
-        } else {        
+        } else {
             delayTarget = m_delaySamplesMin + (m_delaySamplesMax - m_delaySamplesMin) * timeParam + mod * mod_amount * 500;
         }
         if (delayTarget < D_min) {
@@ -310,7 +310,7 @@ void DelayModule::ProcessModulation() {
             delayTarget = MAX_DELAY_NORM - 2;
         }
 
-        delayLeft.delayTarget  = delayTarget;
+        delayLeft.delayTarget = delayTarget;
         delayRight.delayTarget = delayTarget;
     } else if (modParam == 2) {
         float mod_level = mod * mod_amount + (1.0 - mod_amount);
@@ -510,4 +510,47 @@ float DelayModule::GetBrightnessForLED(int led_id) const {
     }
 
     return value;
+}
+
+int DelayModule::GetMappedParameterIDForKnob(int knob_id) const {
+    // If shift mode is active, remap knobs 0-5 to alternate parameters
+    if (m_shiftModeActive) {
+        switch (knob_id) {
+        case 0:
+            return MOD_AMT; // Knob 0 -> Mod Amount
+        case 1:
+            return MOD_RATE; // Knob 1 -> Mod Rate
+        case 2:
+            return MOD_WAVE; // Knob 2 -> Mod Waveform
+        case 3:
+            return MOD_PARAM; // Knob 3 -> Mod Parameter
+        case 4:
+            return SYNC_MOD_F; // Knob 4 -> Sync Mod Frequency (bool)
+        case 5:
+            return D_SPREAD; // Knob 5 -> Delay Spread
+        default:
+            return -1;
+        }
+    }
+
+    // Normal mode: use default mapping from metadata
+    return BaseEffectModule::GetMappedParameterIDForKnob(knob_id);
+}
+
+void DelayModule::AlternateFootswitchHeldFor1Second() {
+    // If held for 1 second, toggle shift mode (uses same knobs as mod controls for
+    // alternate parameter control)
+    m_shiftModeActive = !m_shiftModeActive;
+}
+
+void DelayModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int numItemsTotal, Rectangle boundsToDrawIn,
+                         bool isEditing) {
+    // Draw the base UI
+    BaseEffectModule::DrawUI(display, currentIndex, numItemsTotal, boundsToDrawIn, isEditing);
+
+    // If shift mode is active, display a "SHIFT" indicator on the UI
+    if (m_shiftModeActive) {
+        display.SetCursor(boundsToDrawIn.GetRight() - 40, 2);
+        display.WriteString("SHIFT", Font_6x8, true);
+    }
 }
