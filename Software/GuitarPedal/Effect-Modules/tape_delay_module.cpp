@@ -11,6 +11,7 @@ static const char *s_headConfigNames[3] = {"Head1", "Head2", "Head3"};
 
 DelayLine<float, TAPE_MAX_DELAY_SAMPLES> DSY_SDRAM_BSS s_tapeDelayLineL;
 DelayLine<float, TAPE_MAX_DELAY_SAMPLES> DSY_SDRAM_BSS s_tapeDelayLineR;
+ReverbSc DSY_SDRAM_BSS s_tapeReverb;
 
 static const auto s_metaData = [] {
     std::array<ParameterMetaData, TapeDelayModule::PARAM_COUNT> params{};
@@ -90,7 +91,7 @@ static const auto s_metaData = [] {
     };
 
     params[TapeDelayModule::IMPERFECTIONS] = {
-        name : "Imperfections",
+        name : "Glitches",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 0.2f},
@@ -136,7 +137,7 @@ TapeDelayModule::TapeDelayModule()
             m_flutterRateMax(9.0f), m_wowDepthMaxSamples(35.0f), m_flutterDepthMaxSamples(9.0f), m_dropoutGain(1.0f),
             m_dropoutGainTarget(1.0f), m_crinkleOffset(0.0f), m_crinkleOffsetTarget(0.0f), m_dropoutSamplesRemaining(0.0f),
             m_crinkleSamplesRemaining(0.0f), m_imperfectionCooldownSamples(0.0f), m_randState(0xA57E1B3Fu), m_ledValue(0.0f),
-            m_sampleRate(48000.0f), m_delayL(nullptr), m_delayR(nullptr) {
+            m_sampleRate(48000.0f), m_delayL(nullptr), m_delayR(nullptr), m_reverb(nullptr) {
     m_name = "Tape Delay";
     m_paramMetaData = s_metaData.data();
     this->InitParams(static_cast<int>(s_metaData.size()));
@@ -367,12 +368,8 @@ float TapeDelayModule::ProcessChannel(float input, float speedMod, float dropout
     float drive = isLoFi ? (1.0f + bias * 7.0f) : (1.0f + bias * 4.0f);
     float playbackWet = filteredWet * dropoutGain;
 
-    // Very subtle repeat degradation noise that grows with tape age.
-    float noiseAmount = isLoFi ? 0.0015f : 0.0005f;
-    float noise = (Random01() * 2.0f - 1.0f) * noiseAmount * age;
-    float feedbackInput = playbackWet + noise;
-
-    float sat = tanhf((input + feedback * feedbackInput) * drive) / tanhf(drive);
+    // Keep tape age as tonal shaping only; avoid injecting hiss from this control.
+    float sat = tanhf((input + feedback * playbackWet) * drive) / tanhf(drive);
 
     delay.Write(sat);
 
@@ -386,6 +383,7 @@ void TapeDelayModule::Init(float sample_rate) {
 
     m_delayL = &s_tapeDelayLineL;
     m_delayR = &s_tapeDelayLineR;
+    m_reverb = &s_tapeReverb;
 
     m_delayL->Init();
     m_delayR->Init();
@@ -398,9 +396,9 @@ void TapeDelayModule::Init(float sample_rate) {
     m_hpL.SetRes(0.1f);
     m_hpR.SetRes(0.1f);
 
-    m_reverb.Init(sample_rate);
-    m_reverb.SetFeedback(0.85f);
-    m_reverb.SetLpFreq(9000.0f);
+    m_reverb->Init(sample_rate);
+    m_reverb->SetFeedback(0.85f);
+    m_reverb->SetLpFreq(9000.0f);
 
     m_tapeMod.Init(sample_rate);
 
@@ -435,7 +433,7 @@ void TapeDelayModule::ProcessMono(float in) {
     float reverbMix = GetParameterAsFloat(REVERB_MIX);
     float reverbL = 0.0f;
     float reverbR = 0.0f;
-    m_reverb.Process(wetL, wetR, &reverbL, &reverbR);
+    m_reverb->Process(wetL, wetR, &reverbL, &reverbR);
 
     float wetOutL = wetL * (1.0f - reverbMix) + reverbL * reverbMix;
     float wetOutR = wetR * (1.0f - reverbMix) + reverbR * reverbMix;
@@ -461,7 +459,7 @@ void TapeDelayModule::ProcessStereo(float inL, float inR) {
     float reverbMix = GetParameterAsFloat(REVERB_MIX);
     float reverbL = 0.0f;
     float reverbR = 0.0f;
-    m_reverb.Process(wetL, wetR, &reverbL, &reverbR);
+    m_reverb->Process(wetL, wetR, &reverbL, &reverbR);
 
     float wetOutL = wetL * (1.0f - reverbMix) + reverbL * reverbMix;
     float wetOutR = wetR * (1.0f - reverbMix) + reverbR * reverbMix;

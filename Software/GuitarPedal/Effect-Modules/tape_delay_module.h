@@ -86,7 +86,7 @@ class TapeDelayModule : public BaseEffectModule {
     Svf m_hpL;
     Svf m_hpR;
 
-    ReverbSc m_reverb;
+    ReverbSc *m_reverb;
     TapeModulator m_tapeMod;
     Oscillator m_ledOsc;
 
