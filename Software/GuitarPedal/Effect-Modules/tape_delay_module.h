@@ -29,6 +29,7 @@ class TapeDelayModule : public BaseEffectModule {
         TAPE_AGE,
         TAP_DIV,
         TAPE_BIAS,
+        IMPERFECTIONS,
         LOW_END_CONTOUR,
         REVERB_MIX,
         HEAD_CONFIG,
@@ -51,8 +52,6 @@ class TapeDelayModule : public BaseEffectModule {
     float m_mixWet;
     float m_mixDry;
     float m_currentDelaySamples;
-    float m_lastWetL;
-    float m_lastWetR;
 
     float m_ageLpMin;
     float m_ageLpMax;
@@ -65,6 +64,15 @@ class TapeDelayModule : public BaseEffectModule {
     float m_flutterRateMax;
     float m_wowDepthMaxSamples;
     float m_flutterDepthMaxSamples;
+
+    float m_dropoutGain;
+    float m_dropoutGainTarget;
+    float m_crinkleOffset;
+    float m_crinkleOffsetTarget;
+    float m_dropoutSamplesRemaining;
+    float m_crinkleSamplesRemaining;
+    float m_imperfectionCooldownSamples;
+    uint32_t m_randState;
 
     float m_ledValue;
 
@@ -85,8 +93,11 @@ class TapeDelayModule : public BaseEffectModule {
     void UpdateMix();
     float GetDivisionMultiplier() const;
     float GetWowFlutterOffset();
+    float Random01();
+    void UpdateImperfections(float amount, float &dropoutGain, float &crinkleOffset);
     void GetHeadMix(float baseSamples, DelayLine<float, TAPE_MAX_DELAY_SAMPLES> &delay, float &out) const;
-    float ProcessChannel(float input, float speedMod, DelayLine<float, TAPE_MAX_DELAY_SAMPLES> &delay, Tone &tone, Svf &hp);
+    float ProcessChannel(float input, float speedMod, float dropoutGain, float crinkleOffset, float age,
+               DelayLine<float, TAPE_MAX_DELAY_SAMPLES> &delay, Tone &tone, Svf &hp);
 };
 } // namespace bkshepherd
 #endif
