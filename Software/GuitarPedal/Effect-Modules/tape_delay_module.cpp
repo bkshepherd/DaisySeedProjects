@@ -5,7 +5,7 @@
 
 using namespace bkshepherd;
 
-static const char *s_modeNames[3] = {"Single", "Multi", "Fixed"};
+static const char *s_modeNames[4] = {"Single", "Multi", "Fixed", "LoFi"};
 static const char *s_divisionNames[3] = {"Quarter", "Dotted8", "Triplet"};
 static const char *s_headConfigNames[3] = {"Head1", "Head2", "Head3"};
 
@@ -45,7 +45,7 @@ static const auto s_metaData = [] {
     params[TapeDelayModule::MODE] = {
         name : "Mode",
         valueType : ParameterValueType::Binned,
-        valueBinCount : 3,
+        valueBinCount : 4,
         valueBinNames : s_modeNames,
         defaultValue : {.uint_value = 0},
         knobMapping : 3,
@@ -156,6 +156,32 @@ void TapeDelayModule::UpdateMix() {
     m_mixDry = D * D;
 }
 
+bool TapeDelayModule::IsLoFiMode() const {
+    // Binned values in this framework are 1..N, so convert to zero-based here.
+    return (GetParameterAsBinnedValue(MODE) - 1) == 3;
+}
+
+void TapeDelayModule::UpdateDelayTimeAndLed() {
+    float time = GetParameterAsFloat(TIME);
+
+    if (IsLoFiMode()) {
+        constexpr float lofiMinSamples = 24.0f;   // 0.5 ms @ 48k
+        constexpr float lofiMaxSamples = 480.0f;  // 10 ms @ 48k
+        float t = time * time;
+        m_currentDelaySamples = lofiMinSamples + (lofiMaxSamples - lofiMinSamples) * t;
+
+        float wobble = GetParameterAsFloat(WOW_FLUTTER);
+        m_ledOsc.SetFreq(0.5f + wobble * 4.0f);
+    } else {
+        m_currentDelaySamples = m_timeMinSamples + (m_timeMaxSamples - m_timeMinSamples) * time;
+
+        float ledFreq = m_sampleRate / fmaxf(1.0f, m_currentDelaySamples);
+        m_ledOsc.SetFreq(ledFreq * 0.5f);
+    }
+
+    m_ledValue = m_ledOsc.Process();
+}
+
 float TapeDelayModule::GetDivisionMultiplier() const {
     // Binned values in this framework are 1..N, so convert to zero-based here.
     int div = GetParameterAsBinnedValue(TAP_DIV) - 1;
@@ -173,8 +199,17 @@ float TapeDelayModule::GetWowFlutterOffset() {
     float wowFlutter = GetParameterAsFloat(WOW_FLUTTER);
     float wowRate = m_wowRateMin + (m_wowRateMax - m_wowRateMin) * wowFlutter;
     float flutterRate = m_flutterRateMin + (m_flutterRateMax - m_flutterRateMin) * wowFlutter;
-    float wowDepth = wowFlutter * wowFlutter * m_wowDepthMaxSamples;
-    float flutterDepth = wowFlutter * m_flutterDepthMaxSamples;
+
+    float wowDepth;
+    float flutterDepth;
+    if (IsLoFiMode()) {
+        wowDepth = wowFlutter * wowFlutter * 6.0f;
+        flutterDepth = wowFlutter * 1.5f;
+    } else {
+        wowDepth = wowFlutter * wowFlutter * m_wowDepthMaxSamples;
+        flutterDepth = wowFlutter * m_flutterDepthMaxSamples;
+    }
+
     return m_tapeMod.GetTapeSpeed(wowRate, flutterRate, wowDepth, flutterDepth);
 }
 
@@ -243,6 +278,11 @@ void TapeDelayModule::GetHeadMix(float baseSamples, DelayLine<float, TAPE_MAX_DE
     int mode = GetParameterAsBinnedValue(MODE) - 1;
     int headCfg = GetParameterAsBinnedValue(HEAD_CONFIG) - 1;
 
+    if (mode == 3) {
+        out = delay.Read(baseSamples);
+        return;
+    }
+
     float h1 = baseSamples * 0.5f;
     float h2 = baseSamples * 1.0f;
     float h3 = baseSamples * 1.5f;
@@ -279,20 +319,36 @@ void TapeDelayModule::GetHeadMix(float baseSamples, DelayLine<float, TAPE_MAX_DE
 }
 
 float TapeDelayModule::ProcessChannel(float input, float speedMod, float dropoutGain, float crinkleOffset, float age,
+                                      bool isLoFi,
                                       DelayLine<float, TAPE_MAX_DELAY_SAMPLES> &delay, Tone &tone, Svf &hp) {
-    float division = GetDivisionMultiplier();
+    float division = isLoFi ? 1.0f : GetDivisionMultiplier();
     float baseSamples = m_currentDelaySamples * division + speedMod + crinkleOffset;
-    baseSamples = fmaxf(1.0f, fminf(baseSamples, static_cast<float>(TAPE_MAX_DELAY_SAMPLES - 2)));
+    float minDelay = isLoFi ? 2.0f : 1.0f;
+    baseSamples = fmaxf(minDelay, fminf(baseSamples, static_cast<float>(TAPE_MAX_DELAY_SAMPLES - 2)));
 
     float wet = 0.0f;
     GetHeadMix(baseSamples, delay, wet);
 
     float ageShaped = age * age;
-    float lpFreq = m_ageLpMax - (m_ageLpMax - m_ageLpMin) * ageShaped;
+    float lpFreq;
+    if (isLoFi) {
+        constexpr float lofiLpMin = 900.0f;
+        constexpr float lofiLpMax = 12000.0f;
+        lpFreq = lofiLpMax - (lofiLpMax - lofiLpMin) * ageShaped;
+    } else {
+        lpFreq = m_ageLpMax - (m_ageLpMax - m_ageLpMin) * ageShaped;
+    }
     tone.SetFreq(lpFreq);
 
     float contour = GetParameterAsFloat(LOW_END_CONTOUR);
-    float hpFreq = m_contourHpMin + (m_contourHpMax - m_contourHpMin) * contour;
+    float hpFreq;
+    if (isLoFi) {
+        constexpr float lofiHpMin = 30.0f;
+        constexpr float lofiHpMax = 700.0f;
+        hpFreq = lofiHpMin + (lofiHpMax - lofiHpMin) * contour;
+    } else {
+        hpFreq = m_contourHpMin + (m_contourHpMax - m_contourHpMin) * contour;
+    }
     hp.SetFreq(hpFreq);
 
     float filteredWet = tone.Process(wet);
@@ -300,14 +356,20 @@ float TapeDelayModule::ProcessChannel(float input, float speedMod, float dropout
     filteredWet = hp.High();
 
     float repeats = GetParameterAsFloat(REPEATS);
-    float feedback = 0.1f + repeats * 0.84f;
+    float feedback;
+    if (isLoFi) {
+        feedback = repeats * 0.35f;
+    } else {
+        feedback = 0.1f + repeats * 0.84f;
+    }
 
     float bias = GetParameterAsFloat(TAPE_BIAS);
-    float drive = 1.0f + bias * 4.0f;
+    float drive = isLoFi ? (1.0f + bias * 7.0f) : (1.0f + bias * 4.0f);
     float playbackWet = filteredWet * dropoutGain;
 
     // Very subtle repeat degradation noise that grows with tape age.
-    float noise = (Random01() * 2.0f - 1.0f) * 0.0005f * age;
+    float noiseAmount = isLoFi ? 0.0015f : 0.0005f;
+    float noise = (Random01() * 2.0f - 1.0f) * noiseAmount * age;
     float feedbackInput = playbackWet + noise;
 
     float sat = tanhf((input + feedback * feedbackInput) * drive) / tanhf(drive);
@@ -358,13 +420,8 @@ void TapeDelayModule::ParameterChanged(int parameter_id) {
 
 void TapeDelayModule::ProcessMono(float in) {
     BaseEffectModule::ProcessMono(in);
-
-    float time = GetParameterAsFloat(TIME);
-    m_currentDelaySamples = m_timeMinSamples + (m_timeMaxSamples - m_timeMinSamples) * time;
-
-    float ledFreq = m_sampleRate / fmaxf(1.0f, m_currentDelaySamples);
-    m_ledOsc.SetFreq(ledFreq * 0.5f);
-    m_ledValue = m_ledOsc.Process();
+    UpdateDelayTimeAndLed();
+    bool isLoFi = IsLoFiMode();
 
     float speedMod = GetWowFlutterOffset();
     float dropoutGain = 1.0f;
@@ -372,8 +429,8 @@ void TapeDelayModule::ProcessMono(float in) {
     float age = GetParameterAsFloat(TAPE_AGE);
     UpdateImperfections(GetParameterAsFloat(IMPERFECTIONS), dropoutGain, crinkleOffset);
 
-    float wetL = ProcessChannel(m_audioLeft, speedMod, dropoutGain, crinkleOffset, age, *m_delayL, m_toneL, m_hpL);
-    float wetR = ProcessChannel(m_audioRight, speedMod, dropoutGain, crinkleOffset, age, *m_delayR, m_toneR, m_hpR);
+    float wetL = ProcessChannel(m_audioLeft, speedMod, dropoutGain, crinkleOffset, age, isLoFi, *m_delayL, m_toneL, m_hpL);
+    float wetR = ProcessChannel(m_audioRight, speedMod, dropoutGain, crinkleOffset, age, isLoFi, *m_delayR, m_toneR, m_hpR);
 
     float reverbMix = GetParameterAsFloat(REVERB_MIX);
     float reverbL = 0.0f;
@@ -389,13 +446,8 @@ void TapeDelayModule::ProcessMono(float in) {
 
 void TapeDelayModule::ProcessStereo(float inL, float inR) {
     BaseEffectModule::ProcessStereo(inL, inR);
-
-    float time = GetParameterAsFloat(TIME);
-    m_currentDelaySamples = m_timeMinSamples + (m_timeMaxSamples - m_timeMinSamples) * time;
-
-    float ledFreq = m_sampleRate / fmaxf(1.0f, m_currentDelaySamples);
-    m_ledOsc.SetFreq(ledFreq * 0.5f);
-    m_ledValue = m_ledOsc.Process();
+    UpdateDelayTimeAndLed();
+    bool isLoFi = IsLoFiMode();
 
     float speedMod = GetWowFlutterOffset();
     float dropoutGain = 1.0f;
@@ -403,8 +455,8 @@ void TapeDelayModule::ProcessStereo(float inL, float inR) {
     float age = GetParameterAsFloat(TAPE_AGE);
     UpdateImperfections(GetParameterAsFloat(IMPERFECTIONS), dropoutGain, crinkleOffset);
 
-    float wetL = ProcessChannel(m_audioLeft, speedMod, dropoutGain, crinkleOffset, age, *m_delayL, m_toneL, m_hpL);
-    float wetR = ProcessChannel(m_audioRight, speedMod, dropoutGain, crinkleOffset, age, *m_delayR, m_toneR, m_hpR);
+    float wetL = ProcessChannel(m_audioLeft, speedMod, dropoutGain, crinkleOffset, age, isLoFi, *m_delayL, m_toneL, m_hpL);
+    float wetR = ProcessChannel(m_audioRight, speedMod, dropoutGain, crinkleOffset, age, isLoFi, *m_delayR, m_toneR, m_hpR);
 
     float reverbMix = GetParameterAsFloat(REVERB_MIX);
     float reverbL = 0.0f;
@@ -419,6 +471,10 @@ void TapeDelayModule::ProcessStereo(float inL, float inR) {
 }
 
 void TapeDelayModule::SetTempo(uint32_t bpm) {
+    if (IsLoFiMode()) {
+        return;
+    }
+
     float freq = tempo_to_freq(bpm);
     float delaySamples = m_sampleRate / freq;
 

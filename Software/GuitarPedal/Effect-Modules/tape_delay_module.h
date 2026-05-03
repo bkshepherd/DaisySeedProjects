@@ -91,12 +91,14 @@ class TapeDelayModule : public BaseEffectModule {
     Oscillator m_ledOsc;
 
     void UpdateMix();
+    bool IsLoFiMode() const;
+    void UpdateDelayTimeAndLed();
     float GetDivisionMultiplier() const;
     float GetWowFlutterOffset();
     float Random01();
     void UpdateImperfections(float amount, float &dropoutGain, float &crinkleOffset);
     void GetHeadMix(float baseSamples, DelayLine<float, TAPE_MAX_DELAY_SAMPLES> &delay, float &out) const;
-    float ProcessChannel(float input, float speedMod, float dropoutGain, float crinkleOffset, float age,
+    float ProcessChannel(float input, float speedMod, float dropoutGain, float crinkleOffset, float age, bool isLoFi,
                DelayLine<float, TAPE_MAX_DELAY_SAMPLES> &delay, Tone &tone, Svf &hp);
 };
 } // namespace bkshepherd
