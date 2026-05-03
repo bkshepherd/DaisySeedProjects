@@ -4,6 +4,7 @@
 
 #include "../Util/tape_modulator.h"
 #include "base_effect_module.h"
+#include "daisy_seed.h"
 #include "daisysp.h"
 #include <stdint.h>
 #ifdef __cplusplus
@@ -29,7 +30,7 @@ class TapeDelayModule : public BaseEffectModule {
         TAP_DIV,
         TAPE_BIAS,
         LOW_END_CONTOUR,
-        SPRING_MIX,
+        REVERB_MIX,
         HEAD_CONFIG,
         PARAM_COUNT
     };
@@ -69,22 +70,23 @@ class TapeDelayModule : public BaseEffectModule {
 
     float m_sampleRate;
 
-    DelayLine<float, TAPE_MAX_DELAY_SAMPLES> m_delayL;
-    DelayLine<float, TAPE_MAX_DELAY_SAMPLES> m_delayR;
+    DelayLine<float, TAPE_MAX_DELAY_SAMPLES> *m_delayL;
+    DelayLine<float, TAPE_MAX_DELAY_SAMPLES> *m_delayR;
 
     Tone m_toneL;
     Tone m_toneR;
     Svf m_hpL;
     Svf m_hpR;
 
-    ReverbSc m_spring;
+    ReverbSc m_reverb;
     TapeModulator m_tapeMod;
     Oscillator m_ledOsc;
 
     void UpdateMix();
     float GetDivisionMultiplier() const;
+    float GetWowFlutterOffset();
     void GetHeadMix(float baseSamples, DelayLine<float, TAPE_MAX_DELAY_SAMPLES> &delay, float &out) const;
-    float ProcessChannel(float input, float lastWet, DelayLine<float, TAPE_MAX_DELAY_SAMPLES> &delay, Tone &tone, Svf &hp);
+    float ProcessChannel(float input, float speedMod, DelayLine<float, TAPE_MAX_DELAY_SAMPLES> &delay, Tone &tone, Svf &hp);
 };
 } // namespace bkshepherd
 #endif

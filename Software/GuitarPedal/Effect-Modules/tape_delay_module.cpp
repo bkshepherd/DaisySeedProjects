@@ -9,6 +9,9 @@ static const char *s_modeNames[3] = {"Single", "Multi", "Fixed"};
 static const char *s_divisionNames[3] = {"Quarter", "Dotted8", "Triplet"};
 static const char *s_headConfigNames[3] = {"Head1", "Head2", "Head3"};
 
+DelayLine<float, TAPE_MAX_DELAY_SAMPLES> DSY_SDRAM_BSS s_tapeDelayLineL;
+DelayLine<float, TAPE_MAX_DELAY_SAMPLES> DSY_SDRAM_BSS s_tapeDelayLineR;
+
 static const auto s_metaData = [] {
     std::array<ParameterMetaData, TapeDelayModule::PARAM_COUNT> params{};
 
@@ -95,11 +98,11 @@ static const auto s_metaData = [] {
         midiCCMapping : 68
     };
 
-    params[TapeDelayModule::SPRING_MIX] = {
-        name : "Spring",
+    params[TapeDelayModule::REVERB_MIX] = {
+        name : "Reverb",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : {.float_value = 0.2f},
+        defaultValue : {.float_value = 0.0f},
         knobMapping : -1,
         midiCCMapping : 69
     };
@@ -121,7 +124,8 @@ TapeDelayModule::TapeDelayModule()
     : BaseEffectModule(), m_timeMinSamples(2400.0f), m_timeMaxSamples(192000.0f), m_mixWet(0.5f), m_mixDry(0.5f),
       m_currentDelaySamples(24000.0f), m_lastWetL(0.0f), m_lastWetR(0.0f), m_ageLpMin(1200.0f), m_ageLpMax(18000.0f),
       m_contourHpMin(20.0f), m_contourHpMax(350.0f), m_wowRateMin(0.15f), m_wowRateMax(2.0f), m_flutterRateMin(2.0f),
-      m_flutterRateMax(9.0f), m_wowDepthMaxSamples(35.0f), m_flutterDepthMaxSamples(9.0f), m_ledValue(0.0f), m_sampleRate(48000.0f) {
+    m_flutterRateMax(9.0f), m_wowDepthMaxSamples(35.0f), m_flutterDepthMaxSamples(9.0f), m_ledValue(0.0f),
+    m_sampleRate(48000.0f), m_delayL(nullptr), m_delayR(nullptr) {
     m_name = "Tape Delay";
     m_paramMetaData = s_metaData.data();
     this->InitParams(static_cast<int>(s_metaData.size()));
@@ -151,6 +155,15 @@ float TapeDelayModule::GetDivisionMultiplier() const {
     default:
         return 1.0f;
     }
+}
+
+float TapeDelayModule::GetWowFlutterOffset() {
+    float wowFlutter = GetParameterAsFloat(WOW_FLUTTER);
+    float wowRate = m_wowRateMin + (m_wowRateMax - m_wowRateMin) * wowFlutter;
+    float flutterRate = m_flutterRateMin + (m_flutterRateMax - m_flutterRateMin) * wowFlutter;
+    float wowDepth = wowFlutter * wowFlutter * m_wowDepthMaxSamples;
+    float flutterDepth = wowFlutter * m_flutterDepthMaxSamples;
+    return m_tapeMod.GetTapeSpeed(wowRate, flutterRate, wowDepth, flutterDepth);
 }
 
 void TapeDelayModule::GetHeadMix(float baseSamples, DelayLine<float, TAPE_MAX_DELAY_SAMPLES> &delay, float &out) const {
@@ -192,15 +205,8 @@ void TapeDelayModule::GetHeadMix(float baseSamples, DelayLine<float, TAPE_MAX_DE
     }
 }
 
-float TapeDelayModule::ProcessChannel(float input, float lastWet, DelayLine<float, TAPE_MAX_DELAY_SAMPLES> &delay, Tone &tone,
+float TapeDelayModule::ProcessChannel(float input, float speedMod, DelayLine<float, TAPE_MAX_DELAY_SAMPLES> &delay, Tone &tone,
                                       Svf &hp) {
-    float wowFlutter = GetParameterAsFloat(WOW_FLUTTER);
-    float wowRate = m_wowRateMin + (m_wowRateMax - m_wowRateMin) * wowFlutter;
-    float flutterRate = m_flutterRateMin + (m_flutterRateMax - m_flutterRateMin) * wowFlutter;
-    float wowDepth = wowFlutter * wowFlutter * m_wowDepthMaxSamples;
-    float flutterDepth = wowFlutter * m_flutterDepthMaxSamples;
-    float speedMod = m_tapeMod.GetTapeSpeed(wowRate, flutterRate, wowDepth, flutterDepth);
-
     float division = GetDivisionMultiplier();
     float baseSamples = m_currentDelaySamples * division + speedMod;
     baseSamples = fmaxf(1.0f, fminf(baseSamples, static_cast<float>(TAPE_MAX_DELAY_SAMPLES - 2)));
@@ -238,8 +244,11 @@ void TapeDelayModule::Init(float sample_rate) {
 
     m_sampleRate = sample_rate;
 
-    m_delayL.Init();
-    m_delayR.Init();
+    m_delayL = &s_tapeDelayLineL;
+    m_delayR = &s_tapeDelayLineR;
+
+    m_delayL->Init();
+    m_delayR->Init();
 
     m_toneL.Init(sample_rate);
     m_toneR.Init(sample_rate);
@@ -249,9 +258,9 @@ void TapeDelayModule::Init(float sample_rate) {
     m_hpL.SetRes(0.1f);
     m_hpR.SetRes(0.1f);
 
-    m_spring.Init(sample_rate);
-    m_spring.SetFeedback(0.85f);
-    m_spring.SetLpFreq(9000.0f);
+    m_reverb.Init(sample_rate);
+    m_reverb.SetFeedback(0.85f);
+    m_reverb.SetLpFreq(9000.0f);
 
     m_tapeMod.Init(sample_rate);
 
@@ -279,18 +288,20 @@ void TapeDelayModule::ProcessMono(float in) {
     m_ledOsc.SetFreq(ledFreq * 0.5f);
     m_ledValue = m_ledOsc.Process();
 
-    float wetL = ProcessChannel(m_audioLeft, m_lastWetL, m_delayL, m_toneL, m_hpL);
-    float wetR = ProcessChannel(m_audioRight, m_lastWetR, m_delayR, m_toneR, m_hpR);
+    float speedMod = GetWowFlutterOffset();
+
+    float wetL = ProcessChannel(m_audioLeft, speedMod, *m_delayL, m_toneL, m_hpL);
+    float wetR = ProcessChannel(m_audioRight, speedMod, *m_delayR, m_toneR, m_hpR);
     m_lastWetL = wetL;
     m_lastWetR = wetR;
 
-    float springMix = GetParameterAsFloat(SPRING_MIX);
-    float springL = 0.0f;
-    float springR = 0.0f;
-    m_spring.Process(wetL, wetR, &springL, &springR);
+    float reverbMix = GetParameterAsFloat(REVERB_MIX);
+    float reverbL = 0.0f;
+    float reverbR = 0.0f;
+    m_reverb.Process(wetL, wetR, &reverbL, &reverbR);
 
-    float wetOutL = wetL * (1.0f - springMix) + springL * springMix;
-    float wetOutR = wetR * (1.0f - springMix) + springR * springMix;
+    float wetOutL = wetL * (1.0f - reverbMix) + reverbL * reverbMix;
+    float wetOutR = wetR * (1.0f - reverbMix) + reverbR * reverbMix;
 
     m_audioLeft = wetOutL * m_mixWet + m_audioLeft * m_mixDry;
     m_audioRight = wetOutR * m_mixWet + m_audioRight * m_mixDry;
@@ -306,18 +317,20 @@ void TapeDelayModule::ProcessStereo(float inL, float inR) {
     m_ledOsc.SetFreq(ledFreq * 0.5f);
     m_ledValue = m_ledOsc.Process();
 
-    float wetL = ProcessChannel(m_audioLeft, m_lastWetL, m_delayL, m_toneL, m_hpL);
-    float wetR = ProcessChannel(m_audioRight, m_lastWetR, m_delayR, m_toneR, m_hpR);
+    float speedMod = GetWowFlutterOffset();
+
+    float wetL = ProcessChannel(m_audioLeft, speedMod, *m_delayL, m_toneL, m_hpL);
+    float wetR = ProcessChannel(m_audioRight, speedMod, *m_delayR, m_toneR, m_hpR);
     m_lastWetL = wetL;
     m_lastWetR = wetR;
 
-    float springMix = GetParameterAsFloat(SPRING_MIX);
-    float springL = 0.0f;
-    float springR = 0.0f;
-    m_spring.Process(wetL, wetR, &springL, &springR);
+    float reverbMix = GetParameterAsFloat(REVERB_MIX);
+    float reverbL = 0.0f;
+    float reverbR = 0.0f;
+    m_reverb.Process(wetL, wetR, &reverbL, &reverbR);
 
-    float wetOutL = wetL * (1.0f - springMix) + springL * springMix;
-    float wetOutR = wetR * (1.0f - springMix) + springR * springMix;
+    float wetOutL = wetL * (1.0f - reverbMix) + reverbL * reverbMix;
+    float wetOutR = wetR * (1.0f - reverbMix) + reverbR * reverbMix;
 
     m_audioLeft = wetOutL * m_mixWet + m_audioLeft * m_mixDry;
     m_audioRight = wetOutR * m_mixWet + m_audioRight * m_mixDry;
