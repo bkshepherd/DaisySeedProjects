@@ -36,6 +36,7 @@
 #include "Effect-Modules/reverb_module.h"
 #include "Effect-Modules/scifi_module.h"
 #include "Effect-Modules/spectral_delay_module.h"
+#include "Effect-Modules/tape_delay_module.h"
 #include "Effect-Modules/tuner_module.h"
 
 // Keyboard modules
@@ -68,6 +69,7 @@ void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffec
         new CloudSeedModule(),
         new AmpModule(),
         new DelayModule(),
+        new TapeDelayModule(),
         new NamModule(),
         new SciFiModule(),
         new PolyOctaveModule(),
