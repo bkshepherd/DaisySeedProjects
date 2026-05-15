@@ -45,6 +45,7 @@ class TapeDelayModule : public BaseEffectModule {
     void ProcessStereo(float inL, float inR) override;
     void SetTempo(uint32_t bpm) override;
     float GetBrightnessForLED(int led_id) const override;
+    void SetEnabled(bool isEnabled) override;
 
   private:
     float m_timeMinSamples;
@@ -98,6 +99,8 @@ class TapeDelayModule : public BaseEffectModule {
     float Random01();
     void UpdateImperfections(float amount, float &dropoutGain, float &crinkleOffset);
     void GetHeadMix(float baseSamples, DelayLine<float, TAPE_MAX_DELAY_SAMPLES> &delay, float &out) const;
+    void ResetInternalState();
+    float ApplySafetyLimiter(float sample) const;
     float ProcessChannel(float input, float speedMod, float dropoutGain, float crinkleOffset, float age, bool isLoFi,
                DelayLine<float, TAPE_MAX_DELAY_SAMPLES> &delay, Tone &tone, Svf &hp);
 };

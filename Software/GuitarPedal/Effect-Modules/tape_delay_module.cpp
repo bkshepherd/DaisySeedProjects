@@ -162,6 +162,11 @@ bool TapeDelayModule::IsLoFiMode() const {
     return (GetParameterAsBinnedValue(MODE) - 1) == 3;
 }
 
+float TapeDelayModule::ApplySafetyLimiter(float sample) const {
+    constexpr float drive = 1.6f;
+    return tanhf(sample * drive) / tanhf(drive);
+}
+
 void TapeDelayModule::UpdateDelayTimeAndLed() {
     float time = GetParameterAsFloat(TIME);
 
@@ -361,12 +366,17 @@ float TapeDelayModule::ProcessChannel(float input, float speedMod, float dropout
     if (isLoFi) {
         feedback = repeats * 0.35f;
     } else {
-        feedback = 0.1f + repeats * 0.84f;
+        // Keep max feedback safely below unity to avoid runaway self-oscillation.
+        feedback = 0.08f + repeats * 0.74f;
     }
 
     float bias = GetParameterAsFloat(TAPE_BIAS);
     float drive = isLoFi ? (1.0f + bias * 7.0f) : (1.0f + bias * 4.0f);
-    float playbackWet = filteredWet * dropoutGain;
+    float playbackWet = ApplySafetyLimiter(filteredWet * dropoutGain);
+
+    // Dynamically back off feedback when wet energy rises to prevent dangerous level build-up.
+    float wetEnergyDamping = 1.0f / (1.0f + 0.65f * fabsf(playbackWet));
+    feedback *= wetEnergyDamping;
 
     // Keep tape age as tonal shaping only; avoid injecting hiss from this control.
     float sat = tanhf((input + feedback * playbackWet) * drive) / tanhf(drive);
@@ -374,6 +384,30 @@ float TapeDelayModule::ProcessChannel(float input, float speedMod, float dropout
     delay.Write(sat);
 
     return playbackWet;
+}
+
+void TapeDelayModule::ResetInternalState() {
+    if (m_delayL != nullptr) {
+        m_delayL->Init();
+    }
+    if (m_delayR != nullptr) {
+        m_delayR->Init();
+    }
+    if (m_reverb != nullptr) {
+        m_reverb->Init(m_sampleRate);
+        m_reverb->SetFeedback(0.85f);
+        m_reverb->SetLpFreq(9000.0f);
+    }
+
+    m_tapeMod.Init(m_sampleRate);
+
+    m_dropoutGain = 1.0f;
+    m_dropoutGainTarget = 1.0f;
+    m_crinkleOffset = 0.0f;
+    m_crinkleOffsetTarget = 0.0f;
+    m_dropoutSamplesRemaining = 0.0f;
+    m_crinkleSamplesRemaining = 0.0f;
+    m_imperfectionCooldownSamples = 0.0f;
 }
 
 void TapeDelayModule::Init(float sample_rate) {
@@ -408,6 +442,7 @@ void TapeDelayModule::Init(float sample_rate) {
     m_ledOsc.SetFreq(2.0f);
 
     UpdateMix();
+    ResetInternalState();
 }
 
 void TapeDelayModule::ParameterChanged(int parameter_id) {
@@ -438,6 +473,9 @@ void TapeDelayModule::ProcessMono(float in) {
     float wetOutL = wetL * (1.0f - reverbMix) + reverbL * reverbMix;
     float wetOutR = wetR * (1.0f - reverbMix) + reverbR * reverbMix;
 
+    wetOutL = ApplySafetyLimiter(wetOutL * 0.9f);
+    wetOutR = ApplySafetyLimiter(wetOutR * 0.9f);
+
     m_audioLeft = wetOutL * m_mixWet + m_audioLeft * m_mixDry;
     m_audioRight = wetOutR * m_mixWet + m_audioRight * m_mixDry;
 }
@@ -464,8 +502,21 @@ void TapeDelayModule::ProcessStereo(float inL, float inR) {
     float wetOutL = wetL * (1.0f - reverbMix) + reverbL * reverbMix;
     float wetOutR = wetR * (1.0f - reverbMix) + reverbR * reverbMix;
 
+    wetOutL = ApplySafetyLimiter(wetOutL * 0.9f);
+    wetOutR = ApplySafetyLimiter(wetOutR * 0.9f);
+
     m_audioLeft = wetOutL * m_mixWet + m_audioLeft * m_mixDry;
     m_audioRight = wetOutR * m_mixWet + m_audioRight * m_mixDry;
+}
+
+void TapeDelayModule::SetEnabled(bool isEnabled) {
+    bool wasEnabled = IsEnabled();
+    BaseEffectModule::SetEnabled(isEnabled);
+
+    // Re-entering the effect should always start from silence to avoid stale, loud tails.
+    if (isEnabled && !wasEnabled) {
+        ResetInternalState();
+    }
 }
 
 void TapeDelayModule::SetTempo(uint32_t bpm) {
