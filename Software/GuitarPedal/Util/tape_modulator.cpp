@@ -44,7 +44,8 @@ float TapeModulator::Fbm1D(float x, int octaves, float lacunarity, float gain)
     return sum / maxSum; // normalized to ~[-1,1]
 }
 
-float TapeModulator::GetTapeSpeed(float wow_rate, float flutter_rate, float wow_depth, float flutter_depth) {
+float TapeModulator::GetTapeSpeed(float wow_rate, float flutter_rate, float wow_depth, float flutter_depth,
+                                  float flutter_mix) {
     // Slow WOW component (FBM, smooth)
     float wow = Fbm1D(t_wow_, octaves_wow_, 2.0f, 0.5f);
 
@@ -64,9 +65,8 @@ float TapeModulator::GetTapeSpeed(float wow_rate, float flutter_rate, float wow_
         t_flutter_ -= 256.0f;
     }
 
-    // Combine, scaled by depth
-    // Assume potentiometer controls the main depth for wow; flutter is small fraction
-    float speed = wow_depth * wow + (flutter_depth * 0.2f) * flutter;
+    // Combine, scaled by depth. flutter_mix defaults to pretty small (0.2).
+    float speed = wow_depth * wow + (flutter_depth * flutter_mix) * flutter;
 
     return speed;
 }

@@ -134,7 +134,7 @@ TapeDelayModule::TapeDelayModule()
     : BaseEffectModule(), m_timeMinSamples(2400.0f), m_timeMaxSamples(192000.0f), m_mixWet(0.5f), m_mixDry(0.5f),
     m_currentDelaySamples(24000.0f), m_ageLpMin(1200.0f), m_ageLpMax(18000.0f),
       m_contourHpMin(20.0f), m_contourHpMax(350.0f), m_wowRateMin(0.15f), m_wowRateMax(2.0f), m_flutterRateMin(2.0f),
-            m_flutterRateMax(9.0f), m_wowDepthMaxSamples(35.0f), m_flutterDepthMaxSamples(9.0f), m_dropoutGain(1.0f),
+                        m_flutterRateMax(14.0f), m_wowDepthMaxSamples(55.0f), m_flutterDepthMaxSamples(16.0f), m_dropoutGain(1.0f),
             m_dropoutGainTarget(1.0f), m_crinkleOffset(0.0f), m_crinkleOffsetTarget(0.0f), m_dropoutSamplesRemaining(0.0f),
             m_crinkleSamplesRemaining(0.0f), m_imperfectionCooldownSamples(0.0f), m_randState(0xA57E1B3Fu), m_ledValue(0.0f),
             m_sampleRate(48000.0f), m_delayL(nullptr), m_delayR(nullptr), m_reverb(nullptr) {
@@ -203,20 +203,28 @@ float TapeDelayModule::GetDivisionMultiplier() const {
 
 float TapeDelayModule::GetWowFlutterOffset() {
     float wowFlutter = GetParameterAsFloat(WOW_FLUTTER);
+    float extreme = fmaxf(0.0f, (wowFlutter - 0.65f) / 0.35f);
+    float extremeShaped = extreme * extreme;
+
     float wowRate = m_wowRateMin + (m_wowRateMax - m_wowRateMin) * wowFlutter;
     float flutterRate = m_flutterRateMin + (m_flutterRateMax - m_flutterRateMin) * wowFlutter;
+
+    // Push upper range into unstable/broken-cassette territory.
+    wowRate += 2.2f * extremeShaped;
+    flutterRate += 18.0f * extremeShaped;
 
     float wowDepth;
     float flutterDepth;
     if (IsLoFiMode()) {
-        wowDepth = wowFlutter * wowFlutter * 6.0f;
-        flutterDepth = wowFlutter * 1.5f;
+        wowDepth = wowFlutter * wowFlutter * 9.0f + 20.0f * extremeShaped;
+        flutterDepth = wowFlutter * 2.8f + 8.0f * extremeShaped;
     } else {
-        wowDepth = wowFlutter * wowFlutter * m_wowDepthMaxSamples;
-        flutterDepth = wowFlutter * m_flutterDepthMaxSamples;
+        wowDepth = wowFlutter * wowFlutter * m_wowDepthMaxSamples + 40.0f * extremeShaped;
+        flutterDepth = wowFlutter * m_flutterDepthMaxSamples + 22.0f * extremeShaped;
     }
 
-    return m_tapeMod.GetTapeSpeed(wowRate, flutterRate, wowDepth, flutterDepth);
+    float flutterMix = 0.2f + 0.5f * extremeShaped;
+    return m_tapeMod.GetTapeSpeed(wowRate, flutterRate, wowDepth, flutterDepth, flutterMix);
 }
 
 float TapeDelayModule::Random01() {
