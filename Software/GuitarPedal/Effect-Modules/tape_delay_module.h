@@ -75,6 +75,9 @@ class TapeDelayModule : public BaseEffectModule {
     float m_imperfectionCooldownSamples;
     uint32_t m_randState;
 
+    float m_smoothedTime;
+    float m_smoothedMix;
+    float m_smoothedRepeats;
     float m_ledValue;
 
     float m_sampleRate;

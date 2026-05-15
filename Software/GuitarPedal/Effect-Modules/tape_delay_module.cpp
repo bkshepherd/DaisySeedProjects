@@ -146,7 +146,7 @@ TapeDelayModule::TapeDelayModule()
 TapeDelayModule::~TapeDelayModule() {}
 
 void TapeDelayModule::UpdateMix() {
-    float mixKnob = GetParameterAsFloat(MIX);
+    float mixKnob = m_smoothedMix;
     float x2 = 1.0f - mixKnob;
     float A = mixKnob * x2;
     float B = A * (1.0f + 1.4186f * A);
@@ -168,7 +168,7 @@ float TapeDelayModule::ApplySafetyLimiter(float sample) const {
 }
 
 void TapeDelayModule::UpdateDelayTimeAndLed() {
-    float time = GetParameterAsFloat(TIME);
+    float time = m_smoothedTime;
 
     if (IsLoFiMode()) {
         constexpr float lofiMinSamples = 24.0f;   // 0.5 ms @ 48k
@@ -381,7 +381,7 @@ float TapeDelayModule::ProcessChannel(float input, float speedMod, float dropout
     hp.Process(filteredWet);
     filteredWet = hp.High();
 
-    float repeats = GetParameterAsFloat(REPEATS);
+    float repeats = m_smoothedRepeats;
     float feedback;
     if (isLoFi) {
         feedback = repeats * 0.35f;
@@ -428,6 +428,9 @@ void TapeDelayModule::ResetInternalState() {
     m_dropoutSamplesRemaining = 0.0f;
     m_crinkleSamplesRemaining = 0.0f;
     m_imperfectionCooldownSamples = 0.0f;
+    m_smoothedTime = GetParameterAsFloat(TIME);
+    m_smoothedMix = GetParameterAsFloat(MIX);
+    m_smoothedRepeats = GetParameterAsFloat(REPEATS);
 }
 
 void TapeDelayModule::Init(float sample_rate) {
@@ -473,6 +476,12 @@ void TapeDelayModule::ParameterChanged(int parameter_id) {
 
 void TapeDelayModule::ProcessMono(float in) {
     BaseEffectModule::ProcessMono(in);
+
+    // Smooth critical parameters to avoid zipper noise from knob/automation changes
+    fonepole(m_smoothedTime, GetParameterAsFloat(TIME), 0.02f);
+    fonepole(m_smoothedMix, GetParameterAsFloat(MIX), 0.02f);
+    fonepole(m_smoothedRepeats, GetParameterAsFloat(REPEATS), 0.02f);
+
     UpdateDelayTimeAndLed();
     bool isLoFi = IsLoFiMode();
 
@@ -502,6 +511,12 @@ void TapeDelayModule::ProcessMono(float in) {
 
 void TapeDelayModule::ProcessStereo(float inL, float inR) {
     BaseEffectModule::ProcessStereo(inL, inR);
+
+    // Smooth critical parameters to avoid zipper noise from knob/automation changes
+    fonepole(m_smoothedTime, GetParameterAsFloat(TIME), 0.02f);
+    fonepole(m_smoothedMix, GetParameterAsFloat(MIX), 0.02f);
+    fonepole(m_smoothedRepeats, GetParameterAsFloat(REPEATS), 0.02f);
+
     UpdateDelayTimeAndLed();
     bool isLoFi = IsLoFiMode();
 
