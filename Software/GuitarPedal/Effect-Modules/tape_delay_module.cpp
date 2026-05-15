@@ -5,7 +5,7 @@
 
 using namespace bkshepherd;
 
-static const char *s_modeNames[4] = {"Single", "Multi", "Fixed", "LoFi"};
+static const char *s_modeNames[4] = {"Fixed", "Multi", "Single", "LoFi"};
 static const char *s_divisionNames[3] = {"Quarter", "Dotted8", "Triplet"};
 static const char *s_headConfigNames[3] = {"Head1", "Head2", "Head3"};
 
@@ -301,6 +301,7 @@ void TapeDelayModule::GetHeadMix(float baseSamples, DelayLine<float, TAPE_MAX_DE
     float h2 = baseSamples * 1.0f;
     float h3 = baseSamples * 1.5f;
 
+    // Fixed machine: one playback head selected at a time.
     if (mode == 0) {
         if (headCfg == 0) {
             out = delay.Read(h1);
@@ -312,24 +313,20 @@ void TapeDelayModule::GetHeadMix(float baseSamples, DelayLine<float, TAPE_MAX_DE
         return;
     }
 
+    // Multi machine: two playback heads selected as 1+2, 2+3, or 1+3.
     if (mode == 1) {
         if (headCfg == 0) {
-            out = 0.62f * delay.Read(h1) + 0.38f * delay.Read(h2);
+            out = 0.5f * delay.Read(h1) + 0.5f * delay.Read(h2);
         } else if (headCfg == 1) {
-            out = 0.62f * delay.Read(h2) + 0.38f * delay.Read(h3);
+            out = 0.5f * delay.Read(h2) + 0.5f * delay.Read(h3);
         } else {
-            out = 0.45f * delay.Read(h1) + 0.35f * delay.Read(h2) + 0.20f * delay.Read(h3);
+            out = 0.5f * delay.Read(h1) + 0.5f * delay.Read(h3);
         }
         return;
     }
 
-    if (headCfg == 0) {
-        out = 0.75f * delay.Read(h1) + 0.25f * delay.Read(h2);
-    } else if (headCfg == 1) {
-        out = 0.2f * delay.Read(h1) + 0.6f * delay.Read(h2) + 0.2f * delay.Read(h3);
-    } else {
-        out = 0.25f * delay.Read(h2) + 0.75f * delay.Read(h3);
-    }
+    // Single machine: one continuous tap point (head config intentionally unused).
+    out = delay.Read(baseSamples);
 }
 
 float TapeDelayModule::ProcessChannel(float input, float speedMod, float dropoutGain, float crinkleOffset, float age,
