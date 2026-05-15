@@ -189,7 +189,13 @@ void TapeDelayModule::UpdateDelayTimeAndLed() {
 }
 
 float TapeDelayModule::GetDivisionMultiplier() const {
-    // Binned values in this framework are 1..N, so convert to zero-based here.
+    // Match tape-machine semantics: Tap Div only applies to Single mode.
+    // Fixed and Multi derive rhythm from head selections.
+    int mode = GetParameterAsBinnedValue(MODE) - 1;
+    if (mode != 2) {
+        return 1.0f;
+    }
+
     int div = GetParameterAsBinnedValue(TAP_DIV) - 1;
     switch (div) {
     case 1:
@@ -325,8 +331,17 @@ void TapeDelayModule::GetHeadMix(float baseSamples, DelayLine<float, TAPE_MAX_DE
         return;
     }
 
-    // Single machine: one continuous tap point (head config intentionally unused).
-    out = delay.Read(baseSamples);
+    // Single machine: use Head Config as tape speed/fidelity variants.
+    // A=fast/cleaner, B=normal, C=slow/darker feel (longer effective delay).
+    float singleSamples = baseSamples;
+    if (headCfg == 0) {
+        singleSamples = baseSamples * 0.75f;
+    } else if (headCfg == 2) {
+        singleSamples = baseSamples * 1.35f;
+    }
+
+    singleSamples = fmaxf(1.0f, fminf(singleSamples, static_cast<float>(TAPE_MAX_DELAY_SAMPLES - 2)));
+    out = delay.Read(singleSamples);
 }
 
 float TapeDelayModule::ProcessChannel(float input, float speedMod, float dropoutGain, float crinkleOffset, float age,
