@@ -20,7 +20,7 @@ static const auto s_metaData = [] {
         name : "Time",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : {.float_value = 0.45f},
+        defaultValue : {.float_value = 0.25f},
         knobMapping : 0,
         midiCCMapping : 60
     };
@@ -38,7 +38,7 @@ static const auto s_metaData = [] {
         name : "Repeats",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : {.float_value = 0.45f},
+        defaultValue : {.float_value = 0.15f},
         knobMapping : 2,
         midiCCMapping : 62
     };
@@ -85,7 +85,7 @@ static const auto s_metaData = [] {
         name : "Tape Bias",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : {.float_value = 0.5f},
+        defaultValue : {.float_value = 0.0f},
         knobMapping : -1,
         midiCCMapping : 67
     };
@@ -384,10 +384,9 @@ float TapeDelayModule::ProcessChannel(float input, float speedMod, float dropout
     float repeats = m_smoothedRepeats;
     float feedback;
     if (isLoFi) {
-        feedback = repeats * 0.35f;
+        feedback = 0.0f; // LoFi mode uses a very short delay at high drive - feedback is dangerous
     } else {
-        // Keep max feedback safely below unity to avoid runaway self-oscillation.
-        feedback = 0.08f + repeats * 0.74f;
+        feedback = 0.003f + repeats * 0.20f;
     }
 
     float bias = GetParameterAsFloat(TAPE_BIAS);
@@ -398,8 +397,10 @@ float TapeDelayModule::ProcessChannel(float input, float speedMod, float dropout
     float wetEnergyDamping = 1.0f / (1.0f + 0.65f * fabsf(playbackWet));
     feedback *= wetEnergyDamping;
 
-    // Keep tape age as tonal shaping only; avoid injecting hiss from this control.
-    float sat = tanhf((input + feedback * playbackWet) * drive) / tanhf(drive);
+    // Normalise by drive (not tanhf(drive)) so small-signal gain is unity.
+    // tanhf(x*d)/tanhf(d) has gain = d/tanhf(d) > 1, causing the wet to sound louder than dry.
+    // tanhf(x*d)/d has derivative 1 at the origin — unity gain — and softclips harder as drive rises.
+    float sat = tanhf((input + feedback * playbackWet) * drive) / drive;
 
     delay.Write(sat);
 
@@ -480,7 +481,7 @@ void TapeDelayModule::ProcessMono(float in) {
     // Smooth critical parameters to avoid zipper noise from knob/automation changes
     fonepole(m_smoothedTime, GetParameterAsFloat(TIME), 0.02f);
     fonepole(m_smoothedMix, GetParameterAsFloat(MIX), 0.02f);
-    fonepole(m_smoothedRepeats, GetParameterAsFloat(REPEATS), 0.02f);
+    fonepole(m_smoothedRepeats, fminf(GetParameterAsFloat(REPEATS), 0.65f), 0.02f);
 
     UpdateDelayTimeAndLed();
     bool isLoFi = IsLoFiMode();
@@ -515,7 +516,7 @@ void TapeDelayModule::ProcessStereo(float inL, float inR) {
     // Smooth critical parameters to avoid zipper noise from knob/automation changes
     fonepole(m_smoothedTime, GetParameterAsFloat(TIME), 0.02f);
     fonepole(m_smoothedMix, GetParameterAsFloat(MIX), 0.02f);
-    fonepole(m_smoothedRepeats, GetParameterAsFloat(REPEATS), 0.02f);
+    fonepole(m_smoothedRepeats, fminf(GetParameterAsFloat(REPEATS), 0.65f), 0.02f);
 
     UpdateDelayTimeAndLed();
     bool isLoFi = IsLoFiMode();
@@ -576,4 +577,33 @@ float TapeDelayModule::GetBrightnessForLED(int led_id) const {
     }
 
     return value;
+}
+
+int TapeDelayModule::GetMappedParameterIDForKnob(int knob_id) const {
+    if (m_shiftModeActive) {
+        switch (knob_id) {
+        case 0: return TAP_DIV;        // Knob 0 -> Tap Division
+        case 1: return TAPE_BIAS;      // Knob 1 -> Tape Bias
+        case 2: return IMPERFECTIONS;  // Knob 2 -> Imperfections
+        case 3: return LOW_END_CONTOUR;// Knob 3 -> Low End Contour
+        case 4: return REVERB_MIX;     // Knob 4 -> Reverb Mix
+        case 5: return HEAD_CONFIG;    // Knob 5 -> Head Config
+        default: return -1;
+        }
+    }
+    return BaseEffectModule::GetMappedParameterIDForKnob(knob_id);
+}
+
+void TapeDelayModule::AlternateFootswitchHeldFor1Second() {
+    m_shiftModeActive = !m_shiftModeActive;
+}
+
+void TapeDelayModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int numItemsTotal,
+                             Rectangle boundsToDrawIn, bool isEditing) {
+    BaseEffectModule::DrawUI(display, currentIndex, numItemsTotal, boundsToDrawIn, isEditing);
+
+    if (m_shiftModeActive) {
+        display.SetCursor(boundsToDrawIn.GetRight() - 40, 2);
+        display.WriteString("SHIFT", Font_6x8, true);
+    }
 }

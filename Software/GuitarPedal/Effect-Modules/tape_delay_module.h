@@ -46,6 +46,10 @@ class TapeDelayModule : public BaseEffectModule {
     void SetTempo(uint32_t bpm) override;
     float GetBrightnessForLED(int led_id) const override;
     void SetEnabled(bool isEnabled) override;
+    int GetMappedParameterIDForKnob(int knob_id) const override;
+    void AlternateFootswitchHeldFor1Second() override;
+    void DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int numItemsTotal, Rectangle boundsToDrawIn,
+                bool isEditing) override;
 
   private:
     float m_timeMinSamples;
@@ -79,6 +83,7 @@ class TapeDelayModule : public BaseEffectModule {
     float m_smoothedMix;
     float m_smoothedRepeats;
     float m_ledValue;
+    bool m_shiftModeActive = false;
 
     float m_sampleRate;
 
