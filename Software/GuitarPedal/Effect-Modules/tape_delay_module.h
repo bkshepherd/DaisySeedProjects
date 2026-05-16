@@ -96,14 +96,15 @@ class TapeDelayModule : public BaseEffectModule {
     Svf m_hpR;
 
     ReverbSc *m_reverb;
-    TapeModulator m_tapeMod;
+    TapeModulator m_tapeModL;
+    TapeModulator m_tapeModR;
     Oscillator m_ledOsc;
 
     void UpdateMix();
     bool IsLoFiMode() const;
     void UpdateDelayTimeAndLed();
     float GetDivisionMultiplier() const;
-    float GetWowFlutterOffset();
+    float GetWowFlutterOffset(TapeModulator &mod, float rateScale);
     float Random01();
     void UpdateImperfections(float amount, float &dropoutGain, float &crinkleOffset);
     void GetHeadMix(float baseSamples, DelayLine<float, TAPE_MAX_DELAY_SAMPLES> &delay, float &out) const;
@@ -111,6 +112,7 @@ class TapeDelayModule : public BaseEffectModule {
     float ApplySafetyLimiter(float sample) const;
     float ProcessChannel(float input, float speedMod, float dropoutGain, float crinkleOffset, float age, bool isLoFi,
                DelayLine<float, TAPE_MAX_DELAY_SAMPLES> &delay, Tone &tone, Svf &hp);
+    void ProcessTapeBlock();
 };
 } // namespace bkshepherd
 #endif
