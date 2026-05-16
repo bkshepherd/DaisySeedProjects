@@ -392,7 +392,7 @@ float TapeDelayModule::ProcessChannel(float input, float speedMod, float dropout
         feedback = 0.0f; // LoFi mode uses a very short delay at high drive - feedback is dangerous
     } else {
         // Allow up to slight self-oscillation; the in-loop tanh saturator bounds runaway.
-        feedback = 0.05f + repeats * 0.93f;
+        feedback = repeats * 0.98f;
     }
 
     float bias = GetParameterAsFloat(TAPE_BIAS);
