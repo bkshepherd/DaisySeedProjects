@@ -23,7 +23,7 @@ static const auto s_metaData = [] {
         defaultValue : {.float_value = 0.5f},
         knobMapping : 1,
         midiCCMapping : 15
-    }
+    };
     //{name: "Osc Wave", valueType: ParameterValueType::Binned, valueBinCount: 8, valueBinNames: s_waveBinNames, defaultValue:
     //{.uint_value = 0}, knobMapping: 4, midiCCMapping: 23};
 
