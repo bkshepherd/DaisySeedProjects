@@ -50,7 +50,7 @@
 #endif
 
 #ifndef NAM_A2_MODEL_DATA
-#define NAM_A2_MODEL_DATA __attribute__((section(".qspiflash_text")))
+#define NAM_A2_MODEL_DATA
 #endif
 
 #ifndef NAM_A2_FORCE_INLINE
