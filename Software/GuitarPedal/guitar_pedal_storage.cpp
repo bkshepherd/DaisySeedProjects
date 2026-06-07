@@ -324,3 +324,5 @@ void SetSettingsParameterValueForEffect(int effectID, int paramID, uint32_t para
 }
 
 void FactoryReset(void *context) { storage.RestoreDefaults(); }
+
+void RebootToBootloader(void *context) { System::ResetToBootloader(System::BootloaderMode::DAISY); }
