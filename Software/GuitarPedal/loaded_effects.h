@@ -26,6 +26,7 @@
 #include "Effect-Modules/metro_module.h"
 #include "Effect-Modules/modulated_tremolo_module.h"
 #include "Effect-Modules/multi_delay_module.h"
+#include "Effect-Modules/nam_module.h"
 #include "Effect-Modules/nam_a2_module.h"
 #include "Effect-Modules/noise_gate_module.h"
 #include "Effect-Modules/overdrive_module.h"
@@ -70,6 +71,7 @@ void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffec
         new AmpModule(),
         new DelayModule(),
         new TapeDelayModule(),
+        new NamModule(),
         new NamA2Module(),
         new SciFiModule(),
         new PolyOctaveModule(),
