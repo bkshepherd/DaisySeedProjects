@@ -33,7 +33,6 @@ CPP_SOURCES += Effect-Modules/looper_module.cpp
 CPP_SOURCES += Effect-Modules/metro_module.cpp
 CPP_SOURCES += Effect-Modules/modulated_tremolo_module.cpp
 CPP_SOURCES += Effect-Modules/multi_delay_module.cpp
-CPP_SOURCES += Effect-Modules/nam_module.cpp
 CPP_SOURCES += Effect-Modules/nam_a2_module.cpp
 CPP_SOURCES += Effect-Modules/noise_gate_module.cpp
 CPP_SOURCES += Effect-Modules/overdrive_module.cpp
