@@ -56,6 +56,7 @@ class NamA2Module : public BaseEffectModule {
     float m_cachedEffectMagnitudeValue;
 
     int m_currentModelIndex;
+    bool m_muteOutput;
 
     // Pointer to the static A2Player instance owned by nam_a2_module.cpp.
     // Keeping the full type out of this header avoids ODR violations from the

@@ -109,6 +109,17 @@ static const auto s_metaData = [] {
 // The A2State::history member is 76 KB. Place in SDRAM to avoid DTCMRAM overflow.
 static DSY_SDRAM_BSS nam_a2_daisy::A2Player s_nam_a2_model;
 
+// The A2 model requires exactly kBlockSize (48) samples per process_block_48 call.
+// This project's hardware block size (guitar_pedal.cpp: blockSize = 48) matches
+// exactly, so ProcessMono accumulates 48 samples and fires once per audio callback,
+// with one block (~1 ms) of latency. If the hardware block size is ever changed,
+// the double-buffer in ProcessMono still works correctly but latency will change:
+//   - hardware block < 48: fires every ceil(48/hwBlock) callbacks
+//   - hardware block > 48: fires multiple times per callback
+// Either way is glitch-free, just adjust expectations for latency.
+static_assert(nam_a2_daisy::kBlockSize == 48,
+              "A2 kBlockSize changed — verify hardware blockSize in guitar_pedal.cpp still matches");
+
 // ---------------------------------------------------------------------------
 // Constructor / Destructor
 // ---------------------------------------------------------------------------
@@ -121,6 +132,7 @@ NamA2Module::NamA2Module()
       m_levelMax(2.0f),
       m_cachedEffectMagnitudeValue(1.0f),
       m_currentModelIndex(-1),
+      m_muteOutput(false),
       m_model(&s_nam_a2_model)
 {
     m_name = "NAM-A2";
@@ -148,9 +160,21 @@ void NamA2Module::SelectModel() {
     if (modelIndex < 0 || modelIndex >= nam_a2_models::kNamA2ModelCount)
         return;
 
+    m_muteOutput = true;
+
     const auto& entry = nam_a2_models::kNamA2Models[modelIndex];
     m_model->load_weights(entry.weights, nam_a2_daisy::kA2WeightCount);
     m_currentModelIndex = modelIndex;
+
+    // Flush the double-buffer so the previous model's samples don't bleed
+    // through on the first block after switching.
+    m_bufferIndex = 0;
+    for (int i = 0; i < kBlockSize; ++i) {
+        m_inputBuffer[i]  = 0.0f;
+        m_outputBuffer[i] = 0.0f;
+    }
+
+    m_muteOutput = false;
 }
 
 // ---------------------------------------------------------------------------
@@ -195,6 +219,11 @@ void NamA2Module::ParameterChanged(int parameter_id) {
 //      m_outputBuffer for the next kBlockSize output samples.
 // ---------------------------------------------------------------------------
 void NamA2Module::ProcessMono(float in) {
+    if (m_muteOutput) {
+        m_audioLeft = m_audioRight = 0.0f;
+        return;
+    }
+
     BaseEffectModule::ProcessMono(in);
 
     const float gain = m_gainMin + (m_gainMax - m_gainMin) * GetParameterAsFloat(GAIN);
@@ -219,7 +248,7 @@ void NamA2Module::ProcessMono(float in) {
     const float level = m_levelMin + GetParameterAsFloat(LEVEL) * (m_levelMax - m_levelMin);
     m_audioLeft = m_audioRight = ampOut * level;
 
-    m_cachedEffectMagnitudeValue = fabsf(m_audioLeft);
+    m_cachedEffectMagnitudeValue = fminf(1.0f, fabsf(m_audioLeft));
 }
 
 // ---------------------------------------------------------------------------
