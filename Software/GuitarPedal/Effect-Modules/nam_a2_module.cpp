@@ -1,5 +1,5 @@
 #include "nam_a2_module.h"
-#include "Nam/NamA2JCM2000Daisy48.h"
+#include "Nam/model_data_nam_a2.h"
 #include "../Util/audio_utilities.h"
 #include <q/fx/biquad.hpp>
 #include <cmath>
@@ -27,7 +27,12 @@ cycfi::q::peaking filter_a2[NUM_FILTERS_A2] = {
 // ---------------------------------------------------------------------------
 // Parameter metadata
 // ---------------------------------------------------------------------------
-static const char *s_modelBinNames[] = {"JCM2000"};
+// Model names — must stay in sync with nam_a2_models::kNamA2Models[].
+// Add a new entry here when adding a model to model_data_nam_a2.h.
+static const char *s_modelBinNames[] = {
+    "JCM2000",
+    // "BE-100",
+};
 
 static const auto s_metaData = [] {
     std::array<ParameterMetaData, NamA2Module::PARAM_COUNT> params{};
@@ -49,11 +54,21 @@ static const auto s_metaData = [] {
         midiCCMapping : 23,
     };
 
+    params[NamA2Module::MODEL] = {
+        name : "Model",
+        valueType : ParameterValueType::Binned,
+        valueBinCount : nam_a2_models::kNamA2ModelCount,
+        valueBinNames : s_modelBinNames,
+        defaultValue : {.uint_value = 0},
+        knobMapping : 2,
+        midiCCMapping : 28,
+    };
+
     params[NamA2Module::BASS] = {
         name : "Bass",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.0f},
-        knobMapping : 2,
+        knobMapping : 3,
         midiCCMapping : 24,
         minValue : -10,
         maxValue : 10,
@@ -63,7 +78,7 @@ static const auto s_metaData = [] {
         name : "Mid",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.0f},
-        knobMapping : 3,
+        knobMapping : 4,
         midiCCMapping : 25,
         minValue : -10,
         maxValue : 10,
@@ -73,7 +88,7 @@ static const auto s_metaData = [] {
         name : "Treble",
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.0f},
-        knobMapping : 4,
+        knobMapping : 5,
         midiCCMapping : 26,
         minValue : -10,
         maxValue : 10,
@@ -90,11 +105,8 @@ static const auto s_metaData = [] {
     return params;
 }();
 
-// The A2State::history member is 76 KB. Regular .bss maps to DTCMRAM in this
-// project's linker script, which would overflow it. Place the instance in SDRAM
-// so only the static inline weights_ and hot_ (small, fast) stay in DTCM/BSS.
-// The static inline members inside A2Jcm2000Daisy48 are unaffected by this.
-static DSY_SDRAM_BSS nam_a2_daisy::A2Jcm2000Daisy48 s_nam_a2_model;
+// The A2State::history member is 76 KB. Place in SDRAM to avoid DTCMRAM overflow.
+static DSY_SDRAM_BSS nam_a2_daisy::A2Player s_nam_a2_model;
 
 // ---------------------------------------------------------------------------
 // Constructor / Destructor
@@ -107,6 +119,7 @@ NamA2Module::NamA2Module()
       m_levelMin(0.0f),
       m_levelMax(2.0f),
       m_cachedEffectMagnitudeValue(1.0f),
+      m_currentModelIndex(-1),
       m_model(&s_nam_a2_model)
 {
     m_name = "NAM-A2";
@@ -125,14 +138,28 @@ NamA2Module::NamA2Module()
 NamA2Module::~NamA2Module() {}
 
 // ---------------------------------------------------------------------------
+// SelectModel
+// ---------------------------------------------------------------------------
+void NamA2Module::SelectModel() {
+    const int modelIndex = GetParameterAsBinnedValue(MODEL) - 1;
+    if (modelIndex == m_currentModelIndex)
+        return;
+    if (modelIndex < 0 || modelIndex >= nam_a2_models::kNamA2ModelCount)
+        return;
+
+    const auto& entry = nam_a2_models::kNamA2Models[modelIndex];
+    m_model->load_weights(entry.weights, nam_a2_daisy::kA2WeightCount);
+    m_currentModelIndex = modelIndex;
+}
+
+// ---------------------------------------------------------------------------
 // Init
 // ---------------------------------------------------------------------------
 void NamA2Module::Init(float sample_rate) {
     BaseEffectModule::Init(sample_rate);
 
-    // Load the embedded JCM2000 A2 weights and prewarm the network.
-    // This must NOT be called from the audio callback.
-    m_model->load_default_model();
+    // Load the default model and prewarm — must NOT be called from the audio callback.
+    SelectModel();
 
     // Configure EQ filters with the actual sample rate.
     filter_a2[0].config(GetParameterAsFloat(BASS),   centerFrequencyA2[0], sample_rate, q_a2[0]);
@@ -144,7 +171,9 @@ void NamA2Module::Init(float sample_rate) {
 // ParameterChanged
 // ---------------------------------------------------------------------------
 void NamA2Module::ParameterChanged(int parameter_id) {
-    if (parameter_id == BASS) {
+    if (parameter_id == MODEL) {
+        SelectModel();
+    } else if (parameter_id == BASS) {
         filter_a2[0].config(GetParameterAsFloat(BASS),   centerFrequencyA2[0], GetSampleRate(), q_a2[0]);
     } else if (parameter_id == MID) {
         filter_a2[1].config(GetParameterAsFloat(MID),    centerFrequencyA2[1], GetSampleRate(), q_a2[1]);

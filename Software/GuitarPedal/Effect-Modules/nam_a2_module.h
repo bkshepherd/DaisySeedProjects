@@ -5,10 +5,10 @@
 #include "base_effect_module.h"
 #include <stdint.h>
 
-// Forward declaration only — the full A2 header (with NAM_A2_NOINLINE functions)
+// Forward declaration only — the full runtime header (with NAM_A2_NOINLINE functions)
 // is included exclusively in nam_a2_module.cpp to avoid ODR violations when
-// NamA2JCM2000Daisy48.h is pulled into multiple translation units.
-namespace nam_a2_daisy { class A2Jcm2000Daisy48; }
+// nam_a2_runtime.h is pulled into multiple translation units.
+namespace nam_a2_daisy { class A2Player; }
 
 #ifdef __cplusplus
 
@@ -21,12 +21,15 @@ class NamA2Module : public BaseEffectModule {
     enum Param {
         GAIN = 0,
         LEVEL,
+        MODEL,
         BASS,
         MID,
         TREBLE,
         EQ,
         PARAM_COUNT
     };
+
+    void SelectModel();
 
     NamA2Module();
     ~NamA2Module();
@@ -52,10 +55,12 @@ class NamA2Module : public BaseEffectModule {
 
     float m_cachedEffectMagnitudeValue;
 
-    // Pointer to static instance owned by nam_a2_module.cpp.
-    // Keeping the full type out of this header avoids ODR violations from
-    // the NAM_A2_NOINLINE functions defined in NamA2JCM2000Daisy48.h.
-    nam_a2_daisy::A2Jcm2000Daisy48* m_model;
+    int m_currentModelIndex;
+
+    // Pointer to the static A2Player instance owned by nam_a2_module.cpp.
+    // Keeping the full type out of this header avoids ODR violations from the
+    // NAM_A2_NOINLINE functions in nam_a2_runtime.h.
+    nam_a2_daisy::A2Player* m_model;
 };
 
 } // namespace bkshepherd
