@@ -331,7 +331,7 @@ void GuitarPedalUI::InitGlobalSettingsUIPages() {
     m_globalSettingsMenuItems[5].asMappedValueItem.valueToModify = &m_midiChannelSettingValue;
 
     m_globalSettingsMenuItems[6].type = AbstractMenu::ItemType::callbackFunctionItem;
-    m_globalSettingsMenuItems[6].text = "Reboot DFU";
+    m_globalSettingsMenuItems[6].text = "Reboot";
     m_globalSettingsMenuItems[6].asCallbackFunctionItem.callbackFunction = &RebootToBootloader;
     m_globalSettingsMenuItems[6].asCallbackFunctionItem.context = this;
 
