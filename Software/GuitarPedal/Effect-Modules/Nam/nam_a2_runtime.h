@@ -3,7 +3,8 @@
     nam_a2_runtime.h
 
     Allocation-free A2 Nano WaveNet runtime for Daisy / STM32H7.
-    Based on NamA2JCM2000Daisy48_minram_v16_k6_current_direct.h by nadavb.
+    Based on NamA2JCM2000Daisy48_minram_v16_k6_current_direct.h by nadavb at
+    https://forum.electro-smith.com/t/nam-a2-on-daisy-seed/9186.
 
     Architecture: A2 WaveNet, C=3 channels, 23 layers, 1871 weights.
     Block size: 48 samples. Mono input -> mono output.

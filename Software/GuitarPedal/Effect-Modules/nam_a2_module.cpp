@@ -30,7 +30,8 @@ cycfi::q::peaking filter_a2[NUM_FILTERS_A2] = {
 // Model names — must stay in sync with nam_a2_models::kNamA2Models[].
 // Add a new entry here when adding a model to model_data_nam_a2.h.
 static const char *s_modelBinNames[] = {
-    "JCM2000",
+    "JCM800",
+    "Ampeg",
     "BE-100",
     // Add more names here
 };
