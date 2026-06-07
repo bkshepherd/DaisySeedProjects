@@ -1,0 +1,216 @@
+#include "nam_a2_module.h"
+#include "Nam/NamA2JCM2000Daisy48.h"
+#include "../Util/audio_utilities.h"
+#include <q/fx/biquad.hpp>
+#include <cmath>
+#include <array>
+
+using namespace bkshepherd;
+
+// ---------------------------------------------------------------------------
+// EQ configuration – identical band centres to the existing NAM module
+// ---------------------------------------------------------------------------
+constexpr uint8_t NUM_FILTERS_A2 = 3;
+
+const float centerFrequencyA2[NUM_FILTERS_A2] = {110.f, 900.f, 4000.f};
+const float q_a2[NUM_FILTERS_A2]              = {0.7f,  0.7f,  0.7f};
+
+// Constructed with (gain_dB, frequency, sample_rate, q).
+// The sample-rate value here is a reasonable default; Init() calls .config()
+// with the true sample rate before any audio is processed.
+cycfi::q::peaking filter_a2[NUM_FILTERS_A2] = {
+    {0.f, centerFrequencyA2[0], 48000.f, q_a2[0]},
+    {0.f, centerFrequencyA2[1], 48000.f, q_a2[1]},
+    {0.f, centerFrequencyA2[2], 48000.f, q_a2[2]},
+};
+
+// ---------------------------------------------------------------------------
+// Parameter metadata
+// ---------------------------------------------------------------------------
+static const char *s_modelBinNames[] = {"JCM2000"};
+
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, NamA2Module::PARAM_COUNT> params{};
+
+    params[NamA2Module::GAIN] = {
+        name : "Gain",
+        valueType : ParameterValueType::Float,
+        valueCurve : ParameterValueCurve::Log,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 0,
+        midiCCMapping : 22,
+    };
+
+    params[NamA2Module::LEVEL] = {
+        name : "Level",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.5f},
+        knobMapping : 1,
+        midiCCMapping : 23,
+    };
+
+    params[NamA2Module::BASS] = {
+        name : "Bass",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.0f},
+        knobMapping : 2,
+        midiCCMapping : 24,
+        minValue : -10,
+        maxValue : 10,
+    };
+
+    params[NamA2Module::MID] = {
+        name : "Mid",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.0f},
+        knobMapping : 3,
+        midiCCMapping : 25,
+        minValue : -10,
+        maxValue : 10,
+    };
+
+    params[NamA2Module::TREBLE] = {
+        name : "Treble",
+        valueType : ParameterValueType::Float,
+        defaultValue : {.float_value = 0.0f},
+        knobMapping : 4,
+        midiCCMapping : 26,
+        minValue : -10,
+        maxValue : 10,
+    };
+
+    params[NamA2Module::EQ] = {
+        name : "EQ",
+        valueType : ParameterValueType::Bool,
+        defaultValue : {.uint_value = 1},
+        knobMapping : -1,
+        midiCCMapping : 27,
+    };
+
+    return params;
+}();
+
+// The A2State::history member is 76 KB. Regular .bss maps to DTCMRAM in this
+// project's linker script, which would overflow it. Place the instance in SDRAM
+// so only the static inline weights_ and hot_ (small, fast) stay in DTCM/BSS.
+// The static inline members inside A2Jcm2000Daisy48 are unaffected by this.
+static DSY_SDRAM_BSS nam_a2_daisy::A2Jcm2000Daisy48 s_nam_a2_model;
+
+// ---------------------------------------------------------------------------
+// Constructor / Destructor
+// ---------------------------------------------------------------------------
+NamA2Module::NamA2Module()
+    : BaseEffectModule(),
+      m_bufferIndex(0),
+      m_gainMin(0.0f),
+      m_gainMax(2.0f),
+      m_levelMin(0.0f),
+      m_levelMax(2.0f),
+      m_cachedEffectMagnitudeValue(1.0f),
+      m_model(&s_nam_a2_model)
+{
+    m_name = "NAM-A2";
+
+    m_paramMetaData = s_metaData.data();
+    this->InitParams(static_cast<int>(s_metaData.size()));
+
+    // Zero both buffers so the first kBlockSize output samples are silence
+    // (one block of startup latency ≈ 1 ms at 48 kHz).
+    for (int i = 0; i < kBlockSize; ++i) {
+        m_inputBuffer[i]  = 0.0f;
+        m_outputBuffer[i] = 0.0f;
+    }
+}
+
+NamA2Module::~NamA2Module() {}
+
+// ---------------------------------------------------------------------------
+// Init
+// ---------------------------------------------------------------------------
+void NamA2Module::Init(float sample_rate) {
+    BaseEffectModule::Init(sample_rate);
+
+    // Load the embedded JCM2000 A2 weights and prewarm the network.
+    // This must NOT be called from the audio callback.
+    m_model->load_default_model();
+
+    // Configure EQ filters with the actual sample rate.
+    filter_a2[0].config(GetParameterAsFloat(BASS),   centerFrequencyA2[0], sample_rate, q_a2[0]);
+    filter_a2[1].config(GetParameterAsFloat(MID),    centerFrequencyA2[1], sample_rate, q_a2[1]);
+    filter_a2[2].config(GetParameterAsFloat(TREBLE), centerFrequencyA2[2], sample_rate, q_a2[2]);
+}
+
+// ---------------------------------------------------------------------------
+// ParameterChanged
+// ---------------------------------------------------------------------------
+void NamA2Module::ParameterChanged(int parameter_id) {
+    if (parameter_id == BASS) {
+        filter_a2[0].config(GetParameterAsFloat(BASS),   centerFrequencyA2[0], GetSampleRate(), q_a2[0]);
+    } else if (parameter_id == MID) {
+        filter_a2[1].config(GetParameterAsFloat(MID),    centerFrequencyA2[1], GetSampleRate(), q_a2[1]);
+    } else if (parameter_id == TREBLE) {
+        filter_a2[2].config(GetParameterAsFloat(TREBLE), centerFrequencyA2[2], GetSampleRate(), q_a2[2]);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// ProcessMono
+//
+// The A2 model requires exactly kBlockSize (48) samples per call.
+// We use a double-buffer approach with one block of latency (~1 ms at 48 kHz):
+//
+//   1. Output m_outputBuffer[n]  – samples processed in the previous call
+//   2. Store gainedInput into m_inputBuffer[n]
+//   3. When the input buffer is full, call process_block_48 to refill
+//      m_outputBuffer for the next kBlockSize output samples.
+// ---------------------------------------------------------------------------
+void NamA2Module::ProcessMono(float in) {
+    BaseEffectModule::ProcessMono(in);
+
+    const float gain = m_gainMin + (m_gainMax - m_gainMin) * GetParameterAsFloat(GAIN);
+    m_inputBuffer[m_bufferIndex] = m_audioLeft * gain;
+
+    // Read from the previously-processed output block.
+    float ampOut = m_outputBuffer[m_bufferIndex];
+
+    ++m_bufferIndex;
+    if (m_bufferIndex >= kBlockSize) {
+        m_model->process_block_48(m_inputBuffer, m_outputBuffer);
+        m_bufferIndex = 0;
+    }
+
+    // Apply 3-band EQ post-model.
+    if (GetParameterAsBool(EQ)) {
+        for (uint8_t i = 0; i < NUM_FILTERS_A2; ++i) {
+            ampOut = filter_a2[i](ampOut);
+        }
+    }
+
+    const float level = m_levelMin + GetParameterAsFloat(LEVEL) * (m_levelMax - m_levelMin);
+    m_audioLeft = m_audioRight = ampOut * level;
+
+    m_cachedEffectMagnitudeValue = fabsf(m_audioLeft);
+}
+
+// ---------------------------------------------------------------------------
+// ProcessStereo
+//
+// Running the neural network in stereo is not feasible within CPU constraints;
+// we process mono and copy the result to both channels.
+// ---------------------------------------------------------------------------
+void NamA2Module::ProcessStereo(float inL, float /*inR*/) {
+    ProcessMono(inL);
+}
+
+// ---------------------------------------------------------------------------
+// GetBrightnessForLED
+// ---------------------------------------------------------------------------
+float NamA2Module::GetBrightnessForLED(int led_id) const {
+    float value = BaseEffectModule::GetBrightnessForLED(led_id);
+
+    if (led_id == 1) {
+        return value * m_cachedEffectMagnitudeValue;
+    }
+
+    return value;
+}
