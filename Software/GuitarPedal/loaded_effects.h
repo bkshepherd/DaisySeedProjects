@@ -73,9 +73,9 @@ void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffec
         new NamA2Module(),
         new SciFiModule(),
         new PolyOctaveModule(),
-        new SpectralDelayModule(),
+        // new SpectralDelayModule(),
         new DistortionModule(),
-        new GranularDelayModule(), 
+        // new GranularDelayModule(),
         new IrModule(),
         new DrumModule(),  // This module can be used with MIDI keyboard as a drum machine
         new PhaserModule(),

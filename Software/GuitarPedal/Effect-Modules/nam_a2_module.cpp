@@ -107,7 +107,7 @@ static const auto s_metaData = [] {
 }();
 
 // The A2State::history member is 76 KB. Place in SDRAM to avoid DTCMRAM overflow.
-static DSY_SDRAM_BSS nam_a2_daisy::A2Player s_nam_a2_model;
+static nam_a2_daisy::A2Player s_nam_a2_model;
 
 // The A2 model requires exactly kBlockSize (48) samples per process_block_48 call.
 // This project's hardware block size (guitar_pedal.cpp: blockSize = 48) matches
