@@ -56,5 +56,6 @@ void SaveEffectSettingsToPersitantStorageForEffectID(int effectID, uint32_t pres
 void SetSettingsParameterValueForEffect(int effectID, int paramID, uint32_t paramValue, uint32_t startIdx);
 void LoadPresetFromPersistentStorage(uint32_t effectID, uint32_t presetID);
 void FactoryReset(void *context);
+void RebootToBootloader(void *context);
 
 #endif
