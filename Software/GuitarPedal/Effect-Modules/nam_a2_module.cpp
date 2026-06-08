@@ -27,14 +27,15 @@ cycfi::q::peaking filter_a2[NUM_FILTERS_A2] = {
 // ---------------------------------------------------------------------------
 // Parameter metadata
 // ---------------------------------------------------------------------------
-// Model names — must stay in sync with nam_a2_models::kNamA2Models[].
-// Add a new entry here when adding a model to model_data_nam_a2.h.
-static const char *s_modelBinNames[] = {
-    "JCM800",
-    "Ampeg",
-    "BE-100",
-    // Add more names here
-};
+// Display names for the MODEL parameter, sourced directly from the model table
+// so the two can't drift out of sync. Add models in model_data_nam_a2.h only.
+static auto s_modelBinNames = [] {
+    std::array<const char *, nam_a2_models::kNamA2ModelCount> names{};
+    for (int i = 0; i < nam_a2_models::kNamA2ModelCount; ++i) {
+        names[i] = nam_a2_models::kNamA2Models[i].name;
+    }
+    return names;
+}();
 
 static const auto s_metaData = [] {
     std::array<ParameterMetaData, NamA2Module::PARAM_COUNT> params{};
@@ -60,7 +61,7 @@ static const auto s_metaData = [] {
         name : "Model",
         valueType : ParameterValueType::Binned,
         valueBinCount : nam_a2_models::kNamA2ModelCount,
-        valueBinNames : s_modelBinNames,
+        valueBinNames : s_modelBinNames.data(),
         defaultValue : {.uint_value = 0},
         knobMapping : 2,
         midiCCMapping : 28,
@@ -108,10 +109,11 @@ static const auto s_metaData = [] {
 }();
 
 // A2Player's only per-instance member is A2State, whose history buffer is ~76 KB.
-// NAM_A2_STATE_DATA places this instance in on-chip AXI-SRAM (.axi_sram_bss, see
-// nam_a2_sections.lds) instead of the cramped 128 KB DTCMRAM. The hot weights and
-// work buffers are static members already pinned to DTCMRAM (NAM_A2_HOT_DATA), so
-// only the large, latency-tolerant history moves out.
+// NAM_A2_STATE_DATA places this instance in the on-chip, cacheable RAM_D2 SRAM
+// (.sram_d2_bss, see nam_a2_sections.lds) instead of the cramped 128 KB DTCMRAM
+// (and instead of the AXI-SRAM, which is mostly full of program code). The hot
+// weights and work buffers are static members already pinned to DTCMRAM
+// (NAM_A2_HOT_DATA), so only the large, latency-tolerant history moves out.
 NAM_A2_STATE_DATA static nam_a2_daisy::A2Player s_nam_a2_model;
 
 // The A2 model requires exactly kBlockSize (48) samples per process_block_48 call.

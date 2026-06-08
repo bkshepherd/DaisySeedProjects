@@ -35,15 +35,17 @@
 #endif
 
 // Storage policy (STM32H750, BOOT_SRAM):
-//   - NAM_A2_HOT_DATA:       packed weights/biases   -> DTCMRAM (.dtcmram_bss)
-//   - NAM_A2_HOT_STATE_DATA: small hot work buffers  -> DTCMRAM (.dtcmram_bss)
-//   - NAM_A2_STATE_DATA:     large history buffer    -> AXI-SRAM (.axi_sram_bss)
+//   - NAM_A2_HOT_DATA:       packed weights/biases   -> DTCMRAM  (.dtcmram_bss)
+//   - NAM_A2_HOT_STATE_DATA: small hot work buffers  -> DTCMRAM  (.dtcmram_bss)
+//   - NAM_A2_STATE_DATA:     large history buffer    -> RAM_D2   (.sram_d2_bss)
 //
 // The default .bss lands in DTCMRAM (128 KB) under BOOT_SRAM, so the ~76 KB
-// history must be relocated or it crowds everything else out. .axi_sram_bss is
-// supplied by nam_a2_sections.lds (wired in via the Makefile); the hot data is
-// explicitly pinned to DTCMRAM so the tiering is correct regardless of boot mode
-// (under BOOT_QSPI the default .bss would otherwise be SRAM, not DTCMRAM).
+// history must be relocated or it crowds everything else out. It goes to the
+// otherwise-empty 256 KB D2-domain SRAM (the AXI-SRAM is mostly full of code),
+// which is on-chip and cacheable — far faster than external SDRAM. .sram_d2_bss
+// is supplied by nam_a2_sections.lds (wired in via the Makefile); the hot data
+// is explicitly pinned to DTCMRAM so the tiering is correct regardless of boot
+// mode (under BOOT_QSPI the default .bss would otherwise be SRAM, not DTCMRAM).
 //
 // These macros must be applied to whole variables with static storage duration —
 // applying a section attribute to a struct *member* is silently ignored by GCC.
@@ -52,7 +54,7 @@
 #endif
 
 #ifndef NAM_A2_STATE_DATA
-#define NAM_A2_STATE_DATA __attribute__((section(".axi_sram_bss")))
+#define NAM_A2_STATE_DATA __attribute__((section(".sram_d2_bss")))
 #endif
 
 #ifndef NAM_A2_HOT_STATE_DATA
@@ -100,6 +102,11 @@ static constexpr int kChannels = 3;
 static constexpr int kNumLayers = 23;
 static constexpr int kHeadKernel = 16;
 static constexpr float kLeakySlope = 0.01f;
+
+// process_head() wraps its ring index with a bitmask, which requires kHeadKernel
+// to be a power of two.
+static_assert((kHeadKernel & (kHeadKernel - 1)) == 0,
+              "kHeadKernel must be a power of two for bitmask ring wrapping");
 
 inline constexpr int kKernelSizes[kNumLayers] = {
     6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 15, 15, 6, 6, 6, 6, 6, 6, 6
@@ -571,10 +578,10 @@ NAM_A2_NOINLINE void process_head(A2HotState& hot,
 
         for (int tap = 0; tap < kHeadKernel; ++tap)
         {
+            // kHeadKernel is a power of two (see static_assert below), so the
+            // ring index wraps with a bitmask instead of a branch.
             const int lag = kHeadKernel - 1 - tap;
-            int col = wp - lag;
-            if (col < 0)
-                col += kHeadKernel;
+            const int col = (wp - lag) & (kHeadKernel - 1);
 
             const float* const s = hist + col * 3;
             y += sw.headW[tap][0] * s[0]
@@ -584,9 +591,7 @@ NAM_A2_NOINLINE void process_head(A2HotState& hot,
 
         output[n] = y * sw.headScale;
 
-        ++wp;
-        if (wp >= kHeadKernel)
-            wp = 0;
+        wp = (wp + 1) & (kHeadKernel - 1);
     }
 
     hot.headWritePos = wp;
