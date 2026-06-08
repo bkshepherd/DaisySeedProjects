@@ -61,6 +61,13 @@
 #define NAM_A2_HOT_STATE_DATA __attribute__((section(".dtcmram_bss")))
 #endif
 
+// Storage for the read-only model weight arrays. Empty by default, so the
+// constexpr arrays land in .rodata — under BOOT_SRAM that is the AXI-SRAM
+// (~7.5 KB per model). They are only touched by load_weights() on a model
+// switch, never in the audio loop. To move them to QSPI flash (e.g. to reclaim
+// SRAM), define this to a QSPI section — but that only works under BOOT_QSPI,
+// where the program runs from QSPI; under BOOT_SRAM the bootloader loads only
+// the SRAM image, so QSPI-placed data would not be present at runtime.
 #ifndef NAM_A2_MODEL_DATA
 #define NAM_A2_MODEL_DATA
 #endif
@@ -170,14 +177,6 @@ struct A2LayerRuntime
     NAM_A2_ALIGN32 float preCurrent[3];
     NAM_A2_ALIGN32 float l1x1B[3];
 };
-
-inline int raw_layer_base(int li) noexcept
-{
-    int off = 3;
-    for(int i = 0; i < li; ++i)
-        off += kKernelSizes[i] * 9 + 18;
-    return off;
-}
 
 static constexpr int kRawHeadOffset  = 3 + kConvWeightCount + kNumLayers * 18; // 1821
 static constexpr int kRawHeadBOffset = kRawHeadOffset + kHeadKernel * kChannels; // 1869
@@ -670,16 +669,16 @@ public:
     bool load_weights(const float* weights, std::size_t count) noexcept
     {
         const bool ok = nam_a2_daisy::load_weights(weights_, weights, count);
-        reset_state(state_, hot_, weights_);
-        prewarm(state_, hot_, weights_);
+        prewarm(state_, hot_, weights_); // prewarm() resets state internally
         return ok;
     }
 
     void reset() noexcept
     {
-        reset_state(state_, hot_, weights_);
         if (weights_.loaded)
-            prewarm(state_, hot_, weights_);
+            prewarm(state_, hot_, weights_); // prewarm() resets state internally
+        else
+            reset_state(state_, hot_, weights_);
     }
 
     void process_block_48(const float* input, float* output) noexcept

@@ -10,10 +10,12 @@
 
     To add a new model:
       1. Convert the .nam JSON file to a float array (same format as below).
-      2. Declare the array with NAM_A2_MODEL_DATA to place it in QSPI flash.
+      2. Declare the array with NAM_A2_MODEL_DATA (read-only weights; see the
+         macro in nam_a2_runtime.h — defaults to .rodata / SRAM under BOOT_SRAM).
       3. Add a NamA2ModelEntry entry to kNamA2Models[] (set outputGain from the
          value nam_to_cpp_array.py suggests, for loudness matching).
-      4. Update the MODULE parameter's valueBinCount and s_modelBinNames[].
+      4. The MODEL parameter's valueBinCount and names update automatically from
+         kNamA2Models (kNamA2ModelCount and the .name fields).
 */
 
 #include "nam_a2_runtime.h"   // for NAM_A2_MODEL_DATA, NAM_A2_ALIGN32, kA2WeightCount
