@@ -1024,7 +1024,7 @@ inline constexpr NamA2ModelEntry kNamA2Models[] = {
     {"JCM800",   kWeightsJcm800,      0.9f},     // reference; re-import to loudness-match
     {"Ampeg",    kWeightsAmpegSvt,    1.0184f},  // loudness -18.16 dB
     {"BE-100",   kWeightsBe100,       0.7f},     // TODO: re-import to loudness-match
-    {"Dual Rec", kWeightsMesaDualRec, 0.7135f},  // loudness -15.07 dB
+    {"Mesa", kWeightsMesaDualRec, 0.7135f},      // loudness -15.07 dB
     // Add more models here
 };
 
