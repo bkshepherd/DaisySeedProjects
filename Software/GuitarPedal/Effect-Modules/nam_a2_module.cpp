@@ -137,6 +137,9 @@ NamA2Module::NamA2Module()
       m_gainMax(2.0f),
       m_levelMin(0.0f),
       m_levelMax(2.0f),
+      m_gain(1.0f),
+      m_level(1.0f),
+      m_eqEnabled(true),
       m_cachedEffectMagnitudeValue(1.0f),
       m_currentModelIndex(-1),
       m_currentModelGain(1.0f),
@@ -194,6 +197,9 @@ void NamA2Module::SelectModel() {
 void NamA2Module::Init(float sample_rate) {
     BaseEffectModule::Init(sample_rate);
 
+    // Prime the cached gain/level/EQ values (ParameterChanged only fires on change).
+    UpdateCachedParameters();
+
     // Load the default model and prewarm — must NOT be called from the audio callback.
     SelectModel();
 
@@ -204,11 +210,22 @@ void NamA2Module::Init(float sample_rate) {
 }
 
 // ---------------------------------------------------------------------------
+// UpdateCachedParameters
+// ---------------------------------------------------------------------------
+void NamA2Module::UpdateCachedParameters() {
+    m_gain = m_gainMin + (m_gainMax - m_gainMin) * GetParameterAsFloat(GAIN);
+    m_level = m_levelMin + GetParameterAsFloat(LEVEL) * (m_levelMax - m_levelMin);
+    m_eqEnabled = GetParameterAsBool(EQ);
+}
+
+// ---------------------------------------------------------------------------
 // ParameterChanged
 // ---------------------------------------------------------------------------
 void NamA2Module::ParameterChanged(int parameter_id) {
     if (parameter_id == MODEL) {
         SelectModel();
+    } else if (parameter_id == GAIN || parameter_id == LEVEL || parameter_id == EQ) {
+        UpdateCachedParameters();
     } else if (parameter_id == BASS) {
         filter_a2[0].config(GetParameterAsFloat(BASS),   centerFrequencyA2[0], GetSampleRate(), q_a2[0]);
     } else if (parameter_id == MID) {
@@ -237,8 +254,7 @@ void NamA2Module::ProcessMono(float in) {
 
     BaseEffectModule::ProcessMono(in);
 
-    const float gain = m_gainMin + (m_gainMax - m_gainMin) * GetParameterAsFloat(GAIN);
-    m_inputBuffer[m_bufferIndex] = m_audioLeft * gain;
+    m_inputBuffer[m_bufferIndex] = m_audioLeft * m_gain;
 
     // Read from the previously-processed output block, applying the per-model
     // loudness-match gain.
@@ -251,14 +267,13 @@ void NamA2Module::ProcessMono(float in) {
     }
 
     // Apply 3-band EQ post-model.
-    if (GetParameterAsBool(EQ)) {
+    if (m_eqEnabled) {
         for (uint8_t i = 0; i < NUM_FILTERS_A2; ++i) {
             ampOut = filter_a2[i](ampOut);
         }
     }
 
-    const float level = m_levelMin + GetParameterAsFloat(LEVEL) * (m_levelMax - m_levelMin);
-    m_audioLeft = m_audioRight = ampOut * level;
+    m_audioLeft = m_audioRight = ampOut * m_level;
 
     m_cachedEffectMagnitudeValue = fminf(1.0f, fabsf(m_audioLeft));
 }

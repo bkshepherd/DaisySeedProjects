@@ -42,6 +42,10 @@ class NamA2Module : public BaseEffectModule {
     float GetBrightnessForLED(int led_id) const override;
 
   private:
+    // Recompute the cached gain/level/EQ values from the current parameters.
+    // Called from Init() and ParameterChanged() so ProcessMono() doesn't have to.
+    void UpdateCachedParameters();
+
     static constexpr int kBlockSize = 48; // nam_a2_daisy::kBlockSize
 
     float m_inputBuffer[kBlockSize];
@@ -52,6 +56,12 @@ class NamA2Module : public BaseEffectModule {
     float m_gainMax;
     float m_levelMin;
     float m_levelMax;
+
+    // Cached parameter values, recomputed in UpdateCachedParameters() on change
+    // rather than re-read/re-scaled per sample in ProcessMono().
+    float m_gain;
+    float m_level;
+    bool m_eqEnabled;
 
     float m_cachedEffectMagnitudeValue;
 
