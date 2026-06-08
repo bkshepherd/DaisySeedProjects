@@ -9,7 +9,7 @@
 
 #ifdef __cplusplus
 
-/** @file amp_module.h */
+/** @file ir_module.h */
 
 using namespace daisysp;
 

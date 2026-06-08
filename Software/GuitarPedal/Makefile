@@ -5,14 +5,13 @@ CPP_STANDARD = -std=gnu++20
 
 # Sources
 
-CPP_SOURCES = guitar_pedal.cpp guitar_pedal_storage.cpp heap_ram_d2.cpp $(wildcard UI/*.cpp) $(wildcard Util/*.cpp) \
+CPP_SOURCES = guitar_pedal.cpp guitar_pedal_storage.cpp $(wildcard UI/*.cpp) $(wildcard Util/*.cpp) \
 $(wildcard Hardware-Modules/*.cpp)
 CPP_SOURCES += Effect-Modules/base_effect_module.cpp
 
 # Naming the module sources explicitly to make it easier to add/remove from build. Otherwise all global attributes
 #  will be included in the build and take up memory resources, even when the .h file is commented out. 
 
-CPP_SOURCES += Effect-Modules/amp_module.cpp
 CPP_SOURCES += Effect-Modules/autopan_module.cpp
 CPP_SOURCES += Effect-Modules/Chopper/chopper.cpp
 CPP_SOURCES += Effect-Modules/chopper_module.cpp
@@ -85,10 +84,8 @@ include $(SYSTEM_FILES_DIR)/Makefile
 C_INCLUDES += -isystem ./dependencies/q/q/q_lib/include
 C_INCLUDES += -isystem ./dependencies/q/infra/include
 C_INCLUDES += -isystem ./dependencies/gcem/include
+# Eigen is used by Effect-Modules/ImpulseResponse (the IR module).
 C_INCLUDES += -isystem ./dependencies/eigen
-C_INCLUDES += -isystem ./dependencies/RTNeural
-
-CPPFLAGS += -DRTNEURAL_DEFAULT_ALIGNMENT=8 -DRTNEURAL_NO_DEBUG=1 -DRTNEURAL_USE_EIGEN=1
 
 C_INCLUDES += -isystem ./dependencies/CloudSeed
 LIBS += -lcloudseed

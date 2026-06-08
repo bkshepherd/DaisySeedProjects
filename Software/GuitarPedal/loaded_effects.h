@@ -8,7 +8,6 @@
 #include "Effect-Modules/base_effect_module.h"
 
 // Include all effect modules
-#include "Effect-Modules/amp_module.h"
 #include "Effect-Modules/autopan_module.h"
 #include "Effect-Modules/chopper_module.h"
 #include "Effect-Modules/chorus_module.h"
@@ -67,7 +66,6 @@ void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffec
         new ParametricEQModule(),
         new NoiseGateModule(),
         new CloudSeedModule(),
-        new AmpModule(),
         new DelayModule(),
         new TapeDelayModule(),
         new NamA2Module(),
