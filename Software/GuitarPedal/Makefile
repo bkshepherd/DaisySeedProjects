@@ -5,7 +5,7 @@ CPP_STANDARD = -std=gnu++20
 
 # Sources
 
-CPP_SOURCES = guitar_pedal.cpp guitar_pedal_storage.cpp $(wildcard UI/*.cpp) $(wildcard Util/*.cpp) \
+CPP_SOURCES = guitar_pedal.cpp guitar_pedal_storage.cpp heap_ram_d2.cpp $(wildcard UI/*.cpp) $(wildcard Util/*.cpp) \
 $(wildcard Hardware-Modules/*.cpp)
 CPP_SOURCES += Effect-Modules/base_effect_module.cpp
 
