@@ -26,14 +26,11 @@
     INSERT script must be listed first on the command line. Do NOT add a MEMORY
     command here.
 
-    IMPORTANT — placement vs. the heap: libDaisy's `.heap` section ALSO lives in
-    RAM_D2 and grows upward from __heap_start through the rest of the region. We
-    INSERT BEFORE .heap (not AFTER .bss) so the linker allocates our buffer at the
-    bottom of RAM_D2 and pushes __heap_start above it. Inserting elsewhere lets the
-    heap start at the region origin and grow straight into this buffer — malloc then
-    hands out addresses overlapping it and corrupts the heap (observed as a HardFault
-    in the first heap allocation, e.g. ImpulseResponse's vector resize). The heap
-    shrinks from 256 KB to ~180 KB, which is ample for the other modules.
+    Placement (INSERT BEFORE .heap): this just keeps the history at the bottom of
+    RAM_D2. The active heap is NOT here — newlib's _sbrk grows it from `end` in
+    DTCMRAM, and libDaisy's RAM_D2 `.heap` section is unused on this target — so the
+    exact INSERT point is benign. (Keeping the history out of DTCMRAM is what leaves
+    that DTCMRAM heap its headroom.)
 */
 
 SECTIONS

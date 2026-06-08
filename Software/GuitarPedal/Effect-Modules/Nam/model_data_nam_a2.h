@@ -1013,18 +1013,18 @@ struct NamA2ModelEntry
     const float* weights;
     // Linear output-gain multiplier for loudness matching across models.
     // Exporting raw A2 weights drops NAM's loudness-normalization metadata, so
-    // models can differ in perceived level. 1.0f = unity. Set from the model's
-    // measured loudness (nam_to_cpp_array.py prints a suggested value) or tune
-    // by ear: gain < 1.0f makes a hot model quieter.
+    // models can differ in perceived level. 1.0f = unity; gain < 1.0f makes a hot
+    // model quieter. Tuned by ear (the .nam loudness metadata proved unreliable
+    // for level-matching across captures from different authors).
     float outputGain;
 };
 
 inline constexpr NamA2ModelEntry kNamA2Models[] = {
-    // outputGain values normalize each model
+    // outputGain hand-tuned by ear so models sit at a similar level (1.0f = unity).
     {"JCM800",   kWeightsJcm800,      1.3f},
     {"Ampeg",    kWeightsAmpegSvt,    1.0f},
     {"BE-100",   kWeightsBe100,       0.7f},
-    {"Mesa", kWeightsMesaDualRec,     0.6f},
+    {"Mesa",     kWeightsMesaDualRec, 0.6f},
     // Add more models here
 };
 
