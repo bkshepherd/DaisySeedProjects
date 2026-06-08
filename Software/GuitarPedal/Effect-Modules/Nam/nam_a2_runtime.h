@@ -34,16 +34,25 @@
 #define NAM_A2_ALIGN32 alignas(32)
 #endif
 
-// Storage policy:
-//   - NAM_A2_HOT_DATA:       packed weights/biases   -> DTCMRAM
-//   - NAM_A2_HOT_STATE_DATA: small hot work buffers  -> DTCMRAM
-//   - NAM_A2_STATE_DATA:     large history buffer    -> normal SRAM
+// Storage policy (STM32H750, BOOT_SRAM):
+//   - NAM_A2_HOT_DATA:       packed weights/biases   -> DTCMRAM (.dtcmram_bss)
+//   - NAM_A2_HOT_STATE_DATA: small hot work buffers  -> DTCMRAM (.dtcmram_bss)
+//   - NAM_A2_STATE_DATA:     large history buffer    -> AXI-SRAM (.axi_sram_bss)
+//
+// The default .bss lands in DTCMRAM (128 KB) under BOOT_SRAM, so the ~76 KB
+// history must be relocated or it crowds everything else out. .axi_sram_bss is
+// supplied by nam_a2_sections.lds (wired in via the Makefile); the hot data is
+// explicitly pinned to DTCMRAM so the tiering is correct regardless of boot mode
+// (under BOOT_QSPI the default .bss would otherwise be SRAM, not DTCMRAM).
+//
+// These macros must be applied to whole variables with static storage duration —
+// applying a section attribute to a struct *member* is silently ignored by GCC.
 #ifndef NAM_A2_HOT_DATA
 #define NAM_A2_HOT_DATA __attribute__((section(".dtcmram_bss")))
 #endif
 
 #ifndef NAM_A2_STATE_DATA
-#define NAM_A2_STATE_DATA
+#define NAM_A2_STATE_DATA __attribute__((section(".axi_sram_bss")))
 #endif
 
 #ifndef NAM_A2_HOT_STATE_DATA
@@ -181,7 +190,10 @@ struct A2SharedWeights
 
 struct A2State
 {
-    NAM_A2_STATE_DATA NAM_A2_ALIGN32 float history[kHistoryFloats];
+    // Relocation to AXI-SRAM is done on the whole A2Player instance (see
+    // s_nam_a2_model in nam_a2_module.cpp), since a section attribute on a
+    // struct member is ignored by GCC. history is the only large member.
+    NAM_A2_ALIGN32 float history[kHistoryFloats];
     int layerWritePos[kNumLayers];
 };
 
@@ -679,8 +691,9 @@ public:
 private:
     // weights_ and hot_ are static: shared across all A2Player instances.
     // Only one model can be active at a time (which matches hardware constraints).
-    static inline A2SharedWeights weights_;
-    static inline A2HotState      hot_;
+    // Pinned to DTCMRAM (zero-wait) — these are touched every block.
+    static inline A2SharedWeights weights_ NAM_A2_HOT_DATA;
+    static inline A2HotState      hot_     NAM_A2_HOT_STATE_DATA;
     A2State state_;
 };
 

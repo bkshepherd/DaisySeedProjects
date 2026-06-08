@@ -11,7 +11,8 @@
     To add a new model:
       1. Convert the .nam JSON file to a float array (same format as below).
       2. Declare the array with NAM_A2_MODEL_DATA to place it in QSPI flash.
-      3. Add a NamA2ModelEntry entry to kNamA2Models[].
+      3. Add a NamA2ModelEntry entry to kNamA2Models[] (set outputGain from the
+         value nam_to_cpp_array.py suggests, for loudness matching).
       4. Update the MODULE parameter's valueBinCount and s_modelBinNames[].
 */
 
@@ -767,12 +768,20 @@ struct NamA2ModelEntry
 {
     const char*  name;
     const float* weights;
+    // Linear output-gain multiplier for loudness matching across models.
+    // Exporting raw A2 weights drops NAM's loudness-normalization metadata, so
+    // models can differ in perceived level. 1.0f = unity. Set from the model's
+    // measured loudness (nam_to_cpp_array.py prints a suggested value) or tune
+    // by ear: gain < 1.0f makes a hot model quieter.
+    float outputGain;
 };
 
 inline constexpr NamA2ModelEntry kNamA2Models[] = {
-    {"JCM800",  kWeightsJcm800},
-    {"Ampeg",   kWeightsAmpegSvt},
-    {"BE-100",  kWeightsBe100},
+    {"JCM800",  kWeightsJcm800,   1.0f}, // reference level
+    {"Ampeg",   kWeightsAmpegSvt, 1.0f},
+    // BE-100 is audibly hotter than the others. Replace 1.0f with the suggested
+    // gain from nam_to_cpp_array.py (re-run it on the .nam), or tune by ear.
+    {"BE-100",  kWeightsBe100,    1.0f},
     // Add more models here
 };
 

@@ -62,6 +62,14 @@ OPT=-Ofast
 # Boot options
 APP_TYPE = BOOT_SRAM
 
+# Place the large NAM A2 history buffer in AXI-SRAM instead of DTCMRAM.
+# nam_a2_sections.lds is an INSERT fragment that augments libDaisy's main linker
+# script (selected below via APP_TYPE). The ld manual requires the INSERT script
+# to appear FIRST on the command line, and libDaisy's core Makefile does
+# `LDFLAGS += ... -T$(LDSCRIPT)`, so adding ours here (before the include) places
+# it ahead of the main script. See nam_a2_sections.lds and nam_a2_runtime.h.
+LDFLAGS += -T$(abspath nam_a2_sections.lds)
+
 # Library Locations
 DAISYSP_DIR ?= dependencies/DaisySP
 LIBDAISY_DIR ?= dependencies/libDaisy

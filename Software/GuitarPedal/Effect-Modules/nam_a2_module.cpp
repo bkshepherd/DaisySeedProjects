@@ -107,8 +107,12 @@ static const auto s_metaData = [] {
     return params;
 }();
 
-// The A2State::history member is 76 KB. Place in SDRAM to avoid DTCMRAM overflow.
-static nam_a2_daisy::A2Player s_nam_a2_model;
+// A2Player's only per-instance member is A2State, whose history buffer is ~76 KB.
+// NAM_A2_STATE_DATA places this instance in on-chip AXI-SRAM (.axi_sram_bss, see
+// nam_a2_sections.lds) instead of the cramped 128 KB DTCMRAM. The hot weights and
+// work buffers are static members already pinned to DTCMRAM (NAM_A2_HOT_DATA), so
+// only the large, latency-tolerant history moves out.
+NAM_A2_STATE_DATA static nam_a2_daisy::A2Player s_nam_a2_model;
 
 // The A2 model requires exactly kBlockSize (48) samples per process_block_48 call.
 // This project's hardware block size (guitar_pedal.cpp: blockSize = 48) matches
@@ -133,6 +137,7 @@ NamA2Module::NamA2Module()
       m_levelMax(2.0f),
       m_cachedEffectMagnitudeValue(1.0f),
       m_currentModelIndex(-1),
+      m_currentModelGain(1.0f),
       m_muteOutput(false),
       m_model(&s_nam_a2_model)
 {
@@ -166,6 +171,9 @@ void NamA2Module::SelectModel() {
     const auto& entry = nam_a2_models::kNamA2Models[modelIndex];
     m_model->load_weights(entry.weights, nam_a2_daisy::kA2WeightCount);
     m_currentModelIndex = modelIndex;
+    // Loudness match across models: raw A2 weight exports drop NAM's loudness
+    // metadata, so per-model level varies. outputGain (1.0f = unity) rescales.
+    m_currentModelGain = entry.outputGain;
 
     // Flush the double-buffer so the previous model's samples don't bleed
     // through on the first block after switching.
@@ -230,8 +238,9 @@ void NamA2Module::ProcessMono(float in) {
     const float gain = m_gainMin + (m_gainMax - m_gainMin) * GetParameterAsFloat(GAIN);
     m_inputBuffer[m_bufferIndex] = m_audioLeft * gain;
 
-    // Read from the previously-processed output block.
-    float ampOut = m_outputBuffer[m_bufferIndex];
+    // Read from the previously-processed output block, applying the per-model
+    // loudness-match gain.
+    float ampOut = m_outputBuffer[m_bufferIndex] * m_currentModelGain;
 
     ++m_bufferIndex;
     if (m_bufferIndex >= kBlockSize) {
