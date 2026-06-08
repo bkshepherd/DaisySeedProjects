@@ -143,7 +143,7 @@ NamA2Module::NamA2Module()
       m_muteOutput(false),
       m_model(&s_nam_a2_model)
 {
-    m_name = "NAM-A2";
+    m_name = "NAM";
 
     m_paramMetaData = s_metaData.data();
     this->InitParams(static_cast<int>(s_metaData.size()));
