@@ -1021,10 +1021,10 @@ struct NamA2ModelEntry
 
 inline constexpr NamA2ModelEntry kNamA2Models[] = {
     // outputGain values normalize each model
-    {"JCM800",   kWeightsJcm800,      0.9f},
+    {"JCM800",   kWeightsJcm800,      1.3f},
     {"Ampeg",    kWeightsAmpegSvt,    1.0f},
     {"BE-100",   kWeightsBe100,       0.7f},
-    {"Mesa", kWeightsMesaDualRec,     0.7f},
+    {"Mesa", kWeightsMesaDualRec,     0.6f},
     // Add more models here
 };
 
