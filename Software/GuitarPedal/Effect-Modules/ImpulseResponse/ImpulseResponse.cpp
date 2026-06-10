@@ -12,12 +12,6 @@ void ImpulseResponse::init(const float *ir, uint32_t len, bool normalize) {
 // Optional: set this to 0.0 for 100% wet, 1.0 for 100% dry, or in between
 constexpr float kDryWet = 0.0f;
 
-float ImpulseResponse::process(float x) {
-    float y = x;
-    arm_fir_f32(&fir_, &y, &y, 1u);
-    return (1.0f - kDryWet) * y + kDryWet * x;
-}
-
 void ImpulseResponse::processBlock(float *in, float *out, uint32_t n) {
     if (n > MAX_BLOCK) {
         n = MAX_BLOCK;

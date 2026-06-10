@@ -7,7 +7,6 @@ class ImpulseResponse {
   public:
     ImpulseResponse();
     void init(const float *ir, uint32_t len, bool normalize);
-    float process(float x);
     void processBlock(float *in, float *out, uint32_t n);
     void setImpulseResponse(const float *ir, uint32_t len, bool norm);
 
