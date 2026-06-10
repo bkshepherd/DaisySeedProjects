@@ -17,11 +17,7 @@ namespace bkshepherd {
 
 class IrModule : public BaseEffectModule {
   public:
-    enum Param {
-        IR = 0,
-        LEVEL,
-        PARAM_COUNT
-    };
+    enum Param { IR = 0, LEVEL, PARAM_COUNT };
 
     IrModule();
     ~IrModule();
@@ -43,6 +39,11 @@ class IrModule : public BaseEffectModule {
 
     ImpulseResponse mIR;
     int m_currentIRindex = -1;
+
+    static constexpr int kBlockSize = 48;
+    float m_inputBuffer[kBlockSize];
+    float m_outputBuffer[kBlockSize];
+    int m_bufferIndex;
 };
 } // namespace bkshepherd
 #endif

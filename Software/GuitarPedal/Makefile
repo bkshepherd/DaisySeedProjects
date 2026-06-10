@@ -40,9 +40,7 @@ CPP_SOURCES += Effect-Modules/geq_module.cpp
 CPP_SOURCES += Effect-Modules/granulardelay_module.cpp
 CPP_SOURCES += Effect-Modules/distortion_module.cpp
 CPP_SOURCES += Effect-Modules/ImpulseResponse/ImpulseResponse.cpp
-CPP_SOURCES += Effect-Modules/ImpulseResponse/ImpulseResponseCMSIS.cpp
 CPP_SOURCES += Effect-Modules/ImpulseResponse/ir_data.cpp
-CPP_SOURCES += Effect-Modules/ImpulseResponse/dsp.cpp
 CPP_SOURCES += Effect-Modules/ir_module.cpp
 CPP_SOURCES += Effect-Modules/looper_module.cpp
 CPP_SOURCES += Effect-Modules/metro_module.cpp
@@ -95,8 +93,6 @@ include $(SYSTEM_FILES_DIR)/Makefile
 C_INCLUDES += -isystem ./dependencies/q/q/q_lib/include
 C_INCLUDES += -isystem ./dependencies/q/infra/include
 C_INCLUDES += -isystem ./dependencies/gcem/include
-# Eigen is used by Effect-Modules/ImpulseResponse (the IR module).
-C_INCLUDES += -isystem ./dependencies/eigen
 
 C_INCLUDES += -isystem ./dependencies/CloudSeed
 LIBS += -lcloudseed

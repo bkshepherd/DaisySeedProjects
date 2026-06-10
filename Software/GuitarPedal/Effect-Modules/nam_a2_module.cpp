@@ -1,11 +1,11 @@
 #include "nam_a2_module.h"
-#include "Nam/model_data_nam_a2.h"
 #include "../Util/audio_utilities.h"
 #include "ImpulseResponse/ir_data.h"
+#include "Nam/model_data_nam_a2.h"
 #include <algorithm>
-#include <q/fx/biquad.hpp>
-#include <cmath>
 #include <array>
+#include <cmath>
+#include <q/fx/biquad.hpp>
 
 using namespace bkshepherd;
 
@@ -17,7 +17,7 @@ constexpr int IR_LENGTH = 256;
 constexpr uint8_t NUM_FILTERS_A2 = 3;
 
 const float centerFrequencyA2[NUM_FILTERS_A2] = {110.f, 900.f, 4000.f};
-const float q_a2[NUM_FILTERS_A2]              = {0.7f,  0.7f,  0.7f};
+const float q_a2[NUM_FILTERS_A2] = {0.7f, 0.7f, 0.7f};
 
 // Constructed with (gain_dB, frequency, sample_rate, q).
 // The sample-rate value here is a reasonable default; Init() calls .config()
@@ -140,30 +140,15 @@ NAM_A2_STATE_DATA static nam_a2_daisy::A2Player s_nam_a2_model;
 //   - hardware block < 48: fires every ceil(48/hwBlock) callbacks
 //   - hardware block > 48: fires multiple times per callback
 // Either way is glitch-free, just adjust expectations for latency.
-static_assert(nam_a2_daisy::kBlockSize == 48,
-              "A2 kBlockSize changed — verify hardware blockSize in guitar_pedal.cpp still matches");
+static_assert(nam_a2_daisy::kBlockSize == 48, "A2 kBlockSize changed — verify hardware blockSize in guitar_pedal.cpp still matches");
 
 // ---------------------------------------------------------------------------
 // Constructor / Destructor
 // ---------------------------------------------------------------------------
 NamA2Module::NamA2Module()
-    : BaseEffectModule(),
-      m_bufferIndex(0),
-      m_gainMin(0.0f),
-      m_gainMax(2.0f),
-      m_levelMin(0.0f),
-      m_levelMax(2.0f),
-      m_gain(1.0f),
-      m_level(1.0f),
-      m_eqEnabled(true),
-      m_irEnabled(false),
-      m_cachedEffectMagnitudeValue(1.0f),
-      m_currentModelIndex(-1),
-      m_currentModelGain(1.0f),
-      m_currentIRindex(-1),
-      m_muteOutput(false),
-      m_model(&s_nam_a2_model)
-{
+    : BaseEffectModule(), m_bufferIndex(0), m_gainMin(0.0f), m_gainMax(2.0f), m_levelMin(0.0f), m_levelMax(2.0f), m_gain(1.0f),
+      m_level(1.0f), m_eqEnabled(true), m_irEnabled(false), m_cachedEffectMagnitudeValue(1.0f), m_currentModelIndex(-1),
+      m_currentModelGain(1.0f), m_currentIRindex(-1), m_muteOutput(false), m_model(&s_nam_a2_model) {
     m_name = "NAM";
 
     m_paramMetaData = s_metaData.data();
@@ -172,7 +157,7 @@ NamA2Module::NamA2Module()
     // Zero both buffers so the first kBlockSize output samples are silence
     // (one block of startup latency ≈ 1 ms at 48 kHz).
     for (int i = 0; i < kBlockSize; ++i) {
-        m_inputBuffer[i]  = 0.0f;
+        m_inputBuffer[i] = 0.0f;
         m_outputBuffer[i] = 0.0f;
         m_irOutputBuffer[i] = 0.0f;
     }
@@ -194,7 +179,6 @@ void NamA2Module::SelectIR() {
     int irIndex = binValue - 2; // 0-based index into ir_collection
     m_irEnabled = true;
     if (irIndex != m_currentIRindex) {
-        // mIR.Init(ir_collection[irIndex]);
         mIR.setImpulseResponse(ir_collection[irIndex].data(), IR_LENGTH, true);
         m_currentIRindex = irIndex;
     }
@@ -212,7 +196,7 @@ void NamA2Module::SelectModel() {
 
     m_muteOutput = true;
 
-    const auto& entry = nam_a2_models::kNamA2Models[modelIndex];
+    const auto &entry = nam_a2_models::kNamA2Models[modelIndex];
     m_model->load_weights(entry.weights, nam_a2_daisy::kA2WeightCount);
     m_currentModelIndex = modelIndex;
     // Loudness match across models: raw A2 weight exports drop NAM's loudness
@@ -223,7 +207,7 @@ void NamA2Module::SelectModel() {
     // through on the first block after switching.
     m_bufferIndex = 0;
     for (int i = 0; i < kBlockSize; ++i) {
-        m_inputBuffer[i]  = 0.0f;
+        m_inputBuffer[i] = 0.0f;
         m_outputBuffer[i] = 0.0f;
     }
 
@@ -246,8 +230,8 @@ void NamA2Module::Init(float sample_rate) {
     SelectIR();
 
     // Configure EQ filters with the actual sample rate.
-    filter_a2[0].config(GetParameterAsFloat(BASS),   centerFrequencyA2[0], sample_rate, q_a2[0]);
-    filter_a2[1].config(GetParameterAsFloat(MID),    centerFrequencyA2[1], sample_rate, q_a2[1]);
+    filter_a2[0].config(GetParameterAsFloat(BASS), centerFrequencyA2[0], sample_rate, q_a2[0]);
+    filter_a2[1].config(GetParameterAsFloat(MID), centerFrequencyA2[1], sample_rate, q_a2[1]);
     filter_a2[2].config(GetParameterAsFloat(TREBLE), centerFrequencyA2[2], sample_rate, q_a2[2]);
 }
 
@@ -271,9 +255,9 @@ void NamA2Module::ParameterChanged(int parameter_id) {
     } else if (parameter_id == IR_CAB) {
         SelectIR();
     } else if (parameter_id == BASS) {
-        filter_a2[0].config(GetParameterAsFloat(BASS),   centerFrequencyA2[0], GetSampleRate(), q_a2[0]);
+        filter_a2[0].config(GetParameterAsFloat(BASS), centerFrequencyA2[0], GetSampleRate(), q_a2[0]);
     } else if (parameter_id == MID) {
-        filter_a2[1].config(GetParameterAsFloat(MID),    centerFrequencyA2[1], GetSampleRate(), q_a2[1]);
+        filter_a2[1].config(GetParameterAsFloat(MID), centerFrequencyA2[1], GetSampleRate(), q_a2[1]);
     } else if (parameter_id == TREBLE) {
         filter_a2[2].config(GetParameterAsFloat(TREBLE), centerFrequencyA2[2], GetSampleRate(), q_a2[2]);
     }
@@ -336,9 +320,7 @@ void NamA2Module::ProcessMono(float in) {
 // Running the neural network in stereo is not feasible within CPU constraints;
 // we process mono and copy the result to both channels.
 // ---------------------------------------------------------------------------
-void NamA2Module::ProcessStereo(float inL, float /*inR*/) {
-    ProcessMono(inL);
-}
+void NamA2Module::ProcessStereo(float inL, float /*inR*/) { ProcessMono(inL); }
 
 // ---------------------------------------------------------------------------
 // GetBrightnessForLED

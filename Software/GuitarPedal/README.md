@@ -25,7 +25,6 @@ Check to make sure that the following directories have files in them:
 1. `Software/GuitarPedal/dependencies/q/q`
 1. `Software/GuitarPedal/dependencies/q/infra`
 1. `Software/GuitarPedal/dependencies/gcem`
-1. `Software/GuitarPedal/dependencies/eigen`
 
 If they do not have anything in them, you may need to do a `git submodule update --init --recursive`.
 

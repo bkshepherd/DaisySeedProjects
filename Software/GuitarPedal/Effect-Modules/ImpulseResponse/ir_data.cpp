@@ -1,8 +1,6 @@
 #include <vector>
 
-// Note: IR code max set: const size_t mMaxLength = 8192;
-
-// IR Test Data, 1024 length, about 21ms
+// IR Data, 1024 length, about 21ms
 
 // Rhythm
 std::vector<float> ir_data1 = {

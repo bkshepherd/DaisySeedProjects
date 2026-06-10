@@ -13,6 +13,3 @@ url = https://github.com/cycfi/q.git
 [submodule "Software/GuitarPedal/dependencies/gcem"]
 path = Software/GuitarPedal/dependencies/gcem
 url = https://github.com/kthohr/gcem.git
-[submodule "Software/GuitarPedal/dependencies/eigen"]
-path = Software/GuitarPedal/dependencies/eigen
-url = https://gitlab.com/libeigen/eigen
