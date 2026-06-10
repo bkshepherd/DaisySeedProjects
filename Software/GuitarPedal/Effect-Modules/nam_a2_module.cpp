@@ -1,6 +1,7 @@
 #include "nam_a2_module.h"
 #include "Nam/model_data_nam_a2.h"
 #include "../Util/audio_utilities.h"
+#include "ImpulseResponse/ir_data.h"
 #include <q/fx/biquad.hpp>
 #include <cmath>
 #include <array>
@@ -36,6 +37,8 @@ static auto s_modelBinNames = [] {
     }
     return names;
 }();
+
+static const char *s_irCabNames[3] = {"Off", "Rhythm", "Lead"};
 
 static const auto s_metaData = [] {
     std::array<ParameterMetaData, NamA2Module::PARAM_COUNT> params{};
@@ -105,6 +108,16 @@ static const auto s_metaData = [] {
         midiCCMapping : 27,
     };
 
+    params[NamA2Module::IR_CAB] = {
+        name : "IR Cab",
+        valueType : ParameterValueType::Binned,
+        valueBinCount : 3,
+        valueBinNames : s_irCabNames,
+        defaultValue : {.uint_value = 0},
+        knobMapping : -1,
+        midiCCMapping : 29,
+    };
+
     return params;
 }();
 
@@ -140,9 +153,11 @@ NamA2Module::NamA2Module()
       m_gain(1.0f),
       m_level(1.0f),
       m_eqEnabled(true),
+      m_irEnabled(false),
       m_cachedEffectMagnitudeValue(1.0f),
       m_currentModelIndex(-1),
       m_currentModelGain(1.0f),
+      m_currentIRindex(-1),
       m_muteOutput(false),
       m_model(&s_nam_a2_model)
 {
@@ -160,6 +175,25 @@ NamA2Module::NamA2Module()
 }
 
 NamA2Module::~NamA2Module() {}
+
+// ---------------------------------------------------------------------------
+// SelectIR
+// ---------------------------------------------------------------------------
+void NamA2Module::SelectIR() {
+    int binValue = GetParameterAsBinnedValue(IR_CAB);
+    if (binValue <= 1) {
+        // Off
+        m_irEnabled = false;
+        m_currentIRindex = -1;
+        return;
+    }
+    int irIndex = binValue - 2; // 0-based index into ir_collection
+    m_irEnabled = true;
+    if (irIndex != m_currentIRindex) {
+        mIR.Init(ir_collection[irIndex]);
+        m_currentIRindex = irIndex;
+    }
+}
 
 // ---------------------------------------------------------------------------
 // SelectModel
@@ -203,6 +237,9 @@ void NamA2Module::Init(float sample_rate) {
     // Load the default model and prewarm — must NOT be called from the audio callback.
     SelectModel();
 
+    // Select the default IR (may be Off).
+    SelectIR();
+
     // Configure EQ filters with the actual sample rate.
     filter_a2[0].config(GetParameterAsFloat(BASS),   centerFrequencyA2[0], sample_rate, q_a2[0]);
     filter_a2[1].config(GetParameterAsFloat(MID),    centerFrequencyA2[1], sample_rate, q_a2[1]);
@@ -226,6 +263,8 @@ void NamA2Module::ParameterChanged(int parameter_id) {
         SelectModel();
     } else if (parameter_id == GAIN || parameter_id == LEVEL || parameter_id == EQ) {
         UpdateCachedParameters();
+    } else if (parameter_id == IR_CAB) {
+        SelectIR();
     } else if (parameter_id == BASS) {
         filter_a2[0].config(GetParameterAsFloat(BASS),   centerFrequencyA2[0], GetSampleRate(), q_a2[0]);
     } else if (parameter_id == MID) {
@@ -264,6 +303,11 @@ void NamA2Module::ProcessMono(float in) {
     if (m_bufferIndex >= kBlockSize) {
         m_model->process_block_48(m_inputBuffer, m_outputBuffer);
         m_bufferIndex = 0;
+    }
+
+    // Apply IR cabinet simulation (if enabled) — before EQ.
+    if (m_irEnabled) {
+        ampOut = mIR.Process(ampOut) * 0.5f; // 0.5 is level adjust for loud output
     }
 
     // Apply 3-band EQ post-model.

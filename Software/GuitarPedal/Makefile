@@ -26,6 +26,7 @@ CPP_SOURCES += Effect-Modules/geq_module.cpp
 CPP_SOURCES += Effect-Modules/granulardelay_module.cpp
 CPP_SOURCES += Effect-Modules/distortion_module.cpp
 CPP_SOURCES += Effect-Modules/ImpulseResponse/ImpulseResponse.cpp
+CPP_SOURCES += Effect-Modules/ImpulseResponse/ir_data.cpp
 CPP_SOURCES += Effect-Modules/ImpulseResponse/dsp.cpp
 CPP_SOURCES += Effect-Modules/ir_module.cpp
 CPP_SOURCES += Effect-Modules/looper_module.cpp

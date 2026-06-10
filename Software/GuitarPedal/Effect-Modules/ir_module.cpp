@@ -1,6 +1,6 @@
 #include "ir_module.h"
 #include "../Util/audio_utilities.h"
-#include "ImpulseResponse/ir_data_large.h"
+#include "ImpulseResponse/ir_data.h"
 #include <array>
 
 using namespace bkshepherd;
@@ -60,24 +60,10 @@ void IrModule::ParameterChanged(int parameter_id) {
     }
 }
 
-// void IrModule::AlternateFootswitchPressed() {
-// Increment the IR selection by pressing alternate footswitch
-// unsigned int irIndex = GetParameterAsBinnedValue(IR); // not doing -1 here to increment index by 1
-// if (irIndex == ir_collection_large.size()) {
-//    irIndex = 0; // reset back to 0
-//}
-// SetParameterAsBinnedValue(IR, irIndex + 1);
-// if (irIndex != m_currentIRindex) {
-//    mIR.Init(ir_collection_large[irIndex]); // ir_data is from ir_data_large.h
-//}
-// m_currentIRindex = irIndex;
-
-//}
-
 void IrModule::SelectIR() {
     unsigned int irIndex = GetParameterAsBinnedValue(IR) - 1;
     if (irIndex != m_currentIRindex) {
-        mIR.Init(ir_collection_large[irIndex]); // ir_data is from ir_data_large.h
+        mIR.Init(ir_collection[irIndex]); // ir_data is from ir_data.h
     }
     m_currentIRindex = irIndex;
 }

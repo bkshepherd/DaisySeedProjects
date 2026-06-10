@@ -3,6 +3,7 @@
 #define NAM_A2_MODULE_H
 
 #include "base_effect_module.h"
+#include "ImpulseResponse/ImpulseResponse.h"
 #include <stdint.h>
 
 // Forward declaration only — the full runtime header (with NAM_A2_NOINLINE functions)
@@ -26,10 +27,12 @@ class NamA2Module : public BaseEffectModule {
         MID,
         TREBLE,
         EQ,
+        IR_CAB,
         PARAM_COUNT
     };
 
     void SelectModel();
+    void SelectIR();
 
     NamA2Module();
     ~NamA2Module();
@@ -62,11 +65,15 @@ class NamA2Module : public BaseEffectModule {
     float m_gain;
     float m_level;
     bool m_eqEnabled;
+    bool m_irEnabled;
 
     float m_cachedEffectMagnitudeValue;
 
     int m_currentModelIndex;
     float m_currentModelGain;
+    int m_currentIRindex;
+
+    ImpulseResponse mIR;
     // Written on the main loop in SelectModel(), read in the audio callback
     // (ProcessMono). volatile so the callback observes the mute before/while
     // load_weights() + prewarm() rewrite the shared weights and state.
