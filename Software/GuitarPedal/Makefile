@@ -17,6 +17,7 @@ $(CMSIS_DSP_DIR)/Source/FilteringFunctions/arm_fir_init_f32.c \
 $(CMSIS_DSP_DIR)/Source/SupportFunctions/arm_fill_f32.c \
 $(CMSIS_DSP_DIR)/Source/BasicMathFunctions/arm_scale_f32.c \
 $(CMSIS_DSP_DIR)/Source/SupportFunctions/arm_copy_f32.c
+C_DEFS += -DARM_MATH_LOOPUNROLL
 
 CPP_SOURCES = guitar_pedal.cpp guitar_pedal_storage.cpp $(wildcard UI/*.cpp) $(wildcard Util/*.cpp) \
 $(wildcard Hardware-Modules/*.cpp)
