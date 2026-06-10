@@ -248,19 +248,15 @@ float PitchShifterModule::ProcessMomentaryMode(float in) {
         // transition time
         m_sampleCounter = 0;
 
+        // Process the pitch shift for completely active to the target by default
+        float semitone = m_semitoneTarget;
         if (!m_alternateFootswitchPressed) {
-            // Completely inactive: output the dry signal. Running the shifter at
-            // 0 semitones instead would leave the two delay taps frozen at an
-            // arbitrary phase (the LFOs stop), comb filtering the signal at a
-            // level that varies with every release. Keep feeding the delay
-            // lines so the buffer is warm when the next ramp starts.
-            SetTranspose(0.0f);
-            pitchShifter.Process(in);
-            return in;
+            // Process the pitch shift for completely inactive (0)
+            semitone = 0.0f;
         }
 
         // Process the pitch shift for completely active to the target
-        SetTranspose(m_semitoneTarget);
+        SetTranspose(semitone);
         float shifted = pitchShifter.Process(in);
         float out = pitchCrossfade.Process(in, shifted);
         return out;
