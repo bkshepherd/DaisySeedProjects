@@ -58,7 +58,10 @@ class NamA2Module : public BaseEffectModule {
     float m_gain;
     float m_level;
     bool m_eqEnabled;
-    bool m_irEnabled;
+    // Written on the main loop in SelectIR(), read in the audio callback
+    // (ProcessMono). volatile so the callback observes the disable while
+    // setImpulseResponse() rewrites the FIR coefficients and state.
+    volatile bool m_irEnabled;
 
     float m_cachedEffectMagnitudeValue;
 

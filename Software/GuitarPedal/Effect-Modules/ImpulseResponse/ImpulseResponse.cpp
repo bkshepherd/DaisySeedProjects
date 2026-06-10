@@ -35,8 +35,11 @@ void ImpulseResponse::setImpulseResponse(const float *ir, uint32_t len, bool nor
     if (len > DEFAULT_FIR_LEN) {
         len = DEFAULT_FIR_LEN;
     }
+    // arm_fir_f32 expects coefficients in time-reversed order
+    // {b[numTaps-1], ..., b[0]}, so flip the IR here to get convolution
+    // rather than correlation.
     for (uint32_t i = 0; i < len; ++i) {
-        fir_coeffs_[i] = ir[i];
+        fir_coeffs_[i] = ir[len - 1u - i];
     }
     if (norm) {
         normalise(fir_coeffs_, len);

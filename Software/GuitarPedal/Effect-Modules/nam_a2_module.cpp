@@ -176,12 +176,18 @@ void NamA2Module::SelectIR() {
         m_currentIRindex = -1;
         return;
     }
-    int irIndex = binValue - 2; // 0-based index into ir_collection
-    m_irEnabled = true;
+    const int irIndex = binValue - 2; // 0-based index into ir_collection
+    if (irIndex < 0 || irIndex >= static_cast<int>(ir_collection.size())) {
+        return;
+    }
     if (irIndex != m_currentIRindex) {
+        // This runs on the main loop and the audio callback can preempt it,
+        // so keep the IR disabled while the coefficients/state are rewritten.
+        m_irEnabled = false;
         mIR.setImpulseResponse(ir_collection[irIndex].data(), IR_LENGTH, true);
         m_currentIRindex = irIndex;
     }
+    m_irEnabled = true;
 }
 
 // ---------------------------------------------------------------------------
@@ -225,6 +231,12 @@ void NamA2Module::Init(float sample_rate) {
 
     // Load the default model and prewarm — must NOT be called from the audio callback.
     SelectModel();
+
+    // Pre-load a valid IR so the FIR instance is never uninitialized if the
+    // audio callback observes m_irEnabled mid-switch (default IR is Off, so
+    // nothing else guarantees setImpulseResponse ran before first enable).
+    mIR.init(ir_collection[0].data(), IR_LENGTH, true);
+    m_currentIRindex = 0;
 
     // Select the default IR (may be Off).
     SelectIR();
