@@ -95,8 +95,8 @@ void PolyOctaveModule::ProcessMono(float in) {
     buff[bin_counter] = in; // making a workaround for only processing sample by sample instead of block, will add 6 samples of latency
 
     float dryLevel = GetParameterAsFloat(DRY);
-    float down1Level = GetParameterAsFloat(TWO_OCT_DOWN);
-    float down2Level = GetParameterAsFloat(ONE_OCT_DOWN);
+    float down1Level = GetParameterAsFloat(ONE_OCT_DOWN);
+    float down2Level = GetParameterAsFloat(TWO_OCT_DOWN);
     float up1Level = GetParameterAsFloat(ONE_OCT_UP);
 
     // for (size_t i = 0; i <= (size - resample_factor); i += resample_factor)  // Every 6 samples until block size

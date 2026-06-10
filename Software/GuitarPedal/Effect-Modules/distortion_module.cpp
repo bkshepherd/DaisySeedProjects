@@ -172,31 +172,6 @@ float dynamicPreFilterCutoff(float inputEnergy) {
     return preFilterCutoffBase + (preFilterCutoffMax - preFilterCutoffBase) * std::tanh(inputEnergy);
 }
 
-// Helper functions for oversampling
-std::vector<float> upsample(const std::vector<float> &input, int factor, float sample_rate) {
-    std::vector<float> output(input.size() * factor, 0.0f);
-
-    for (size_t i = 0; i < input.size(); ++i) {
-        // Insert input samples, leaving zeros in between
-        output[i * factor] = input[i];
-    }
-
-    // Apply the low-pass filter to smooth interpolated samples
-    for (size_t i = 1; i < output.size(); ++i) {
-        output[i] = upsamplingLowpassFilter(output[i]);
-    }
-
-    return output;
-}
-
-std::vector<float> downsample(const std::vector<float> &input, int factor) {
-    std::vector<float> output(input.size() / factor);
-    for (size_t i = 0; i < output.size(); ++i) {
-        output[i] = input[i * factor]; // Take every nth sample
-    }
-    return output;
-}
-
 void processDistortion(float &sample,           // Sample to process
                        const float &gain,       // Gain
                        const int &clippingType, // Clipping type
@@ -265,21 +240,27 @@ void DistortionModule::ProcessMono(float in) {
     distorted = distorted * 0.5f;
 
     if (m_oversampling) {
-        // Prepare signal for oversampling
-        std::vector<float> monoInput = {distorted};
-        std::vector<float> oversampledInput = upsample(monoInput, oversamplingFactor, GetSampleRate());
+        // Zero-stuff to the oversampled rate, smooth the inserted zeros with
+        // the upsampling low-pass, distort and post-filter each oversampled
+        // sample, then decimate by taking the first sample. Uses a fixed
+        // stack buffer; this runs per audio sample so it must not allocate.
+        float oversampled[oversamplingFactor];
+        oversampled[0] = distorted;
+        for (int i = 1; i < oversamplingFactor; ++i) {
+            oversampled[i] = upsamplingLowpassFilter(0.0f);
+        }
 
         // Apply gain and distortion processing
-        for (float &sample : oversampledInput) {
+        for (float &sample : oversampled) {
             processDistortion(sample, gain, clippingType, intensity);
 
             // Post-filter: Low-pass to smooth out harsh high frequencies
             sample = postFilter(sample);
         }
 
-        // Downsample back to original sample rate
-        const std::vector<float> downsampledOutput = downsample(oversampledInput, oversamplingFactor);
-        distorted = downsampledOutput[0];
+        // Downsample back to original sample rate (decimate: every
+        // oversamplingFactor-th sample, i.e. index 0 of this frame)
+        distorted = oversampled[0];
 
         // Apply gain compensation for oversampling
         distorted *= oversamplingFactor;

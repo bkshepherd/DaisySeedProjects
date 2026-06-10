@@ -34,7 +34,7 @@ static const auto s_metaData = [] {
         name : "Bits",
         valueType : ParameterValueType::Binned,
         valueBinCount : 32,
-        defaultValue : {.uint_value = 32},
+        defaultValue : {.uint_value = 31}, // raw values are 0-based: 31 = bin 32 (full bit depth)
         knobMapping : 1,
         midiCCMapping : 15
     }; // Bit depth for quantization (lower bits = more digital distortion).
@@ -120,6 +120,12 @@ void CrusherModule::Init(float sample_rate) {
 
     m_bitcrusherL.Init(sample_rate);
     m_bitcrusherR.Init(sample_rate);
+
+    // Initialize the pitch detector here rather than lazily in the audio
+    // path: its setup allocates, which is not safe in the audio callback
+    if (!m_pitchDetector.IsInitialized()) {
+        m_pitchDetector.Init(m_rateMax);
+    }
 }
 
 void CrusherModule::AlternateFootswitchPressed() {
@@ -204,9 +210,9 @@ float CrusherModule::GetSrrRate(float detectorInput) {
     }
 
     if(!m_pitchDetector.IsInitialized()) {
-        // Defer the heavy q pitch-detector allocation until the feature is
-        // actually enabled.
-        m_pitchDetector.Init(m_rateMax);
+        // The detector is initialized in Init(); if that somehow didn't
+        // happen, fall back to the manual rate rather than allocating here
+        return manualRate;
     }
 
     const float rateControl = GetParameterAsFloat(RATE);

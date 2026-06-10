@@ -63,7 +63,7 @@ class GuitarPedalUI {
     UiEventQueue m_eventQueue;
 
     bool m_needToCloseActiveEffectSettingsMenu;
-    float m_secondsTilReturnFromParamChange;
+    float m_secondsTilReturnFromParamChange = 0.0f;
     int m_paramIdToReturnTo;
 
     AbstractMenu::ItemConfig m_mainMenuItems[kNumMainMenuItems];
@@ -71,16 +71,18 @@ class GuitarPedalUI {
     AbstractMenu::ItemConfig m_presetsMenuItems[kNumPresetSettingsItems];
     int m_numActiveEffectSettingsItems;
     uint32_t m_activePresetSelected;
-    AbstractMenu::ItemConfig *m_activeEffectSettingsMenuItems;
+    // These are tested against nullptr and deleted before reallocation, so
+    // they must start out null even for non-static instances
+    AbstractMenu::ItemConfig *m_activeEffectSettingsMenuItems = nullptr;
     EffectModuleMenuItem m_effectModuleMenuItem;
 
-    const char **m_availableEffectNames;
-    MappedStringListValue *m_availableEffectListMappedValues;
-    MappedIntValue **m_activeEffectSettingIntValues;
+    const char **m_availableEffectNames = nullptr;
+    MappedStringListValue *m_availableEffectListMappedValues = nullptr;
+    MappedIntValue **m_activeEffectSettingIntValues = nullptr;
     MappedIntValue m_activePresetSettingIntValue;
-    MappedStringListValue **m_activeEffectSettingStringValues;
-    MyMappedFloatValue **m_activeEffectSettingFloatValues;
-    bool *m_activeEffectSettingBoolValues;
+    MappedStringListValue **m_activeEffectSettingStringValues = nullptr;
+    MyMappedFloatValue **m_activeEffectSettingFloatValues = nullptr;
+    bool *m_activeEffectSettingBoolValues = nullptr;
     MappedIntValue m_midiChannelSettingValue;
 
     bool m_displayingSaveSettingsNotification;

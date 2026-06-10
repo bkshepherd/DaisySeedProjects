@@ -12,10 +12,9 @@ static const char *s_semitoneBinNames[8] = {"1", "2", "3", "4", "5", "6", "7", "
 static const char *s_directionBinNames[2] = {"DOWN", "UP"};
 static const char *s_modeBinNames[2] = {"LATCH", "MOMENT"};
 
-// How many samples to delay to based on the "Delay" knob and parameter
-// when the time knob is set to max, this is used for the ramp up/down
-// transition when in momentary mode. Has no effect on latching mode
-const uint32_t k_maxSamplesMaxTime = 48000 * 2;
+// Maximum ramp up/down transition time in seconds when the shift/return
+// knob is set to max, used in momentary mode. Has no effect on latching mode
+const float k_maxTransitionTimeSeconds = 2.0f;
 
 // Larger delay size is higher fidelity/quality for a farther transpose, at
 // the cost of additional latency (like...a lot of latency)
@@ -160,8 +159,9 @@ void PitchShifterModule::Init(float sample_rate) {
 
     SetTranspose(m_semitoneTarget);
 
-    m_samplesToDelayShift = static_cast<uint32_t>(static_cast<float>(k_maxSamplesMaxTime) * GetParameterAsFloat(SHIFT));
-    m_samplesToDelayReturn = static_cast<uint32_t>(static_cast<float>(k_maxSamplesMaxTime) * GetParameterAsFloat(RETURN));
+    const float maxTransitionSamples = sample_rate * k_maxTransitionTimeSeconds;
+    m_samplesToDelayShift = static_cast<uint32_t>(maxTransitionSamples * GetParameterAsFloat(SHIFT));
+    m_samplesToDelayReturn = static_cast<uint32_t>(maxTransitionSamples * GetParameterAsFloat(RETURN));
 }
 
 void PitchShifterModule::ParameterChanged(int parameter_id) {
@@ -178,9 +178,9 @@ void PitchShifterModule::ParameterChanged(int parameter_id) {
             pitchShifter.SetDelSize(k_defaultSamplesDelayPitchShifter);
         }
     } else if (parameter_id == SHIFT) {
-        m_samplesToDelayShift = static_cast<uint32_t>(static_cast<float>(k_maxSamplesMaxTime) * GetParameterAsFloat(SHIFT));
+        m_samplesToDelayShift = static_cast<uint32_t>(GetSampleRate() * k_maxTransitionTimeSeconds * GetParameterAsFloat(SHIFT));
     } else if (parameter_id == RETURN) {
-        m_samplesToDelayReturn = static_cast<uint32_t>(static_cast<float>(k_maxSamplesMaxTime) * GetParameterAsFloat(RETURN));
+        m_samplesToDelayReturn = static_cast<uint32_t>(GetSampleRate() * k_maxTransitionTimeSeconds * GetParameterAsFloat(RETURN));
     }
 
     // Parameters changed, reset the transposition target just in case (mostly
@@ -248,15 +248,19 @@ float PitchShifterModule::ProcessMomentaryMode(float in) {
         // transition time
         m_sampleCounter = 0;
 
-        // Process the pitch shift for completely active to the target by default
-        float semitone = m_semitoneTarget;
         if (!m_alternateFootswitchPressed) {
-            // Process the pitch shift for completely inactive (0)
-            semitone = 0.0f;
+            // Completely inactive: output the dry signal. Running the shifter at
+            // 0 semitones instead would leave the two delay taps frozen at an
+            // arbitrary phase (the LFOs stop), comb filtering the signal at a
+            // level that varies with every release. Keep feeding the delay
+            // lines so the buffer is warm when the next ramp starts.
+            SetTranspose(0.0f);
+            pitchShifter.Process(in);
+            return in;
         }
 
         // Process the pitch shift for completely active to the target
-        SetTranspose(semitone);
+        SetTranspose(m_semitoneTarget);
         float shifted = pitchShifter.Process(in);
         float out = pitchCrossfade.Process(in, shifted);
         return out;

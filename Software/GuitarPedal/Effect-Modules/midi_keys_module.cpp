@@ -93,7 +93,7 @@ void MidiKeysModule::ProcessStereo(float inL, float inR) {
     float sum = 0.f;
     sum = voice_handler.Process() * 0.4f * GetParameterAsFloat(LEVEL); // was 0.5f, needs more volume reduction
     m_audioLeft = sum + through_audioL;
-    m_audioRight = m_audioLeft + through_audioR;
+    m_audioRight = sum + through_audioR;
 }
 
 float MidiKeysModule::GetBrightnessForLED(int led_id) const {

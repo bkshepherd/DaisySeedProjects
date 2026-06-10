@@ -51,7 +51,7 @@ class GranularDelayModule : public BaseEffectModule {
     float m_grain_size;
     float m_width;
 
-    float m_current_grainsize;
+    float m_current_grainsize = 0.0f;
 
     int first_count;
     bool m_loop_recorded;

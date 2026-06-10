@@ -115,6 +115,13 @@ int crossFaderTransitionTimeInSamples;
 int samplesTilCrossFadingComplete;
 CpuLoadMeter cpuLoadMeter;
 
+// Effect switch requested from the audio callback (interrupt context).
+// Switching effects rebuilds the UI menus with heap new/delete, which is not
+// safe from the interrupt (allocator reentrancy, and the main loop may be
+// iterating those menu allocations), so the request is deferred to the main
+// loop. -1 means no switch is pending.
+volatile int pendingEffectIDFromAudioCallback = -1;
+
 void SetActiveEffect(int effectID);
 
 static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, size_t size) {
@@ -211,26 +218,27 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
             !ignoreBypassSwitchUntilNextActuation) {
 
             // If we have a screen and there is a tuner module, we quick switch
-            // to it, otherwise we just cycle through the effects
-            if (hardware.SupportsDisplay() && tunerModuleIndex > 0) {
+            // to it, otherwise we just cycle through the effects.
+            // The actual switch is deferred to the main loop (it isn't safe
+            // from this interrupt); SetActiveEffect syncs the new effect's
+            // enabled state with effectOn when the switch is applied.
+            if (hardware.SupportsDisplay() && tunerModuleIndex >= 0) {
                 // Start the quick switch to the tuner
                 if (activeEffectID == tunerModuleIndex) {
                     // Set back the active effect before the quick switch
-                    SetActiveEffect(prevActiveEffectID);
+                    pendingEffectIDFromAudioCallback = prevActiveEffectID;
 
                     // Restore the effect state from when we quick switched, this is an
                     // inverse because the act of holding the switch caused the state to
                     // chnage due to the rising edge being detected
                     effectOn = !effectActiveBeforeQuickSwitch;
-                    activeEffect->SetEnabled(effectOn);
                 } else {
                     // Store if effect is on or not when quick switching
                     effectActiveBeforeQuickSwitch = effectOn;
 
                     // Switch to tuner and force it to be enabled
-                    SetActiveEffect(tunerModuleIndex);
+                    pendingEffectIDFromAudioCallback = tunerModuleIndex;
                     effectOn = true;
-                    activeEffect->SetEnabled(effectOn);
                 }
                 ignoreBypassSwitchUntilNextActuation = true;
             } else {
@@ -246,10 +254,9 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
                     newActiveEffectId = 0;
                 }
 
-                SetActiveEffect(newActiveEffectId);
+                pendingEffectIDFromAudioCallback = newActiveEffectId;
 
                 effectOn = false;
-                activeEffect->SetEnabled(effectOn);
 
                 ignoreBypassSwitchUntilNextActuation = true;
             }
@@ -469,6 +476,11 @@ void SetActiveEffect(int effectID) {
         // Update the Active Effect directly.
         activeEffect = availableEffects[effectID];
 
+        // Keep the new effect's enabled state in sync with the global bypass
+        // state (previously only the footswitch paths did this, leaving menu
+        // and MIDI program-change switches with stale LED/enabled state)
+        activeEffect->SetEnabled(effectOn);
+
         guitarPedalUI.UpdateActiveEffect(effectID);
 
         // Get a handle to the persitance storage settings
@@ -663,6 +675,16 @@ int main(void) {
         lastTimeStampUS = currentTimeStampUS;
         float elapsedTimeInSeconds = (elapsedTimeStampUS / 1000000.0f);
         secondsSinceStartup = secondsSinceStartup + elapsedTimeInSeconds;
+
+        // Apply any effect switch requested by the audio callback. Doing it
+        // here (instead of in the interrupt) keeps the UI menu heap
+        // allocations off the audio interrupt. This must run before the menu
+        // sync below so the menu reflects the switch instead of undoing it.
+        if (pendingEffectIDFromAudioCallback >= 0) {
+            int pendingID = pendingEffectIDFromAudioCallback;
+            pendingEffectIDFromAudioCallback = -1;
+            SetActiveEffect(pendingID);
+        }
 
         // Handle Knob Changes
         if (!knobValuesInitialized && secondsSinceStartup > 1.0f) {

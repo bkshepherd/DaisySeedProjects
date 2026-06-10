@@ -149,7 +149,7 @@ uint32_t BaseEffectModule::GetParameterRaw(int parameter_id) const {
 }
 
 float BaseEffectModule::GetParameterAsFloat(int parameter_id) const {
-    if (parameter_id >= 0 || parameter_id < m_paramCount) {
+    if (m_params != nullptr && parameter_id >= 0 && parameter_id < m_paramCount) {
         float ret;
         uint32_t tmp = m_params[parameter_id];
         std::memcpy(&ret, &tmp, sizeof(float));
@@ -326,14 +326,17 @@ void BaseEffectModule::SetParameterAsMagnitude(int parameter_id, float value) {
             return;
         }
 
-        // Map values 0..1 to the bins equally
-        int mappedBin = (int)(value * GetParameterBinCount(parameter_id) + 1);
+        // Map values 0..1 to the bins equally. A magnitude of exactly 1.0
+        // (e.g. MIDI CC 127) would otherwise compute binCount + 1, which
+        // SetParameterAsBinnedValue rejects, so clamp to the last bin.
+        int binCount = GetParameterBinCount(parameter_id);
+        int mappedBin = std::min((int)(value * binCount + 1), binCount);
         SetParameterAsBinnedValue(parameter_id, mappedBin);
     }
 }
 
 void BaseEffectModule::SetParameterAsFloat(int parameter_id, float value) {
-    if (parameter_id >= 0 || parameter_id < m_paramCount) {
+    if (m_params != nullptr && parameter_id >= 0 && parameter_id < m_paramCount) {
         uint32_t tmp;
         std::memcpy(&tmp, &value, sizeof(float));
 

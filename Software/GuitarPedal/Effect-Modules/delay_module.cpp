@@ -187,6 +187,7 @@ void DelayModule::Init(float sample_rate) {
     delayLeft.del = &delayLineLeft;
     delayLeft.delreverse = &delayLineRevLeft;
     delayLeft.delayTarget = 24000; // in samples
+    delayLeft.currentDelay = 24000;
     delayLeft.feedback = 0.0;
     delayLeft.active = true; // Default to no delay
     delayLeft.toneOctLP.Init(sample_rate);
@@ -197,6 +198,7 @@ void DelayModule::Init(float sample_rate) {
     delayRight.del = &delayLineRight;
     delayRight.delreverse = &delayLineRevRight;
     delayRight.delayTarget = 24000; // in samples
+    delayRight.currentDelay = 24000;
     delayRight.feedback = 0.0;
     delayRight.active = true; // Default to no
     delayRight.toneOctLP.Init(sample_rate);
@@ -205,6 +207,7 @@ void DelayModule::Init(float sample_rate) {
     delayLineSpread.Init();
     delaySpread.del = &delayLineSpread;
     delaySpread.delayTarget = 1500; // in samples
+    delaySpread.currentDelay = 1500;
     delaySpread.active = true;
 
     effect_samplerate = sample_rate;
@@ -320,9 +323,9 @@ void DelayModule::ProcessModulation() {
         delayRight.level_reverse = mod_level;
 
     } else if (modParam == 3) {
-        _level = mod * mod_amount + (1.0 - mod_amount);
-
-    } else if (modParam == 4) {
+        // "DelayPan": pan the delay by modulating the levels in opposite
+        // directions per side (this branch previously required modParam == 4,
+        // which the 4-bin mod parameter could never produce)
         float mod_level = mod * mod_amount + (1.0 - mod_amount);
         delayLeft.level = mod_level;
         delayRight.level = 1.0 - mod_level;

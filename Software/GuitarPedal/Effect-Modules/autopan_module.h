@@ -36,7 +36,7 @@ class AutoPanModule : public BaseEffectModule {
                 bool isEditing) override;
 
   private:
-    float m_pan; // 0 to 1 value 0 is full left, 1 is full right.
+    float m_pan = 0.5f; // 0 to 1 value 0 is full left, 1 is full right.
     Oscillator m_freqOsc;
     float m_freqOscFreqMin;
     float m_freqOscFreqMax;

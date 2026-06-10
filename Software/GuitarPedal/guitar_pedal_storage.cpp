@@ -123,7 +123,7 @@ uint32_t ShiftSettingsToMatchCurrentParameters(uint32_t prev_params, uint32_t cu
     Settings &settings = storage.GetSettings();
 
     newMaxIdx += presetsCount * (curr_params - prev_params);
-    if (newMaxIdx <= SETTINGS_ABSOLUTE_MAX_PARAM_COUNT) {
+    if (newMaxIdx < SETTINGS_ABSOLUTE_MAX_PARAM_COUNT) {
         if (curr_params > prev_params) {
             uint32_t diff = newMaxIdx - currentMaxIdx;
             for (uint32_t i = newMaxIdx; i >= shiftStartIdx; --i) {
@@ -151,7 +151,7 @@ uint32_t ShiftSettingsToAddNewPreset(int effectID, uint32_t params, uint32_t shi
     Settings &settings = storage.GetSettings();
 
     newMaxIdx += params;
-    if (newMaxIdx <= SETTINGS_ABSOLUTE_MAX_PARAM_COUNT) {
+    if (newMaxIdx < SETTINGS_ABSOLUTE_MAX_PARAM_COUNT) {
         uint32_t diff = newMaxIdx - currentMaxIdx;
         for (uint32_t i = newMaxIdx; i >= shiftStartIdx; --i) {
             settings.globalEffectsSettings[i] = settings.globalEffectsSettings[i - diff];
@@ -198,6 +198,11 @@ void LoadEffectSettingsFromPersistantStorage() {
     // Load Preset 0 of each Effect Parameters, based on values from Persistant Storage
     for (int effectID = 0; effectID < availableEffectsCount; effectID++) {
         uint32_t presetsCount = settings.globalEffectsSettings[globalEffectsSettingMemIdx];
+        // Sanity check against corrupt flash: a presetsCount of 0 would
+        // underflow (presetsCount - 1U) below and index far out of bounds
+        if (presetsCount == 0 || presetsCount > SETTINGS_ABSOLUTE_MAX_PARAM_COUNT) {
+            presetsCount = 1;
+        }
         availableEffects[effectID]->SetSettingsArrayStartIdx(globalEffectsSettingMemIdx);
         ++globalEffectsSettingMemIdx;
         uint32_t paramCount = availableEffects[effectID]->GetParameterCount();
