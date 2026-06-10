@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-ImpulseResponse::ImpulseResponse() : position(0), firLength(DEFAULT_FIR_LEN) {}
+ImpulseResponse::ImpulseResponse() {}
 
 void ImpulseResponse::init(const float *ir, uint32_t len, bool normalize) {
     arm_fill_f32(0.0f, fir_state_, FIR_STATE_LEN);
@@ -12,7 +12,7 @@ void ImpulseResponse::init(const float *ir, uint32_t len, bool normalize) {
 // Optional: set this to 0.0 for 100% wet, 1.0 for 100% dry, or in between
 constexpr float kDryWet = 0.0f;
 
-void ImpulseResponse::processBlock(float *in, float *out, uint32_t n) {
+void ImpulseResponse::processBlock(const float *in, float *out, uint32_t n) {
     if (n > MAX_BLOCK) {
         n = MAX_BLOCK;
     }
