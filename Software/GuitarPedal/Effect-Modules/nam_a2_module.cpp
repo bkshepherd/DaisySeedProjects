@@ -9,6 +9,8 @@
 
 using namespace bkshepherd;
 
+constexpr int IR_LENGTH = 256;
+
 // ---------------------------------------------------------------------------
 // EQ configuration – identical band centres to the existing NAM module
 // ---------------------------------------------------------------------------
@@ -192,7 +194,8 @@ void NamA2Module::SelectIR() {
     int irIndex = binValue - 2; // 0-based index into ir_collection
     m_irEnabled = true;
     if (irIndex != m_currentIRindex) {
-        mIR.Init(ir_collection[irIndex]);
+        // mIR.Init(ir_collection[irIndex]);
+        mIR.setImpulseResponse(ir_collection[irIndex].data(), IR_LENGTH, true);
         m_currentIRindex = irIndex;
     }
 }
@@ -307,7 +310,7 @@ void NamA2Module::ProcessMono(float in) {
         m_model->process_block_48(m_inputBuffer, m_outputBuffer);
 
         if (m_irEnabled) {
-            mIR.ProcessBlock(m_outputBuffer, m_irOutputBuffer, kBlockSize);
+            mIR.processBlock(m_outputBuffer, m_irOutputBuffer, kBlockSize);
         } else {
             std::copy(m_outputBuffer, m_outputBuffer + kBlockSize, m_irOutputBuffer);
         }
