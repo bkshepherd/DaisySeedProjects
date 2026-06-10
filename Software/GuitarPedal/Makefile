@@ -3,11 +3,25 @@ TARGET =  guitarpedal
 
 CPP_STANDARD = -std=gnu++20
 
+# Library Locations
+DAISYSP_DIR ?= dependencies/DaisySP
+LIBDAISY_DIR ?= dependencies/libDaisy
+USE_DAISYSP_LGPL=1
+
 # Sources
+CMSIS_DSP_DIR = ${LIBDAISY_DIR}/Drivers/CMSIS-DSP
+
+CMSIS_DSP_SRC = \
+$(CMSIS_DSP_DIR)/Source/FilteringFunctions/arm_fir_f32.c \
+$(CMSIS_DSP_DIR)/Source/FilteringFunctions/arm_fir_init_f32.c \
+$(CMSIS_DSP_DIR)/Source/SupportFunctions/arm_fill_f32.c \
+$(CMSIS_DSP_DIR)/Source/BasicMathFunctions/arm_scale_f32.c \
+$(CMSIS_DSP_DIR)/Source/SupportFunctions/arm_copy_f32.c
 
 CPP_SOURCES = guitar_pedal.cpp guitar_pedal_storage.cpp $(wildcard UI/*.cpp) $(wildcard Util/*.cpp) \
 $(wildcard Hardware-Modules/*.cpp)
 CPP_SOURCES += Effect-Modules/base_effect_module.cpp
+C_SOURCES += $(CMSIS_DSP_SRC)
 
 # Naming the module sources explicitly to make it easier to add/remove from build. Otherwise all global attributes
 #  will be included in the build and take up memory resources, even when the .h file is commented out. 
@@ -26,6 +40,7 @@ CPP_SOURCES += Effect-Modules/geq_module.cpp
 CPP_SOURCES += Effect-Modules/granulardelay_module.cpp
 CPP_SOURCES += Effect-Modules/distortion_module.cpp
 CPP_SOURCES += Effect-Modules/ImpulseResponse/ImpulseResponse.cpp
+CPP_SOURCES += Effect-Modules/ImpulseResponse/ImpulseResponseCMSIS.cpp
 CPP_SOURCES += Effect-Modules/ImpulseResponse/ir_data.cpp
 CPP_SOURCES += Effect-Modules/ImpulseResponse/dsp.cpp
 CPP_SOURCES += Effect-Modules/ir_module.cpp
@@ -70,11 +85,6 @@ APP_TYPE = BOOT_SRAM
 # it ahead of the main script. See nam_a2_sections.lds and nam_a2_runtime.h.
 LDFLAGS += -T$(abspath nam_a2_sections.lds)
 
-# Library Locations
-DAISYSP_DIR ?= dependencies/DaisySP
-LIBDAISY_DIR ?= dependencies/libDaisy
-
-USE_DAISYSP_LGPL=1
 
 # Core location, and generic Makefile.
 SYSTEM_FILES_DIR = $(LIBDAISY_DIR)/core
@@ -91,6 +101,9 @@ C_INCLUDES += -isystem ./dependencies/eigen
 C_INCLUDES += -isystem ./dependencies/CloudSeed
 LIBS += -lcloudseed
 LIBDIR += -Ldependencies/CloudSeed/build
+
+# Add CMSIS-DSP include path
+C_INCLUDES += -I$(CMSIS_DSP_DIR)/Include
 
 # Parse variants from argument to make, if none is supplied, will build for 125B
 # options:

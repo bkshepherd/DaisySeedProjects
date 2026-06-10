@@ -2,6 +2,7 @@
 #include "Nam/model_data_nam_a2.h"
 #include "../Util/audio_utilities.h"
 #include "ImpulseResponse/ir_data.h"
+#include <algorithm>
 #include <q/fx/biquad.hpp>
 #include <cmath>
 #include <array>
@@ -171,6 +172,7 @@ NamA2Module::NamA2Module()
     for (int i = 0; i < kBlockSize; ++i) {
         m_inputBuffer[i]  = 0.0f;
         m_outputBuffer[i] = 0.0f;
+        m_irOutputBuffer[i] = 0.0f;
     }
 }
 
@@ -296,18 +298,21 @@ void NamA2Module::ProcessMono(float in) {
     m_inputBuffer[m_bufferIndex] = m_audioLeft * m_gain;
 
     // Read from the previously-processed output block, applying the per-model
-    // loudness-match gain.
-    float ampOut = m_outputBuffer[m_bufferIndex] * m_currentModelGain;
+    // loudness-match gain and IR level compensation.
+    const float irScale = m_irEnabled ? 0.5f : 1.0f;
+    float ampOut = m_irOutputBuffer[m_bufferIndex] * m_currentModelGain * irScale;
 
     ++m_bufferIndex;
     if (m_bufferIndex >= kBlockSize) {
         m_model->process_block_48(m_inputBuffer, m_outputBuffer);
-        m_bufferIndex = 0;
-    }
 
-    // Apply IR cabinet simulation (if enabled) — before EQ.
-    if (m_irEnabled) {
-        ampOut = mIR.Process(ampOut) * 0.5f; // 0.5 is level adjust for loud output
+        if (m_irEnabled) {
+            mIR.ProcessBlock(m_outputBuffer, m_irOutputBuffer, kBlockSize);
+        } else {
+            std::copy(m_outputBuffer, m_outputBuffer + kBlockSize, m_irOutputBuffer);
+        }
+
+        m_bufferIndex = 0;
     }
 
     // Apply 3-band EQ post-model.

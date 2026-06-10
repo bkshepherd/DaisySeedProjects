@@ -3,7 +3,8 @@
 #define NAM_A2_MODULE_H
 
 #include "base_effect_module.h"
-#include "ImpulseResponse/ImpulseResponse.h"
+// #include "ImpulseResponse/ImpulseResponse.h"
+#include "ImpulseResponse/ImpulseResponseCMSIS.h"
 #include <stdint.h>
 
 // Forward declaration only — the full runtime header (with NAM_A2_NOINLINE functions)
@@ -53,6 +54,7 @@ class NamA2Module : public BaseEffectModule {
 
     float m_inputBuffer[kBlockSize];
     float m_outputBuffer[kBlockSize];
+    float m_irOutputBuffer[kBlockSize];
     int m_bufferIndex;
 
     float m_gainMin;
@@ -73,7 +75,9 @@ class NamA2Module : public BaseEffectModule {
     float m_currentModelGain;
     int m_currentIRindex;
 
-    ImpulseResponse mIR;
+    ImpulseResponseCMSIS mIR;
+    // ImpulseResponse mIR;
+
     // Written on the main loop in SelectModel(), read in the audio callback
     // (ProcessMono). volatile so the callback observes the mute before/while
     // load_weights() + prewarm() rewrite the shared weights and state.
