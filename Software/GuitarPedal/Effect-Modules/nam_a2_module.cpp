@@ -9,7 +9,7 @@
 
 using namespace bkshepherd;
 
-constexpr int IR_LENGTH = 256;
+constexpr int IR_LENGTH = 1024;
 
 // ---------------------------------------------------------------------------
 // EQ configuration – identical band centres to the existing NAM module
