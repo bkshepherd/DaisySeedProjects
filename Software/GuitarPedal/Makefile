@@ -1,3 +1,16 @@
+# --- Project-local GCC toolchain configuration --- [start]
+# If .gcc_path exists, use it to set GCC_PATH for the correct toolchain version.
+# This must run before the `include $(SYSTEM_FILES_DIR)/Makefile` line below,
+# since libDaisy's core Makefile only honors GCC_PATH (to set CC/CXX/etc.) if
+# it's already defined at the point that file is included - otherwise CC/CXX
+# silently fall back to whatever arm-none-eabi-gcc is on $PATH.
+GCC_PATH_FILE := $(wildcard .gcc_path)
+ifneq ($(GCC_PATH_FILE),)
+  GCC_PATH := $(shell cat $(GCC_PATH_FILE))
+  $(info Using GCC toolchain from .gcc_path: $(GCC_PATH))
+endif
+# --- Project-local GCC toolchain configuration --- [end]
+
 # Project Name
 TARGET =  guitarpedal
 
@@ -68,6 +81,7 @@ CPP_SOURCES += Effect-Modules/tuner_module.cpp
 #CPP_SOURCES += Effect-Modules/pluckecho_module.cpp
 #CPP_SOURCES += Effect-Modules/string_keys_module.cpp
 
+
 # Dattorro plate reverb - disabled by default because Effect-Modules/Dattorro/
 # is licensed GPL-3.0-or-later (see Effect-Modules/Dattorro/README.md), unlike
 # the rest of this MIT-licensed repository. Uncomment both lines below (and
@@ -122,15 +136,6 @@ ifdef VARIANT
    $(info VARIANT=$(VARIANT))
 endif
 
-
-# --- Project-local GCC toolchain configuration --- [start]
-# If .gcc_path exists, use it to set GCC_PATH for the correct toolchain version
-GCC_PATH_FILE := $(wildcard .gcc_path)
-ifneq ($(GCC_PATH_FILE),)
-  GCC_PATH := $(shell cat $(GCC_PATH_FILE))
-  $(info Using GCC toolchain from .gcc_path: $(GCC_PATH))
-endif
-# --- Project-local GCC toolchain configuration --- [end]
 
 # --- ARM SDK Version check --- [start]
 # Issues have been experienced with the latest version of arm-none-eabi-gcc, so
