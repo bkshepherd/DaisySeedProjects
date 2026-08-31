@@ -114,12 +114,27 @@ ifdef VARIANT
 endif
 
 
+# --- Project-local GCC toolchain configuration --- [start]
+# If .gcc_path exists, use it to set GCC_PATH for the correct toolchain version
+GCC_PATH_FILE := $(wildcard .gcc_path)
+ifneq ($(GCC_PATH_FILE),)
+  GCC_PATH := $(shell cat $(GCC_PATH_FILE))
+  $(info Using GCC toolchain from .gcc_path: $(GCC_PATH))
+endif
+# --- Project-local GCC toolchain configuration --- [end]
+
 # --- ARM SDK Version check --- [start]
 # Issues have been experienced with the latest version of arm-none-eabi-gcc, so
 # we add a check here to help guide users to use a supported version
 
+# Determine which compiler to check (use GCC_PATH if set, otherwise system default)
+GCC_CHECK := arm-none-eabi-gcc
+ifdef GCC_PATH
+  GCC_CHECK := $(GCC_PATH)/arm-none-eabi-gcc
+endif
+
 # Get compiler version string safely
-GCC_VERSION := $(shell arm-none-eabi-gcc -dumpversion)
+GCC_VERSION := $(shell $(GCC_CHECK) -dumpversion)
 GCC_VERSION_MAJOR := $(word 1, $(subst ., ,$(GCC_VERSION)))
 GCC_VERSION_MAJOR_REQUIRED := 10
 
