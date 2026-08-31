@@ -74,8 +74,8 @@ CPP_SOURCES += Effect-Modules/tuner_module.cpp
 # the matching block in loaded_effects.h) to opt in; doing so means the
 # resulting firmware binary must be distributed under GPLv3, or not
 # distributed at all.
-#CPP_SOURCES += Effect-Modules/Dattorro/Dattorro.cpp
-#CPP_SOURCES += Effect-Modules/dattorro_reverb_module.cpp
+CPP_SOURCES += Effect-Modules/Dattorro/Dattorro.cpp
+CPP_SOURCES += Effect-Modules/dattorro_reverb_module.cpp
 
 # Compiler options
 OPT=-Ofast

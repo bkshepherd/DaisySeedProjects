@@ -92,8 +92,14 @@ static const auto s_metaData = [] {
 
 // Default Constructor
 DattorroReverbModule::DattorroReverbModule() : BaseEffectModule() {
-    // Set the name of the effect
-    m_name = "Dattorro Reverb";
+    // Set the name of the effect. Keep this at or under 11 characters ("Multi
+    // Delay" is the longest existing name) - a longer name centered at the
+    // display's large Font_11x18 (used for both the Settings -> Effect list
+    // and the home-screen name banner) computes a negative starting X
+    // coordinate, which wraps around in libDaisy's OneBitGraphicsDisplay::
+    // SetCursor(uint16_t x, ...) and renders as a completely blank line
+    // instead of clipping.
+    m_name = "Dattorro";
 
     // Setup the meta data reference for this Effect
     m_paramMetaData = s_metaData.data();
