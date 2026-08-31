@@ -313,13 +313,15 @@ void DattorroReverbModule::UpdateUI(float elapsedTime) {
 
 void DattorroReverbModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int numItemsTotal, Rectangle boundsToDrawIn,
                                   bool isEditing) {
+    // Flash a full-screen "DEFAULTS" confirmation for a second after a
+    // factory reset fires, mirroring how EffectModuleMenuItem takes over the
+    // whole screen for its "Saving..." notification - a small corner label at
+    // Font_6x8 turned out to be easy to miss.
+    if (m_factoryResetFlashSecondsRemaining > 0.0f) {
+        display.WriteStringAligned("DEFAULTS", Font_11x18, boundsToDrawIn, Alignment::centered, true);
+        return;
+    }
+
     // Draw the base UI
     BaseEffectModule::DrawUI(display, currentIndex, numItemsTotal, boundsToDrawIn, isEditing);
-
-    // Flash a "DEFAULTS" indicator for a second after a factory reset fires,
-    // mirroring how DelayModule draws its "SHIFT" indicator.
-    if (m_factoryResetFlashSecondsRemaining > 0.0f) {
-        display.SetCursor(boundsToDrawIn.GetRight() - 56, 2);
-        display.WriteString("DEFAULTS", Font_6x8, true);
-    }
 }
