@@ -134,6 +134,31 @@ Plug your guitar into the Input and connect the Output to your amp.
 
 ### 6. Enjoy!!!
 
+## Optional: Dattorro plate reverb (GPLv3)
+
+`Effect-Modules/Dattorro/` contains a Dattorro (1997) plate reverb, in the same family used by
+the Hothouse "Flick" and "MuleBox" pedals. It's disabled by default and commented out of both the
+`Makefile` and `loaded_effects.h`, because that code is licensed **GPL-3.0-or-later**, not MIT
+like the rest of this repository — see [`Effect-Modules/Dattorro/README.md`](Effect-Modules/Dattorro/README.md)
+for the full provenance chain and license text. Enabling it means the firmware binary you build
+must be distributed under GPLv3 (or not distributed at all); leaving it commented out keeps your
+build entirely MIT.
+
+To opt in:
+
+1. Uncomment the two `Dattorro` lines in the `Makefile`.
+2. Uncomment the `#include` and `new DattorroReverbModule(),` lines in `loaded_effects.h`.
+3. Rebuild. Note that adding or removing an effect module changes the set of effects the pedal
+   knows about, which resets saved presets on first boot after flashing.
+
+Once enabled, "Dattorro Reverb" shows up as a normal loadable effect with six knobs — Mix,
+Pre-Delay, Decay, Tone, Mod and Diffuse — plus a seventh, Size (the reverb's internal time scale,
+which is what separates a plate voicing from a room/hall one), available in the settings menu
+since the 125B only has six physical knobs. Holding the alternate footswitch for 5 seconds resets
+every parameter except Mix back to its factory default, flashing "DEFAULTS" on screen to confirm —
+useful since the parameter space has combinations that are easy to wander into and hard to dial
+back out of by ear.
+
 ## Using pre-compiled releases
 
 1. Download the .zip for the hardware variant you have built from the latest release https://github.com/bkshepherd/DaisySeedProjects/releases

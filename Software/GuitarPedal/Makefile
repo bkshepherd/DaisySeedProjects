@@ -68,6 +68,15 @@ CPP_SOURCES += Effect-Modules/tuner_module.cpp
 #CPP_SOURCES += Effect-Modules/pluckecho_module.cpp
 #CPP_SOURCES += Effect-Modules/string_keys_module.cpp
 
+# Dattorro plate reverb - disabled by default because Effect-Modules/Dattorro/
+# is licensed GPL-3.0-or-later (see Effect-Modules/Dattorro/README.md), unlike
+# the rest of this MIT-licensed repository. Uncomment both lines below (and
+# the matching block in loaded_effects.h) to opt in; doing so means the
+# resulting firmware binary must be distributed under GPLv3, or not
+# distributed at all.
+#CPP_SOURCES += Effect-Modules/Dattorro/Dattorro.cpp
+#CPP_SOURCES += Effect-Modules/dattorro_reverb_module.cpp
+
 # Compiler options
 OPT=-Ofast
 # OPT=-Og -g

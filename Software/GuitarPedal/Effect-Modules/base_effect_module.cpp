@@ -371,6 +371,40 @@ void BaseEffectModule::SetParameterAsBinnedValue(int parameter_id, int value) {
     SetParameterRaw(parameter_id, value - 1);
 }
 
+void BaseEffectModule::SetParameterToDefault(int parameter_id) {
+    // Make sure parameter_id is valid.
+    if (m_params == nullptr || parameter_id < 0 || parameter_id >= m_paramCount || m_paramMetaData == nullptr) {
+        return;
+    }
+
+    const ParameterValue &defaultValue = m_paramMetaData[parameter_id].defaultValue;
+
+    // Dispatch through the correct typed setter so this goes through the normal ParameterChanged()
+    // notification path, the same as if the value had been set by a knob, the menu, or MIDI.
+    switch (GetParameterType(parameter_id)) {
+    case ParameterValueType::Float:
+        SetParameterAsFloat(parameter_id, defaultValue.float_value);
+        break;
+    case ParameterValueType::Bool:
+        SetParameterAsBool(parameter_id, defaultValue.uint_value > 0);
+        break;
+    case ParameterValueType::Binned:
+        SetParameterAsBinnedValue(parameter_id, (int)(defaultValue.uint_value + 1));
+        break;
+    case ParameterValueType::Raw:
+    case ParameterValueType::Unknown:
+    default:
+        SetParameterRaw(parameter_id, defaultValue.uint_value);
+        break;
+    }
+}
+
+bool BaseEffectModule::ConsumeParameterResyncRequest() {
+    const bool requested = m_parameterResyncRequested;
+    m_parameterResyncRequested = false;
+    return requested;
+}
+
 void BaseEffectModule::ProcessMono(float in) {
     m_audioLeft = in;
     m_audioRight = in;

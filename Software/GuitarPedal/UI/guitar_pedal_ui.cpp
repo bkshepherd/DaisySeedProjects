@@ -386,6 +386,13 @@ void GuitarPedalUI::UpdateUI(float elapsedTime) {
 
     activeEffect->UpdateUI(elapsedTime);
 
+    // If the active Effect changed one of its own Parameters (e.g. a factory-reset gesture),
+    // re-read all Parameter values into the menu system now. Otherwise the writeback below,
+    // which copies cached menu values into the effect every tick, would silently revert it.
+    if (activeEffect->ConsumeParameterResyncRequest()) {
+        UpdateActiveEffectParameterValues();
+    }
+
     // Properly Handle returning the screen from a parameter change
     if (m_secondsTilReturnFromParamChange > 0.0f) {
         m_secondsTilReturnFromParamChange -= elapsedTime;

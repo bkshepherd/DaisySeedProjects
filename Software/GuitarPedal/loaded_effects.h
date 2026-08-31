@@ -45,6 +45,11 @@
 // #include "Effect-Modules/pluckecho_module.h"
 // #include "Effect-Modules/string_keys_module.h"
 
+// Dattorro plate reverb - GPL-3.0-or-later, disabled by default. See
+// Effect-Modules/Dattorro/README.md and the matching block in the Makefile
+// before uncommenting.
+// #include "Effect-Modules/dattorro_reverb_module.h"
+
 namespace bkshepherd {
 
 void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffects) {
@@ -86,6 +91,9 @@ void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffec
         // new StringKeysModule(),
         // new ModalKeysModule(),
         // new FmKeysModule(),
+
+        // GPL-3.0-or-later - see Effect-Modules/Dattorro/README.md
+        // new DattorroReverbModule(),
     };
     // clang-format on
 
