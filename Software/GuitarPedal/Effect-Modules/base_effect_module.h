@@ -132,6 +132,12 @@ class BaseEffectModule {
     */
     const float GetParameterDefaultValueAsFloat(int parameter_id) const;
 
+    /** Gets the Default Value for an Effect Parameter as a raw uint32_t value
+     \param parameter_id Id of the parameter to retrieve.
+     \return the raw default Value of the specified parameter.
+    */
+    uint32_t GetParameterDefaultValueRaw(int parameter_id) const;
+
     /** Gets the Raw uint32_t value of an Effect Parameter
      \param parameter_id Id of the parameter to retrieve.
      \return the raw Value of the specified parameter.
@@ -302,29 +308,14 @@ class BaseEffectModule {
      */
     virtual bool AlternateFootswitchForTempo() const { return true; };
     /** Overridable callback when alternate footswitch is pressed */
-    virtual void AlternateFootswitchPressed() {};
+    virtual void AlternateFootswitchPressed(){};
     /** Overridable callback when alternate footswitch is released */
-    virtual void AlternateFootswitchReleased() {};
+    virtual void AlternateFootswitchReleased(){};
     /** Overridable callback when alternate footswitch is held for 1 second */
-    virtual void AlternateFootswitchHeldFor1Second() {};
+    virtual void AlternateFootswitchHeldFor1Second(){};
 
     void SetCPUUsage(float cpuUsage) { m_cpuUsage = cpuUsage; };
     float GetCPUUsage() const { return m_cpuUsage; }
-
-    /** Resets a Parameter back to its ParameterMetaData default value, dispatching through the correct
-     * typed setter for whatever ParameterValueType the parameter is, so the change goes through the normal
-     * ParameterChanged() notification path just like any other parameter update.
-        \param parameter_id Id of the parameter to reset (0 .. m_paramCount - 1).
-    */
-    void SetParameterToDefault(int parameter_id);
-
-    /** Returns true exactly once after RequestParameterResync() was called, clearing the flag as a side effect.
-     * The UI polls this every tick and, when true, re-reads all Effect Parameter values into the menu system -
-     * otherwise a module that changes its own parameters (e.g. a factory-reset gesture) would have that change
-     * silently overwritten on the very next UI tick by the menu-to-effect writeback.
-     \return Value True if a resync was requested since the last call to this function.
-    */
-    bool ConsumeParameterResyncRequest();
 
   protected:
     /** Initializes the Parameter Storage and creates space for the specified number of stored Effect Parameters
@@ -341,12 +332,6 @@ class BaseEffectModule {
 
     float GetSampleRate() const { return m_sampleRate; }
 
-    /** Requests that the UI re-read all Effect Parameter values on its next tick, so that changes an Effect
-     * makes to its own parameters (outside of the normal menu/knob input path) aren't reverted by the UI's
-     * menu-to-effect writeback. See ConsumeParameterResyncRequest().
-     */
-    void RequestParameterResync() { m_parameterResyncRequested = true; }
-
     const char *m_name;                       // Name of the Effect
     int m_paramCount;                         // Number of Effect Parameters
     int m_presetCount;                        // Number of Stored Presets
@@ -358,9 +343,8 @@ class BaseEffectModule {
     uint32_t m_settingsArrayStartIdx;         // Start index of settings persistent storage struct
   private:
     bool m_isEnabled;
-    float m_sampleRate;                      // Current Sample Rate this Effect was initialized for.
-    float m_cpuUsage;                        // CPU usage of the audio callback, can be used for rendering to display
-    bool m_parameterResyncRequested = false; // Set by RequestParameterResync(), consumed by ConsumeParameterResyncRequest()
+    float m_sampleRate; // Current Sample Rate this Effect was initialized for.
+    float m_cpuUsage;   // CPU usage of the audio callback, can be used for rendering to display
 };
 } // namespace bkshepherd
 #endif

@@ -12,9 +12,6 @@ namespace {
 // Effect-Modules/Dattorro/dsp/delays/InterpDelay.hpp for how the arena works
 // and Effect-Modules/Dattorro/README.md for how this figure was derived.
 constexpr size_t kDattorroArenaFloatCount = 262144; // 1 MiB / sizeof(float)
-
-constexpr float kFactoryResetHoldSeconds = 5.0f;
-constexpr float kFactoryResetFlashSeconds = 1.0f;
 } // namespace
 
 float DSY_SDRAM_BSS s_dattorroArena[kDattorroArenaFloatCount];
@@ -155,21 +152,6 @@ void DattorroReverbModule::SyncAllParametersToEngine() {
     }
 }
 
-void DattorroReverbModule::ResetNonMixParametersToDefaults() {
-    for (int i = 0; i < PARAM_COUNT; ++i) {
-        if (i == MIX) {
-            continue;
-        }
-
-        SetParameterToDefault(i);
-    }
-
-    // The UI caches Parameter values and writes them back into this Effect
-    // every tick; without this it would silently revert the reset above on
-    // the very next tick.
-    RequestParameterResync();
-}
-
 void DattorroReverbModule::ParameterChanged(int parameter_id) {
     if (!m_dattorro) {
         return;
@@ -266,62 +248,4 @@ void DattorroReverbModule::ProcessStereo(float inL, float inR) {
 
     m_audioLeft = wetL * wetGain + dryL * dryGain;
     m_audioRight = wetR * wetGain + dryR * dryGain;
-}
-
-void DattorroReverbModule::AlternateFootswitchPressed() {
-    m_alternateFootswitchHeld = true;
-    m_alternateFootswitchHeldSeconds = 0.0f;
-    m_factoryResetTriggeredThisHold = false;
-}
-
-void DattorroReverbModule::AlternateFootswitchReleased() {
-    m_alternateFootswitchHeld = false;
-    m_alternateFootswitchHeldSeconds = 0.0f;
-    m_factoryResetTriggeredThisHold = false;
-}
-
-void DattorroReverbModule::SetEnabled(bool isEnabled) {
-    BaseEffectModule::SetEnabled(isEnabled);
-
-    if (!isEnabled) {
-        // AlternateFootswitchPressed/Released are only dispatched while this
-        // Effect is enabled, so a hold that spans a bypass toggle would
-        // otherwise strand the accumulator mid-count.
-        m_alternateFootswitchHeld = false;
-        m_alternateFootswitchHeldSeconds = 0.0f;
-        m_factoryResetTriggeredThisHold = false;
-    }
-}
-
-void DattorroReverbModule::UpdateUI(float elapsedTime) {
-    BaseEffectModule::UpdateUI(elapsedTime);
-
-    if (m_alternateFootswitchHeld && !m_factoryResetTriggeredThisHold) {
-        m_alternateFootswitchHeldSeconds += elapsedTime;
-
-        if (m_alternateFootswitchHeldSeconds >= kFactoryResetHoldSeconds) {
-            ResetNonMixParametersToDefaults();
-            m_factoryResetTriggeredThisHold = true;
-            m_factoryResetFlashSecondsRemaining = kFactoryResetFlashSeconds;
-        }
-    }
-
-    if (m_factoryResetFlashSecondsRemaining > 0.0f) {
-        m_factoryResetFlashSecondsRemaining -= elapsedTime;
-    }
-}
-
-void DattorroReverbModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int numItemsTotal, Rectangle boundsToDrawIn,
-                                  bool isEditing) {
-    // Flash a full-screen "DEFAULTS" confirmation for a second after a
-    // factory reset fires, mirroring how EffectModuleMenuItem takes over the
-    // whole screen for its "Saving..." notification - a small corner label at
-    // Font_6x8 turned out to be easy to miss.
-    if (m_factoryResetFlashSecondsRemaining > 0.0f) {
-        display.WriteStringAligned("DEFAULTS", Font_11x18, boundsToDrawIn, Alignment::centered, true);
-        return;
-    }
-
-    // Draw the base UI
-    BaseEffectModule::DrawUI(display, currentIndex, numItemsTotal, boundsToDrawIn, isEditing);
 }

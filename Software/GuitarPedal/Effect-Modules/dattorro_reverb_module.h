@@ -28,10 +28,6 @@ namespace bkshepherd {
 // build on Valley Audio's Plateau implementation). Six parameters are exposed
 // to match Flick's reverb edit mode; a seventh (Size, i.e. Dattorro's internal
 // Time Scale) is menu-only since the 125B only has six knobs.
-//
-// Holding the alternate footswitch for 5 seconds resets every parameter except
-// Mix back to its factory default - the reverb's parameter space includes
-// combinations that are difficult to dial back from by ear alone.
 class DattorroReverbModule : public BaseEffectModule {
   public:
     enum Param {
@@ -53,30 +49,18 @@ class DattorroReverbModule : public BaseEffectModule {
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;
 
-    // This effect has no use for tap tempo, freeing the alternate footswitch
-    // for the factory-reset hold gesture below.
+    // A reverb has no tempo-synced parameter, so the footswitch should not nudge the global tempo
+    // other effects read.
     bool AlternateFootswitchForTempo() const override { return false; }
-    void AlternateFootswitchPressed() override;
-    void AlternateFootswitchReleased() override;
-
-    void SetEnabled(bool isEnabled) override;
-
-    void UpdateUI(float elapsedTime) override;
-    void DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int numItemsTotal, Rectangle boundsToDrawIn,
-                bool isEditing) override;
 
   protected:
     void ParameterChanged(int parameter_id) override;
 
   private:
     // Pushes every current Parameter value into the Dattorro engine. Used once
-    // after construction (InitParams() writes defaults directly into storage
-    // without going through ParameterChanged()) and again after a factory
-    // reset resolves through SetParameterToDefault().
+    // after construction, since InitParams() writes defaults directly into storage
+    // without going through ParameterChanged().
     void SyncAllParametersToEngine();
-
-    // Restores every Parameter except Mix to its factory default.
-    void ResetNonMixParametersToDefaults();
 
     std::unique_ptr<Dattorro> m_dattorro;
 
@@ -85,12 +69,6 @@ class DattorroReverbModule : public BaseEffectModule {
     // (which is small and shared with everything else in the firmware), the
     // module just passes audio through dry in this case.
     bool m_arenaExhausted = false;
-
-    // 5-second alternate-footswitch-hold factory reset gesture.
-    bool m_alternateFootswitchHeld = false;
-    float m_alternateFootswitchHeldSeconds = 0.0f;
-    bool m_factoryResetTriggeredThisHold = false;
-    float m_factoryResetFlashSecondsRemaining = 0.0f;
 };
 } // namespace bkshepherd
 #endif
