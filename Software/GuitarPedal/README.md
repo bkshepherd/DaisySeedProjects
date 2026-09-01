@@ -148,16 +148,7 @@ To opt in:
 
 1. Uncomment the two `Dattorro` lines in the `Makefile`.
 2. Uncomment the `#include` and `new DattorroReverbModule(),` lines in `loaded_effects.h`.
-3. Rebuild. Note that adding or removing an effect module changes the set of effects the pedal
-   knows about, which resets saved presets on first boot after flashing.
-
-Once enabled, "Dattorro" shows up as a normal loadable effect with six knobs — Mix,
-Pre-Delay, Decay, Tone, Mod and Diffuse — plus a seventh, Size (the reverb's internal time scale,
-which is what separates a plate voicing from a room/hall one), available in the settings menu
-since the 125B only has six physical knobs. Holding the alternate footswitch for 5 seconds resets
-every parameter except Mix back to its factory default, flashing "DEFAULTS" on screen to confirm —
-useful since the parameter space has combinations that are easy to wander into and hard to dial
-back out of by ear.
+3. Rebuild and flash.
 
 ## Using pre-compiled releases
 
