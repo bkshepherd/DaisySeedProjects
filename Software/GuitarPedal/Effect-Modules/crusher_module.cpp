@@ -170,9 +170,11 @@ void CrusherModule::ParameterChanged(int parameter_id) {
         m_manualRateLocked = true;
         m_rateKnobLatchValue = GetParameterAsFloat(RATE);
 
-        if(m_hasTrackedRate) {
-            m_manualRateControl = GetRateControlForFrequency(m_lastTrackedRate);
-        }
+        // m_manualRateControl already holds the value from before tracking was
+        // enabled (ParameterChanged(RATE) ignores knob moves while tracking is
+        // on), so it must NOT be replaced by the tracked frequency here -
+        // otherwise disabling tracking gets stuck at the last tracked pitch
+        // until the knob is manually nudged.
 
         if(fabsf(GetParameterAsFloat(RATE) - m_manualRateControl) > s_rateKnobUnlockThreshold) {
             m_restoringManualRate = true;

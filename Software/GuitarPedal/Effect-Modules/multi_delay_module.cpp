@@ -5,6 +5,7 @@
 #include "daisysp.h"
 #include <algorithm>
 #include <array>
+#include <cstring>
 
 using namespace bkshepherd;
 
@@ -224,6 +225,16 @@ void MultiDelayModule::Init(float sample_rate) {
     delays[1].del = &delayLineRight0;
     delays[1].currentDelay = GetParameterAsFloat(DELAY_R_MS);
 
+    // ps_taps lives in SDRAM, which isn't zeroed at startup, and Init() doesn't
+    // set every member (e.g. prev_phs_*, slewed_mod_); leftover garbage there
+    // can latch a NaN into slewed_mod_ permanently, which then poisons the
+    // whole mix (0 * NaN is NaN, not 0, so even Wet=0% wouldn't save it).
+    // PitchShifter is plain data (no vtable/pointers) so a raw zero-fill here
+    // is safe despite its user-provided (but empty) constructor.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
+    memset(ps_taps, 0, sizeof(ps_taps));
+#pragma GCC diagnostic pop
     for (int i = 0; i < 4; ++i) {
         ps_taps[i].Init(sample_rate);
     }
