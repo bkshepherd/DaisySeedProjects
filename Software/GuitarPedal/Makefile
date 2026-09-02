@@ -1,3 +1,16 @@
+# --- Project-local GCC toolchain configuration --- [start]
+# If .gcc_path exists, use it to set GCC_PATH for the correct toolchain version.
+# This must run before the `include $(SYSTEM_FILES_DIR)/Makefile` line below,
+# since libDaisy's core Makefile only honors GCC_PATH (to set CC/CXX/etc.) if
+# it's already defined at the point that file is included - otherwise CC/CXX
+# silently fall back to whatever arm-none-eabi-gcc is on $PATH.
+GCC_PATH_FILE := $(wildcard .gcc_path)
+ifneq ($(GCC_PATH_FILE),)
+  GCC_PATH := $(shell cat $(GCC_PATH_FILE))
+  $(info Using GCC toolchain from .gcc_path: $(GCC_PATH))
+endif
+# --- Project-local GCC toolchain configuration --- [end]
+
 # Project Name
 TARGET =  guitarpedal
 
@@ -68,6 +81,16 @@ CPP_SOURCES += Effect-Modules/tuner_module.cpp
 #CPP_SOURCES += Effect-Modules/pluckecho_module.cpp
 #CPP_SOURCES += Effect-Modules/string_keys_module.cpp
 
+
+# Dattorro plate reverb - disabled by default because Effect-Modules/Dattorro/
+# is licensed GPL-3.0-or-later (see Effect-Modules/Dattorro/README.md), unlike
+# the rest of this MIT-licensed repository. Uncomment both lines below (and
+# the matching block in loaded_effects.h) to opt in; doing so means the
+# resulting firmware binary must be distributed under GPLv3, or not
+# distributed at all.
+# CPP_SOURCES += Effect-Modules/Dattorro/Dattorro.cpp
+# CPP_SOURCES += Effect-Modules/dattorro_reverb_module.cpp
+
 # Compiler options
 OPT=-Ofast
 # OPT=-Og -g
@@ -118,8 +141,14 @@ endif
 # Issues have been experienced with the latest version of arm-none-eabi-gcc, so
 # we add a check here to help guide users to use a supported version
 
+# Determine which compiler to check (use GCC_PATH if set, otherwise system default)
+GCC_CHECK := arm-none-eabi-gcc
+ifdef GCC_PATH
+  GCC_CHECK := $(GCC_PATH)/arm-none-eabi-gcc
+endif
+
 # Get compiler version string safely
-GCC_VERSION := $(shell arm-none-eabi-gcc -dumpversion)
+GCC_VERSION := $(shell $(GCC_CHECK) -dumpversion)
 GCC_VERSION_MAJOR := $(word 1, $(subst ., ,$(GCC_VERSION)))
 GCC_VERSION_MAJOR_REQUIRED := 10
 

@@ -27,6 +27,10 @@ void ClearCanvas(const daisy::UiCanvasDescriptor &canvasDescriptor) {
     }
 }
 
+void HandleResetActiveEffectParametersToDefaults(void *context) {
+    ((GuitarPedalUI *)context)->ResetActiveEffectParametersToDefaults();
+}
+
 // Default Constructor
 GuitarPedalUI::GuitarPedalUI()
     : m_needToCloseActiveEffectSettingsMenu(false), m_paramIdToReturnTo(-1), m_numActiveEffectSettingsItems(0),
@@ -107,6 +111,33 @@ void GuitarPedalUI::UpdateActiveEffectParameterValues() {
     if (hardware.SupportsDisplay()) {
         for (int paramID = 0; paramID < activeEffect->GetParameterCount(); paramID++) {
             UpdateActiveEffectParameterValue(paramID, false);
+        }
+    }
+}
+
+void GuitarPedalUI::ResetActiveEffectParametersToDefaults() {
+    if (!hardware.SupportsDisplay()) {
+        return;
+    }
+
+    // Reset every cached menu value to its factory default. The existing menu-to-effect writeback in
+    // UpdateUI() then pushes these into the Active Effect on the next tick, the same way any other menu
+    // edit would.
+    for (int paramID = 0; paramID < activeEffect->GetParameterCount(); paramID++) {
+        ParameterValueType parameterType = activeEffect->GetParameterType(paramID);
+
+        if (parameterType == ParameterValueType::Unknown || parameterType == ParameterValueType::Raw) {
+            m_activeEffectSettingIntValues[paramID]->ResetToDefault();
+        } else if (parameterType == ParameterValueType::Float) {
+            m_activeEffectSettingFloatValues[paramID]->ResetToDefault();
+        } else if (parameterType == ParameterValueType::Bool) {
+            m_activeEffectSettingBoolValues[paramID] = activeEffect->GetParameterDefaultValueRaw(paramID) > 0;
+        } else if (parameterType == ParameterValueType::Binned) {
+            if (activeEffect->GetParameterBinNames(paramID) == nullptr) {
+                m_activeEffectSettingIntValues[paramID]->ResetToDefault();
+            } else {
+                m_activeEffectSettingStringValues[paramID]->ResetToDefault();
+            }
         }
     }
 }
@@ -224,8 +255,9 @@ void GuitarPedalUI::InitEffectUiPages() {
         m_activeEffectSettingBoolValues[i] = false;
     }
 
-    // Add 1 additional item  on top of m_numActiveEffectSettingsItems for exiting
-    m_activeEffectSettingsMenuItems = new AbstractMenu::ItemConfig[m_numActiveEffectSettingsItems + 1];
+    // Add 2 additional items on top of m_numActiveEffectSettingsItems: one to reset parameters to their
+    // factory defaults, and one for exiting
+    m_activeEffectSettingsMenuItems = new AbstractMenu::ItemConfig[m_numActiveEffectSettingsItems + 2];
 
     for (int i = 0; i < m_numActiveEffectSettingsItems; i++) {
         m_activeEffectSettingsMenuItems[i].text = activeEffect->GetParameterName(i);
@@ -237,7 +269,9 @@ void GuitarPedalUI::InitEffectUiPages() {
             int maxValue = activeEffect->GetParameterMax(i);
             // Unknown or Raw value Types
             m_activeEffectSettingsMenuItems[i].type = AbstractMenu::ItemType::valueItem;
-            m_activeEffectSettingIntValues[i] = new MappedIntValue(minValue, maxValue, activeEffect->GetParameterRaw(i), 1, 5);
+            m_activeEffectSettingIntValues[i] =
+                new MappedIntValue(minValue, maxValue, activeEffect->GetParameterDefaultValueRaw(i), 1, 5);
+            m_activeEffectSettingIntValues[i]->Set(activeEffect->GetParameterRaw(i));
             m_activeEffectSettingsMenuItems[i].asMappedValueItem.valueToModify = m_activeEffectSettingIntValues[i];
         } else if (parameterType == ParameterValueType::Float) {
             float minValue = (float)activeEffect->GetParameterMin(i);
@@ -245,8 +279,10 @@ void GuitarPedalUI::InitEffectUiPages() {
             float fineStep = activeEffect->GetParameterFineStepSize(i);
             // Float Types
             m_activeEffectSettingsMenuItems[i].type = AbstractMenu::ItemType::valueItem;
-            m_activeEffectSettingFloatValues[i] = new MyMappedFloatValue(minValue, maxValue, activeEffect->GetParameterAsFloat(i));
+            m_activeEffectSettingFloatValues[i] =
+                new MyMappedFloatValue(minValue, maxValue, activeEffect->GetParameterDefaultValueAsFloat(i));
             m_activeEffectSettingFloatValues[i]->SetFineStepSize(fineStep);
+            m_activeEffectSettingFloatValues[i]->Set(activeEffect->GetParameterAsFloat(i));
             m_activeEffectSettingsMenuItems[i].asMappedValueItem.valueToModify = m_activeEffectSettingFloatValues[i];
         } else if (parameterType == ParameterValueType::Bool) {
             // Boolean Type
@@ -260,21 +296,32 @@ void GuitarPedalUI::InitEffectUiPages() {
             const char **binNames = activeEffect->GetParameterBinNames(i);
 
             if (binNames == nullptr) {
-                m_activeEffectSettingIntValues[i] = new MappedIntValue(1, activeEffect->GetParameterBinCount(i), binnedValue, 1, 5);
+                m_activeEffectSettingIntValues[i] = new MappedIntValue(
+                    1, activeEffect->GetParameterBinCount(i), (int)(activeEffect->GetParameterDefaultValueRaw(i) + 1), 1, 5);
+                m_activeEffectSettingIntValues[i]->Set(binnedValue);
                 m_activeEffectSettingsMenuItems[i].asMappedValueItem.valueToModify = m_activeEffectSettingIntValues[i];
             } else {
-                m_activeEffectSettingStringValues[i] =
-                    new MappedStringListValue(binNames, activeEffect->GetParameterBinCount(i), binnedValue - 1);
+                m_activeEffectSettingStringValues[i] = new MappedStringListValue(binNames, activeEffect->GetParameterBinCount(i),
+                                                                                  activeEffect->GetParameterDefaultValueRaw(i));
+                m_activeEffectSettingStringValues[i]->SetIndex(binnedValue - 1);
                 m_activeEffectSettingsMenuItems[i].asMappedValueItem.valueToModify = m_activeEffectSettingStringValues[i];
             }
         }
     }
 
-    // Setup the final, exit item for the menu
-    m_activeEffectSettingsMenuItems[m_numActiveEffectSettingsItems].type = AbstractMenu::ItemType::closeMenuItem;
-    m_activeEffectSettingsMenuItems[m_numActiveEffectSettingsItems].text = "Back";
+    // Add 1 more item on top of the parameter items for a generic "reset to factory defaults" action, in
+    // addition to the exit item.
+    m_activeEffectSettingsMenuItems[m_numActiveEffectSettingsItems].type = AbstractMenu::ItemType::callbackFunctionItem;
+    m_activeEffectSettingsMenuItems[m_numActiveEffectSettingsItems].text = "Defaults";
+    m_activeEffectSettingsMenuItems[m_numActiveEffectSettingsItems].asCallbackFunctionItem.callbackFunction =
+        &HandleResetActiveEffectParametersToDefaults;
+    m_activeEffectSettingsMenuItems[m_numActiveEffectSettingsItems].asCallbackFunctionItem.context = this;
 
-    m_activeEffectSettingsMenu.Init(m_activeEffectSettingsMenuItems, m_numActiveEffectSettingsItems + 1);
+    // Setup the final, exit item for the menu
+    m_activeEffectSettingsMenuItems[m_numActiveEffectSettingsItems + 1].type = AbstractMenu::ItemType::closeMenuItem;
+    m_activeEffectSettingsMenuItems[m_numActiveEffectSettingsItems + 1].text = "Back";
+
+    m_activeEffectSettingsMenu.Init(m_activeEffectSettingsMenuItems, m_numActiveEffectSettingsItems + 2);
 }
 
 void GuitarPedalUI::InitGlobalSettingsUIPages() {

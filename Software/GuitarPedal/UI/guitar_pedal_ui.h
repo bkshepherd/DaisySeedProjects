@@ -50,6 +50,11 @@ class GuitarPedalUI {
      */
     void UpdateUI(float elapsedTime);
 
+    /** Resets every Parameter of the Active Effect to its factory default value. Used as the
+     * "Defaults" callbackFunctionItem in the Active Effect settings menu.
+     */
+    void ResetActiveEffectParametersToDefaults();
+
   private:
     void InitUi();
     void InitEffectUiPages();
@@ -89,4 +94,10 @@ class GuitarPedalUI {
     float m_secondsSinceLastActiveEffectSettingsSave;
 };
 } // namespace bkshepherd
+
+/** Trampoline for wiring GuitarPedalUI::ResetActiveEffectParametersToDefaults() up as a
+ * callbackFunctionItem, matching how FactoryReset()/RebootToBootloader() are wired.
+ */
+void HandleResetActiveEffectParametersToDefaults(void *context);
+
 #endif

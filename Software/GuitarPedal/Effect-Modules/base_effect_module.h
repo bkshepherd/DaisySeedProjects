@@ -132,6 +132,12 @@ class BaseEffectModule {
     */
     const float GetParameterDefaultValueAsFloat(int parameter_id) const;
 
+    /** Gets the Default Value for an Effect Parameter as a raw uint32_t value
+     \param parameter_id Id of the parameter to retrieve.
+     \return the raw default Value of the specified parameter.
+    */
+    uint32_t GetParameterDefaultValueRaw(int parameter_id) const;
+
     /** Gets the Raw uint32_t value of an Effect Parameter
      \param parameter_id Id of the parameter to retrieve.
      \return the raw Value of the specified parameter.

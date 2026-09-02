@@ -139,6 +139,15 @@ const float BaseEffectModule::GetParameterDefaultValueAsFloat(int parameter_id) 
     return m_paramMetaData[parameter_id].defaultValue.float_value;
 }
 
+uint32_t BaseEffectModule::GetParameterDefaultValueRaw(int parameter_id) const {
+    // Make sure parameter_id is valid.
+    if (m_params == nullptr || parameter_id < 0 || parameter_id >= m_paramCount || m_paramMetaData == nullptr) {
+        return 0;
+    }
+
+    return m_paramMetaData[parameter_id].defaultValue.uint_value;
+}
+
 uint32_t BaseEffectModule::GetParameterRaw(int parameter_id) const {
     // Make sure parameter_id is valid.
     if (m_params == nullptr || parameter_id < 0 || parameter_id >= m_paramCount) {
