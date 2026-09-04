@@ -20,6 +20,7 @@
 #include "Effect-Modules/flanger_module.h"
 #include "Effect-Modules/geq_module.h"
 #include "Effect-Modules/granulardelay_module.h"
+#include "Effect-Modules/harmonic_tremolo_module.h"
 #include "Effect-Modules/ir_module.h"
 #include "Effect-Modules/looper_module.h"
 #include "Effect-Modules/metro_module.h"
@@ -84,6 +85,7 @@ void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffec
         new PhaserModule(),
         new FlangerModule(),
         new CrusherModule(),
+        new HarmonicTremoloModule(),
 
         // The following require a MIDI keyboard
         // new MidiKeysModule(),
