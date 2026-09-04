@@ -16,9 +16,19 @@ constexpr float kSpeedMax = 16.0f;
 // character of this effect comes from.
 constexpr float kDepthScale = 1.25f;
 
-// Recombining the two bands loses a little level, so the wet path is trimmed
-// back up before the mix.
-constexpr float kMakeupGain = 1.2f;
+// Recombining the two bands loses a little level, so the output is trimmed
+// back up. Flick uses a flat 1.2 here, but it can afford to: downstream it
+// feeds a reverb and a hard limiter. Standing alone the flat value is a
+// problem, because the two counter phase bands sum to more energy as depth
+// rises. Measured over the depth range that is about 3.8dB of drift, ending
+// at a peak of 1.49, and the pedal writes straight out to the codec with
+// nothing to catch it.
+//
+// So the gain is scaled by the RMS of the modulators instead, sqrt(1 + m^2/2)
+// for a bipolar sine of amplitude m. That holds the output inside a 1.3dB
+// window at every depth setting and keeps peaks under about 1.12. Turning
+// depth up then changes the character rather than the volume.
+constexpr float kMakeupGainBase = 1.2f;
 
 // Band split, taken from the Fender 6G12-A schematic.
 constexpr float kBandSplitLowCutoff = 144.0f;  // 220K and 5nF low pass
@@ -67,6 +77,11 @@ void ConfigureLowShelf(cycfi::q::biquad &filter, float gainDb, float freq, float
     filter.config(b0 / a0, b1 / a0, b2 / a0, a1 / a0, a2 / a0);
 }
 
+/** Makeup gain for a given modulation amount, see kMakeupGainBase. */
+float MakeupGainForDepth(float modulation) {
+    return kMakeupGainBase / sqrtf(1.0f + modulation * modulation * 0.5f);
+}
+
 } // namespace
 
 static const auto s_metaData = [] {
@@ -90,24 +105,6 @@ static const auto s_metaData = [] {
         midiCCMapping : 15
     };
 
-    params[HarmonicTremoloModule::MIX] = {
-        name : "Mix",
-        valueType : ParameterValueType::Float,
-        valueBinCount : 0,
-        defaultValue : {.float_value = 1.0f},
-        knobMapping : 2,
-        midiCCMapping : 16
-    };
-
-    params[HarmonicTremoloModule::LEVEL] = {
-        name : "Level",
-        valueType : ParameterValueType::Float,
-        valueBinCount : 0,
-        defaultValue : {.float_value = 1.0f},
-        knobMapping : 3,
-        midiCCMapping : 17
-    }; // Output level (linear gain from silent to unity).
-
     return params;
 }();
 
@@ -119,7 +116,7 @@ HarmonicTremoloModule::HarmonicTremoloModule()
       m_eqPeakPresence{
           cycfi::q::peaking(kEqPeakPresenceGain, cycfi::q::frequency{kEqPeakPresenceFreq}, kDefaultSampleRate, kEqPeakPresenceQ),
           cycfi::q::peaking(kEqPeakPresenceGain, cycfi::q::frequency{kEqPeakPresenceFreq}, kDefaultSampleRate, kEqPeakPresenceQ)},
-      m_speedSmoothed(kSpeedMin), m_depthSmoothed(0.0f), m_lastLfoValue(0.0f) {
+      m_speedSmoothed(kSpeedMin), m_depthSmoothed(0.0f), m_makeupGain(kMakeupGainBase), m_lastLfoValue(0.0f) {
     // Set the name of the effect
     m_name = "Harm Trem";
 
@@ -157,6 +154,7 @@ void HarmonicTremoloModule::Init(float sample_rate) {
     // positions instead of sliding up to them.
     m_speedSmoothed = kSpeedMin + GetParameterAsFloat(SPEED) * (kSpeedMax - kSpeedMin);
     m_depthSmoothed = GetParameterAsFloat(DEPTH) * kDepthScale;
+    m_makeupGain = MakeupGainForDepth(m_depthSmoothed);
     m_lastLfoValue = 0.0f;
 }
 
@@ -194,13 +192,10 @@ void HarmonicTremoloModule::ProcessMono(float in) {
     m_lfo.SetAmp(m_depthSmoothed);
     m_lastLfoValue = m_lfo.Process();
 
-    const float mix = GetParameterAsFloat(MIX);
-    const float level = GetParameterAsFloat(LEVEL);
+    // Track the gain against the smoothed depth so it never steps.
+    m_makeupGain = MakeupGainForDepth(m_depthSmoothed);
 
-    const float wet = ProcessChannel(0, m_audioLeft, m_lastLfoValue) * kMakeupGain;
-
-    // Handle the wet / dry mix
-    m_audioLeft = (wet * mix + m_audioLeft * (1.0f - mix)) * level;
+    m_audioLeft = ProcessChannel(0, m_audioLeft, m_lastLfoValue) * m_makeupGain;
     m_audioRight = m_audioLeft;
 }
 
@@ -212,15 +207,9 @@ void HarmonicTremoloModule::ProcessStereo(float inL, float inR) {
     // inputR instead of combined mono)
     BaseEffectModule::ProcessStereo(m_audioLeft, inR);
 
-    const float mix = GetParameterAsFloat(MIX);
-    const float level = GetParameterAsFloat(LEVEL);
-
-    // Reuse the LFO value from the left channel so the two stay locked
-    // together instead of drifting into an unintended auto-pan.
-    const float wet = ProcessChannel(1, m_audioRight, m_lastLfoValue) * kMakeupGain;
-
-    // Handle the wet / dry mix
-    m_audioRight = (wet * mix + m_audioRight * (1.0f - mix)) * level;
+    // Reuse the LFO value and gain from the left channel so the two stay
+    // locked together instead of drifting into an unintended auto-pan.
+    m_audioRight = ProcessChannel(1, m_audioRight, m_lastLfoValue) * m_makeupGain;
 }
 
 void HarmonicTremoloModule::SetTempo(uint32_t bpm) {

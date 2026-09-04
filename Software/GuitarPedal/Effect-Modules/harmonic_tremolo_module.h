@@ -66,8 +66,6 @@ class HarmonicTremoloModule : public BaseEffectModule {
     enum Param {
         SPEED = 0,
         DEPTH,
-        MIX,
-        LEVEL,
         PARAM_COUNT
     };
 
@@ -85,7 +83,7 @@ class HarmonicTremoloModule : public BaseEffectModule {
         \param channel 0 for left, 1 for right.
         \param in Dry input sample for that channel.
         \param lfo Current LFO value, shared by both channels.
-        \return The wet sample, before mix and level.
+        \return The processed sample, before makeup gain.
     */
     float ProcessChannel(int channel, float in, float lfo);
 
@@ -104,6 +102,7 @@ class HarmonicTremoloModule : public BaseEffectModule {
 
     float m_speedSmoothed;
     float m_depthSmoothed;
+    float m_makeupGain;
     float m_lastLfoValue;
 };
 } // namespace bkshepherd
