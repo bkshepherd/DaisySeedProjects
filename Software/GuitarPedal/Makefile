@@ -52,6 +52,7 @@ CPP_SOURCES += Effect-Modules/flanger_module.cpp
 CPP_SOURCES += Effect-Modules/geq_module.cpp
 CPP_SOURCES += Effect-Modules/granulardelay_module.cpp
 CPP_SOURCES += Effect-Modules/distortion_module.cpp
+CPP_SOURCES += Effect-Modules/effect_chain.cpp
 CPP_SOURCES += Effect-Modules/harmonic_tremolo_module.cpp
 CPP_SOURCES += Effect-Modules/ImpulseResponse/ImpulseResponse.cpp
 CPP_SOURCES += Effect-Modules/ImpulseResponse/ir_data.cpp
@@ -111,6 +112,15 @@ LDFLAGS += -T$(abspath nam_a2_sections.lds)
 # Core location, and generic Makefile.
 SYSTEM_FILES_DIR = $(LIBDAISY_DIR)/core
 include $(SYSTEM_FILES_DIR)/Makefile
+
+# Override libDaisy's `program-dfu` to wait for a DFU-capable device instead
+# of failing immediately if one isn't already enumerated. Without -w, you
+# have to win a race against the bootloader's DFU window (reset the pedal,
+# then run this fast enough); with it, run this first and reset whenever.
+.PHONY: program-dfu
+program-dfu:
+	@echo "Waiting for Daisy in DFU mode -- press RESET on the pedal now."
+	dfu-util -w -a 0 -s $(FLASH_ADDRESS):leave -D $(BUILD_DIR)/$(TARGET_BIN) -d ,0483:$(USBPID)
 
 # Included as system instead of regular includes to avoid warnings from the
 # 3rd party dependencies

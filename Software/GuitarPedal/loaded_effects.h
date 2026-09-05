@@ -17,6 +17,7 @@
 #include "Effect-Modules/delay_module.h"
 #include "Effect-Modules/distortion_module.h"
 #include "Effect-Modules/drum_module.h"
+#include "Effect-Modules/effect_chain.h" // Some caution required - See README and examples below for usage
 #include "Effect-Modules/flanger_module.h"
 #include "Effect-Modules/geq_module.h"
 #include "Effect-Modules/granulardelay_module.h"
@@ -61,25 +62,25 @@ void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffec
         new AutoPanModule(),
         new ChorusModule(),
         new ChopperModule(),
-        new ReverbModule(),
-        new MultiDelayModule(),
+        new ReverbModule(), // single-instance only
+        new MultiDelayModule(),  // single-instance-only
         new MetroModule(),
-        new TunerModule(),
-        new PitchShifterModule(),
+        new TunerModule(), // single-instance only
+        new PitchShifterModule(),  // single-instance-only
         new CompressorModule(),
-        new LooperModule(),
+        new LooperModule(),  // single-instance-only
         new GraphicEQModule(),
         new ParametricEQModule(),
         new NoiseGateModule(),
-        new CloudSeedModule(),
-        new DelayModule(),
-        new TapeDelayModule(),
-        new NamA2Module(),
-        new SciFiModule(),
+        new CloudSeedModule(), // single-instance only
+        new DelayModule(), // single-instance only
+        new TapeDelayModule(),  // single-instance-only
+        new NamA2Module(),  // single-instance-only
+        new SciFiModule(),  // single-instance-only
         new PolyOctaveModule(),
-        new SpectralDelayModule(),
+        new SpectralDelayModule(),  // single-instance-only
         new DistortionModule(),
-        new GranularDelayModule(),
+        new GranularDelayModule(),  // single-instance-only
         new IrModule(),
         new DrumModule(),  // This module can be used with MIDI keyboard as a drum machine
         new PhaserModule(),
@@ -89,13 +90,53 @@ void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffec
 
         // The following require a MIDI keyboard
         // new MidiKeysModule(),
-        // new PluckEchoModule(),
+        // new PluckEchoModule(),  // single-instance-only
         // new StringKeysModule(),
         // new ModalKeysModule(),
         // new FmKeysModule(),
 
         // GPL-3.0-or-later - see Effect-Modules/Dattorro/README.md
         // new DattorroReverbModule(),
+
+        // Effects chain examples
+
+        // Combines two or more effects into one, processed serially. Note that
+        // many modules cannot be used more than once - see README.md.
+        // In this case, the ReverbModule is single-instance only, so it cannot
+        // be used standalone if it is used here.
+
+        // new EffectChain(
+        //     "Trem+Verb",
+        //     // Slots: a short menu tag plus the child effect instance (owned by the chain).
+        //     {{"Tr", new ModulatedTremoloModule()}, {"Rv", new ReverbModule()}},
+        //     // Knob/MIDI CC mappings: {slot, child param id, knob (-1 = none), midi CC (-1 = none)}.
+        //     {{0, ModulatedTremoloModule::DEPTH, 0, 20},
+        //      {0, ModulatedTremoloModule::FREQ,  1, 21},
+        //      {0, ModulatedTremoloModule::WAVE,  2, 22},
+        //      {1, ReverbModule::TIME,            3, 23},
+        //      {1, ReverbModule::DAMP,            4, 24},
+        //      {1, ReverbModule::MIX,             5, 25}}),
+
+        // Example of the alternate footswitch's toggle mode: instead of tap
+        // tempo, pressing it toggles the tremolo off/on (and leaves the
+        // reverb and delay always-on). Change footswitchTogglesSlots to {0, 1}
+        // to toggle tremolo+delay together, or to {} to give the footswitch
+        // back to the delay for tap tempo instead.
+        // Note that DelayModule is single-instance-only so cannot be used
+        // standalone if it is used here.
+
+        // new EffectChain(
+        //     "HT+Dly+Rv",
+        //     {{"HT", new HarmonicTremoloModule()}, {"Dl", new DelayModule()}, {"Rv", new DattorroReverbModule()}},
+        //     // Knob/MIDI CC mappings: {slot, child param id, knob (-1 = none), midi CC (-1 = none)}.
+        //     {{2, DattorroReverbModule::MIX,    0, 20},
+        //      {0, HarmonicTremoloModule::DEPTH, 1, 21},
+        //      {0, HarmonicTremoloModule::SPEED, 2, 22},
+        //      {1, DelayModule::DELAY_TIME,      3, 23},
+        //      {1, DelayModule::D_FEEDBACK,      4, 24},
+        //      {1, DelayModule::DELAY_MIX,       5, 25}},
+        //     /* primarySlot */ 1,
+        //     /* footswitchTogglesSlots */ {0}),
     };
     // clang-format on
 

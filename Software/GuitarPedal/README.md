@@ -150,6 +150,83 @@ To opt in:
 2. Uncomment the `#include` and `new DattorroReverbModule(),` lines in `loaded_effects.h`.
 3. Rebuild and flash.
 
+## Combining Effects (EffectChain)
+
+`Effect-Modules/effect_chain.h` lets you wire two or more effects into a single chained entry in
+`loaded_effects.h`, processed serially (e.g. tremolo into reverb), without changing any of the
+effect modules themselves or the menu/UI code. See `loaded_effects.h` for a working `"Trem+Verb"`
+example.
+
+```cpp
+new EffectChain(
+    "Trem+Verb",
+    // Slots: a short menu tag plus the child effect instance (owned by the chain).
+    {{"Tr", new ModulatedTremoloModule()}, {"Rv", new ReverbModule()}},
+    // Knob/MIDI CC mappings: {slot, child param id, knob (-1 = none), midi CC (-1 = none)}.
+    {{0, ModulatedTremoloModule::DEPTH, 0, 20},
+     {0, ModulatedTremoloModule::FREQ, 1, 21},
+     {1, ReverbModule::TIME, 2, 22},
+     {1, ReverbModule::DAMP, 3, 23},
+     {1, ReverbModule::MIX, 4, 24}}),
+```
+
+Every child parameter shows up in the effect's parameter menu, tagged with its slot's prefix (e.g.
+"Tr Depth", "Rv Mix") so identically-named parameters from different children stay distinct; only
+the parameters listed in the mapping array are reachable from a knob or MIDI CC. One slot (the
+first, by default) is the "primary" child that owns the LED and the alternate footswitch, since
+those are single, pedal-wide resources that can't be given to every child at once.
+
+Every slot also gets its own "\<tag\> On" checkbox in the menu, defaulting to on, so any slot can be
+bypassed independently. This is saved with presets exactly like any other parameter.
+
+By default the alternate footswitch just forwards to the primary child (tap tempo, shift layers,
+whatever that child normally does with it). Pass `footswitchTogglesSlots` to repurpose it instead:
+a press toggles the "On" state of every listed slot together, as a group. This is the more useful
+option when one part of a chain (e.g. a tremolo ahead of an always-on reverb) is more valuable as
+something you can stomp on and off than as whatever its own alternate function would have been:
+
+```cpp
+new EffectChain(
+    "HT+Dly+Rv",
+    {{"Tr", new HarmonicTremoloModule()}, {"Dl", new DelayModule()}, {"Rv", new DattorroReverbModule()}},
+    {{2, DattorroReverbModule::MIX,    0, 20},
+     {0, HarmonicTremoloModule::DEPTH, 1, 21},
+     {0, HarmonicTremoloModule::SPEED, 2, 22},
+     {1, DelayModule::DELAY_TIME,      3, 23},
+     {1, DelayModule::D_FEEDBACK,      4, 24},
+     {1, DelayModule::DELAY_MIX,       5, 25}},
+    /* primarySlot */ 1,
+    /* footswitchTogglesSlots */ {0}), // {0,1} toggles trem+delay together; {} gives the footswitch back to the delay for tap tempo
+```
+
+A `ChainMapping` can also target a slot's own "On" parameter instead of a child parameter, using the
+`EffectChain::SLOT_ENABLE` sentinel (e.g. `{0, EffectChain::SLOT_ENABLE, -1, 30}`), which puts that
+bypass on a MIDI CC regardless of whether the footswitch is also toggling it.
+
+Turning a slot off crossfades it out over about a tenth of a second and then stops processing it
+entirely, both to avoid a click and to save CPU — the same way the pedal's own global bypass works.
+Note that: a delay or reverb tail gets cut off at the end of that fade rather than being allowed to
+ring out.
+
+This isn't meant to support every combination of effects — some modules need caution, or are a poor
+fit for chaining altogether:
+
+- **Single-instance-only modules.** A module that keeps its DSP buffers in a file-scope
+  `DSY_SDRAM_BSS` (or similarly static) global has every *instance* of that class alias the same
+  memory, so it may only appear **once** across the whole `effectList`, whether standalone, chained, or
+  both. Modules in this category: `ReverbModule`, `DattorroReverbModule`, `DelayModule`,
+  `TapeDelayModule`, `MultiDelayModule`, `GranularDelayModule`, `SpectralDelayModule`,
+  `SciFiModule`, `PitchShifterModule`, `LooperModule`, `PluckEchoModule`, `NamA2Module`,
+  `CloudSeedModule`, `TunerModule`.
+- **Custom on-screen displays are lost.** A chain always draws its own generic name/parameter screen
+  instead of forwarding to a child's `DrawUI`, so these modules lose some or all of their custom
+  display when chained: `AutoPanModule`, `ChopperModule`, `DelayModule`, `GraphicEQModule`,
+  `LooperModule`, `MetroModule`, `ParametricEQModule`, `PitchShifterModule`, `TapeDelayModule`,
+  `TunerModule`. This doesn't stop them working, but it can be confusing.
+- **Per-effect "shift layer" / alternate knob banks aren't reachable inside a chain.** `DelayModule`
+  and `TapeDelayModule` remap physical knobs to different parameters based on the second footswitch.
+  Menu, MIDI CC, and the always-primary-knob-bank parameters are unaffected.
+
 ## Using pre-compiled releases
 
 1. Download the .zip for the hardware variant you have built from the latest release https://github.com/bkshepherd/DaisySeedProjects/releases

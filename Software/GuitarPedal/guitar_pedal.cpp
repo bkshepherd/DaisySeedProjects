@@ -107,6 +107,14 @@ bool alternateHeldFor1SecondTriggered = false;
 bool needToChangeTempo = false;
 uint32_t globalTempoBPM = 0;
 
+// Set when an alternate footswitch event may have changed the active
+// effect's own parameters from inside itself (e.g. EffectChain's
+// footswitch-toggle mode flipping a slot's "On" parameter). The menu's
+// per-tick writeback loop would otherwise silently revert that change on the
+// next UpdateUI(), so the main loop must refresh the UI's cached values
+// first - see the needToChangeTempo handling below for the same pattern.
+bool needToRefreshMenuParameterValues = false;
+
 bool isCrossFading = false;
 bool isCrossFadingForward = true; // True goes Source->Target, False goes Target->Source
 CrossFade crossFaderLeft, crossFaderRight;
@@ -290,6 +298,7 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
 
         if (effectOn && switchPressed && i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)) {
             activeEffect->AlternateFootswitchPressed();
+            needToRefreshMenuParameterValues = true;
         }
 
         bool switchReleased = hardware.switches[i].FallingEdge();
@@ -298,6 +307,7 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
         }
         if (effectOn && switchReleased && i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)) {
             activeEffect->AlternateFootswitchReleased();
+            needToRefreshMenuParameterValues = true;
         }
 
         bool switchHeld = hardware.switches[i].TimeHeldMs() >= 1000.f;
@@ -305,6 +315,7 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
             i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)) {
             alternateHeldFor1SecondTriggered = true;
             activeEffect->AlternateFootswitchHeldFor1Second();
+            needToRefreshMenuParameterValues = true;
         }
 
         if (switchEnabledCache[i] == true) {
@@ -714,6 +725,15 @@ int main(void) {
             needToChangeTempo = false;
 
             // Update the effect parameters on the menu system to reflect any changes
+            guitarPedalUI.UpdateActiveEffectParameterValues();
+        }
+
+        // An alternate footswitch event may have changed the active effect's
+        // own parameters (e.g. EffectChain's footswitch-toggle mode). Refresh
+        // the menu's cached values from it before UpdateUI() runs below,
+        // otherwise the menu's own writeback would silently revert the change.
+        if (needToRefreshMenuParameterValues) {
+            needToRefreshMenuParameterValues = false;
             guitarPedalUI.UpdateActiveEffectParameterValues();
         }
 

@@ -1,5 +1,5 @@
 // wave.h // interpolated lookup table
-#ifndef WAVE
+#ifndef STFT_WAVE_H
 
 #include <functional>
 
@@ -72,5 +72,5 @@ template <typename T> class Wave {
 };
 } // namespace soundmath
 
-#define WAVE
+#define STFT_WAVE_H
 #endif
