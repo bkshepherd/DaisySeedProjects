@@ -63,6 +63,7 @@ void InitPersistantStorage() {
     defaultSettings.globalMidiThrough = true;
     defaultSettings.globalRelayBypassEnabled = false;
     defaultSettings.globalSplitMonoInputToStereo = true;
+    defaultSettings.globalEffectOn = false;
 
     // All Effect Params in the settings should be zero'd
     for (int i = 0; i < SETTINGS_ABSOLUTE_MAX_PARAM_COUNT; i++) {

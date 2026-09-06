@@ -369,6 +369,13 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
             activeEffect->SetEnabled(effectOn);
         }
 
+        // Persist the toggle so a power cycle restores the pedal in the same
+        // on/off state it was left in. This is a plain memory write (like
+        // SetActiveEffect's settings.globalActiveEffectID update), flushed to
+        // flash by the periodic storage.Save() in the main loop - no separate
+        // save gesture needed.
+        settings.globalEffectOn = effectOn;
+
         // Setup the crossfade
         isCrossFading = true;
         samplesTilCrossFadingComplete = crossFaderTransitionTimeInSamples;
@@ -628,7 +635,21 @@ int main(void) {
     // Set the active effect
     activeEffect = availableEffects[settings.globalActiveEffectID];
     activeEffectID = settings.globalActiveEffectID;
+    effectOn = settings.globalEffectOn;
     activeEffect->SetEnabled(effectOn);
+
+    // LoadEffectSettingsFromPersistantStorage() above loads every effect's own
+    // saved preset 0, in effectList order. An effect that shares a
+    // single-instance-only child with another effect (e.g. one
+    // DattorroReverbModule referenced from two EffectChains, see README) ends
+    // up with whichever of those effects happens to load last, which isn't
+    // necessarily the one about to be active. Reloading just the active
+    // effect's own preset 0 here makes it the final writer of anything it
+    // touches, so it matches what the user actually saved for it. This is a
+    // no-op for every parameter that isn't shared (SetParameterRaw/
+    // SetParameterAsFloat only call ParameterChanged when a value actually
+    // differs from what's already set).
+    LoadPresetFromPersistentStorage(activeEffectID, 0);
 
     // Init the Menu UI System
     if (hardware.SupportsDisplay()) {
@@ -642,7 +663,7 @@ int main(void) {
 
     // Setup Relay Bypass State
     if (hardware.SupportsTrueBypass() && settings.globalRelayBypassEnabled) {
-        bypassOn = true;
+        bypassOn = !effectOn;
     }
 
     // Init the Knob Monitoring System
@@ -663,11 +684,13 @@ int main(void) {
         switchEnabledSamplesTilIdle[i] = 0;
     }
 
-    // Setup the cross fader
+    // Setup the cross fader. Match the restored effectOn state so the audio
+    // path doesn't start silently bypassed/wet relative to what SetEnabled()
+    // and the LEDs already reflect above.
     crossFaderLeft.Init();
     crossFaderRight.Init();
-    crossFaderLeft.SetPos(0.0f);
-    crossFaderRight.SetPos(0.0f);
+    crossFaderLeft.SetPos(effectOn ? 1.0f : 0.0f);
+    crossFaderRight.SetPos(effectOn ? 1.0f : 0.0f);
 
     // start callback
     hardware.StartAdc();
