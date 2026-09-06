@@ -106,16 +106,22 @@ void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffec
         // be used standalone if it is used here.
 
         // new EffectChain(
-        //     "Trem+Verb",
+        //     "TremVerb",
         //     // Slots: a short menu tag plus the child effect instance (owned by the chain).
         //     {{"Tr", new ModulatedTremoloModule()}, {"Rv", new ReverbModule()}},
         //     // Knob/MIDI CC mappings: {slot, child param id, knob (-1 = none), midi CC (-1 = none)}.
-        //     {{0, ModulatedTremoloModule::DEPTH, 0, 20},
-        //      {0, ModulatedTremoloModule::FREQ,  1, 21},
-        //      {0, ModulatedTremoloModule::WAVE,  2, 22},
-        //      {1, ReverbModule::TIME,            3, 23},
-        //      {1, ReverbModule::DAMP,            4, 24},
-        //      {1, ReverbModule::MIX,             5, 25}}),
+        //     {{0, ModulatedTremoloModule::DEPTH,    0, 20},
+        //      {0, ModulatedTremoloModule::FREQ,     1, 21},
+        //      {0, ModulatedTremoloModule::WAVE,     2, 22},
+
+        //      {1, ReverbModule::TIME,               3, 23},
+        //      {1, ReverbModule::DAMP,               4, 24},
+        //      {1, ReverbModule::MIX,                5, 25},
+             
+        //      // Shift bank - hold the alternate footswitch for 1s to reach these.
+        //      {0, ModulatedTremoloModule::OSC_WAVE, 6, 26},
+        //      {0, ModulatedTremoloModule::OSC_FREQ, 7, 27}}
+        // ),
 
         // Example of the alternate footswitch's toggle mode: instead of tap
         // tempo, pressing it toggles the tremolo off/on (and leaves the
@@ -126,17 +132,28 @@ void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffec
         // standalone if it is used here.
 
         // new EffectChain(
-        //     "HT+Dly+Rv",
+        //     "Ambience",
         //     {{"HT", new HarmonicTremoloModule()}, {"Dl", new DelayModule()}, {"Rv", new DattorroReverbModule()}},
         //     // Knob/MIDI CC mappings: {slot, child param id, knob (-1 = none), midi CC (-1 = none)}.
-        //     {{2, DattorroReverbModule::MIX,    0, 20},
-        //      {0, HarmonicTremoloModule::DEPTH, 1, 21},
-        //      {0, HarmonicTremoloModule::SPEED, 2, 22},
-        //      {1, DelayModule::DELAY_TIME,      3, 23},
-        //      {1, DelayModule::D_FEEDBACK,      4, 24},
-        //      {1, DelayModule::DELAY_MIX,       5, 25}},
-        //     /* primarySlot */ 1,
-        //     /* footswitchTogglesSlots */ {0}),
+        //     {{2, DattorroReverbModule::MIX,       0, 20},
+        //      {0, HarmonicTremoloModule::DEPTH,    1, 21},
+        //      {0, HarmonicTremoloModule::SPEED,    2, 22},
+
+        //      {1, DelayModule::DELAY_MIX,          3, 23},
+        //      {1, DelayModule::DELAY_TIME,         4, 24},
+        //      {1, DelayModule::D_FEEDBACK,         5, 25},
+
+        //      // Shift bank - hold the alternate footswitch for 1s to reach these.
+        //      {2, DattorroReverbModule::TONE,      6, 26},
+        //      {2, DattorroReverbModule::DECAY,     7, 27},
+        //      {2, DattorroReverbModule::SIZE,      8, 28},
+             
+        //      {1, DelayModule::D_SPREAD,            9, 29},
+        //      {1, DelayModule::MOD_AMT,          10, 30},
+        //      {1, DelayModule::MOD_RATE,            11, 31}},
+        //     /* primarySlot */ 1, // delay owns the LED
+        //     /* footswitchTogglesSlots */ {0} // but footswitch toggles tremolo on/off
+        // ),
     };
     // clang-format on
 

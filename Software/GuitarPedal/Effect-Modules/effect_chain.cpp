@@ -41,8 +41,9 @@ using daisysp::CrossFade;
 //  - A chain always draws its own name on the home screen, so children with
 //    a custom DrawUI (Tuner, Looper, the EQs, AutoPan) lose their display.
 //  - GetMappedParameterIDForKnob is resolved against the chain's combined
-//    metadata, so per-effect "shift layer" knob banks (Delay, TapeDelay)
-//    aren't reachable inside a chain.
+//    metadata, so a child's own "shift layer" knob bank (Delay, TapeDelay)
+//    isn't reachable inside a chain - use the chain's own shift bank
+//    instead (see the class comment in effect_chain.h).
 //
 // These aren't handled specially - an unsuitable combination is expected to
 // just misbehave or crash rather than being defended against here.
@@ -72,8 +73,9 @@ constexpr float kSlotFadeTimeInSeconds = 0.1f;
 
 EffectChain::EffectChain(const char *name, std::initializer_list<ChainSlot> slots, std::initializer_list<ChainMapping> mappings,
                           int primarySlot, std::initializer_list<int> footswitchTogglesSlots)
-    : BaseEffectModule(), m_slotCount(static_cast<int>(slots.size())), m_primarySlot(primarySlot), m_fadeTimeSamples(1),
-      m_combinedMetaData(nullptr), m_combinedNames(nullptr), m_paramSlot(nullptr), m_paramChildId(nullptr) {
+    : BaseEffectModule(), m_slotCount(static_cast<int>(slots.size())), m_primarySlot(primarySlot), m_hasShiftBank(false),
+      m_shiftModeActive(false), m_fadeTimeSamples(1), m_combinedMetaData(nullptr), m_combinedNames(nullptr),
+      m_paramSlot(nullptr), m_paramChildId(nullptr) {
     m_slots = new ChainSlot[m_slotCount];
     int slotIdx = 0;
     for (const auto &slot : slots) {
@@ -201,6 +203,10 @@ EffectChain::EffectChain(const char *name, std::initializer_list<ChainSlot> slot
 
         m_combinedMetaData[id].knobMapping = mapping.knobMapping;
         m_combinedMetaData[id].midiCCMapping = mapping.midiCCMapping;
+
+        if (mapping.knobMapping >= kShiftKnobOffset) {
+            m_hasShiftBank = true;
+        }
     }
 
     delete[] slotParamOffset;
@@ -395,6 +401,23 @@ float EffectChain::GetBrightnessForLED(int led_id) const {
     return value;
 }
 
+int EffectChain::GetMappedParameterIDForKnob(int knob_id) const {
+    if (m_shiftModeActive) {
+        return BaseEffectModule::GetMappedParameterIDForKnob(knob_id + kShiftKnobOffset);
+    }
+    return BaseEffectModule::GetMappedParameterIDForKnob(knob_id);
+}
+
+void EffectChain::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int numItemsTotal, Rectangle boundsToDrawIn,
+                          bool isEditing) {
+    BaseEffectModule::DrawUI(display, currentIndex, numItemsTotal, boundsToDrawIn, isEditing);
+
+    if (m_shiftModeActive) {
+        display.SetCursor(boundsToDrawIn.GetRight() - 40, 2);
+        display.WriteString("SHIFT", Font_6x8, true);
+    }
+}
+
 void EffectChain::OnNoteOn(float notenumber, float velocity) {
     for (int s = 0; s < m_slotCount; s++) {
         m_slots[s].effect->OnNoteOn(notenumber, velocity);
@@ -451,6 +474,13 @@ void EffectChain::AlternateFootswitchReleased() {
 }
 
 void EffectChain::AlternateFootswitchHeldFor1Second() {
+    if (m_hasShiftBank) {
+        // The shift bank takes over this gesture entirely - primarySlot's own
+        // AlternateFootswitchHeldFor1Second is never reached once a chain has
+        // enough mappings to need a second knob bank.
+        m_shiftModeActive = !m_shiftModeActive;
+        return;
+    }
     if (m_footswitchToggleSlotCount > 0) {
         return;
     }

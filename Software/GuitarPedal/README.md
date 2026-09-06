@@ -208,6 +208,37 @@ entirely, both to avoid a click and to save CPU — the same way the pedal's own
 Note that: a delay or reverb tail gets cut off at the end of that fade rather than being allowed to
 ring out.
 
+A chain only has 6 physical knobs to share between however many children it has, which runs out
+fast. Give any `ChainMapping` a `knobMapping` of 6 or higher (`EffectChain::kShiftKnobOffset` and up)
+and that parameter moves to a second knob bank instead of being unreachable: holding the alternate
+footswitch for a second toggles between the two banks (an on-screen "SHIFT" label shows when the
+second bank is active), and holding it again switches back. Physical knob 1 reads whatever's mapped
+to knob 0 normally, and whatever's mapped to knob 6 while shifted; knob 2 maps to 1/7, and so on
+through knob 6 mapping to 5/11. This only kicks in when a chain actually uses a `knobMapping` of 6 or
+higher somewhere — with every mapping in 0-5, holding the footswitch keeps forwarding to the primary
+child (or stays a no-op under `footswitchTogglesSlots`) exactly as before:
+
+```cpp
+new EffectChain(
+    "HT+Dly+Rv",
+    {{"Tr", new HarmonicTremoloModule()}, {"Dl", new DelayModule()}, {"Rv", new DattorroReverbModule()}},
+    {{2, DattorroReverbModule::MIX,       0, 20},
+     {0, HarmonicTremoloModule::DEPTH,    1, 21},
+     {0, HarmonicTremoloModule::SPEED,    2, 22},
+     {1, DelayModule::DELAY_TIME,         3, 23},
+     {1, DelayModule::D_FEEDBACK,         4, 24},
+     {1, DelayModule::DELAY_MIX,          5, 25},
+     // Shift bank - reachable by holding the alternate footswitch for 1s.
+     {2, DattorroReverbModule::PRE_DELAY, 6, 26},
+     {2, DattorroReverbModule::DECAY,     7, 27},
+     {2, DattorroReverbModule::TONE,      8, 28},
+     {2, DattorroReverbModule::DIFFUSE,   9, 29},
+     {1, DelayModule::DELAY_LPF,          10, 30},
+     {1, DelayModule::MOD_AMT,            11, 31}},
+    /* primarySlot */ 1,
+    /* footswitchTogglesSlots */ {0}),
+```
+
 This isn't meant to support every combination of effects — some modules need caution, or are a poor
 fit for chaining altogether:
 

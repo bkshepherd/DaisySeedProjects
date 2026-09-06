@@ -66,7 +66,9 @@ struct ChainMapping {
  * child would, for example, make a Looper child start recording and a Delay
  * child flip its shift layer on the same press). `primarySlot` defaults to
  * 0, matching the expected use of putting the modulation/tempo effect first
- * (e.g. Tremolo -> Reverb).
+ * (e.g. Tremolo -> Reverb). The chain's own knob-shift bank (below) takes
+ * over the "held for 1 second" gesture when it's in use, so `primarySlot`'s
+ * own `AlternateFootswitchHeldFor1Second` is then never reached.
  *
  * `footswitchTogglesSlots` repurposes the alternate footswitch: instead of
  * forwarding to `primarySlot` (tap tempo, shift layers, ...), a press
@@ -76,6 +78,19 @@ struct ChainMapping {
  * part of the chain than as that child's own alternate function - e.g.
  * toggling just a tremolo, or a tremolo and delay together, ahead of a
  * reverb that stays always-on.
+ *
+ * A chain has only 6 physical knobs to go around, which runs out fast once
+ * two or three children are combined. Giving any `ChainMapping` a
+ * `knobMapping` of `kShiftKnobOffset` (6) or higher puts that parameter on a
+ * second bank, reachable by the same 6 knobs after holding the alternate
+ * footswitch for a second: knob N normally reads whatever's mapped to knob
+ * N, but while shifted it reads whatever's mapped to knob `N +
+ * kShiftKnobOffset` instead (so "knob 7" through "knob 12" in mapping terms
+ * are physical knobs 1-6, shifted). Holding again returns to the normal
+ * bank. The shift bank only exists if some `ChainMapping` actually uses a
+ * `knobMapping` of 6 or higher; otherwise (6 or fewer knobs, all in 0-5)
+ * holding the footswitch keeps today's behavior of forwarding to
+ * `primarySlot` instead (or is a no-op, under `footswitchTogglesSlots`).
  *
  * Not every effect module is a good fit for chaining - see the constraints
  * called out in the file comment for effect_chain.cpp.
@@ -87,6 +102,11 @@ class EffectChain : public BaseEffectModule {
      */
     static constexpr int SLOT_ENABLE = -1;
 
+    /** `ChainMapping::knobMapping` values at or above this select the
+     * "shifted" bank - see the class comment.
+     */
+    static constexpr int kShiftKnobOffset = 6;
+
     EffectChain(const char *name, std::initializer_list<ChainSlot> slots, std::initializer_list<ChainMapping> mappings,
                 int primarySlot = 0, std::initializer_list<int> footswitchTogglesSlots = {});
     ~EffectChain() override;
@@ -97,7 +117,10 @@ class EffectChain : public BaseEffectModule {
     void SetEnabled(bool isEnabled) override;
     void SetTempo(uint32_t bpm) override;
     void UpdateUI(float elapsedTime) override;
+    void DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int numItemsTotal, Rectangle boundsToDrawIn,
+                bool isEditing) override;
     float GetBrightnessForLED(int led_id) const override;
+    int GetMappedParameterIDForKnob(int knob_id) const override;
     void OnNoteOn(float notenumber, float velocity) override;
     void OnNoteOff(float notenumber, float velocity) override;
     bool AlternateFootswitchForTempo() const override;
@@ -137,6 +160,9 @@ class EffectChain : public BaseEffectModule {
 
     int *m_footswitchToggleSlots;
     int m_footswitchToggleSlotCount;
+
+    bool m_hasShiftBank;     // true if any mapping used a knob in the shifted bank
+    bool m_shiftModeActive;  // true while the shifted bank is selected
 
     int m_fadeTimeSamples; // ~0.1s of samples at Init()'s sample rate, floor of 1
 
