@@ -154,8 +154,7 @@ To opt in:
 
 `Effect-Modules/effect_chain.h` lets you wire two or more effects into a single chained entry in
 `loaded_effects.h`, processed serially (e.g. tremolo into reverb), without changing any of the
-effect modules themselves or the menu/UI code. See `loaded_effects.h` for a working `"Trem+Verb"`
-example.
+effect modules themselves or the menu/UI code. For example:
 
 ```cpp
 new EffectChain(
@@ -172,18 +171,14 @@ new EffectChain(
 
 Every child parameter shows up in the effect's parameter menu, tagged with its slot's prefix (e.g.
 "Tr Depth", "Rv Mix") so identically-named parameters from different children stay distinct; only
-the parameters listed in the mapping array are reachable from a knob or MIDI CC. One slot (the
-first, by default) is the "primary" child that owns the LED and the alternate footswitch, since
-those are single, pedal-wide resources that can't be given to every child at once.
+the parameters listed in the mapping array are reachable from a knob and/or MIDI CC. One slot (the
+first, by default) is the "primary" child, which owns the LED and the alternate footswitch.
 
 Every slot also gets its own "\<tag\> On" checkbox in the menu, defaulting to on, so any slot can be
 bypassed independently. This is saved with presets exactly like any other parameter.
 
-By default the alternate footswitch just forwards to the primary child (tap tempo, shift layers,
-whatever that child normally does with it). Pass `footswitchTogglesSlots` to repurpose it instead:
-a press toggles the "On" state of every listed slot together, as a group. This is the more useful
-option when one part of a chain (e.g. a tremolo ahead of an always-on reverb) is more valuable as
-something you can stomp on and off than as whatever its own alternate function would have been:
+By default the alternate footswitch just forwards to the primary child (e.g. for tap tempo).
+Pass `footswitchTogglesSlots` to repurpose it as an on-off slot for one or more children, e.g.:
 
 ```cpp
 new EffectChain(
@@ -196,7 +191,7 @@ new EffectChain(
      {1, DelayModule::D_FEEDBACK,      4, 24},
      {1, DelayModule::DELAY_MIX,       5, 25}},
     /* primarySlot */ 1,
-    /* footswitchTogglesSlots */ {0}), // {0,1} toggles trem+delay together; {} gives the footswitch back to the delay for tap tempo
+    /* footswitchTogglesSlots */ {0}), // or {0,1} to toggle trem+delay together
 ```
 
 A `ChainMapping` can also target a slot's own "On" parameter instead of a child parameter, using the
@@ -204,13 +199,10 @@ A `ChainMapping` can also target a slot's own "On" parameter instead of a child 
 bypass on a MIDI CC regardless of whether the footswitch is also toggling it.
 
 Turning a slot off crossfades it out over about a tenth of a second and then stops processing it
-entirely, both to avoid a click and to save CPU — the same way the pedal's own global bypass works.
-Note that: a delay or reverb tail gets cut off at the end of that fade rather than being allowed to
-ring out.
+entirely, both to avoid a click and to save CPU. Note the delay/reverb trails are not preserved.
 
-A chain only has 6 physical knobs to share between however many children it has, which runs out
-fast. Give any `ChainMapping` a `knobMapping` of 6 or higher (`EffectChain::kShiftKnobOffset` and up)
-and that parameter moves to a second knob bank instead of being unreachable: holding the alternate
+If you want to have more than six physical knobs, give any `ChainMapping` a `knobMapping` of 6 or
+higher, and that parameter moves to a second knob bank instead of being unreachable: holding the alternate
 footswitch for a second toggles between the two banks (an on-screen "SHIFT" label shows when the
 second bank is active), and holding it again switches back. Physical knob 1 reads whatever's mapped
 to knob 0 normally, and whatever's mapped to knob 6 while shifted; knob 2 maps to 1/7, and so on
@@ -242,21 +234,41 @@ new EffectChain(
 This isn't meant to support every combination of effects — some modules need caution, or are a poor
 fit for chaining altogether:
 
-- **Single-instance-only modules.** A module that keeps its DSP buffers in a file-scope
-  `DSY_SDRAM_BSS` (or similarly static) global has every *instance* of that class alias the same
-  memory, so it may only appear **once** across the whole `effectList`, whether standalone, chained, or
-  both. Modules in this category: `ReverbModule`, `DattorroReverbModule`, `DelayModule`,
-  `TapeDelayModule`, `MultiDelayModule`, `GranularDelayModule`, `SpectralDelayModule`,
-  `SciFiModule`, `PitchShifterModule`, `LooperModule`, `PluckEchoModule`, `NamA2Module`,
-  `CloudSeedModule`, `TunerModule`.
+- **Single-instance-only modules.** Many modules that keep DSP buffers or other resources in a file-scope
+  global, where every *instance* of that class aliases the same memory. In practice this means you can
+  only create one instance. You can*use* the one instance more than once, e.g. in more than one effect
+  chain or in a combination of an effect chain and a standalone effect, but since they share their
+  parameters, any changes when viewing one patch affects all references.
+  
+  Modules in this category: `ReverbModule`, `DattorroReverbModule`, `DelayModule`, `TapeDelayModule`,
+  `MultiDelayModule`, `GranularDelayModule`, `SpectralDelayModule`, `SciFiModule`,
+  `PitchShifterModule`, `LooperModule`, `PluckEchoModule`, `NamA2Module`, `CloudSeedModule`,
+  `TunerModule`.
 - **Custom on-screen displays are lost.** A chain always draws its own generic name/parameter screen
   instead of forwarding to a child's `DrawUI`, so these modules lose some or all of their custom
   display when chained: `AutoPanModule`, `ChopperModule`, `DelayModule`, `GraphicEQModule`,
   `LooperModule`, `MetroModule`, `ParametricEQModule`, `PitchShifterModule`, `TapeDelayModule`,
   `TunerModule`. This doesn't stop them working, but it can be confusing.
-- **Per-effect "shift layer" / alternate knob banks aren't reachable inside a chain.** `DelayModule`
-  and `TapeDelayModule` remap physical knobs to different parameters based on the second footswitch.
-  Menu, MIDI CC, and the always-primary-knob-bank parameters are unaffected.
+
+### Sharing a single-instance effect between chains
+
+A single-instance-only module (see above) can still show up in more than one chain, as long as
+it's the same object every time. Construct it once, put it in every `ChainSlot` that wants it, and
+mark every slot but one `ownsEffect = false` so only one of them deletes it:
+
+```cpp
+static DattorroReverbModule* reverb = new DattorroReverbModule();
+
+new EffectChain("HarmTremVerb",    {{"HT", new HarmonicTremoloModule()}, {"Rv", reverb}}, ...),                    // owns it
+new EffectChain("ModTremVerb", {{"Tr", new ModulatedTremoloModule()}, {"Rv", reverb, /* ownsEffect */ false}}, ...), // reuses it
+```
+
+The two chains are then processing the exact same reverb - its parameters are shared state, not a
+copy per chain. Switching between the chains never resets or overwrites the other's settings by
+itself; only turning that shared knob, editing it in the menu, or a MIDI CC actually changes it. The
+one gap is at power-on: every chain restores its own saved values into whatever it maps parameters
+to, so whichever chain happens to come later in `effectList` decides the shared effect's values after
+a reboot - not necessarily the chain you had active when you last powered off.
 
 ## Using pre-compiled releases
 

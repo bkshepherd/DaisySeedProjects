@@ -18,12 +18,22 @@ namespace bkshepherd {
  * child's parameter names in the combined menu, e.g. "Tr Depth", so that two
  * children with the same parameter name (both have a "Mix") stay
  * distinguishable. It also names that slot's synthesized "<tag> On" enable
- * parameter (see EffectChain). `effect` is owned by the EffectChain from
- * construction.
+ * parameter (see EffectChain).
+ *
+ * By default `effect` is owned by the EffectChain from construction, and
+ * deleted with it. Set `ownsEffect` to false to instead share an effect
+ * instance that something else owns - e.g. the same single-instance-only
+ * module (Dattorro, CloudSeed, ...) used standalone in the effect list and
+ * as a slot in one or more chains. The chain will still read/write its
+ * parameters and call its Process methods like any other slot; it just
+ * won't delete it. Whatever does own it (the standalone effectList entry,
+ * or one chain designated as the owner) must outlive every non-owning
+ * reference to it.
  */
 struct ChainSlot {
     const char *tag;
     BaseEffectModule *effect;
+    bool ownsEffect = true;
 };
 
 /** Maps one child's parameter onto a physical knob and/or MIDI CC.

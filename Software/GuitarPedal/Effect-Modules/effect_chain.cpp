@@ -241,7 +241,9 @@ EffectChain::~EffectChain() {
     delete[] m_footswitchToggleSlots;
 
     for (int s = 0; s < m_slotCount; s++) {
-        delete m_slots[s].effect;
+        if (m_slots[s].ownsEffect) {
+            delete m_slots[s].effect;
+        }
     }
     delete[] m_slots;
 }
