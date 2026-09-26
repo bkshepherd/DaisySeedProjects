@@ -17,6 +17,7 @@
 #include "Effect-Modules/delay_module.h"
 #include "Effect-Modules/distortion_module.h"
 #include "Effect-Modules/drum_module.h"
+#include "Effect-Modules/dual_echo_module.h"
 #include "Effect-Modules/effect_chain.h" // Some caution required - See README and examples below for usage
 #include "Effect-Modules/flanger_module.h"
 #include "Effect-Modules/geq_module.h"
@@ -75,6 +76,7 @@ void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffec
         new CloudSeedModule(), // single-instance only
         new DelayModule(), // single-instance only
         new TapeDelayModule(),  // single-instance-only
+        new DualEchoModule(),  // single-instance-only
         new NamA2Module(),  // single-instance-only
         new SciFiModule(),  // single-instance-only
         new PolyOctaveModule(),
