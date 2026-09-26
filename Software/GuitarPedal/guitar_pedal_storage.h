@@ -9,7 +9,7 @@
 // since PersistentStorage reads the raw bytes straight into this struct.
 // A mismatch forces a one-time RestoreDefaults() (see InitPersistantStorage),
 // which wipes all saved effect settings/presets, not just the new field.
-#define SETTINGS_FILE_FORMAT_VERSION 11
+#define SETTINGS_FILE_FORMAT_VERSION 12
 
 // Arbitrarily limiting this to 4KB of stored presets since this sits in DTCMRAM which is limited to 128KB.
 // TODO: In the future it would be better if this worked with the QSPI directly instead of using
@@ -29,6 +29,7 @@ struct Settings {
     bool globalRelayBypassEnabled;
     bool globalSplitMonoInputToStereo;
     bool globalEffectOn; // Pedal's on/off (bypass) state, restored on boot.
+    bool globalAutoSave; // Save changed effect parameters to preset 0 after a quiet period.
 
     // Set aside a block of memory for individual effect params.
     // Please note this MUST be a fixed amount of memory in the struct and cannot be a pointer to dynamic memory!
@@ -41,7 +42,8 @@ struct Settings {
             globalActiveEffectID != rhs.globalActiveEffectID ||
             globalMidiEnabled != rhs.globalMidiEnabled || globalMidiThrough != rhs.globalMidiThrough ||
             globalMidiChannel != rhs.globalMidiChannel || globalRelayBypassEnabled != rhs.globalRelayBypassEnabled ||
-            globalSplitMonoInputToStereo != rhs.globalSplitMonoInputToStereo || globalEffectOn != rhs.globalEffectOn) {
+            globalSplitMonoInputToStereo != rhs.globalSplitMonoInputToStereo || globalEffectOn != rhs.globalEffectOn ||
+            globalAutoSave != rhs.globalAutoSave) {
             return false;
         }
 

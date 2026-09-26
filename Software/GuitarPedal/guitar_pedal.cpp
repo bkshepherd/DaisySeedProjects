@@ -78,6 +78,17 @@ float secondsSinceStartup = 0.0f;
 bool needToSaveSettingsForActiveEffect = false;
 uint32_t last_save_time; // Time we last set it
 
+struct AutoSaveEffectState {
+    uint32_t observedParameterChangeCount;
+    uint32_t lastParameterChangeTime;
+    bool pending;
+};
+
+AutoSaveEffectState *autoSaveEffectStates = nullptr;
+uint32_t last_auto_save_check_time = 0;
+constexpr uint32_t kAutoSaveDebounceMs = 5000;
+constexpr uint32_t kAutoSaveCheckIntervalMs = 50;
+
 // Used to debounce quick switching to/from the tuner
 bool ignoreBypassSwitchUntilNextActuation = false;
 bool effectActiveBeforeQuickSwitch = false;
@@ -651,6 +662,12 @@ int main(void) {
     // differs from what's already set).
     LoadPresetFromPersistentStorage(activeEffectID, 0);
 
+    autoSaveEffectStates = new AutoSaveEffectState[availableEffectsCount];
+    for (int i = 0; i < availableEffectsCount; ++i) {
+        autoSaveEffectStates[i] = {availableEffects[i]->GetParameterChangeCount(), 0, false};
+    }
+    last_auto_save_check_time = System::GetNow();
+
     // Init the Menu UI System
     if (hardware.SupportsDisplay()) {
         guitarPedalUI.Init();
@@ -822,6 +839,30 @@ int main(void) {
 
             while (hardware.midi.HasEvents()) {
                 HandleMidiMessage(hardware.midi.PopEvent());
+            }
+        }
+
+        uint32_t currentTimeMs = System::GetNow();
+        if (currentTimeMs - last_auto_save_check_time >= kAutoSaveCheckIntervalMs) {
+            last_auto_save_check_time = currentTimeMs;
+
+            for (int effectID = 0; effectID < availableEffectsCount; ++effectID) {
+                AutoSaveEffectState &autoSaveState = autoSaveEffectStates[effectID];
+                uint32_t changeCount = availableEffects[effectID]->GetParameterChangeCount();
+
+                if (changeCount != autoSaveState.observedParameterChangeCount) {
+                    autoSaveState.observedParameterChangeCount = changeCount;
+                    autoSaveState.lastParameterChangeTime = currentTimeMs;
+                    autoSaveState.pending = true;
+                }
+
+                if (!settings.globalAutoSave) {
+                    autoSaveState.pending = false;
+                } else if (autoSaveState.pending &&
+                           currentTimeMs - autoSaveState.lastParameterChangeTime >= kAutoSaveDebounceMs) {
+                    SaveEffectSettingsToPersitantStorageForEffectID(effectID, 0);
+                    autoSaveState.pending = false;
+                }
             }
         }
 

@@ -377,13 +377,17 @@ void GuitarPedalUI::InitGlobalSettingsUIPages() {
     m_midiChannelSettingValue.Set(settings.globalMidiChannel);
     m_globalSettingsMenuItems[5].asMappedValueItem.valueToModify = &m_midiChannelSettingValue;
 
-    m_globalSettingsMenuItems[6].type = AbstractMenu::ItemType::callbackFunctionItem;
-    m_globalSettingsMenuItems[6].text = "Reboot";
-    m_globalSettingsMenuItems[6].asCallbackFunctionItem.callbackFunction = &RebootToBootloader;
-    m_globalSettingsMenuItems[6].asCallbackFunctionItem.context = this;
+    m_globalSettingsMenuItems[6].type = AbstractMenu::ItemType::checkboxItem;
+    m_globalSettingsMenuItems[6].text = "Auto-save";
+    m_globalSettingsMenuItems[6].asCheckboxItem.valueToModify = &settings.globalAutoSave;
 
-    m_globalSettingsMenuItems[7].type = AbstractMenu::ItemType::closeMenuItem;
-    m_globalSettingsMenuItems[7].text = "Back";
+    m_globalSettingsMenuItems[7].type = AbstractMenu::ItemType::callbackFunctionItem;
+    m_globalSettingsMenuItems[7].text = "Reboot";
+    m_globalSettingsMenuItems[7].asCallbackFunctionItem.callbackFunction = &RebootToBootloader;
+    m_globalSettingsMenuItems[7].asCallbackFunctionItem.context = this;
+
+    m_globalSettingsMenuItems[8].type = AbstractMenu::ItemType::closeMenuItem;
+    m_globalSettingsMenuItems[8].text = "Back";
 
     m_globalSettingsMenu.Init(m_globalSettingsMenuItems, kNumGlobalSettingsMenuItems);
 

@@ -521,6 +521,6 @@ void EffectChain::ParameterChanged(int parameter_id) {
 void EffectChain::PullParametersFromChildren() {
     for (int i = m_slotCount; i < m_paramCount; i++) {
         const int childArrayIdx = i - m_slotCount;
-        m_params[i] = m_slots[m_paramSlot[childArrayIdx]].effect->GetParameterRaw(m_paramChildId[childArrayIdx]);
+        SetParameterRaw(i, m_slots[m_paramSlot[childArrayIdx]].effect->GetParameterRaw(m_paramChildId[childArrayIdx]));
     }
 }

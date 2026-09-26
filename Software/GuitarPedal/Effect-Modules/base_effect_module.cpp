@@ -9,7 +9,7 @@ using namespace bkshepherd;
 // Default Constructor
 BaseEffectModule::BaseEffectModule()
     : m_paramCount(0), m_presetCount(1), m_currentPreset(0), m_params(nullptr), m_audioLeft(0.0f), m_audioRight(0.0f),
-      m_settingsArrayStartIdx(0), m_isEnabled(false) {
+    m_settingsArrayStartIdx(0), m_parameterChangeCount(0), m_isEnabled(false) {
     m_name = "Base";
     m_paramMetaData = nullptr;
 }
@@ -260,6 +260,7 @@ void BaseEffectModule::SetParameterRaw(int parameter_id, uint32_t value) {
     // Only update the value if it changed.
     if (value != m_params[parameter_id]) {
         m_params[parameter_id] = value;
+        ++m_parameterChangeCount;
 
         // Notify anyone listening if the parameter actually changed.
         ParameterChanged(parameter_id);
@@ -352,6 +353,7 @@ void BaseEffectModule::SetParameterAsFloat(int parameter_id, float value) {
         // Only update the value if it changed.
         if (tmp != m_params[parameter_id]) {
             m_params[parameter_id] = tmp;
+            ++m_parameterChangeCount;
 
             // Notify anyone listening if the parameter actually changed.
             ParameterChanged(parameter_id);
