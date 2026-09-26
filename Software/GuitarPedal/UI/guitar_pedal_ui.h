@@ -5,6 +5,7 @@
 #include "CustomMappedValues.h"
 #include "daisy_seed.h"
 #include "effect_module_menu_item.h"
+#include "effect_selection_menu.h"
 using namespace daisy;
 
 const int kNumMainMenuItems = 4;
@@ -68,7 +69,7 @@ class GuitarPedalUI {
     FullScreenItemMenu m_activeEffectSettingsMenu;
     FullScreenItemMenu m_globalSettingsMenu;
     FullScreenItemMenu m_presetsMenu;
-    FullScreenItemMenu m_effectSelectionMenu;
+    EffectSelectionMenu m_effectSelectionMenu;
     UiEventQueue m_eventQueue;
 
     bool m_needToCloseActiveEffectSettingsMenu;

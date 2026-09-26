@@ -164,8 +164,9 @@ int GuitarPedalUI::GetSelectedEffectID() {
 }
 
 void GuitarPedalUI::OpenEffectSelectionMenu() {
-    m_effectSelectionMenu.SelectItem(activeEffectID);
+    // OpenPage() resets the selection to 0 via OnShow(), so select afterwards.
     m_ui.OpenPage(m_effectSelectionMenu);
+    m_effectSelectionMenu.SelectItem(activeEffectID);
 }
 
 void GuitarPedalUI::SelectEffect() {
