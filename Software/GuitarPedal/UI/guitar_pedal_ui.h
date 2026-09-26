@@ -7,8 +7,8 @@
 #include "effect_module_menu_item.h"
 using namespace daisy;
 
-const int kNumMainMenuItems = 3;
-const int kNumGlobalSettingsMenuItems = 9;
+const int kNumMainMenuItems = 4;
+const int kNumGlobalSettingsMenuItems = 8;
 const int kNumPresetSettingsItems = 3;
 
 namespace bkshepherd {
@@ -37,10 +37,10 @@ class GuitarPedalUI {
     */
     bool IsShowingSavingSettingsScreen();
 
-    /** Gets the ID of the Active Effect from the Settings Menu
+    /** Gets the confirmed effect ID selected in the Effect menu
     \return the ID of the Active Effect
     */
-    int GetActiveEffectIDFromSettingsMenu();
+    int GetSelectedEffectID();
 
     /** Generates the Appropriate UI Events */
     void GenerateUIEvents();
@@ -54,6 +54,9 @@ class GuitarPedalUI {
      * "Defaults" callbackFunctionItem in the Active Effect settings menu.
      */
     void ResetActiveEffectParametersToDefaults();
+    void OpenEffectSelectionMenu();
+    void SelectEffect();
+    void BackFromEffectSelectionMenu();
 
   private:
     void InitUi();
@@ -65,15 +68,19 @@ class GuitarPedalUI {
     FullScreenItemMenu m_activeEffectSettingsMenu;
     FullScreenItemMenu m_globalSettingsMenu;
     FullScreenItemMenu m_presetsMenu;
+    FullScreenItemMenu m_effectSelectionMenu;
     UiEventQueue m_eventQueue;
 
     bool m_needToCloseActiveEffectSettingsMenu;
+    bool m_effectSelectionConfirmed = false;
+    int m_selectedEffectID = 0;
     float m_secondsTilReturnFromParamChange = 0.0f;
     int m_paramIdToReturnTo;
 
     AbstractMenu::ItemConfig m_mainMenuItems[kNumMainMenuItems];
     AbstractMenu::ItemConfig m_globalSettingsMenuItems[kNumGlobalSettingsMenuItems];
     AbstractMenu::ItemConfig m_presetsMenuItems[kNumPresetSettingsItems];
+    AbstractMenu::ItemConfig *m_effectSelectionMenuItems = nullptr;
     int m_numActiveEffectSettingsItems;
     uint32_t m_activePresetSelected;
     // These are tested against nullptr and deleted before reallocation, so
@@ -81,8 +88,6 @@ class GuitarPedalUI {
     AbstractMenu::ItemConfig *m_activeEffectSettingsMenuItems = nullptr;
     EffectModuleMenuItem m_effectModuleMenuItem;
 
-    const char **m_availableEffectNames = nullptr;
-    MappedStringListValue *m_availableEffectListMappedValues = nullptr;
     MappedIntValue **m_activeEffectSettingIntValues = nullptr;
     MappedIntValue m_activePresetSettingIntValue;
     MappedStringListValue **m_activeEffectSettingStringValues = nullptr;
@@ -99,5 +104,8 @@ class GuitarPedalUI {
  * callbackFunctionItem, matching how FactoryReset()/RebootToBootloader() are wired.
  */
 void HandleResetActiveEffectParametersToDefaults(void *context);
+void HandleOpenEffectSelectionMenu(void *context);
+void HandleSelectEffect(void *context);
+void HandleBackFromEffectSelectionMenu(void *context);
 
 #endif

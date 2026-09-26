@@ -797,7 +797,7 @@ int main(void) {
             // Handle a Change in the Active Effect from the Menu System
 
             // Check which effect the Menu system thinks is active
-            int menuEffectID = guitarPedalUI.GetActiveEffectIDFromSettingsMenu();
+            int menuEffectID = guitarPedalUI.GetSelectedEffectID();
             BaseEffectModule *selectedEffect = availableEffects[menuEffectID];
 
             // If the effect differs from the active effect, change the active effect

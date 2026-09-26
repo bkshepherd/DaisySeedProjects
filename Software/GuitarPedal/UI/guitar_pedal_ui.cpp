@@ -31,6 +31,12 @@ void HandleResetActiveEffectParametersToDefaults(void *context) {
     ((GuitarPedalUI *)context)->ResetActiveEffectParametersToDefaults();
 }
 
+void HandleOpenEffectSelectionMenu(void *context) { ((GuitarPedalUI *)context)->OpenEffectSelectionMenu(); }
+
+void HandleSelectEffect(void *context) { ((GuitarPedalUI *)context)->SelectEffect(); }
+
+void HandleBackFromEffectSelectionMenu(void *context) { ((GuitarPedalUI *)context)->BackFromEffectSelectionMenu(); }
+
 // Default Constructor
 GuitarPedalUI::GuitarPedalUI()
     : m_needToCloseActiveEffectSettingsMenu(false), m_paramIdToReturnTo(-1), m_numActiveEffectSettingsItems(0),
@@ -51,8 +57,7 @@ void GuitarPedalUI::Init() {
 
 void GuitarPedalUI::UpdateActiveEffect(int effectID) {
     if (hardware.SupportsDisplay()) {
-        // Update the Menu item for the active effect (important for active effect changes not coming from the menu)
-        m_availableEffectListMappedValues->SetIndex(effectID);
+        m_effectSelectionConfirmed = false;
 
         // Re-init the UI Pages for the Main Menu and Effect Parameters
         InitEffectUiPages();
@@ -149,7 +154,32 @@ void GuitarPedalUI::ShowSavingSettingsScreen() {
 
 bool GuitarPedalUI::IsShowingSavingSettingsScreen() { return m_displayingSaveSettingsNotification; }
 
-int GuitarPedalUI::GetActiveEffectIDFromSettingsMenu() { return m_availableEffectListMappedValues->GetIndex(); }
+int GuitarPedalUI::GetSelectedEffectID() {
+    if (!m_effectSelectionConfirmed) {
+        return activeEffectID;
+    }
+
+    m_effectSelectionConfirmed = false;
+    return m_selectedEffectID;
+}
+
+void GuitarPedalUI::OpenEffectSelectionMenu() {
+    m_effectSelectionMenu.SelectItem(activeEffectID);
+    m_ui.OpenPage(m_effectSelectionMenu);
+}
+
+void GuitarPedalUI::SelectEffect() {
+    m_selectedEffectID = m_effectSelectionMenu.GetSelectedItemIdx();
+    m_effectSelectionConfirmed = true;
+    m_mainMenu.SelectItem(0);
+    m_ui.ClosePage(m_effectSelectionMenu);
+}
+
+void GuitarPedalUI::BackFromEffectSelectionMenu() {
+    m_effectSelectionConfirmed = false;
+    m_mainMenu.SelectItem(0);
+    m_ui.ClosePage(m_effectSelectionMenu);
+}
 
 void GuitarPedalUI::InitUi() {
     UI::SpecialControlIds specialControlIds;
@@ -183,12 +213,17 @@ void GuitarPedalUI::InitEffectUiPages() {
     m_mainMenuItems[0].asCustomItem.itemObject = &m_effectModuleMenuItem;
 
     m_mainMenuItems[1].type = daisy::AbstractMenu::ItemType::openUiPageItem;
-    m_mainMenuItems[1].text = "Settings";
-    m_mainMenuItems[1].asOpenUiPageItem.pageToOpen = &m_globalSettingsMenu;
+    m_mainMenuItems[1].text = "Preset";
+    m_mainMenuItems[1].asOpenUiPageItem.pageToOpen = &m_presetsMenu;
 
-    m_mainMenuItems[2].type = daisy::AbstractMenu::ItemType::openUiPageItem;
-    m_mainMenuItems[2].text = "Preset";
-    m_mainMenuItems[2].asOpenUiPageItem.pageToOpen = &m_presetsMenu;
+    m_mainMenuItems[2].type = daisy::AbstractMenu::ItemType::callbackFunctionItem;
+    m_mainMenuItems[2].text = "Effect";
+    m_mainMenuItems[2].asCallbackFunctionItem.callbackFunction = &HandleOpenEffectSelectionMenu;
+    m_mainMenuItems[2].asCallbackFunctionItem.context = this;
+
+    m_mainMenuItems[3].type = daisy::AbstractMenu::ItemType::openUiPageItem;
+    m_mainMenuItems[3].text = "Settings";
+    m_mainMenuItems[3].asOpenUiPageItem.pageToOpen = &m_globalSettingsMenu;
     m_mainMenu.Init(m_mainMenuItems, kNumMainMenuItems);
 
     // ====================================================================
@@ -331,65 +366,60 @@ void GuitarPedalUI::InitGlobalSettingsUIPages() {
     // ====================================================================
     // The "Global Settings" menu
     // ====================================================================
-    if (m_availableEffectListMappedValues != nullptr) {
-        delete m_availableEffectListMappedValues;
-    }
 
-    if (m_availableEffectNames != nullptr) {
-        delete[] m_availableEffectNames;
-    }
-
-    m_availableEffectNames = new const char *[availableEffectsCount];
-    int m_activeEffectIndex = -1;
-
-    for (int i = 0; i < availableEffectsCount; i++) {
-        m_availableEffectNames[i] = availableEffects[i]->GetName();
-
-        if (availableEffects[i] == activeEffect) {
-            m_activeEffectIndex = i;
-        }
-    }
-
-    m_availableEffectListMappedValues = new MappedStringListValue(m_availableEffectNames, availableEffectsCount, m_activeEffectIndex);
-
-    m_globalSettingsMenuItems[0].type = AbstractMenu::ItemType::valueItem;
-    m_globalSettingsMenuItems[0].text = "Effect";
-    m_globalSettingsMenuItems[0].asMappedValueItem.valueToModify = m_availableEffectListMappedValues;
+    m_globalSettingsMenuItems[0].type = AbstractMenu::ItemType::checkboxItem;
+    m_globalSettingsMenuItems[0].text = "True Bypass";
+    m_globalSettingsMenuItems[0].asCheckboxItem.valueToModify = &settings.globalRelayBypassEnabled;
 
     m_globalSettingsMenuItems[1].type = AbstractMenu::ItemType::checkboxItem;
-    m_globalSettingsMenuItems[1].text = "True Bypass";
-    m_globalSettingsMenuItems[1].asCheckboxItem.valueToModify = &settings.globalRelayBypassEnabled;
+    m_globalSettingsMenuItems[1].text = "Split Mono";
+    m_globalSettingsMenuItems[1].asCheckboxItem.valueToModify = &settings.globalSplitMonoInputToStereo;
 
     m_globalSettingsMenuItems[2].type = AbstractMenu::ItemType::checkboxItem;
-    m_globalSettingsMenuItems[2].text = "Split Mono";
-    m_globalSettingsMenuItems[2].asCheckboxItem.valueToModify = &settings.globalSplitMonoInputToStereo;
+    m_globalSettingsMenuItems[2].text = "Midi On";
+    m_globalSettingsMenuItems[2].asCheckboxItem.valueToModify = &settings.globalMidiEnabled;
 
     m_globalSettingsMenuItems[3].type = AbstractMenu::ItemType::checkboxItem;
-    m_globalSettingsMenuItems[3].text = "Midi On";
-    m_globalSettingsMenuItems[3].asCheckboxItem.valueToModify = &settings.globalMidiEnabled;
+    m_globalSettingsMenuItems[3].text = "Midi Thru";
+    m_globalSettingsMenuItems[3].asCheckboxItem.valueToModify = &settings.globalMidiThrough;
 
-    m_globalSettingsMenuItems[4].type = AbstractMenu::ItemType::checkboxItem;
-    m_globalSettingsMenuItems[4].text = "Midi Thru";
-    m_globalSettingsMenuItems[4].asCheckboxItem.valueToModify = &settings.globalMidiThrough;
-
-    m_globalSettingsMenuItems[5].type = AbstractMenu::ItemType::valueItem;
-    m_globalSettingsMenuItems[5].text = "Midi Ch";
+    m_globalSettingsMenuItems[4].type = AbstractMenu::ItemType::valueItem;
+    m_globalSettingsMenuItems[4].text = "Midi Ch";
     m_midiChannelSettingValue.Set(settings.globalMidiChannel);
-    m_globalSettingsMenuItems[5].asMappedValueItem.valueToModify = &m_midiChannelSettingValue;
+    m_globalSettingsMenuItems[4].asMappedValueItem.valueToModify = &m_midiChannelSettingValue;
 
-    m_globalSettingsMenuItems[6].type = AbstractMenu::ItemType::checkboxItem;
-    m_globalSettingsMenuItems[6].text = "Auto-save";
-    m_globalSettingsMenuItems[6].asCheckboxItem.valueToModify = &settings.globalAutoSave;
+    m_globalSettingsMenuItems[5].type = AbstractMenu::ItemType::checkboxItem;
+    m_globalSettingsMenuItems[5].text = "Auto-save";
+    m_globalSettingsMenuItems[5].asCheckboxItem.valueToModify = &settings.globalAutoSave;
 
-    m_globalSettingsMenuItems[7].type = AbstractMenu::ItemType::callbackFunctionItem;
-    m_globalSettingsMenuItems[7].text = "Reboot";
-    m_globalSettingsMenuItems[7].asCallbackFunctionItem.callbackFunction = &RebootToBootloader;
-    m_globalSettingsMenuItems[7].asCallbackFunctionItem.context = this;
+    m_globalSettingsMenuItems[6].type = AbstractMenu::ItemType::callbackFunctionItem;
+    m_globalSettingsMenuItems[6].text = "Reboot";
+    m_globalSettingsMenuItems[6].asCallbackFunctionItem.callbackFunction = &RebootToBootloader;
+    m_globalSettingsMenuItems[6].asCallbackFunctionItem.context = this;
 
-    m_globalSettingsMenuItems[8].type = AbstractMenu::ItemType::closeMenuItem;
-    m_globalSettingsMenuItems[8].text = "Back";
+    m_globalSettingsMenuItems[7].type = AbstractMenu::ItemType::closeMenuItem;
+    m_globalSettingsMenuItems[7].text = "Back";
 
     m_globalSettingsMenu.Init(m_globalSettingsMenuItems, kNumGlobalSettingsMenuItems);
+
+    if (m_effectSelectionMenuItems != nullptr) {
+        delete[] m_effectSelectionMenuItems;
+    }
+
+    m_effectSelectionMenuItems = new AbstractMenu::ItemConfig[availableEffectsCount + 1];
+    for (int i = 0; i < availableEffectsCount; i++) {
+        m_effectSelectionMenuItems[i].type = AbstractMenu::ItemType::callbackFunctionItem;
+        m_effectSelectionMenuItems[i].text = availableEffects[i]->GetName();
+        m_effectSelectionMenuItems[i].asCallbackFunctionItem.callbackFunction = &HandleSelectEffect;
+        m_effectSelectionMenuItems[i].asCallbackFunctionItem.context = this;
+    }
+
+    m_effectSelectionMenuItems[availableEffectsCount].type = AbstractMenu::ItemType::callbackFunctionItem;
+    m_effectSelectionMenuItems[availableEffectsCount].text = "Back";
+    m_effectSelectionMenuItems[availableEffectsCount].asCallbackFunctionItem.callbackFunction = &HandleBackFromEffectSelectionMenu;
+    m_effectSelectionMenuItems[availableEffectsCount].asCallbackFunctionItem.context = this;
+
+    m_effectSelectionMenu.Init(m_effectSelectionMenuItems, availableEffectsCount + 1);
 
     m_presetsMenuItems[0].type = AbstractMenu::ItemType::valueItem;
     m_presetsMenuItems[0].text = "Preset #";
