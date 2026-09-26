@@ -69,6 +69,8 @@ class BaseEffectModule {
     */
     uint16_t GetParameterCount() const;
 
+    uint32_t GetParameterChangeCount() const { return m_parameterChangeCount; }
+
     /** Gets the total number of stored presets for this effect
      \return the number of presets for this effect.
     */
@@ -341,6 +343,7 @@ class BaseEffectModule {
     float m_audioLeft;                        // Last Audio Sample value for the Left Stereo Channel (or Mono)
     float m_audioRight;                       // Last Audio Sample value for the Right Stereo Channel
     uint32_t m_settingsArrayStartIdx;         // Start index of settings persistent storage struct
+    volatile uint32_t m_parameterChangeCount;
   private:
     bool m_isEnabled;
     float m_sampleRate; // Current Sample Rate this Effect was initialized for.
