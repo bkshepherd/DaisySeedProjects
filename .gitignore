@@ -6,3 +6,5 @@ Hardware/GuitarPedal125b/pcb/DaisySeedPedal125b-backups
 Hardware/GuitarPedal125b/pcb/CustomSymbols.bak
 **/__pycache__/
 .DS_Store
+Software/GuitarPedal/Makefile.local
+Software/GuitarPedal/loaded_effects.local.h
