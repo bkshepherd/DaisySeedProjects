@@ -2,6 +2,8 @@
 
 This directory includes all the source code for my Multi-Effect Guitar Pedal that runs on various hardware platforms.
 
+For assembly and day-to-day operation of the 125B version, see the [125B user manual](USER_MANUAL_125B.md).
+
 ## Getting Started
 
 Before you can use the software you'll need to do the following steps. There is an option [down below](#using-pre-compiled-releases) to skip setup of a development environment and use a pre-compiled .bin file, however this means you can't make any changes which can be limiting! It is recommended to try to setup your local development environment first.
@@ -284,6 +286,16 @@ a reboot - not necessarily the chain you had active when you last powered off.
       1. Press Flash
 
 ## Software Updates
+
+### Software Update - September 2026
+
+1. Added distortion, granular delay, drum machine, IR loader, tape delay, phaser, flanger, crusher, harmonic tremolo, and dual echo (aka "halo") effects.
+2. Added NAM A2 support, optional IR loading, and a default set of amp models.
+3. Added effect chains with per-effect bypass, expanded knob banks, and footswitch/MIDI mapping.
+4. Added optional GPL-3.0 Dattorro plate reverb and basic Funbox hardware support.
+5. Improved pitch shifting, delay controls and preset storage.
+6. Fixed a memory leak when switching effects and improved memory use.
+7. Added an "autosave" option, whereby the most recent pedal state will be saved across restarts (note: this overwrites Preset 0 for each effect a few seconds after every parameter change).
 
 ### Software Update - November 2024
 
