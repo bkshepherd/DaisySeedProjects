@@ -783,7 +783,7 @@ int main(void) {
             System::GetNow() - last_effect_change_time >= 10) {
             const int encoderIncrement = hardware.encoders[0].Increment();
             if (encoderIncrement != 0) {
-                int desiredIndex = activeEffectID - encoderIncrement;
+                int desiredIndex = activeEffectID + encoderIncrement;
                 if (desiredIndex > availableEffectsCount - 1) {
                     desiredIndex = 0;
                 } else if (desiredIndex < 0) {
