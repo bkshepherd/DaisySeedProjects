@@ -2,6 +2,8 @@
 
 This directory includes all the source code for my Multi-Effect Guitar Pedal that runs on various hardware platforms.
 
+For assembly and day-to-day operation of the 125B version, see the [125B user manual](USER_MANUAL_125B.md).
+
 ## Getting Started
 
 Before you can use the software you'll need to do the following steps. There is an option [down below](#using-pre-compiled-releases) to skip setup of a development environment and use a pre-compiled .bin file, however this means you can't make any changes which can be limiting! It is recommended to try to setup your local development environment first.
