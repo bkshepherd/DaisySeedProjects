@@ -26,18 +26,18 @@ The rotary encoder underneath the screen controls the menu system. Turn the enco
 
 ### Footswitches and LEDs
 
-- **Primary (right):** Press to turn the selected effect on or bypass it. Hold for about two seconds to jump to the tuner (assuming its included in the build).
+- **Primary (right):** Press to turn the selected effect on or bypass it. Hold for about two seconds to jump to the tuner (assuming it's included in the build).
 - **Secondary (left):** Its action depends on the selected effect. Double-tap to set tap tempo when that effect supports tempo. Press and release actions can also control effect-specific features such as a looper. Holding for about one second triggers the effect's hold action; in a chain configured with a second knob bank, this switches banks and displays `SHIFT`.
 - **Effect selection shortcut:** Hold the secondary switch and turn the encoder to move through the effect list. Note that you can also select the effect from the menu system, by turning the encoder to the "Effect" menu item.
 - **Manual save:** Hold both footswitches for about two seconds to save the current effect's settings to its selected preset. The display shows a save confirmation. If auto-save is off (the default), effect parameters will return to their previous state if the pedal is rebooted, or when switching effects.
 
-The right LED (above the primary footswitch) generally indicates if the pedal is active (light on) or bypassed (light off). The right LED is effect-dependent. For example, it may blink in time to the delay temp, or indicate a secondary effect.
+The right LED (above the primary footswitch) generally indicates if the pedal is active (light on) or bypassed (light off). The left LED (above the secondary footswitch) is effect-dependent. For example, it may blink in time to the delay temp, or indicate a secondary effect.
 
 ## Menus and Presets
 
-Press the encoder from the main screen to open the current effect's parameter list. Turn to a parameter and press the encoder to edit it; choose **Defaults** to reset that effect's parameters to their defaults. The main menu also contains:
+Press the encoder from the main screen to open the current effect's parameter list. Turn to a parameter and press the encoder to edit it; choose **Defaults** to reset that effect's parameters to their "factory" defaults. The main menu also contains:
 
-- **Preset:** Select a preset for the current effect. Presets are stored separately for each effect. Hold both footswitches to save to the selected preset; **Erase All** restores storage defaults, clearing all presets and global settings.
+- **Preset:** Select a preset for the current effect. Presets are stored separately for each effect, and there is always a "Preset 0" that is the "power-on" state. After changing settings via knobs or the effect parameter menu, hold both footswitches down to save to the selected preset.
 - **Effect:** Select which effect is active.
 - **Settings:** Configure global pedal behavior, described below.
 
