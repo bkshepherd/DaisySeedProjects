@@ -285,6 +285,16 @@ a reboot - not necessarily the chain you had active when you last powered off.
 
 ## Software Updates
 
+### Software Update - September 2026
+
+1. Added distortion, granular delay, drum machine, IR loader, tape delay, phaser, flanger, crusher, harmonic tremolo, and dual echo (aka "halo") effects.
+2. Added NAM A2 support, optional IR loading, and a default set of amp models.
+3. Added effect chains with per-effect bypass, expanded knob banks, and footswitch/MIDI mapping.
+4. Added optional GPL-3.0 Dattorro plate reverb and basic Funbox hardware support.
+5. Improved pitch shifting, delay controls and preset storage.
+6. Fixed a memory leak when switching effects and improved memory use.
+7. Added an "autosave" option, whereby the most recent pedal state will be saved across restarts (note: this overwrites Preset 0 for each effect a few seconds after every parameter change).
+
 ### Software Update - November 2024
 
 1. New Effect Modules:
