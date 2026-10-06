@@ -9,7 +9,7 @@ using namespace bkshepherd;
 // Default Constructor
 BaseEffectModule::BaseEffectModule()
     : m_paramCount(0), m_presetCount(1), m_currentPreset(0), m_params(nullptr), m_audioLeft(0.0f), m_audioRight(0.0f),
-      m_settingsArrayStartIdx(0), m_isEnabled(false) {
+      m_settingsArrayStartIdx(0), m_parameterChangeCount(0), m_isEnabled(false) {
     m_name = "Base";
     m_paramMetaData = nullptr;
 }
@@ -139,6 +139,15 @@ const float BaseEffectModule::GetParameterDefaultValueAsFloat(int parameter_id) 
     return m_paramMetaData[parameter_id].defaultValue.float_value;
 }
 
+uint32_t BaseEffectModule::GetParameterDefaultValueRaw(int parameter_id) const {
+    // Make sure parameter_id is valid.
+    if (m_params == nullptr || parameter_id < 0 || parameter_id >= m_paramCount || m_paramMetaData == nullptr) {
+        return 0;
+    }
+
+    return m_paramMetaData[parameter_id].defaultValue.uint_value;
+}
+
 uint32_t BaseEffectModule::GetParameterRaw(int parameter_id) const {
     // Make sure parameter_id is valid.
     if (m_params == nullptr || parameter_id < 0 || parameter_id >= m_paramCount) {
@@ -149,7 +158,7 @@ uint32_t BaseEffectModule::GetParameterRaw(int parameter_id) const {
 }
 
 float BaseEffectModule::GetParameterAsFloat(int parameter_id) const {
-    if (parameter_id >= 0 || parameter_id < m_paramCount) {
+    if (m_params != nullptr && parameter_id >= 0 && parameter_id < m_paramCount) {
         float ret;
         uint32_t tmp = m_params[parameter_id];
         std::memcpy(&ret, &tmp, sizeof(float));
@@ -251,6 +260,7 @@ void BaseEffectModule::SetParameterRaw(int parameter_id, uint32_t value) {
     // Only update the value if it changed.
     if (value != m_params[parameter_id]) {
         m_params[parameter_id] = value;
+        m_parameterChangeCount = m_parameterChangeCount + 1;
 
         // Notify anyone listening if the parameter actually changed.
         ParameterChanged(parameter_id);
@@ -326,20 +336,24 @@ void BaseEffectModule::SetParameterAsMagnitude(int parameter_id, float value) {
             return;
         }
 
-        // Map values 0..1 to the bins equally
-        int mappedBin = (int)(value * GetParameterBinCount(parameter_id) + 1);
+        // Map values 0..1 to the bins equally. A magnitude of exactly 1.0
+        // (e.g. MIDI CC 127) would otherwise compute binCount + 1, which
+        // SetParameterAsBinnedValue rejects, so clamp to the last bin.
+        int binCount = GetParameterBinCount(parameter_id);
+        int mappedBin = std::min((int)(value * binCount + 1), binCount);
         SetParameterAsBinnedValue(parameter_id, mappedBin);
     }
 }
 
 void BaseEffectModule::SetParameterAsFloat(int parameter_id, float value) {
-    if (parameter_id >= 0 || parameter_id < m_paramCount) {
+    if (m_params != nullptr && parameter_id >= 0 && parameter_id < m_paramCount) {
         uint32_t tmp;
         std::memcpy(&tmp, &value, sizeof(float));
 
         // Only update the value if it changed.
         if (tmp != m_params[parameter_id]) {
             m_params[parameter_id] = tmp;
+            m_parameterChangeCount = m_parameterChangeCount + 1;
 
             // Notify anyone listening if the parameter actually changed.
             ParameterChanged(parameter_id);

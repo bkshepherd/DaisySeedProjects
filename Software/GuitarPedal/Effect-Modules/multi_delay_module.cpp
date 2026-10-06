@@ -3,6 +3,7 @@
 #include "Delays/delayline_reverse.h"
 #include "Delays/delayline_revoct.h"
 #include "daisysp.h"
+#include <algorithm>
 #include <array>
 
 using namespace bkshepherd;
@@ -90,8 +91,8 @@ static const auto s_metaData = [] {
         valueBinCount : 2,
         valueBinNames : s_typeBinNames,
         defaultValue : {.uint_value = 0},
-        knobMapping : 1,
-        midiCCMapping : 20
+        knobMapping : 4,
+        midiCCMapping : 32
     };
 
     params[MultiDelayModule::SHIFT_TAP_1] = {
@@ -249,15 +250,17 @@ void MultiDelayModule::ParameterChanged(int parameter_id) {
             SetTargetTapDelayTime(3, delays[1].delayTarget, 4.0f);
         }
     } else if (parameter_id > 4 && parameter_id < 9 && m_isInitialized == true) {
-        ps_taps[parameter_id - 5].SetTransposition(m_pitchShiftMin +
-                                                   (m_pitchShiftMax - m_pitchShiftMin) * GetParameterAsFloat(parameter_id));
-    } else if (parameter_id > 8 && parameter_id < 11) {
+        // The stored parameter value is already in semitones (-12..12)
+        ps_taps[parameter_id - 5].SetTransposition(GetParameterAsFloat(parameter_id));
+    } else if (parameter_id > 8 && parameter_id < 13) {
         m_tapTargetDelay[parameter_id - 9] = 48.0f * GetParameterAsFloat(parameter_id);
     }
 }
 
 void MultiDelayModule::SetTargetTapDelayTime(uint8_t index, float value, float multiplier) {
-    m_tapTargetDelay[index] = value * multiplier;
+    // In follower mode the 2x/4x multiples of a long delay can exceed the
+    // delay line; clamp so the tap doesn't alias to a wrapped position
+    m_tapTargetDelay[index] = std::min(value * multiplier, static_cast<float>(MAX_DELAY_TAP - 1));
 }
 
 void PreProcessTaps(float *current, float target) { fonepole(*current, target, .0002f); }

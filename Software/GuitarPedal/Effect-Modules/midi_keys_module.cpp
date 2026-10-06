@@ -23,7 +23,7 @@ static const auto s_metaData = [] {
         defaultValue : {.float_value = 0.5f},
         knobMapping : 1,
         midiCCMapping : 15
-    }
+    };
     //{name: "Osc Wave", valueType: ParameterValueType::Binned, valueBinCount: 8, valueBinNames: s_waveBinNames, defaultValue:
     //{.uint_value = 0}, knobMapping: 4, midiCCMapping: 23};
 
@@ -93,7 +93,7 @@ void MidiKeysModule::ProcessStereo(float inL, float inR) {
     float sum = 0.f;
     sum = voice_handler.Process() * 0.4f * GetParameterAsFloat(LEVEL); // was 0.5f, needs more volume reduction
     m_audioLeft = sum + through_audioL;
-    m_audioRight = m_audioLeft + through_audioR;
+    m_audioRight = sum + through_audioR;
 }
 
 float MidiKeysModule::GetBrightnessForLED(int led_id) const {

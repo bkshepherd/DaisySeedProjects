@@ -1,6 +1,6 @@
 #include "ir_module.h"
 #include "../Util/audio_utilities.h"
-#include "ImpulseResponse/ir_data_large.h"
+#include "ImpulseResponse/ir_data.h"
 #include <array>
 
 using namespace bkshepherd;
@@ -50,6 +50,13 @@ IrModule::~IrModule() {
 
 void IrModule::Init(float sample_rate) {
     BaseEffectModule::Init(sample_rate);
+
+    std::fill(std::begin(m_inputBuffer), std::end(m_inputBuffer), 0.0f);
+    std::fill(std::begin(m_outputBuffer), std::end(m_outputBuffer), 0.0f);
+
+    m_bufferIndex = 0;
+    m_currentIRindex = -1;
+
     SelectIR();
 }
 
@@ -57,40 +64,58 @@ void IrModule::ParameterChanged(int parameter_id) {
     if (parameter_id == IR) { // Change IR
         SelectIR();
     } else if (parameter_id == LEVEL) { // Level
+        // Nothing to cache for now; level is read in ProcessMono().
     }
 }
 
-// void IrModule::AlternateFootswitchPressed() {
-// Increment the IR selection by pressing alternate footswitch
-// unsigned int irIndex = GetParameterAsBinnedValue(IR); // not doing -1 here to increment index by 1
-// if (irIndex == ir_collection_large.size()) {
-//    irIndex = 0; // reset back to 0
-//}
-// SetParameterAsBinnedValue(IR, irIndex + 1);
-// if (irIndex != m_currentIRindex) {
-//    mIR.Init(ir_collection_large[irIndex]); // ir_data is from ir_data_large.h
-//}
-// m_currentIRindex = irIndex;
-
-//}
-
 void IrModule::SelectIR() {
-    unsigned int irIndex = GetParameterAsBinnedValue(IR) - 1;
-    if (irIndex != m_currentIRindex) {
-        mIR.Init(ir_collection_large[irIndex]); // ir_data is from ir_data_large.h
+    const int binValue = GetParameterAsBinnedValue(IR);
+    const int irIndex = binValue - 1;
+
+    if (irIndex < 0 || irIndex >= static_cast<int>(ir_collection.size())) {
+        return;
     }
+
+    if (irIndex == m_currentIRindex) {
+        return;
+    }
+
+    // Avoid stale convolution history from the previous cab.
+    std::fill(std::begin(m_inputBuffer), std::end(m_inputBuffer), 0.0f);
+    std::fill(std::begin(m_outputBuffer), std::end(m_outputBuffer), 0.0f);
+    m_bufferIndex = 0;
+
+    mIR.init(ir_collection[irIndex].data(), static_cast<uint32_t>(ir_collection[irIndex].size()), true);
+
     m_currentIRindex = irIndex;
 }
 
 void IrModule::ProcessMono(float in) {
     BaseEffectModule::ProcessMono(in);
 
-    float input = m_audioLeft;
     const float level = m_levelMin + (GetParameterAsFloat(LEVEL) * (m_levelMax - m_levelMin));
 
-    // IMPULSE RESPONSE //
-    m_audioLeft = mIR.Process(input) * level * 0.5; // 0.5 is level adjust for loud output
+    // Read the already-processed sample for this frame.
+    // This creates one kBlockSize block of latency
+    const float processed = m_outputBuffer[m_bufferIndex];
+
+    // Queue the current input sample for the next IR block.
+    //
+    // 0.5 is for loudness normalization with the IR
+    // Level is applied only at output to avoid double-scaling.
+    m_inputBuffer[m_bufferIndex] = m_audioLeft * 0.5f;
+
+    ++m_bufferIndex;
+
+    if (m_bufferIndex >= kBlockSize) {
+        mIR.processBlock(m_inputBuffer, m_outputBuffer, kBlockSize);
+        m_bufferIndex = 0;
+    }
+
+    m_audioLeft = processed * level;
     m_audioRight = m_audioLeft;
+
+    m_cachedEffectMagnitudeValue = fabsf(m_audioLeft);
 }
 
 void IrModule::ProcessStereo(float inL, float inR) {

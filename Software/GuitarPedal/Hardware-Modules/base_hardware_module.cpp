@@ -4,8 +4,8 @@ using namespace daisy;
 using namespace bkshepherd;
 
 BaseHardwareModule::BaseHardwareModule()
-    : m_supportsStereo(false), m_supportsMidi(false), m_supportsDisplay(false), m_supportsTrueBypass(false),
-      m_switchMetaDataParamCount(0) {
+    : m_supportsStereo(false), m_supportsMidi(false), m_supportsDisplay(false), m_supportsEncoder(false),
+      m_supportsTrueBypass(false), m_switchMetaDataParamCount(0) {
     m_switchMetaData = nullptr;
 }
 
@@ -157,6 +157,8 @@ bool BaseHardwareModule::SupportsMidi() { return m_supportsMidi; }
 
 bool BaseHardwareModule::SupportsDisplay() { return m_supportsDisplay; }
 
+bool BaseHardwareModule::SupportsEncoder() { return m_supportsEncoder; }
+
 bool BaseHardwareModule::SupportsTrueBypass() { return m_supportsTrueBypass; }
 
 void BaseHardwareModule::InitKnobs(int count, Pin pins[]) {
@@ -191,6 +193,10 @@ void BaseHardwareModule::InitEncoders(int count, Pin pins[][3]) {
         Encoder myEncoder;
         myEncoder.Init(pins[i][0], pins[i][1], pins[i][2]);
         encoders.push_back(myEncoder);
+    }
+
+    if (count > 0) {
+        m_supportsEncoder = true;
     }
 }
 

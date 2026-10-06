@@ -1,6 +1,8 @@
 #include "spectral_delay_module.h"
 #include "../Util/audio_utilities.h"
+#include <algorithm>
 #include <array>
+#include <cstring>
 
 using namespace bkshepherd;
 
@@ -178,6 +180,13 @@ SpectralDelayModule::~SpectralDelayModule() {
 void SpectralDelayModule::Init(float sample_rate) {
     BaseEffectModule::Init(sample_rate);
 
+    // SDRAM is not zeroed at startup; clear the STFT buffers so the first
+    // frames don't transform random memory (which can push NaN into the
+    // feedback delay lines and stick there)
+    memset(in, 0, sizeof(in));
+    memset(middle, 0, sizeof(middle));
+    memset(out, 0, sizeof(out));
+
     // initialize FFT and STFT objects
     fft = new ShyFFT<float, N, RotationPhasor>();
     fft->Init();
@@ -249,8 +258,10 @@ void SpectralDelayModule::ParameterChanged(int parameter_id) // Somewhere here i
                 delay_array_real[i].feedback = delay_array_imag[i].feedback = r;
 
             } else if (delay_fdbk_mode == 1) {
+                // (sin + 1) can reach 2x the knob value; clamp so per-bin
+                // feedback never exceeds 1.0 (unbounded growth otherwise)
                 delay_array_real[i].feedback = delay_array_imag[i].feedback =
-                    (sin((i * cycles / delay_array_size) * 2 * PI) + 1.0) * vdelay_fdbk;
+                    std::min(1.0f, static_cast<float>((sin((i * cycles / delay_array_size) * 2 * PI) + 1.0) * vdelay_fdbk));
 
             } else if (delay_fdbk_mode == 2) {
                 delay_array_real[i].feedback = delay_array_imag[i].feedback = vdelay_fdbk * i / delay_array_size;

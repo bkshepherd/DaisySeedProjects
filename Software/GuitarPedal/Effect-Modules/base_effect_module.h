@@ -69,6 +69,8 @@ class BaseEffectModule {
     */
     uint16_t GetParameterCount() const;
 
+    uint32_t GetParameterChangeCount() const { return m_parameterChangeCount; }
+
     /** Gets the total number of stored presets for this effect
      \return the number of presets for this effect.
     */
@@ -132,6 +134,12 @@ class BaseEffectModule {
     */
     const float GetParameterDefaultValueAsFloat(int parameter_id) const;
 
+    /** Gets the Default Value for an Effect Parameter as a raw uint32_t value
+     \param parameter_id Id of the parameter to retrieve.
+     \return the raw default Value of the specified parameter.
+    */
+    uint32_t GetParameterDefaultValueRaw(int parameter_id) const;
+
     /** Gets the Raw uint32_t value of an Effect Parameter
      \param parameter_id Id of the parameter to retrieve.
      \return the raw Value of the specified parameter.
@@ -160,7 +168,7 @@ class BaseEffectModule {
      \param knob_id Id of the Knob to retrieve.
      \return the Parameter ID mapped to the specified knob, or -1 if no Parameter is Mapped to that Knob
     */
-    int GetMappedParameterIDForKnob(int knob_id) const;
+    virtual int GetMappedParameterIDForKnob(int knob_id) const;
 
     /** Gets the Parameter ID of the Effect Parameter mapped to this Midi CC ID.
      \param midiCC_id Id of the MidiCC to retrieve.
@@ -335,6 +343,7 @@ class BaseEffectModule {
     float m_audioLeft;                        // Last Audio Sample value for the Left Stereo Channel (or Mono)
     float m_audioRight;                       // Last Audio Sample value for the Right Stereo Channel
     uint32_t m_settingsArrayStartIdx;         // Start index of settings persistent storage struct
+    volatile uint32_t m_parameterChangeCount;
   private:
     bool m_isEnabled;
     float m_sampleRate; // Current Sample Rate this Effect was initialized for.

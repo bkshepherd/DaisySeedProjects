@@ -78,6 +78,17 @@ float secondsSinceStartup = 0.0f;
 bool needToSaveSettingsForActiveEffect = false;
 uint32_t last_save_time; // Time we last set it
 
+struct AutoSaveEffectState {
+    uint32_t observedParameterChangeCount;
+    uint32_t lastParameterChangeTime;
+    bool pending;
+};
+
+AutoSaveEffectState *autoSaveEffectStates = nullptr;
+uint32_t last_auto_save_check_time = 0;
+constexpr uint32_t kAutoSaveDebounceMs = 5000;
+constexpr uint32_t kAutoSaveCheckIntervalMs = 50;
+
 // Used to debounce quick switching to/from the tuner
 bool ignoreBypassSwitchUntilNextActuation = false;
 bool effectActiveBeforeQuickSwitch = false;
@@ -101,10 +112,19 @@ int switchEnabledIdleTimeInSamples;
 bool *switchEnabledCache = nullptr;
 bool *switchDoubleEnabledCache = nullptr;
 int *switchEnabledSamplesTilIdle = nullptr;
+bool alternateHeldFor1SecondTriggered = false;
 
 // Tempo
 bool needToChangeTempo = false;
 uint32_t globalTempoBPM = 0;
+
+// Set when an alternate footswitch event may have changed the active
+// effect's own parameters from inside itself (e.g. EffectChain's
+// footswitch-toggle mode flipping a slot's "On" parameter). The menu's
+// per-tick writeback loop would otherwise silently revert that change on the
+// next UpdateUI(), so the main loop must refresh the UI's cached values
+// first - see the needToChangeTempo handling below for the same pattern.
+bool needToRefreshMenuParameterValues = false;
 
 bool isCrossFading = false;
 bool isCrossFadingForward = true; // True goes Source->Target, False goes Target->Source
@@ -113,6 +133,13 @@ float crossFaderTransitionTimeInSeconds = 0.1f;
 int crossFaderTransitionTimeInSamples;
 int samplesTilCrossFadingComplete;
 CpuLoadMeter cpuLoadMeter;
+
+// Effect switch requested from the audio callback (interrupt context).
+// Switching effects rebuilds the UI menus with heap new/delete, which is not
+// safe from the interrupt (allocator reentrancy, and the main loop may be
+// iterating those menu allocations), so the request is deferred to the main
+// loop. -1 means no switch is pending.
+volatile int pendingEffectIDFromAudioCallback = -1;
 
 void SetActiveEffect(int effectID);
 
@@ -195,26 +222,27 @@ void processFootswitches(size_t size, Settings &settings)
             !ignoreBypassSwitchUntilNextActuation) {
 
             // If we have a screen and there is a tuner module, we quick switch
-            // to it, otherwise we just cycle through the effects
-            if (hardware.SupportsDisplay() && tunerModuleIndex > 0) {
+            // to it, otherwise we just cycle through the effects.
+            // The actual switch is deferred to the main loop (it isn't safe
+            // from this interrupt); SetActiveEffect syncs the new effect's
+            // enabled state with effectOn when the switch is applied.
+            if (hardware.SupportsDisplay() && tunerModuleIndex >= 0) {
                 // Start the quick switch to the tuner
                 if (activeEffectID == tunerModuleIndex) {
                     // Set back the active effect before the quick switch
-                    SetActiveEffect(prevActiveEffectID);
+                    pendingEffectIDFromAudioCallback = prevActiveEffectID;
 
                     // Restore the effect state from when we quick switched, this is an
                     // inverse because the act of holding the switch caused the state to
                     // chnage due to the rising edge being detected
                     effectOn = !effectActiveBeforeQuickSwitch;
-                    activeEffect->SetEnabled(effectOn);
                 } else {
                     // Store if effect is on or not when quick switching
                     effectActiveBeforeQuickSwitch = effectOn;
 
                     // Switch to tuner and force it to be enabled
-                    SetActiveEffect(tunerModuleIndex);
+                    pendingEffectIDFromAudioCallback = tunerModuleIndex;
                     effectOn = true;
-                    activeEffect->SetEnabled(effectOn);
                 }
                 ignoreBypassSwitchUntilNextActuation = true;
             } else {
@@ -230,10 +258,9 @@ void processFootswitches(size_t size, Settings &settings)
                     newActiveEffectId = 0;
                 }
 
-                SetActiveEffect(newActiveEffectId);
+                pendingEffectIDFromAudioCallback = newActiveEffectId;
 
                 effectOn = false;
-                activeEffect->SetEnabled(effectOn);
 
                 ignoreBypassSwitchUntilNextActuation = true;
             }
@@ -267,16 +294,24 @@ void processFootswitches(size_t size, Settings &settings)
 
         if (effectOn && switchPressed && i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)) {
             activeEffect->AlternateFootswitchPressed();
+            needToRefreshMenuParameterValues = true;
         }
 
         bool switchReleased = hardware.switches[i].FallingEdge();
+        if (switchReleased && i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)) {
+            alternateHeldFor1SecondTriggered = false;
+        }
         if (effectOn && switchReleased && i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)) {
             activeEffect->AlternateFootswitchReleased();
+            needToRefreshMenuParameterValues = true;
         }
 
         bool switchHeld = hardware.switches[i].TimeHeldMs() >= 1000.f;
-        if (effectOn && switchHeld && i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)) {
+        if (effectOn && switchHeld && !alternateHeldFor1SecondTriggered &&
+            i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)) {
+            alternateHeldFor1SecondTriggered = true;
             activeEffect->AlternateFootswitchHeldFor1Second();
+            needToRefreshMenuParameterValues = true;
         }
 
         if (switchEnabledCache[i] == true) {
@@ -329,6 +364,13 @@ void processFootswitches(size_t size, Settings &settings)
         if (activeEffect != nullptr) {
             activeEffect->SetEnabled(effectOn);
         }
+
+        // Persist the toggle so a power cycle restores the pedal in the same
+        // on/off state it was left in. This is a plain memory write (like
+        // SetActiveEffect's settings.globalActiveEffectID update), flushed to
+        // flash by the periodic storage.Save() in the main loop - no separate
+        // save gesture needed.
+        settings.globalEffectOn = effectOn;
 
         // Setup the crossfade
         isCrossFading = true;
@@ -478,6 +520,11 @@ void SetActiveEffect(int effectID) {
         // Update the Active Effect directly.
         activeEffect = availableEffects[effectID];
 
+        // Keep the new effect's enabled state in sync with the global bypass
+        // state (previously only the footswitch paths did this, leaving menu
+        // and MIDI program-change switches with stale LED/enabled state)
+        activeEffect->SetEnabled(effectOn);
+
         guitarPedalUI.UpdateActiveEffect(effectID);
 
         // Get a handle to the persitance storage settings
@@ -615,7 +662,27 @@ int main(void) {
     // Set the active effect
     activeEffect = availableEffects[settings.globalActiveEffectID];
     activeEffectID = settings.globalActiveEffectID;
+    effectOn = settings.globalEffectOn;
     activeEffect->SetEnabled(effectOn);
+
+    // LoadEffectSettingsFromPersistantStorage() above loads every effect's own
+    // saved preset 0, in effectList order. An effect that shares a
+    // single-instance-only child with another effect (e.g. one
+    // DattorroReverbModule referenced from two EffectChains, see README) ends
+    // up with whichever of those effects happens to load last, which isn't
+    // necessarily the one about to be active. Reloading just the active
+    // effect's own preset 0 here makes it the final writer of anything it
+    // touches, so it matches what the user actually saved for it. This is a
+    // no-op for every parameter that isn't shared (SetParameterRaw/
+    // SetParameterAsFloat only call ParameterChanged when a value actually
+    // differs from what's already set).
+    LoadPresetFromPersistentStorage(activeEffectID, 0);
+
+    autoSaveEffectStates = new AutoSaveEffectState[availableEffectsCount];
+    for (int i = 0; i < availableEffectsCount; ++i) {
+        autoSaveEffectStates[i] = {availableEffects[i]->GetParameterChangeCount(), 0, false};
+    }
+    last_auto_save_check_time = System::GetNow();
 
     // Init the Menu UI System
     if (hardware.SupportsDisplay()) {
@@ -629,7 +696,7 @@ int main(void) {
 
     // Setup Relay Bypass State
     if (hardware.SupportsTrueBypass() && settings.globalRelayBypassEnabled) {
-        bypassOn = true;
+        bypassOn = !effectOn;
     }
 
     // Init the Knob Monitoring System
@@ -650,11 +717,13 @@ int main(void) {
         switchEnabledSamplesTilIdle[i] = 0;
     }
 
-    // Setup the cross fader
+    // Setup the cross fader. Match the restored effectOn state so the audio
+    // path doesn't start silently bypassed/wet relative to what SetEnabled()
+    // and the LEDs already reflect above.
     crossFaderLeft.Init();
     crossFaderRight.Init();
-    crossFaderLeft.SetPos(0.0f);
-    crossFaderRight.SetPos(0.0f);
+    crossFaderLeft.SetPos(effectOn ? 1.0f : 0.0f);
+    crossFaderRight.SetPos(effectOn ? 1.0f : 0.0f);
 
     // start callback
     hardware.StartAdc();
@@ -673,6 +742,16 @@ int main(void) {
         lastTimeStampUS = currentTimeStampUS;
         float elapsedTimeInSeconds = (elapsedTimeStampUS / 1000000.0f);
         secondsSinceStartup = secondsSinceStartup + elapsedTimeInSeconds;
+
+        // Apply any effect switch requested by the audio callback. Doing it
+        // here (instead of in the interrupt) keeps the UI menu heap
+        // allocations off the audio interrupt. This must run before the menu
+        // sync below so the menu reflects the switch instead of undoing it.
+        if (pendingEffectIDFromAudioCallback >= 0) {
+            int pendingID = pendingEffectIDFromAudioCallback;
+            pendingEffectIDFromAudioCallback = -1;
+            SetActiveEffect(pendingID);
+        }
 
         // Handle Knob Changes
         if (!knobValuesInitialized && secondsSinceStartup > 1.0f) {
@@ -705,25 +784,36 @@ int main(void) {
             guitarPedalUI.UpdateActiveEffectParameterValues();
         }
 
+        // An alternate footswitch event may have changed the active effect's
+        // own parameters (e.g. EffectChain's footswitch-toggle mode). Refresh
+        // the menu's cached values from it before UpdateUI() runs below,
+        // otherwise the menu's own writeback would silently revert the change.
+        if (needToRefreshMenuParameterValues) {
+            needToRefreshMenuParameterValues = false;
+            guitarPedalUI.UpdateActiveEffectParameterValues();
+        }
+
         // If alt footswitch held AND encoder turned, iterate to next/previous effect, also throttle the changes
-        const int encoderIncrement = hardware.encoders[0].Increment();
-        if (has_alternate_footswitch &&
+        if (hardware.SupportsEncoder() && has_alternate_footswitch &&
             hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)].Pressed() &&
-            encoderIncrement != 0 && System::GetNow() - last_effect_change_time >= 10) {
-            int desiredIndex = activeEffectID - encoderIncrement;
-            if (desiredIndex > availableEffectsCount - 1) {
-                desiredIndex = 0;
-            } else if (desiredIndex < 0) {
-                desiredIndex = availableEffectsCount - 1;
+            System::GetNow() - last_effect_change_time >= 10) {
+            const int encoderIncrement = hardware.encoders[0].Increment();
+            if (encoderIncrement != 0) {
+                int desiredIndex = activeEffectID + encoderIncrement;
+                if (desiredIndex > availableEffectsCount - 1) {
+                    desiredIndex = 0;
+                } else if (desiredIndex < 0) {
+                    desiredIndex = availableEffectsCount - 1;
+                }
+                SetActiveEffect(desiredIndex);
             }
-            SetActiveEffect(desiredIndex);
         }
 
         if (hardware.SupportsDisplay()) {
             // Handle a Change in the Active Effect from the Menu System
 
             // Check which effect the Menu system thinks is active
-            int menuEffectID = guitarPedalUI.GetActiveEffectIDFromSettingsMenu();
+            int menuEffectID = guitarPedalUI.GetSelectedEffectID();
             BaseEffectModule *selectedEffect = availableEffects[menuEffectID];
 
             // If the effect differs from the active effect, change the active effect
@@ -765,6 +855,30 @@ int main(void) {
 
             while (hardware.midi.HasEvents()) {
                 HandleMidiMessage(hardware.midi.PopEvent());
+            }
+        }
+
+        uint32_t currentTimeMs = System::GetNow();
+        if (currentTimeMs - last_auto_save_check_time >= kAutoSaveCheckIntervalMs) {
+            last_auto_save_check_time = currentTimeMs;
+
+            for (int effectID = 0; effectID < availableEffectsCount; ++effectID) {
+                AutoSaveEffectState &autoSaveState = autoSaveEffectStates[effectID];
+                uint32_t changeCount = availableEffects[effectID]->GetParameterChangeCount();
+
+                if (changeCount != autoSaveState.observedParameterChangeCount) {
+                    autoSaveState.observedParameterChangeCount = changeCount;
+                    autoSaveState.lastParameterChangeTime = currentTimeMs;
+                    autoSaveState.pending = true;
+                }
+
+                if (!settings.globalAutoSave) {
+                    autoSaveState.pending = false;
+                } else if (autoSaveState.pending &&
+                           currentTimeMs - autoSaveState.lastParameterChangeTime >= kAutoSaveDebounceMs) {
+                    SaveEffectSettingsToPersitantStorageForEffectID(effectID, 0);
+                    autoSaveState.pending = false;
+                }
             }
         }
 

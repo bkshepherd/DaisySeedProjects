@@ -12,10 +12,9 @@ static const char *s_semitoneBinNames[8] = {"1", "2", "3", "4", "5", "6", "7", "
 static const char *s_directionBinNames[2] = {"DOWN", "UP"};
 static const char *s_modeBinNames[2] = {"LATCH", "MOMENT"};
 
-// How many samples to delay to based on the "Delay" knob and parameter
-// when the time knob is set to max, this is used for the ramp up/down
-// transition when in momentary mode. Has no effect on latching mode
-const uint32_t k_maxSamplesMaxTime = 48000 * 2;
+// Maximum ramp up/down transition time in seconds when the shift/return
+// knob is set to max, used in momentary mode. Has no effect on latching mode
+const float k_maxTransitionTimeSeconds = 2.0f;
 
 // Larger delay size is higher fidelity/quality for a farther transpose, at
 // the cost of additional latency (like...a lot of latency)
@@ -160,8 +159,9 @@ void PitchShifterModule::Init(float sample_rate) {
 
     SetTranspose(m_semitoneTarget);
 
-    m_samplesToDelayShift = static_cast<uint32_t>(static_cast<float>(k_maxSamplesMaxTime) * GetParameterAsFloat(SHIFT));
-    m_samplesToDelayReturn = static_cast<uint32_t>(static_cast<float>(k_maxSamplesMaxTime) * GetParameterAsFloat(RETURN));
+    const float maxTransitionSamples = sample_rate * k_maxTransitionTimeSeconds;
+    m_samplesToDelayShift = static_cast<uint32_t>(maxTransitionSamples * GetParameterAsFloat(SHIFT));
+    m_samplesToDelayReturn = static_cast<uint32_t>(maxTransitionSamples * GetParameterAsFloat(RETURN));
 }
 
 void PitchShifterModule::ParameterChanged(int parameter_id) {
@@ -178,9 +178,9 @@ void PitchShifterModule::ParameterChanged(int parameter_id) {
             pitchShifter.SetDelSize(k_defaultSamplesDelayPitchShifter);
         }
     } else if (parameter_id == SHIFT) {
-        m_samplesToDelayShift = static_cast<uint32_t>(static_cast<float>(k_maxSamplesMaxTime) * GetParameterAsFloat(SHIFT));
+        m_samplesToDelayShift = static_cast<uint32_t>(GetSampleRate() * k_maxTransitionTimeSeconds * GetParameterAsFloat(SHIFT));
     } else if (parameter_id == RETURN) {
-        m_samplesToDelayReturn = static_cast<uint32_t>(static_cast<float>(k_maxSamplesMaxTime) * GetParameterAsFloat(RETURN));
+        m_samplesToDelayReturn = static_cast<uint32_t>(GetSampleRate() * k_maxTransitionTimeSeconds * GetParameterAsFloat(RETURN));
     }
 
     // Parameters changed, reset the transposition target just in case (mostly
