@@ -92,7 +92,7 @@ static const auto s_metaData = [] {
         valueBinNames : s_typeBinNames,
         defaultValue : {.uint_value = 0},
         knobMapping : 4,
-        midiCCMapping : 32
+        midiCCMapping : 33
     };
 
     params[MultiDelayModule::SHIFT_TAP_1] = {

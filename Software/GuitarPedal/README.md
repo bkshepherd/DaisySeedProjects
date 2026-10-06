@@ -152,6 +152,20 @@ To opt in:
 2. Uncomment the `#include` and `new DattorroReverbModule(),` lines in `loaded_effects.h`.
 3. Rebuild and flash.
 
+## MIDI Effect and Preset Recall
+
+On MIDI-enabled hardware, a standalone Program Change continues to select an effect using its zero-based position in `loaded_effects.h`. To recall a saved preset for a particular effect, send standard Bank Select messages followed by Program Change:
+
+```text
+CC 0  = Bank Select MSB
+CC 32 = Bank Select LSB
+PC    = saved preset number
+```
+
+The pedal calculates the bank as `(CC0 * 128) + CC32`. Bank 0 preserves the legacy Program Change behavior. For banks 1 and higher, the effect index is `bank - 1`; the Program Change value selects that effect's saved preset. For example, effect 4, preset 2 is `CC0=0`, `CC32=5`, `PC=2`. A switcher editor with one Bank Number field should send its standard MSB/LSB encoding of that number; a switcher's own bank/preset labels do not necessarily correspond to MIDI Bank Select messages.
+
+CC0 and CC32 are reserved for Bank Select. Multi Delay Tap Mode moved from CC32 to CC33; update controller assignments that used its old CC. Bank selection is consumed by the next Program Change, so send the complete sequence for each combined recall. The effect order is build-specific and follows `loaded_effects.h`.
+
 ## Combining Effects (EffectChain)
 
 `Effect-Modules/effect_chain.h` lets you wire two or more effects into a single chained entry in
