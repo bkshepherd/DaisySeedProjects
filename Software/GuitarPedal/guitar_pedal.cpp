@@ -642,21 +642,17 @@ void HandleMidiMessage(MidiEvent m) {
     case ProgramChange: {
         ProgramChangeEvent p = m.AsProgramChange();
 
-        if (pendingMidiBank.active) {
-            const uint16_t bank = static_cast<uint16_t>(pendingMidiBank.msb) * 128U + pendingMidiBank.lsb;
-            pendingMidiBank = {};
+        const bool hasBank = pendingMidiBank.active;
+        const uint16_t presetID = static_cast<uint16_t>(pendingMidiBank.msb) * 128U + pendingMidiBank.lsb;
+        pendingMidiBank = {};
 
-            if (bank == 0) {
-                if (p.program >= 0 && p.program < availableEffectsCount) {
-                    SetActiveEffect(p.program);
-                }
-            } else {
-                const uint16_t effectID = bank - 1U;
-                if (effectID < availableEffectsCount) {
-                    SetActiveEffectAndPreset(effectID, p.program);
-                }
-            }
-        } else if (p.program >= 0 && p.program < availableEffectsCount) {
+        if (p.program < 0 || p.program >= availableEffectsCount) {
+            break;
+        }
+
+        if (hasBank) {
+            SetActiveEffectAndPreset(p.program, presetID);
+        } else {
             SetActiveEffect(p.program);
         }
         break;

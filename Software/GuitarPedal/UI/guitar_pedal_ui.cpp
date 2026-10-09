@@ -57,6 +57,9 @@ void GuitarPedalUI::Init() {
 }
 
 void GuitarPedalUI::UpdateActiveEffect(int effectID) {
+    // Otherwise UpdateUI sees a mismatch and reloads the menu's stale preset over the new one.
+    m_activePresetSettingIntValue.Set(activeEffect->GetCurrentPreset());
+
     if (hardware.SupportsDisplay()) {
         m_effectSelectionConfirmed = false;
 
