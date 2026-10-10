@@ -125,7 +125,7 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.25f},
         knobMapping : -1,
-        midiCCMapping : 32
+        midiCCMapping : 39
     };
 
     params[ReverbDelayModule::DUAL_DELAY] = {

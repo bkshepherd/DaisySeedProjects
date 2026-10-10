@@ -11,6 +11,7 @@ extern int availableEffectsCount;
 extern BaseEffectModule **availableEffects;
 extern int activeEffectID;
 extern BaseEffectModule *activeEffect;
+extern void ResetAutoSaveTrackingForEffect(int effectID);
 
 // These will be called from the UI system. @see InitUi()
 void FlushCanvas(const UiCanvasDescriptor &canvasDescriptor) {
@@ -56,6 +57,9 @@ void GuitarPedalUI::Init() {
 }
 
 void GuitarPedalUI::UpdateActiveEffect(int effectID) {
+    // Otherwise UpdateUI sees a mismatch and reloads the menu's stale preset over the new one.
+    m_activePresetSettingIntValue.Set(activeEffect->GetCurrentPreset());
+
     if (hardware.SupportsDisplay()) {
         m_effectSelectionConfirmed = false;
 
@@ -508,6 +512,7 @@ void GuitarPedalUI::UpdateUI(float elapsedTime) {
         if (m_activePresetSelected < temp) {
             activeEffect->SetCurrentPreset(m_activePresetSelected);
             LoadPresetFromPersistentStorage(activeEffectID, m_activePresetSelected);
+            ResetAutoSaveTrackingForEffect(activeEffectID);
         } else {
             // Basically set 1 index higher than the actual presets, expecting the user to save the new preset in the usual way
             m_activePresetSelected = temp;
