@@ -292,9 +292,12 @@ void NamA2Module::ProcessMono(float in) {
         return;
     }
 
-    BaseEffectModule::ProcessMono(in);
+    m_audioLeft = m_audioRight = ProcessSample(in);
+    m_cachedEffectMagnitudeValue = fminf(1.0f, fabsf(m_audioLeft));
+}
 
-    m_inputBuffer[m_bufferIndex] = m_audioLeft * m_gain;
+float NamA2Module::ProcessSample(float in) {
+    m_inputBuffer[m_bufferIndex] = in * m_gain;
 
     // Read from the previously-processed output block, applying the per-model
     // loudness-match gain and IR level compensation.
@@ -321,9 +324,69 @@ void NamA2Module::ProcessMono(float in) {
         }
     }
 
-    m_audioLeft = m_audioRight = ampOut * m_level;
+    return ampOut * m_level;
+}
 
-    m_cachedEffectMagnitudeValue = fminf(1.0f, fabsf(m_audioLeft));
+// ---------------------------------------------------------------------------
+// ProcessMonoBlock
+//
+// When the caller hands over exactly one model block (kBlockSize samples) and no samples are staged from the per-sample path, the
+// model runs directly on the incoming block and the result is returned in the same call. That skips the staging copies and removes
+// the one block (~1 ms) of latency the per-sample path has.
+// Any other block size falls back to the per-sample path (identical to calling ProcessMono per sample), so staged samples are
+// never orphaned. Switching between the two paths mid-stream can replay up to one block of old staged output once; the pedal's
+// fixed 48-sample callback never does that.
+// ---------------------------------------------------------------------------
+void NamA2Module::ProcessMonoBlock(const float *in, float *outL, float *outR, size_t n) {
+    if (m_muteOutput) {
+        std::fill(outL, outL + n, 0.0f);
+        std::fill(outR, outR + n, 0.0f);
+        m_audioLeft = m_audioRight = 0.0f;
+        return;
+    }
+
+    float last = 0.0f;
+
+    if (m_bufferIndex == 0 && n == static_cast<size_t>(kBlockSize)) {
+        for (int i = 0; i < kBlockSize; ++i) {
+            m_inputBuffer[i] = in[i] * m_gain;
+        }
+
+        m_model->process_block_48(m_inputBuffer, m_outputBuffer);
+
+        // Run the cab IR straight into the caller's buffer so the staged state (m_irOutputBuffer) is left alone
+        if (m_irEnabled) {
+            mIR.processBlock(m_outputBuffer, outL, kBlockSize);
+        } else {
+            std::copy(m_outputBuffer, m_outputBuffer + kBlockSize, outL);
+        }
+
+        // Per-model loudness-match gain and IR level compensation, then the 3-band EQ and level, as in ProcessSample
+        const float scale = m_currentModelGain * (m_irEnabled ? 0.5f : 1.0f);
+        for (int i = 0; i < kBlockSize; ++i) {
+            float ampOut = outL[i] * scale;
+            if (m_eqEnabled) {
+                for (uint8_t f = 0; f < NUM_FILTERS_A2; ++f) {
+                    ampOut = filter_a2[f](ampOut);
+                }
+            }
+            last = ampOut * m_level;
+            outL[i] = last;
+            outR[i] = last;
+        }
+    } else {
+        for (size_t i = 0; i < n; i++) {
+            last = ProcessSample(in[i]);
+            outL[i] = outR[i] = last;
+        }
+    }
+
+    m_audioLeft = m_audioRight = last;
+    m_cachedEffectMagnitudeValue = fminf(1.0f, fabsf(last));
+}
+
+void NamA2Module::ProcessStereoBlock(const float *inL, const float * /*inR*/, float *outL, float *outR, size_t n) {
+    ProcessMonoBlock(inL, outL, outR, n);
 }
 
 // ---------------------------------------------------------------------------
