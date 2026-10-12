@@ -89,6 +89,14 @@ uint32_t last_auto_save_check_time = 0;
 constexpr uint32_t kAutoSaveDebounceMs = 5000;
 constexpr uint32_t kAutoSaveCheckIntervalMs = 50;
 
+struct PendingMidiBank {
+    uint8_t msb = 0;
+    uint8_t lsb = 0;
+    bool active = false;
+};
+
+PendingMidiBank pendingMidiBank;
+
 // Used to debounce quick switching to/from the tuner
 bool ignoreBypassSwitchUntilNextActuation = false;
 bool effectActiveBeforeQuickSwitch = false;
@@ -537,6 +545,31 @@ void SetActiveEffect(int effectID) {
     }
 }
 
+void ResetAutoSaveTrackingForEffect(int effectID) {
+    if (autoSaveEffectStates == nullptr || effectID < 0 || effectID >= availableEffectsCount) {
+        return;
+    }
+
+    AutoSaveEffectState &autoSaveState = autoSaveEffectStates[effectID];
+    autoSaveState.observedParameterChangeCount = availableEffects[effectID]->GetParameterChangeCount();
+    autoSaveState.pending = false;
+}
+
+void SetActiveEffectAndPreset(int effectID, uint32_t presetID) {
+    if (effectID < 0 || effectID >= availableEffectsCount) {
+        return;
+    }
+
+    BaseEffectModule *effect = availableEffects[effectID];
+    if (presetID < effect->GetPresetCount()) {
+        effect->SetCurrentPreset(presetID);
+        LoadPresetFromPersistentStorage(effectID, presetID);
+        ResetAutoSaveTrackingForEffect(effectID);
+    }
+
+    SetActiveEffect(effectID);
+}
+
 // Typical Switch case for Message Type.
 void HandleMidiMessage(MidiEvent m) {
     if (!hardware.SupportsMidi()) {
@@ -596,6 +629,19 @@ void HandleMidiMessage(MidiEvent m) {
         if (activeEffect != nullptr) {
             ControlChangeEvent p = m.AsControlChange();
 
+            if (p.control_number == 0) {
+                pendingMidiBank.msb = p.value;
+                pendingMidiBank.lsb = 0;
+                pendingMidiBank.active = true;
+                break;
+            }
+
+            if (p.control_number == 32) {
+                pendingMidiBank.lsb = p.value;
+                pendingMidiBank.active = true;
+                break;
+            }
+
             // Notify the activeEffect to handle this midi cc / value
             activeEffect->MidiCCValueNotification(p.control_number, p.value);
 
@@ -611,7 +657,17 @@ void HandleMidiMessage(MidiEvent m) {
     case ProgramChange: {
         ProgramChangeEvent p = m.AsProgramChange();
 
-        if (p.program >= 0 && p.program < availableEffectsCount) {
+        const bool hasBank = pendingMidiBank.active;
+        const uint16_t presetID = static_cast<uint16_t>(pendingMidiBank.msb) * 128U + pendingMidiBank.lsb;
+        pendingMidiBank = {};
+
+        if (p.program < 0 || p.program >= availableEffectsCount) {
+            break;
+        }
+
+        if (hasBank) {
+            SetActiveEffectAndPreset(p.program, presetID);
+        } else {
             SetActiveEffect(p.program);
         }
         break;
