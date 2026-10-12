@@ -28,6 +28,8 @@ class IrModule : public BaseEffectModule {
     void SelectIR();
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;
+    void ProcessMonoBlock(const float *in, float *outL, float *outR, size_t n) override;
+    void ProcessStereoBlock(const float *inL, const float *inR, float *outL, float *outR, size_t n) override;
     float GetBrightnessForLED(int led_id) const override;
     // void AlternateFootswitchPressed() override;
 

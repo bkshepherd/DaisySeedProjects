@@ -123,6 +123,38 @@ void IrModule::ProcessStereo(float inL, float inR) {
     ProcessMono(inL);
 }
 
+// Block version. The FIR keeps its own history, so when no samples are staged from the per-sample path the incoming block can be
+// convolved directly. That skips the staging copies and also removes the one block of latency the per-sample path has.
+// Otherwise (unaligned or oversized blocks) fall back to the per-sample path so the staged samples are never orphaned.
+void IrModule::ProcessMonoBlock(const float *in, float *outL, float *outR, size_t n) {
+    if (m_bufferIndex != 0 || n > static_cast<size_t>(kBlockSize)) {
+        BaseEffectModule::ProcessMonoBlock(in, outL, outR, n);
+        return;
+    }
+
+    const float level = m_levelMin + (GetParameterAsFloat(LEVEL) * (m_levelMax - m_levelMin));
+
+    // 0.5 is for loudness normalization with the IR
+    for (size_t i = 0; i < n; i++) {
+        m_inputBuffer[i] = in[i] * 0.5f;
+    }
+
+    // Write straight into the caller's buffer so the staged per-sample state (m_outputBuffer) is left untouched.
+    mIR.processBlock(m_inputBuffer, outL, static_cast<uint32_t>(n));
+
+    for (size_t i = 0; i < n; i++) {
+        outL[i] *= level;
+        outR[i] = outL[i];
+    }
+
+    m_audioLeft = m_audioRight = outL[n - 1];
+    m_cachedEffectMagnitudeValue = fabsf(m_audioLeft);
+}
+
+void IrModule::ProcessStereoBlock(const float *inL, const float * /*inR*/, float *outL, float *outR, size_t n) {
+    ProcessMonoBlock(inL, outL, outR, n);
+}
+
 float IrModule::GetBrightnessForLED(int led_id) const {
     float value = BaseEffectModule::GetBrightnessForLED(led_id);
 
