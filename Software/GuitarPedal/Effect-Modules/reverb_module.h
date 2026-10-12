@@ -28,9 +28,14 @@ class ReverbModule : public BaseEffectModule {
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;
+    void ProcessMonoBlock(const float *in, float *outL, float *outR, size_t n) override;
+    void ProcessStereoBlock(const float *inL, const float *inR, float *outL, float *outR, size_t n) override;
     float GetBrightnessForLED(int led_id) const override;
 
   private:
+    void ApplyParameters();
+    void ProcessBlockInternal(const float *inL, const float *inR, float *outL, float *outR, size_t n);
+
     ReverbSc *m_reverbStereo;
     float m_timeMin;
     float m_timeMax;

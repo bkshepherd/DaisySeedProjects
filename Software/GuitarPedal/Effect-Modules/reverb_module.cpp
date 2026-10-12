@@ -102,6 +102,44 @@ void ReverbModule::ProcessStereo(float inL, float inR) {
     m_audioRight = wetr * GetParameterAsFloat(MIX) + inR * (1.0 - GetParameterAsFloat(MIX));
 }
 
+// Block versions. ReverbSc itself only processes one sample at a time, so the saving here is hoisting the per-sample parameter
+// reads/calculations and the mix gains out of the loop. The signal flow is the same as ProcessMono/ProcessStereo.
+void ReverbModule::ApplyParameters() {
+    m_reverbStereo->SetFeedback(m_timeMin + GetParameterAsFloat(TIME) * (m_timeMax - m_timeMin));
+    float invertedFreq = 1.0f - GetParameterAsFloat(DAMP);
+    invertedFreq = invertedFreq * invertedFreq; // exponential taper, as in ProcessMono
+    m_reverbStereo->SetLpFreq(m_lpFreqMin + invertedFreq * (m_lpFreqMax - m_lpFreqMin));
+}
+
+void ReverbModule::ProcessBlockInternal(const float *inL, const float *inR, float *outL, float *outR, size_t n) {
+    ApplyParameters();
+
+    const float mix = GetParameterAsFloat(MIX);
+    const float dry = 1.0f - mix;
+
+    for (size_t i = 0; i < n; i++) {
+        // Read both inputs before writing so in-place processing is safe
+        const float l = inL[i];
+        const float r = inR[i];
+        float wetl, wetr;
+        m_reverbStereo->Process(l, r, &wetl, &wetr);
+        outL[i] = wetl * mix + l * dry;
+        outR[i] = wetr * mix + r * dry;
+    }
+}
+
+void ReverbModule::ProcessMonoBlock(const float *in, float *outL, float *outR, size_t n) {
+    ProcessBlockInternal(in, in, outL, outR, n);
+    m_audioLeft = outL[n - 1];
+    m_audioRight = outR[n - 1];
+}
+
+void ReverbModule::ProcessStereoBlock(const float *inL, const float *inR, float *outL, float *outR, size_t n) {
+    ProcessBlockInternal(inL, inR, outL, outR, n);
+    m_audioLeft = outL[n - 1];
+    m_audioRight = outR[n - 1];
+}
+
 float ReverbModule::GetBrightnessForLED(int led_id) const {
     float value = BaseEffectModule::GetBrightnessForLED(led_id);
 
