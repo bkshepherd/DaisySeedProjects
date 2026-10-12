@@ -51,7 +51,7 @@
 // Dattorro plate reverb - GPL-3.0-or-later, disabled by default. See
 // Effect-Modules/Dattorro/README.md and the matching block in the Makefile
 // before uncommenting.
-// #include "Effect-Modules/dattorro_reverb_module.h"
+#include "Effect-Modules/dattorro_reverb_module.h"
 
 namespace bkshepherd {
 
@@ -98,7 +98,7 @@ void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffec
         // new FmKeysModule(),
 
         // GPL-3.0-or-later - see Effect-Modules/Dattorro/README.md
-        // new DattorroReverbModule(),
+        new DattorroReverbModule(),
 
         // Effects chain examples
 
