@@ -236,6 +236,17 @@ class BaseEffectModule {
     */
     virtual void ProcessStereo(float inL, float inR);
 
+    /** Processes a whole block in Mono. The default implementation calls ProcessMono for every sample, so effects only need to
+     override this when they can do better on a full block. Both output buffers receive the result (mono is duplicated to right).
+     Don't mix with per-sample calls within the same block. \param in Input block. \param outL, outR Output blocks. \param n Number of samples.
+    */
+    virtual void ProcessMonoBlock(const float *in, float *outL, float *outR, size_t n);
+
+    /** Processes a whole block in Stereo. The default implementation calls ProcessStereo for every sample. \param inL, inR Input blocks.
+     \param outL, outR Output blocks. \param n Number of samples. Buffers may alias (in-place processing is allowed).
+    */
+    virtual void ProcessStereoBlock(const float *inL, const float *inR, float *outL, float *outR, size_t n);
+
     /**  Gets the most recently calculated Sample Value for the Left Stereo Channel (or Mono)
      \return Last floating point sample for the left channel.
     */

@@ -392,6 +392,22 @@ void BaseEffectModule::ProcessStereo(float inL, float inR) {
     m_audioRight = inR;
 }
 
+void BaseEffectModule::ProcessMonoBlock(const float *in, float *outL, float *outR, size_t n) {
+    for (size_t i = 0; i < n; i++) {
+        ProcessMono(in[i]);
+        outL[i] = m_audioLeft;
+        outR[i] = m_audioRight;
+    }
+}
+
+void BaseEffectModule::ProcessStereoBlock(const float *inL, const float *inR, float *outL, float *outR, size_t n) {
+    for (size_t i = 0; i < n; i++) {
+        ProcessStereo(inL[i], inR[i]);
+        outL[i] = m_audioLeft;
+        outR[i] = m_audioRight;
+    }
+}
+
 float BaseEffectModule::GetAudioLeft() const { return m_audioLeft; }
 
 float BaseEffectModule::GetAudioRight() const { return m_audioRight; }

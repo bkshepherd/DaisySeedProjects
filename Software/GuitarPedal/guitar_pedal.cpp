@@ -60,6 +60,7 @@ GuitarPedalUI guitarPedalUI;
 
 // Hardware Related Variables
 bool useDebugDisplay = false;
+
 bool effectOn = false;
 
 bool muteOn = false;
@@ -435,6 +436,45 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
 
     processFootswitches(size, settings);
 
+    // Run the active effect over the whole block up front. The effect doesn't depend on the crossfade/mute state below, so the
+    // per-sample loop only has to mix the dry and effect signals.
+    // Whether the effect is needed is decided once per block; if a crossfade ends mid-block the effect simply runs a few extra samples.
+    static constexpr size_t kMaxBlock = 128;
+    static float dryLeft[kMaxBlock], dryRight[kMaxBlock], fxLeft[kMaxBlock], fxRight[kMaxBlock];
+    const bool splitMono = settings.globalSplitMonoInputToStereo && !settings.globalRelayBypassEnabled;
+    const bool runEffect = activeEffect != nullptr && (effectOn || isCrossFading);
+
+    for (size_t start = 0; start < size; start += kMaxBlock) {
+        const size_t n = (size - start < kMaxBlock) ? (size - start) : kMaxBlock;
+
+        for (size_t i = 0; i < n; i++) {
+            dryLeft[i] = in[0][start + i];
+            dryRight[i] = splitMono ? dryLeft[i] : in[1][start + i];
+        }
+
+        if (runEffect) {
+            if (hardware.SupportsStereo()) {
+                activeEffect->ProcessStereoBlock(dryLeft, dryRight, fxLeft, fxRight, n);
+            } else {
+                activeEffect->ProcessMonoBlock(dryLeft, fxLeft, fxRight, n);
+            }
+        } else {
+            std::copy(dryLeft, dryLeft + n, fxLeft);
+            std::copy(dryRight, dryRight + n, fxRight);
+        }
+
+        for (size_t i = 0; i < n; i++) {
+            out[0][start + i] = fxLeft[i];
+            out[1][start + i] = fxRight[i];
+        }
+    }
+
+    if (runEffect) {
+        // Update state of the LEDs
+        led1Brightness = activeEffect->GetBrightnessForLED(0);
+        led2Brightness = activeEffect->GetBrightnessForLED(1);
+    }
+
     for (size_t i = 0; i < size; i++) {
         if (isCrossFading) {
             float crossFadeFactor = (float)samplesTilCrossFadingComplete / (float)crossFaderTransitionTimeInSamples;
@@ -470,43 +510,15 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
             }
         }
 
-        // Handle Mono vs Stereo
+        // Dry input and effect output for this sample. The effect output was written to out[] by the block pass above.
+        // (Dry input must be re-read from the input buffers, which are not aliased to out[] on the Daisy.)
         inputLeft = in[0][i];
-        inputRight = in[1][i];
+        inputRight = (splitMono) ? inputLeft : in[1][i];
 
-        // Split the Mono Input to Stereo (Only allowed if relay bypass non enabled)
-        if (settings.globalSplitMonoInputToStereo && !settings.globalRelayBypassEnabled) {
-            inputRight = inputLeft;
-        }
-
-        // Setup Master Crossfader. By default source & target is always the input signal
         float crossFadeSourceLeft = inputLeft;
         float crossFadeSourceRight = inputRight;
-        float crossFadeTargetLeft = inputLeft;
-        float crossFadeTargetRight = inputRight;
-        float effectOutputLeft = inputLeft;
-        float effectOutputRight = inputRight;
-
-        // Only calculate the active effect when it's needed
-        if (activeEffect != nullptr && (effectOn || isCrossFading)) {
-            // Apply the Active Effect
-            if (hardware.SupportsStereo()) {
-                activeEffect->ProcessStereo(inputLeft, inputRight);
-            } else {
-                activeEffect->ProcessMono(inputLeft);
-            }
-
-            effectOutputLeft = activeEffect->GetAudioLeft();
-            effectOutputRight = activeEffect->GetAudioRight();
-
-            // Update state of the LEDs
-            led1Brightness = activeEffect->GetBrightnessForLED(0);
-            led2Brightness = activeEffect->GetBrightnessForLED(1);
-        }
-
-        // Setup the crossfade target to be the effect
-        crossFadeTargetLeft = effectOutputLeft;
-        crossFadeTargetRight = effectOutputRight;
+        float crossFadeTargetLeft = out[0][i];
+        float crossFadeTargetRight = out[1][i];
 
         out[0][i] = crossFaderLeft.Process(crossFadeSourceLeft, crossFadeTargetLeft);
         out[1][i] = crossFaderRight.Process(crossFadeSourceRight, crossFadeTargetRight);
