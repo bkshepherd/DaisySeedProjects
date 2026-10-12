@@ -43,6 +43,8 @@ class TapeDelayModule : public BaseEffectModule {
     void ParameterChanged(int parameter_id) override;
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;
+    void ProcessMonoBlock(const float *in, float *outL, float *outR, size_t n) override;
+    void ProcessStereoBlock(const float *inL, const float *inR, float *outL, float *outR, size_t n) override;
     void SetTempo(uint32_t bpm) override;
     float GetBrightnessForLED(int led_id) const override;
     void SetEnabled(bool isEnabled) override;
@@ -100,19 +102,37 @@ class TapeDelayModule : public BaseEffectModule {
     TapeModulator m_tapeModR;
     Oscillator m_ledOsc;
 
+    // Values that depend only on the parameters. They are computed once per ProcessSamples() call instead of once per sample.
+    struct WowParams {
+        float wowRate, flutterRate, wowDepth, flutterDepth, flutterMix;
+    };
+    struct ImperfectionParams {
+        float amt, dropoutChance, crinkleChance, spliceChance;
+    };
+    struct ChannelParams {
+        bool isLoFi;
+        float division;
+        float minDelay;
+        int mode;
+        int headCfg;
+        float drive;
+    };
+
     void UpdateMix();
     bool IsLoFiMode() const;
-    void UpdateDelayTimeAndLed();
+    void UpdateDelayTimeAndLed(bool isLoFi, float wobble);
     float GetDivisionMultiplier() const;
-    float GetWowFlutterOffset(TapeModulator &mod, float rateScale);
+    WowParams ComputeWowParams(float rateScale, bool isLoFi) const;
     float Random01();
-    void UpdateImperfections(float amount, float &dropoutGain, float &crinkleOffset);
-    void GetHeadMix(float baseSamples, DelayLine<float, TAPE_MAX_DELAY_SAMPLES> &delay, float &out) const;
+    ImperfectionParams ComputeImperfectionParams(float amount) const;
+    void UpdateImperfections(const ImperfectionParams &p, float &dropoutGain, float &crinkleOffset);
+    void GetHeadMix(float baseSamples, DelayLine<float, TAPE_MAX_DELAY_SAMPLES> &delay, float &out, int mode, int headCfg) const;
     void ResetInternalState();
     float ApplySafetyLimiter(float sample) const;
-    float ProcessChannel(float input, float speedMod, float dropoutGain, float crinkleOffset, float age, bool isLoFi,
-               DelayLine<float, TAPE_MAX_DELAY_SAMPLES> &delay, Tone &tone, Svf &hp);
-    void ProcessTapeBlock();
+    float ProcessChannel(float input, float speedMod, float dropoutGain, float crinkleOffset, const ChannelParams &cp,
+                         DelayLine<float, TAPE_MAX_DELAY_SAMPLES> &delay, Tone &tone, Svf &hp);
+    // Shared implementation for ProcessMono/ProcessStereo (n = 1) and the block versions.
+    void ProcessSamples(const float *inL, const float *inR, float *outL, float *outR, size_t n);
 };
 } // namespace bkshepherd
 #endif
