@@ -284,7 +284,7 @@ CloudSeedModule::Mix CloudSeedModule::CalculateMix(float mixValue) {
     return Mix{wetMix, dryMix};
 }
 
-static float inMuted[1] = {0};
+static float inMuted[CloudSeed::ReverbController::MaxBlockSize] = {0};
 
 void CloudSeedModule::ProcessMono(float in) {
     BaseEffectModule::ProcessMono(in);
@@ -352,6 +352,62 @@ void CloudSeedModule::ProcessStereo(float inL, float inR) {
         m_audioLeft = outL[0] * currentMix.wet + inL2[0] * currentMix.dry;
         m_audioRight = outR[0] * currentMix.wet + inR2[0] * currentMix.dry;
     }
+}
+
+// Block versions. Same signal flow as ProcessMono/ProcessStereo, but the reverb stages run over the whole block per call instead of
+// once per sample, which removes most of the per-call overhead of walking every stage for a single sample.
+void CloudSeedModule::ProcessBlockInternal(const float *inL, const float *inR, float *outL, float *outR, size_t n) {
+    static float wetL[CloudSeed::ReverbController::MaxBlockSize];
+    static float wetR[CloudSeed::ReverbController::MaxBlockSize];
+
+    if (inputMuteForWet) {
+        reverb->Process(inMuted, inMuted, wetL, wetR, static_cast<int>(n));
+    } else {
+        // The reverb copies its inputs before writing outputs, but its API takes non-const pointers
+        reverb->Process(const_cast<float *>(inL), const_cast<float *>(inR), wetL, wetR, static_cast<int>(n));
+    }
+
+    const bool sum2Mono = GetParameterAsBool(SUM2MONO);
+
+    for (size_t i = 0; i < n; i++) {
+        // Gradually ramp dryMix if transition is active
+        if (linearChangeDryLevel.isActive()) {
+            currentMix.dry = linearChangeDryLevel.getNextValue();
+        }
+
+        if (sum2Mono) { // If "Sum2Mono" is on, combine L and R signals and half the level
+            const float l = ((wetL[i] + wetR[i]) / 2.0f) * currentMix.wet + inL[i] * currentMix.dry;
+            outL[i] = l;
+            outR[i] = l;
+        } else {
+            const float l = wetL[i] * currentMix.wet + inL[i] * currentMix.dry;
+            const float r = wetR[i] * currentMix.wet + inR[i] * currentMix.dry;
+            outL[i] = l;
+            outR[i] = r;
+        }
+    }
+}
+
+void CloudSeedModule::ProcessMonoBlock(const float *in, float *outL, float *outR, size_t n) {
+    constexpr size_t kMax = CloudSeed::ReverbController::MaxBlockSize;
+    for (size_t start = 0; start < n; start += kMax) {
+        const size_t len = (n - start < kMax) ? (n - start) : kMax;
+        ProcessBlockInternal(in + start, in + start, outL + start, outR + start, len);
+    }
+    m_audioLeft = outL[n - 1];
+    m_audioRight = outR[n - 1];
+}
+
+void CloudSeedModule::ProcessStereoBlock(const float *inL, const float *inR, float *outL, float *outR, size_t n) {
+    constexpr size_t kMax = CloudSeed::ReverbController::MaxBlockSize;
+    // If Stereo In is false the right input is a copy of the left, as in ProcessStereo.
+    const float *right = GetParameterAsBool(STEREO_IN) ? inR : inL;
+    for (size_t start = 0; start < n; start += kMax) {
+        const size_t len = (n - start < kMax) ? (n - start) : kMax;
+        ProcessBlockInternal(inL + start, right + start, outL + start, outR + start, len);
+    }
+    m_audioLeft = outL[n - 1];
+    m_audioRight = outR[n - 1];
 }
 
 float CloudSeedModule::GetBrightnessForLED(int led_id) const {

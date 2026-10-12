@@ -18,7 +18,9 @@
 namespace CloudSeed {
 class ReverbController {
   private:
-    static const int bufferSize = 1; // just make it huge by default...
+    // Maximum number of samples per Process() call. All internal scratch buffers are sized to this.
+    // Tuned on hardware: 48 was slower than per-sample processing (scratch buffers outgrow the D-cache), 4 was the fastest of 48/16/8/4/2.
+    static const int bufferSize = 4;
     int samplerate;
 
     ReverbChannel channelL;
@@ -30,6 +32,8 @@ class ReverbController {
     float parameters[(int)Parameter2::Count];
 
   public:
+    static const int MaxBlockSize = bufferSize;
+
     ReverbController(int samplerate)
         : channelL(bufferSize, samplerate, ChannelLR::Left), channelR(bufferSize, samplerate, ChannelLR::Right) {
         this->samplerate = samplerate;
