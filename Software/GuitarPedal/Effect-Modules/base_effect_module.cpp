@@ -2,7 +2,7 @@
 #include "../Util/audio_utilities.h"
 
 // This can be used to show the CPU on the default UI
-constexpr bool showCPU = false;
+constexpr bool showCPU = true;
 
 using namespace bkshepherd;
 

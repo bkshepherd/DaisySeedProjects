@@ -61,6 +61,9 @@ GuitarPedalUI guitarPedalUI;
 // Hardware Related Variables
 bool useDebugDisplay = false;
 
+// Diagnostic switch: when true the knobs are neither read nor applied, so every effect parameter stays at its default (or whatever the
+// menu sets). Useful for measuring CPU load without knob noise causing parameter updates. Set to false for normal operation.
+constexpr bool disableKnobs = false;
 bool effectOn = false;
 
 bool muteOn = false;
@@ -424,7 +427,9 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
     float led2Brightness = 0.0f;
 
     // Handle Inputs
-    hardware.ProcessAnalogControls();
+    if (!disableKnobs) {
+        hardware.ProcessAnalogControls();
+    }
     hardware.ProcessDigitalControls();
     guitarPedalUI.GenerateUIEvents();
 
@@ -432,7 +437,9 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
     Settings &settings = storage.GetSettings();
 
     // Process the Pots
-    processPots(size);
+    if (!disableKnobs) {
+        processPots(size);
+    }
 
     processFootswitches(size, settings);
 
@@ -827,7 +834,7 @@ int main(void) {
             knobValuesInitialized = true;
         }
 
-        if (knobValuesInitialized) {
+        if (!disableKnobs && knobValuesInitialized) {
             for (int i = 0; i < hardware.GetKnobCount(); i++) {
                 if (knobValueCacheChanged[i]) {
                     int parameterID = activeEffect->GetMappedParameterIDForKnob(i);
