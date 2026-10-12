@@ -48,6 +48,8 @@ class DattorroReverbModule : public BaseEffectModule {
 
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;
+    void ProcessMonoBlock(const float *in, float *outL, float *outR, size_t n) override;
+    void ProcessStereoBlock(const float *inL, const float *inR, float *outL, float *outR, size_t n) override;
 
     // A reverb has no tempo-synced parameter, so the footswitch should not nudge the global tempo
     // other effects read.

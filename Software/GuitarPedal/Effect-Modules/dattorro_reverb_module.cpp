@@ -249,3 +249,56 @@ void DattorroReverbModule::ProcessStereo(float inL, float inR) {
     m_audioLeft = wetL * wetGain + dryL * dryGain;
     m_audioRight = wetR * wetGain + dryR * dryGain;
 }
+
+// Block versions. The Dattorro engine is a feedback network that has to run one sample at a time, so the saving here is limited to
+// hoisting the mix gain calculation and the bypass check out of the per-sample loop. Signal flow matches ProcessMono/ProcessStereo.
+void DattorroReverbModule::ProcessMonoBlock(const float *in, float *outL, float *outR, size_t n) {
+    if (m_arenaExhausted || !m_dattorro) {
+        // Degrade to dry-only, as in ProcessMono
+        for (size_t i = 0; i < n; i++) {
+            outL[i] = in[i];
+            outR[i] = in[i];
+        }
+    } else {
+        const float mix = GetParameterAsFloat(MIX);
+        const float wetGain = mix * mix;
+        const float dryGain = 1.0f - wetGain;
+
+        for (size_t i = 0; i < n; i++) {
+            const float dry = in[i];
+            m_dattorro->process(dry, dry);
+            outL[i] = m_dattorro->getLeftOutput() * wetGain + dry * dryGain;
+            outR[i] = m_dattorro->getRightOutput() * wetGain + dry * dryGain;
+        }
+    }
+
+    m_audioLeft = outL[n - 1];
+    m_audioRight = outR[n - 1];
+}
+
+void DattorroReverbModule::ProcessStereoBlock(const float *inL, const float *inR, float *outL, float *outR, size_t n) {
+    if (m_arenaExhausted || !m_dattorro) {
+        for (size_t i = 0; i < n; i++) {
+            const float l = inL[i];
+            const float r = inR[i];
+            outL[i] = l;
+            outR[i] = r;
+        }
+    } else {
+        const float mix = GetParameterAsFloat(MIX);
+        const float wetGain = mix * mix;
+        const float dryGain = 1.0f - wetGain;
+
+        for (size_t i = 0; i < n; i++) {
+            // Read both inputs before writing so in-place processing is safe
+            const float dryL = inL[i];
+            const float dryR = inR[i];
+            m_dattorro->process(dryL, dryR);
+            outL[i] = m_dattorro->getLeftOutput() * wetGain + dryL * dryGain;
+            outR[i] = m_dattorro->getRightOutput() * wetGain + dryR * dryGain;
+        }
+    }
+
+    m_audioLeft = outL[n - 1];
+    m_audioRight = outR[n - 1];
+}
