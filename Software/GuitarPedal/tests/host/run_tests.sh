@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+# Host-side (PC) equivalence tests for the block-processing path of the effect modules.
+# See tests/host/README.md. Run from anywhere: tests/host/run_tests.sh
+#
+# BASE_REF   git ref holding the original per-sample implementation to compare against (default: main)
+# BUILD_DIR  where binaries and dumps go (default: /tmp/gp_host_tests)
+set -uo pipefail
+cd "$(dirname "$0")/../.."          # Software/GuitarPedal
+T=tests/host
+BASE=${BASE_REF:-main}
+B=${BUILD_DIR:-/tmp/gp_host_tests}
+PREFIX=$(git rev-parse --show-prefix)
+mkdir -p "$B"
+
+CXX=${CXX:-g++}
+COMMON="-std=c++20 -O1 -I$T/stub -I. -IEffect-Modules -IUtil -Idependencies/DaisySP/Source -Idependencies/DaisySP/Source/Utility \
+ -Idependencies/DaisySP/DaisySP-LGPL/Source -include daisysp-lgpl.h -Idependencies/q/q/q_lib/include -Idependencies/q/infra/include \
+ -Idependencies/gcem/include"
+LGPL=dependencies/DaisySP/DaisySP-LGPL/Source
+DSP=dependencies/DaisySP/Source
+BASEMOD="Effect-Modules/base_effect_module.cpp Util/audio_utilities.cpp"
+REVSC=$LGPL/Effects/reverbsc.cpp
+
+FAILS=0
+step() { echo; echo "=== $*"; }
+check() { if "$@"; then :; else FAILS=$((FAILS + 1)); fi; }
+build() { # build OUT SOURCES... (extra flags in $XFLAGS)
+    local out=$1; shift
+    $CXX $COMMON ${XFLAGS:-} "$@" -o "$out" 2>&1 | grep -E "error|undefined" | head -5
+    [ -x "$out" ]
+}
+base_file() { git show "$BASE:${PREFIX}$1"; } # file as it was in BASE_REF
+
+step "Reverb + Dattorro: block path vs per-sample path"
+if XFLAGS= build "$B/t_reverb_dattorro" $T/test_reverb_dattorro.cpp Effect-Modules/reverb_module.cpp Effect-Modules/dattorro_reverb_module.cpp \
+    Effect-Modules/Dattorro/Dattorro.cpp $BASEMOD $REVSC; then check "$B/t_reverb_dattorro"; else FAILS=$((FAILS + 1)); fi
+
+step "IR: block path vs per-sample path (CMSIS-DSP replaced by a stand-in FIR, see stub_cmsis/arm_math.h)"
+if XFLAGS="-I$T/stub_cmsis" build "$B/t_ir" $T/test_ir.cpp Effect-Modules/ir_module.cpp Effect-Modules/ImpulseResponse/ImpulseResponse.cpp \
+    Effect-Modules/ImpulseResponse/ir_data.cpp $BASEMOD; then check "$B/t_ir"; else FAILS=$((FAILS + 1)); fi
+
+step "NAM: direct block path vs per-sample path delayed by one block"
+if XFLAGS="-I$T/stub_cmsis" build "$B/t_nam" $T/test_nam.cpp Effect-Modules/nam_a2_module.cpp Effect-Modules/ImpulseResponse/ImpulseResponse.cpp \
+    Effect-Modules/ImpulseResponse/ir_data.cpp $BASEMOD; then
+    for eq in 0 1; do for ir in 0 1; do for md in sample mono stereo; do # the model is a process-wide static: one process per run
+        "$B/t_nam" $md $eq $ir "$B/nam_${md}_${eq}_${ir}.bin" > /dev/null
+    done; done; done
+    check python3 -I $T/compare_nam.py "$B"
+else FAILS=$((FAILS + 1)); fi
+
+step "SciFi: original ($BASE) vs new"
+mkdir -p "$B/sf_old"; base_file Effect-Modules/scifi_module.cpp > "$B/sf_old/scifi_module.cpp"; base_file Effect-Modules/scifi_module.h > "$B/sf_old/scifi_module.h"
+SFSRC="Effect-Modules/base_effect_module.cpp $REVSC $DSP/Effects/overdrive.cpp"
+if XFLAGS="-I$B/sf_old" build "$B/sf_old_bin" $T/test_scifi.cpp "$B/sf_old/scifi_module.cpp" $SFSRC && build "$B/sf_new_bin" $T/test_scifi.cpp Effect-Modules/scifi_module.cpp $SFSRC; then
+    "$B/sf_old_bin" sample "$B/sf_old.bin"; "$B/sf_new_bin" sample "$B/sf_ps.bin"; "$B/sf_new_bin" block "$B/sf_blk.bin"
+    check python3 -I $T/compare_exact.py SciFi "$B" sf_old.bin sf_ps.bin sf_blk.bin
+else FAILS=$((FAILS + 1)); fi
+
+step "Tape Delay: original ($BASE) vs new"
+mkdir -p "$B/td_old"; base_file Effect-Modules/tape_delay_module.cpp > "$B/td_old/tape_delay_module.cpp"; base_file Effect-Modules/tape_delay_module.h > "$B/td_old/tape_delay_module.h"
+TDSRC="Util/tape_modulator.cpp $BASEMOD $REVSC $LGPL/Filters/tone.cpp $DSP/Filters/svf.cpp $DSP/Synthesis/oscillator.cpp"
+if XFLAGS="-I$B/td_old" build "$B/td_old_bin" $T/test_tape_delay.cpp "$B/td_old/tape_delay_module.cpp" $TDSRC && build "$B/td_new_bin" $T/test_tape_delay.cpp Effect-Modules/tape_delay_module.cpp $TDSRC; then
+    for inp in mono stereo; do
+        "$B/td_old_bin" sample "$B/td_old_$inp.bin" $inp; "$B/td_new_bin" sample "$B/td_ps_$inp.bin" $inp; "$B/td_new_bin" block "$B/td_blk_$inp.bin" $inp
+        check python3 -I $T/compare_exact.py "Tape Delay ($inp in)" "$B" td_old_$inp.bin td_ps_$inp.bin td_blk_$inp.bin
+    done
+else FAILS=$((FAILS + 1)); fi
+
+step "CloudSeed: original ($BASE) vs new (bit-exact at block size 1; shipped block size checked for level/finite)"
+CSSRC="dependencies/CloudSeed/AudioLib/Biquad2.cpp dependencies/CloudSeed/AudioLib/ShaRandom.cpp dependencies/CloudSeed/AudioLib/ValueTables.cpp \
+ dependencies/CloudSeed/FastSin.cpp dependencies/CloudSeed/Utils/Sha256.cpp Effect-Modules/base_effect_module.cpp"
+rm -rf "$B/cs_old" "$B/cs_n1"; mkdir -p "$B/cs_old/Effect-Modules" "$B/cs_old/dependencies" "$B/cs_n1/Effect-Modules" "$B/cs_n1/dependencies"
+base_file Effect-Modules/cloudseed_module.cpp > "$B/cs_old/Effect-Modules/cloudseed_module.cpp"
+base_file Effect-Modules/cloudseed_module.h > "$B/cs_old/Effect-Modules/cloudseed_module.h"
+cp Effect-Modules/linear_change.h "$B/cs_old/Effect-Modules/"; cp -r dependencies/CloudSeed "$B/cs_old/dependencies/CloudSeed"; rm -rf "$B/cs_old/dependencies/CloudSeed/build"
+base_file dependencies/CloudSeed/ReverbController.h > "$B/cs_old/dependencies/CloudSeed/ReverbController.h"
+cp Effect-Modules/cloudseed_module.cpp Effect-Modules/cloudseed_module.h Effect-Modules/linear_change.h "$B/cs_n1/Effect-Modules/"
+cp -r dependencies/CloudSeed "$B/cs_n1/dependencies/CloudSeed"; rm -rf "$B/cs_n1/dependencies/CloudSeed/build"
+sed -i 's/static const int bufferSize = [0-9]*;/static const int bufferSize = 1;/' "$B/cs_n1/dependencies/CloudSeed/ReverbController.h"
+if XFLAGS="-I$B/cs_old/Effect-Modules -I$B/cs_old/dependencies/CloudSeed" build "$B/cs_old_bin" $T/test_cloudseed.cpp "$B/cs_old/Effect-Modules/cloudseed_module.cpp" $CSSRC \
+   && XFLAGS="-I$B/cs_n1/Effect-Modules -I$B/cs_n1/dependencies/CloudSeed" build "$B/cs_n1_bin" $T/test_cloudseed.cpp "$B/cs_n1/Effect-Modules/cloudseed_module.cpp" $CSSRC \
+   && XFLAGS="-Idependencies/CloudSeed" build "$B/cs_new_bin" $T/test_cloudseed.cpp Effect-Modules/cloudseed_module.cpp $CSSRC; then
+    "$B/cs_old_bin" sample "$B/cs_old.bin"; "$B/cs_n1_bin" block "$B/cs_n1.bin"; "$B/cs_new_bin" block "$B/cs_new.bin"
+    check python3 -I $T/compare_cloudseed.py "$B"
+else FAILS=$((FAILS + 1)); fi
+
+echo
+if [ "$FAILS" -eq 0 ]; then echo "ALL HOST TESTS PASSED"; else echo "HOST TESTS FAILED: $FAILS step(s)"; fi
+exit $((FAILS > 0))
