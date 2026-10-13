@@ -319,8 +319,9 @@ void GuitarPedalUI::InitEffectUiPages() {
             float fineStep = activeEffect->GetParameterFineStepSize(i);
             // Float Types
             m_activeEffectSettingsMenuItems[i].type = AbstractMenu::ItemType::valueItem;
-            m_activeEffectSettingFloatValues[i] =
-                new MyMappedFloatValue(minValue, maxValue, activeEffect->GetParameterDefaultValueAsFloat(i));
+            m_activeEffectSettingFloatValues[i] = new MyMappedFloatValue(
+                minValue, maxValue, activeEffect->GetParameterDefaultValueAsFloat(i), MyMappedFloatValue::Mapping::lin,
+                activeEffect->GetParameterUnit(i), activeEffect->GetParameterDecimals(i), activeEffect->GetParameterShowSign(i));
             m_activeEffectSettingFloatValues[i]->SetFineStepSize(fineStep);
             m_activeEffectSettingFloatValues[i]->Set(activeEffect->GetParameterAsFloat(i));
             m_activeEffectSettingsMenuItems[i].asMappedValueItem.valueToModify = m_activeEffectSettingFloatValues[i];

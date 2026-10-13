@@ -47,6 +47,11 @@ struct ParameterMetaData {
     int minValue = 0;  // The minimum value of the parameter
     int maxValue = 1;  // The maximum value of the parameter
     float fineStepSize = 0.01f; // For Float Parameters, this will set the fineStepSize multiple in the menu
+    // Menu presentation of Float Parameters. A Float Parameter whose minValue/maxValue are real units (e.g. ms or dB) can show them as
+    // such instead of a bare number.
+    const char *unit = "";  // Text appended to the value, including any leading space (e.g. " ms", " dB", ":1"). Empty for none.
+    uint8_t decimals = 2;   // Digits after the decimal point
+    bool showSign = false;  // Always show the sign, even for positive values (e.g. "+3.0 dB")
 };
 
 class BaseEffectModule {
@@ -308,6 +313,11 @@ class BaseEffectModule {
         \return Fine step size for given parameter.
     */
     float GetParameterFineStepSize(int parameter_id) const;
+
+    /** Menu presentation of a Float Parameter: the unit text appended to the value, the number of decimals, and whether to always show the sign. */
+    const char *GetParameterUnit(int parameter_id) const;
+    uint8_t GetParameterDecimals(int parameter_id) const;
+    bool GetParameterShowSign(int parameter_id) const;
 
     /** This function gets called when a MIDI CC message is received by the pedal when this effect is active.  The default
      * implementation checks to see if any Midi Parameters on this Effect map to the midi CC number and then it maps the Midi Values
