@@ -71,8 +71,8 @@ Level defaults: before this work Crusher was 1.0, Dual Echo 0.4 and Overdrive 0.
 
 ## Things to know before building
 
-* **SRAM is at about 93%** (about 34 KB free): this work added about 2.8 KB because every parameter's metadata record grew. The Dattorro enable (a separate commit on `block-processing`, GPL-3.0)
-  is the largest single item if space is needed.
+* **SRAM is at 91.7%** (450,944 of 491,520 bytes, about 40 KB free). It was 84.9% at the start of the block-processing work; the block code, the Dattorro enable
+  (a separate commit on `block-processing`, GPL-3.0) and the parameter-metadata fields account for most of the rise. See "Memory and code size" below.
 * `Makefile` still has an **uncommitted local change** (`GCC_VERSION_MAJOR_REQUIRED := 13`), as on the previous branch. The author builds with arm-none-eabi-gcc 13.3.
 * `libDaisy` is on the commit the repository records (v8.1.0-10). A fork with the uninitialised-`pwm_` LED fix exists (`spamatica/libDaisy`, untracked clone in
   `dependencies/libDaisy_spamatica/`); the project works around that bug in `BaseHardwareModule::InitLeds` (see `HANDOFF_block_processing.md`), so stock libDaisy is fine.
@@ -90,3 +90,31 @@ Level defaults: before this work Crusher was 1.0, Dual Echo 0.4 and Overdrive 0.
 4. **Listen.** Distortion, Overdrive, NAM and the Level defaults are calibrated only by measurement. The NAM gains differ a lot from the old hand-tuned ones (BE-100 and Mesa were set low by ear),
    which suggests real playing may be hotter than the -12 dBFS reference, so check that first and adjust `kReferenceInput` if needed.
 5. Optionally adopt real-unit display for other effects (delay times in ms, filter frequencies in Hz) using the new `unit`/`decimals` fields.
+
+## Memory and code size
+
+Measured on the linked firmware (`arm-none-eabi-size -A` and `arm-none-eabi-nm -S` on `build/guitarpedal.elf`):
+
+| Memory | Used | Contents |
+|---|---|---|
+| **SRAM** (AXI, 480 KB) | 451 KB, 91.7% | About 448 KB is **program code and read-only data** (`.text`); only about 3 KB is data. The app boots from SRAM (`BOOT_APP`, SRAM linker script) |
+| **SDRAM** (64 MB) | 49.2 MB, 73% | File-scope buffers: Looper 2 x 11.5 MB, eight delay lines of 1.5 MB each (Delay, Reverb Delay, MultiDelay, Tape Delay), CloudSeed pool 7 MB, Dattorro arena 1 MB, smaller ones |
+| **RAM_D2** (256 KB) | NAM history 77 KB, audio DMA buffers, the heap | `new` uses newlib's heap, which starts after `.sram_d2_bss`. The 32 effect objects total about 54 KB (Chorus 19 KB, NAM 9 KB, IR 9 KB, Granular 6 KB, Flanger 4 KB). The heap limit was not verified at runtime |
+| **DTCM** (128 KB) | 56 KB static | NAM weights and hot state, storage, UI |
+
+**SRAM is a code-size problem.** Creating effects dynamically on switch would not help it (the code is always resident). It would only help SDRAM (a shared arena reset on
+effect change could bring the peak down to about the largest single effect, roughly 23 MB for the Looper) and a little of the heap. That is a sizeable refactor: storage, presets, the layout
+hash and the menus need every effect's metadata and parameter values at boot, the audio callback must be kept away from an effect being (re)initialised, effect chains share children, and the
+Looper would lose its recording on a switch. Not done; worth it only if SDRAM becomes the limit.
+
+**Ideas for reducing SRAM, in rough order of effort:**
+1. **Stop GCC cloning functions.** `-Ofast` makes interprocedural-constant-propagation clones (`[clone .constprop.0]`) of functions called with a constant argument. SciFi's and Tape Delay's
+   `ProcessSamples` (called with `n = 1` by `ProcessMono`) were cloned; marking them `__attribute__((noclone))` saved 6,016 bytes (done, commit `51b6069`). Remaining clones >= 400 bytes are
+   CloudSeed's `ReverbChannel::Process` (3.2 KB) and `AllpassDiffuser::Process` (0.9 KB), third-party code left alone. List them with
+   `arm-none-eabi-nm -S -C build/guitarpedal.elf | grep clone`.
+2. **Compile cold code with `-Os`** (UI, hardware modules, settings), keeping `-Ofast` for the DSP. Not tried.
+3. **Drop what is not used:** the five NAM models are 37 KB of read-only weights (7.5 KB each), Dattorro about 25 KB, CloudSeed about 24 KB of code.
+4. **Execute from QSPI flash** (`BOOT_QSPI`) or put the read-only model weights in QSPI. `nam_a2_runtime.h` notes that QSPI-placed data only works under `BOOT_QSPI`, because the
+   bootloader loads just the SRAM image under `BOOT_SRAM`. This changes how the firmware is flashed and has a speed cost; not investigated.
+
+Largest single items in SRAM (code and read-only data): the `bkshepherd::` effect and UI code about 114 KB in total, libDaisy about 38 KB, NAM weights 37 KB, CloudSeed 24 KB, Dattorro 25 KB.
