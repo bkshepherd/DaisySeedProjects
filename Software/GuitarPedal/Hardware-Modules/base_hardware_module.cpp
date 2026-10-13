@@ -1,4 +1,5 @@
 #include "base_hardware_module.h"
+#include <cstring>
 
 using namespace daisy;
 using namespace bkshepherd;
@@ -203,6 +204,10 @@ void BaseHardwareModule::InitEncoders(int count, Pin pins[][3]) {
 void BaseHardwareModule::InitLeds(int count, Pin pins[]) {
     for (int i = 0; i < count; i++) {
         Led newLed;
+        // libDaisy's Led::Init() never initialises the software-PWM phase (pwm_), and Led's constructor does nothing, so a stack-allocated
+        // Led starts with whatever was left on the stack. Depending on the compiler/optimiser that can be a huge or NaN value, which keeps
+        // the LED permanently off (or on). Zero the whole object first so the PWM phase starts at 0.
+        std::memset(static_cast<void *>(&newLed), 0, sizeof(newLed));
         newLed.Init(pins[i], false, AudioCallbackRate());
         leds.push_back(newLed);
     }

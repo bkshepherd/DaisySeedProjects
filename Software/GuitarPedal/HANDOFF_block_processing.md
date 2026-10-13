@@ -58,6 +58,12 @@ The CloudSeed "before" figure was derived from relative readings, not measured d
   largest single item if space gets tight.
 * **Dattorro is enabled** by a separate commit ("Enable Dattorro reverb"). Its code is **GPL-3.0-or-later**: a firmware binary with it
   enabled must be distributed under GPLv3 (or not distributed). Revert that commit before sending anything upstream.
+* **Compiler: GCC 13 works, but needed a fix.** With arm-none-eabi-gcc 13 the LEDs stopped working because libDaisy's `Led::Init()` never
+  initialises its software-PWM phase (`pwm_`), so a stack-allocated `Led` started with leftover stack garbage (huge or NaN keeps the LED
+  permanently off). `BaseHardwareModule::InitLeds` now zeroes the object first (confirmed on hardware). This is an upstream libDaisy bug.
+  A GCC 13 warning scan of the project found no undefined-behaviour-class warnings; the only "may be used uninitialized" warnings are in
+  Dattorro's `AllpassFilter` and the third-party `q` pitch detector (tuner), which are the first places to look if something else
+  misbehaves on a newer compiler. Knobs, switches and encoders use the same stack-then-copy pattern but initialise what they use.
 * `Makefile` still has an **uncommitted local change**: `GCC_VERSION_MAJOR_REQUIRED := 13` (the author's toolchain is
   arm-none-eabi-gcc 13.3). It was a local change before this work started and was intentionally not committed.
 * Untracked `BlockProcessing_step*.diff` files in this directory are the author's own snapshots; ignore or delete.
