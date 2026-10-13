@@ -40,3 +40,22 @@ Notes for adding a test for another module:
 * Change parameters only at block boundaries, identically in both paths, as the pedal's main loop effectively does.
 * Make sure the wet path is actually active (check the tail after the input stops), otherwise a zero difference proves nothing.
 * The NAM model is a process-wide static with recurrent state, so each run needs its own process.
+
+## Default-level tests
+
+`tests/host/run_level_tests.sh` measures how loud each effect is at its **default parameters** relative to its input, using the real
+module code. Rule of thumb for the project: between **0 dB and +6 dB** at default settings (never attenuating), with distortion-like effects
+(distortion, compression, amp models) aiming for **+3 dB**.
+
+* Signal: peak-normalised test tones at -24, -12 and -6 dBFS peak. **-12 dBFS peak is the reference level** the rule is applied to (a typical
+  strummed guitar into a line input); change `kReferenceInput` in `levels/level_common.h` if your real input level differs.
+* Two signals: pure sines (220 Hz and 1 kHz) and a guitar-like harmonic series (110 Hz and 330 Hz fundamentals). Amp models are checked on the
+  guitar-like signal because their gain depends strongly on pitch.
+* The pass check uses the **mean RMS gain over the two test frequencies** at the reference level, within the window and within a tolerance of the
+  target. It also fails if the output reaches full scale at any measured level. The gain at other levels is printed for information: nonlinear
+  effects have a fixed output ceiling, so their gain falls as the input gets louder.
+* To add an effect: write `levels/test_level_<name>.cpp` (see `test_level_distortion.cpp`), then add a `run <name> <sources...>` line to the script.
+
+Calibrated so far: Distortion (`normalizeVolume` factors in `distortion_module.cpp`), the NAM amp models (`outputGain` in
+`Effect-Modules/Nam/model_data_nam_a2.h`), the Overdrive (Level range in `overdrive_module.cpp`) and the Compressor (default Ratio, Threshold,
+Attack, Release and Level; its parameters are stored in real units and `Init()` applies them, which the test checks).
