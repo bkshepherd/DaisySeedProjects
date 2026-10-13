@@ -25,7 +25,7 @@ static const auto s_metaData = [] {
         name : "Level",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : {.float_value = 1.0f},
+        defaultValue : {.float_value = 0.5f},
         knobMapping : 0,
         midiCCMapping : 14
     }; // Output level (linear gain from silent to unity).

@@ -40,7 +40,7 @@ static const auto s_metaData = [] {
         name : "Level",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : {.float_value = 0.4f},
+        defaultValue : {.float_value = 0.5f},
         knobMapping : 1,
         midiCCMapping : 77
     };
