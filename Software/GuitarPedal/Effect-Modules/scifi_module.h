@@ -46,7 +46,8 @@ class SciFiModule : public BaseEffectModule {
 
   private:
     // Shared implementation for ProcessMono (n = 1) and the block versions. Parameters are read and converted once per call.
-    void ProcessSamples(const float *in, float *outL, float *outR, size_t n);
+    // noclone: ProcessMono calls this with n = 1, which makes GCC emit a second, specialised ~4.8 KB copy that only the rarely used per-sample path would call.
+    __attribute__((noclone)) void ProcessSamples(const float *in, float *outL, float *outR, size_t n);
 
     ReverbSc *m_reverbStereo;
     int bin_counter = 0;

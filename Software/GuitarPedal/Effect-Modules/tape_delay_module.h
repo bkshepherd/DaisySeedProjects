@@ -132,7 +132,8 @@ class TapeDelayModule : public BaseEffectModule {
     float ProcessChannel(float input, float speedMod, float dropoutGain, float crinkleOffset, const ChannelParams &cp,
                          DelayLine<float, TAPE_MAX_DELAY_SAMPLES> &delay, Tone &tone, Svf &hp);
     // Shared implementation for ProcessMono/ProcessStereo (n = 1) and the block versions.
-    void ProcessSamples(const float *inL, const float *inR, float *outL, float *outR, size_t n);
+    // noclone: ProcessMono/ProcessStereo call this with n = 1, which makes GCC emit a second, specialised copy (see SciFiModule).
+    __attribute__((noclone)) void ProcessSamples(const float *inL, const float *inR, float *outL, float *outR, size_t n);
 };
 } // namespace bkshepherd
 #endif
