@@ -9,7 +9,9 @@
 // since PersistentStorage reads the raw bytes straight into this struct.
 // A mismatch forces a one-time RestoreDefaults() (see InitPersistantStorage),
 // which wipes all saved effect settings/presets, not just the new field.
-#define SETTINGS_FILE_FORMAT_VERSION 12
+// Also bump it when a stored parameter changes meaning or range (e.g. the Compressor's parameters moving from 0..1 to real units in v13):
+// the layout hash only covers parameter counts and types, so old values would otherwise load into the new ranges.
+#define SETTINGS_FILE_FORMAT_VERSION 13
 
 // Arbitrarily limiting this to 4KB of stored presets since this sits in DTCMRAM which is limited to 128KB.
 // TODO: In the future it would be better if this worked with the QSPI directly instead of using
