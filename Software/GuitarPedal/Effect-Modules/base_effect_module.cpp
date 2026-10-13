@@ -4,6 +4,9 @@
 // This can be used to show the CPU on the default UI
 constexpr bool showCPU = true;
 
+// Show the averaged peak input and output level in dB on the default UI
+constexpr bool showLevels = true;
+
 using namespace bkshepherd;
 
 // Default Constructor
@@ -531,5 +534,15 @@ void BaseEffectModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, 
         char cpuStr[64];
         sprintf(cpuStr, FLT_FMT(3), FLT_VAR3(GetCPUUsage()));
         display.WriteStringAligned(cpuStr, Font_11x18, boundsToDrawIn, Alignment::bottomCentered, true);
+    }
+
+    if (showLevels) {
+        // Small text in the bottom corners, either side of the CPU readout
+        char levelStr[16];
+        auto bottomRowRect = boundsToDrawIn.WithTrimmedTop(boundsToDrawIn.GetHeight() - 8);
+        snprintf(levelStr, sizeof(levelStr), "I%4ddB", (int)lroundf(fmaxf(GetInputLevelDb(), -99.0f))); // no float printf on target
+        display.WriteStringAligned(levelStr, Font_6x8, bottomRowRect, Alignment::bottomLeft, true);
+        snprintf(levelStr, sizeof(levelStr), "O%4ddB", (int)lroundf(fmaxf(GetOutputLevelDb(), -99.0f)));
+        display.WriteStringAligned(levelStr, Font_6x8, bottomRowRect, Alignment::bottomRight, true);
     }
 }

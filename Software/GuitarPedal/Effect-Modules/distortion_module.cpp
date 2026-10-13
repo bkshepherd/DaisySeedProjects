@@ -202,26 +202,26 @@ void processDistortion(float &sample,           // Sample to process
 }
 
 // Per-type output compensation applied after clipping. Tuned with tests/host/run_level_tests.sh so that every distortion type gives
-// about +3 dB RMS gain at default settings for a -12 dBFS peak sine (a typical strummed guitar): between 0 and +6 dB, never attenuating.
+// about +3 dB RMS gain at default settings for a -37 dBFS peak sine (what the pedal's level readout shows for normal playing): about +6 dB.
 void normalizeVolume(float &sample, int clippingType) {
     switch (clippingType) {
     case 0: // Hard Clipping
-        sample *= 2.38f;
+        sample *= 1.709f;
         break;
     case 1: // Soft Clipping
-        sample *= 1.11f;
+        sample *= 0.1836f;
         break;
     case 2: // Fuzz
-        sample *= 1.10f;
+        sample *= 0.1061f;
         break;
     case 3: // Tube Saturation
-        sample *= 0.87f;
+        sample *= 0.3531f;
         break;
     case 4: // Multi-stage
-        sample *= 0.79f;
+        sample *= 0.0647f;
         break;
     case 5: // Diode Clipping
-        sample *= 2.38f;
+        sample *= 1.709f;
         break;
     }
 }

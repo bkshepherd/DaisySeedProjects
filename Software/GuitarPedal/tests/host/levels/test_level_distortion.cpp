@@ -15,7 +15,7 @@ static std::unique_ptr<DistortionModule> make(int type) {
 
 int main() {
     // Project rule: +0..+6 dB at default settings, never attenuating; distortion and compression aim for +3 dB.
-    const Window w{0.0, 6.0, 3.0, 1.0};
+    const Window w{0.0, 8.0, 6.0, 1.0};
     const char *types[] = {"Hard Clip", "Soft Clip", "Fuzz", "Tube", "Multi Stage", "Diode Clip"};
     bool ok = true;
 

@@ -58,7 +58,7 @@ static const auto s_metaData = [] {
     params[NamA2Module::LEVEL] = {
         name : "Level",
         valueType : ParameterValueType::Float,
-        defaultValue : {.float_value = 0.5f},
+        defaultValue : {.float_value = 0.3f},
         knobMapping : 1,
         midiCCMapping : 23,
     };

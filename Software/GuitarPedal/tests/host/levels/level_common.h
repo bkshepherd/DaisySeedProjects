@@ -28,8 +28,8 @@ struct InputLevel {
     float peak;
     const char *label;
 };
-constexpr InputLevel kInputs[] = {{0.06f, "-24 dBFS pk"}, {0.25f, "-12 dBFS pk"}, {0.5f, "-6 dBFS pk"}};
-constexpr int kReferenceInput = 1; // -12 dBFS peak: a typical strummed guitar into a line input
+constexpr InputLevel kInputs[] = {{0.00355f, "-49 dBFS pk"}, {0.01413f, "-37 dBFS pk"}, {0.0562f, "-25 dBFS pk"}, {0.2512f, "-12 dBFS pk"}};
+constexpr int kReferenceInput = 1; // -37 dBFS peak: what the pedal's input level readout shows for normal playing (measured on the pedal)
 
 inline const float *frequencies(Signal s) {
     static const float sine[2] = {220.0f, 1000.0f};

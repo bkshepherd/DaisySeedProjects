@@ -340,6 +340,14 @@ class BaseEffectModule {
     void SetCPUUsage(float cpuUsage) { m_cpuUsage = cpuUsage; };
     float GetCPUUsage() const { return m_cpuUsage; }
 
+    /** Averaged peak level of the pedal's input and output in dB (full scale = 0), for rendering to display */
+    void SetLevelsDb(float inputDb, float outputDb) {
+        m_inputLevelDb = inputDb;
+        m_outputLevelDb = outputDb;
+    }
+    float GetInputLevelDb() const { return m_inputLevelDb; }
+    float GetOutputLevelDb() const { return m_outputLevelDb; }
+
   protected:
     /** Initializes the Parameter Storage and creates space for the specified number of stored Effect Parameters
         \param count  The number of stored parameters
@@ -368,6 +376,8 @@ class BaseEffectModule {
   private:
     bool m_isEnabled;
     float m_sampleRate; // Current Sample Rate this Effect was initialized for.
+    float m_inputLevelDb = -100.0f;  // averaged input peak in dB, can be used for rendering to display
+    float m_outputLevelDb = -100.0f; // averaged output peak in dB
     float m_cpuUsage;   // CPU usage of the audio callback, can be used for rendering to display
 };
 } // namespace bkshepherd

@@ -1,5 +1,13 @@
 # Hand-off: default output level calibration
 
+> **UPDATE: the reference level is now -37 dBFS peak, not -12.** The pedal's display now shows the averaged peak input (`I`) and output (`O`) in dB, and real playing
+> reads around -37 dBFS. All gain figures, the "Before/After" table and the "-12 dBFS" statements below describe the first -12 dBFS calibration. Current state at -37 dBFS
+> (test inputs -49/-37/-25/-12): Distortion (all types) and Overdrive about **+6 dB**, NAM models about **+9 dB** (NAM Level default 0.3, so `outputGain` is higher), Compressor
+> **+3 dB** (its displayed Level default is +3 dB, the real gain is displayed minus 7.5 dB). Values: Distortion `normalizeVolume` 1.709/0.1836/0.1061/0.3531/0.0647/1.709, NAM
+> `outputGain` 0.3369/0.3496/1.1737/0.2611/0.4339, Overdrive level range 0.001794..0.0644. `SETTINGS_FILE_FORMAT_VERSION` is 14. The author found the NAM feel "still not quite right".
+> **Consequence:** saturating effects attenuate noticeably at a hot -12 dBFS input (their ceiling is lower). The display readout is an average of block peaks (about 50 ms), so it
+> reads below the true peak of a strum; if -37 turns out to be low, adjust `kReferenceInput`.
+
 Written so a fresh session or developer can continue without the original conversation. This work is on branch `level-calibration`,
 which is based on `block-processing` (see `HANDOFF_block_processing.md` for that earlier work and for the general build and test notes).
 

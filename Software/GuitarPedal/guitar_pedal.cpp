@@ -146,6 +146,11 @@ int crossFaderTransitionTimeInSamples;
 int samplesTilCrossFadingComplete;
 CpuLoadMeter cpuLoadMeter;
 
+// Averaged block peaks of the pedal's input and final output (linear), for the level readout on the display
+static float avgInputPeak = 0.0f;
+static float avgOutputPeak = 0.0f;
+static constexpr float kLevelAvgCoeff = 0.02f; // per 1 ms block, about a 50 ms time constant
+
 // Effect switch requested from the audio callback (interrupt context).
 // Switching effects rebuilds the UI menus with heap new/delete, which is not
 // safe from the interrupt (allocator reentrancy, and the main loop may be
@@ -415,6 +420,10 @@ void updateLeds(float led1Brightness, float led2Brightness)
     hardware.UpdateLeds();
 }
 
+static float linearToDb(float linear) {
+    return (linear > 1.0e-5f) ? 20.0f * log10f(linear) : -100.0f;
+}
+
 static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, size_t size) {
     cpuLoadMeter.OnBlockStart();
 
@@ -532,6 +541,16 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
     }
 
     updateLeds(led1Brightness, led2Brightness);
+
+    // Track the peak of this block's input and output (both channels) and average it over time
+    float inPeak = 0.0f;
+    float outPeak = 0.0f;
+    for (size_t i = 0; i < size; i++) {
+        inPeak = fmaxf(inPeak, fmaxf(fabsf(in[0][i]), fabsf(in[1][i])));
+        outPeak = fmaxf(outPeak, fmaxf(fabsf(out[0][i]), fabsf(out[1][i])));
+    }
+    avgInputPeak += kLevelAvgCoeff * (inPeak - avgInputPeak);
+    avgOutputPeak += kLevelAvgCoeff * (outPeak - avgOutputPeak);
 
     cpuLoadMeter.OnBlockEnd();
 }
@@ -899,6 +918,7 @@ int main(void) {
 
         // Set the latest cpu load to the effect
         activeEffect->SetCPUUsage(cpuLoadMeter.GetAvgCpuLoad());
+        activeEffect->SetLevelsDb(linearToDb(avgInputPeak), linearToDb(avgOutputPeak));
 
         // Handle Display
         if (hardware.SupportsDisplay()) {

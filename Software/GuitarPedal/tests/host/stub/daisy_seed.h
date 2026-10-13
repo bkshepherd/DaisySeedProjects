@@ -15,7 +15,7 @@ struct Rectangle {
     bool IsEmpty() const { return w <= 0 || h <= 0; }
     Rectangle Reduced(int, int) const { return *this; }
     Rectangle RemoveFromTop(int) { return *this; } Rectangle RemoveFromLeft(int) { return *this; } Rectangle RemoveFromRight(int) { return *this; }
-    Rectangle WithSizeKeepingCenter(int, int) const { return *this; } Rectangle Translated(int, int) const { return *this; }
+    Rectangle WithTrimmedTop(int) const { return *this; } Rectangle WithSizeKeepingCenter(int, int) const { return *this; } Rectangle Translated(int, int) const { return *this; }
 };
 struct FontDef {};
 static FontDef Font_11x18, Font_7x10, Font_6x8, Font_16x26;

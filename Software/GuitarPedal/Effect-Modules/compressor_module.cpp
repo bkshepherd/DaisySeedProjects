@@ -14,7 +14,7 @@ static const auto s_metaData = [] {
         name : "Level",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : {.float_value = 0.0f},
+        defaultValue : {.float_value = 3.0f},
         knobMapping : 0,
         midiCCMapping : -1,
         minValue : -12,
@@ -119,7 +119,9 @@ void CompressorModule::ParameterChanged(int parameter_id) {
     switch (parameter_id) {
     case LEVEL: {
         const float levelDb = std::max(-24.0f, std::min(24.0f, GetParameterAsFloat(LEVEL)));
-        m_levelGain = std::pow(10.0f, levelDb / 20.0f);
+        // The displayed level is 7.5 dB above the real gain: the default reads +3 dB (the net gain at -37 dBFS) while the real gain of -4.5 dB
+        // cancels most of the auto makeup gain
+        m_levelGain = std::pow(10.0f, (levelDb - 7.5f) / 20.0f);
         break;
     }
     case RATIO:

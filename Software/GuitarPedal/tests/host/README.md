@@ -47,8 +47,8 @@ Notes for adding a test for another module:
 module code. Rule of thumb for the project: between **0 dB and +6 dB** at default settings (never attenuating), with distortion-like effects
 (distortion, compression, amp models) aiming for **+3 dB**.
 
-* Signal: peak-normalised test tones at -24, -12 and -6 dBFS peak. **-12 dBFS peak is the reference level** the rule is applied to (a typical
-  strummed guitar into a line input); change `kReferenceInput` in `levels/level_common.h` if your real input level differs.
+* Signal: peak-normalised test tones at -49, -37, -25 and -12 dBFS peak. **-37 dBFS peak is the reference level** the rule is applied to (what the
+  pedal's on-screen input level readout shows for normal playing); change `kReferenceInput` in `levels/level_common.h` if your real input level differs.
 * Two signals: pure sines (220 Hz and 1 kHz) and a guitar-like harmonic series (110 Hz and 330 Hz fundamentals). Amp models are checked on the
   guitar-like signal because their gain depends strongly on pitch.
 * The pass check uses the **mean RMS gain over the two test frequencies** at the reference level, within the window and within a tolerance of the

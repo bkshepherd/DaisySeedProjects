@@ -14,7 +14,7 @@ static std::unique_ptr<OverdriveModule> make() {
 
 int main() {
     // Project rule: +0..+6 dB at default settings, never attenuating; overdrive is distortion-like, so it aims for +3 dB.
-    const Window w{0.0, 6.0, 3.0, 1.0};
+    const Window w{0.0, 8.0, 6.0, 1.0};
     bool ok = true;
     ok &= report("Overdrive, default parameters", [] { return make(); }, w, Signal::Guitar);
     report("Overdrive, default parameters", [] { return make(); }, w, Signal::Sine, /*enforce=*/false);

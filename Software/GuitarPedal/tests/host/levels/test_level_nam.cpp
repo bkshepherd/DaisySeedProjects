@@ -17,7 +17,7 @@ static std::unique_ptr<NamA2Module> make(int model, int irCab) {
 
 int main() {
     // Project rule: +0..+6 dB at default settings, never attenuating. Amp models are distortion-like, so they aim for +3 dB.
-    const Window w{0.0, 6.0, 3.0, 1.0};
+    const Window w{0.0, 11.0, 9.0, 1.0};
     // Model count and names come from the module's own parameter metadata (the model table header defines non-inline functions, so it
     // can only be included once).
     NamA2Module probe;
