@@ -1259,12 +1259,13 @@ struct NamA2ModelEntry
 };
 
 inline constexpr NamA2ModelEntry kNamA2Models[] = {
-    // outputGain hand-tuned by ear so models sit at a similar level (1.0f = unity).
-    {"BE-100",   kWeightsBe100,       0.6f},
-    {"JCM800",   kWeightsJcm800,      1.1f},
-    {"Ampeg",    kWeightsAmpegSvt,    1.0f},
-    {"Mesa",     kWeightsMesaDualRec, 0.5f},
-    {"1959BJA",     kWeightsMarshall1959BJA, 1.0f},
+    // outputGain calibrated with tests/host/run_level_tests.sh so every model gives about +3 dB RMS (mean of a 110 Hz and a 330 Hz guitar-like
+    // note) at default settings for a -12 dBFS peak input, with the IR cab Off. Re-run the test after adding or changing a model.
+    {"BE-100",   kWeightsBe100,       1.70f},
+    {"JCM800",   kWeightsJcm800,      1.08f},
+    {"Ampeg",    kWeightsAmpegSvt,    0.85f},
+    {"Mesa",     kWeightsMesaDualRec, 1.06f},
+    {"1959BJA",     kWeightsMarshall1959BJA, 1.50f},
     // Add more models here
 };
 
