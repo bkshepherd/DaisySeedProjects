@@ -528,12 +528,18 @@ void BaseEffectModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, 
     }
 
     display.WriteStringAligned(m_name, Font_11x18, topRowRect, Alignment::centered, true);
-    display.WriteStringAligned("...", Font_11x18, boundsToDrawIn, Alignment::centered, true);
+
+    if (showCPU || showLevels) {
+        // Thin separator line just above the small-print readouts (8 px tall text at the very bottom, 3 px gap)
+        const int16_t lineY = boundsToDrawIn.GetBottom() - 12;
+        display.DrawLine(boundsToDrawIn.GetX(), lineY, boundsToDrawIn.GetRight() - 1, lineY, true);
+    }
 
     if (showCPU) {
-        char cpuStr[64];
-        sprintf(cpuStr, FLT_FMT(3), FLT_VAR3(GetCPUUsage()));
-        display.WriteStringAligned(cpuStr, Font_11x18, boundsToDrawIn, Alignment::bottomCentered, true);
+        // Small text at the bottom centre, between the input and output level readouts
+        char cpuStr[16];
+        snprintf(cpuStr, sizeof(cpuStr), "%d%%", (int)lroundf(GetCPUUsage() * 100.0f));
+        display.WriteStringAligned(cpuStr, Font_6x8, boundsToDrawIn, Alignment::bottomCentered, true);
     }
 
     if (showLevels) {

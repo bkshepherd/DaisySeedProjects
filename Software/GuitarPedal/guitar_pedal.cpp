@@ -62,8 +62,9 @@ GuitarPedalUI guitarPedalUI;
 bool useDebugDisplay = false;
 
 // Diagnostic switch: when true the knobs are neither read nor applied, so every effect parameter stays at its default (or whatever the
-// menu sets). Useful for measuring CPU load without knob noise causing parameter updates. Set to false for normal operation.
-constexpr bool disableKnobs = false;
+// menu sets). Useful for measuring CPU load without knob noise causing parameter updates. Toggled at runtime by the "Disable knobs" item in the
+// Global Settings menu. Deliberately not saved, so the pedal always boots with working knobs.
+bool disableKnobs = false;
 bool effectOn = false;
 
 bool muteOn = false;
