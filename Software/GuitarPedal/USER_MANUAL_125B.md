@@ -64,6 +64,7 @@ The default firmware currently includes the effects below. Their exact controls 
 - **Overdrive, Distortion, Crusher:** Saturation and digital reduction; drive/gain, tone, output level, bit depth, or sample-rate reduction.
 - **Compressor, Noise Gate:** Dynamic range and noise control; level, ratio, threshold, attack, and release.
 - **Reverb, CloudSeed:** Short room-like to expansive reverberation; mix, decay, pre-delay, size, and tone/damping.
+- **Venus:** Spectral reverb with octave and fifth shimmer, detune, spectral freeze (hold the secondary footswitch), lo-fi and drift modes; decay, mix, damp, shimmer, shimmer tone, and detune. Adapted from the FunBox project.
 - **Delay, Multi Delay, Tape Delay, Dual Echo ("Halo"), Granular Delay, Spectral Delay:** Echo and time-based textures; delay/tap times, feedback, mix, filtering, modulation, and grain or spectral controls.
 - **Pitch, PolyOctave, SciFi:** Pitch shifting, octave generation, and processed pitch effects; interval, dry/wet balance, and effect-specific controls.
 - **Graphic EQ, Parametric EQ:** Tone shaping; band gain and, for parametric bands, frequency and bandwidth.

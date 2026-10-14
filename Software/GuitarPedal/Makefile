@@ -75,6 +75,7 @@ CPP_SOURCES += Effect-Modules/scope_module.cpp
 CPP_SOURCES += Effect-Modules/spectral_delay_module.cpp
 CPP_SOURCES += Effect-Modules/tape_delay_module.cpp
 CPP_SOURCES += Effect-Modules/tuner_module.cpp
+CPP_SOURCES += Effect-Modules/venus_module.cpp
 #CPP_SOURCES += Effect-Modules/reverb_delay_module.cpp
 
 # Keyboard oriented modules

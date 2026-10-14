@@ -40,6 +40,7 @@
 #include "Effect-Modules/spectral_delay_module.h"
 #include "Effect-Modules/tape_delay_module.h"
 #include "Effect-Modules/tuner_module.h"
+#include "Effect-Modules/venus_module.h" // Spectral reverb from the FunBox project (MIT). Takes about 440 KB of SDRAM
 
 // Keyboard modules
 // #include "Effect-Modules/fm_keys_module.h"
@@ -74,6 +75,7 @@ void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffec
         new ParametricEQModule(),
         new NoiseGateModule(),
         new CloudSeedModule(), // single-instance only
+        new VenusModule(), // single-instance only
         new DelayModule(), // single-instance only
         new TapeDelayModule(),  // single-instance-only
         new DualEchoModule(),  // single-instance-only
