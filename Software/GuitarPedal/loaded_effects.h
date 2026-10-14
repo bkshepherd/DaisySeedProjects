@@ -49,10 +49,11 @@
 // #include "Effect-Modules/pluckecho_module.h"
 // #include "Effect-Modules/string_keys_module.h"
 
-// Dattorro plate reverb - GPL-3.0-or-later, disabled by default. See
-// Effect-Modules/Dattorro/README.md and the matching block in the Makefile
-// before uncommenting.
+// Dattorro plate reverb and Earth (built on it) - GPL-3.0-or-later, disabled by default. See
+// Effect-Modules/Dattorro/README.md, Effect-Modules/Earth/README.md and the matching block in the
+// Makefile before uncommenting.
 #include "Effect-Modules/dattorro_reverb_module.h"
+#include "Effect-Modules/earth_module.h"
 
 namespace bkshepherd {
 
@@ -99,8 +100,9 @@ void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffec
         // new ModalKeysModule(),
         // new FmKeysModule(),
 
-        // GPL-3.0-or-later - see Effect-Modules/Dattorro/README.md
+        // GPL-3.0-or-later - see Effect-Modules/Dattorro/README.md and Effect-Modules/Earth/README.md
         new DattorroReverbModule(),
+        new EarthModule(), // single-instance only
 
         // Effects chain examples
 

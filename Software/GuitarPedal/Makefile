@@ -86,14 +86,16 @@ CPP_SOURCES += Effect-Modules/venus_module.cpp
 #CPP_SOURCES += Effect-Modules/string_keys_module.cpp
 
 
-# Dattorro plate reverb - disabled by default because Effect-Modules/Dattorro/
+# Dattorro plate reverb and Earth - disabled by default because Effect-Modules/Dattorro/
 # is licensed GPL-3.0-or-later (see Effect-Modules/Dattorro/README.md), unlike
-# the rest of this MIT-licensed repository. Uncomment both lines below (and
+# the rest of this MIT-licensed repository, and Earth (Effect-Modules/Earth/) is
+# built on it and adapted from GPLv3 code too. Uncomment the lines below (and
 # the matching block in loaded_effects.h) to opt in; doing so means the
 # resulting firmware binary must be distributed under GPLv3, or not
-# distributed at all.
+# distributed at all. Earth needs the Dattorro engine, so keep them together.
 CPP_SOURCES += Effect-Modules/Dattorro/Dattorro.cpp
 CPP_SOURCES += Effect-Modules/dattorro_reverb_module.cpp
+CPP_SOURCES += Effect-Modules/earth_module.cpp
 
 # Compiler options
 OPT=-Ofast
