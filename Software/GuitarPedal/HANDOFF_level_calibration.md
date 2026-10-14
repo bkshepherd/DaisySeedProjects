@@ -67,7 +67,21 @@ Level defaults: before this work Crusher was 1.0, Dual Echo 0.4 and Overdrive 0.
    what a stored number means needs a bump of `SETTINGS_FILE_FORMAT_VERSION` (now **13**), which wipes all saved settings on first boot. The header comment says so.
 5. **Auto makeup gain** in the DaisySP compressor is `|thresh - thresh/ratio| / 2` dB (+7.5 dB at the new defaults), which is why a compressor attenuates at hot input
    levels with these defaults: the gain reduction at -6 dBFS peak is larger than the makeup. A milder threshold (about -12 dB) would stop that.
-6. NAM models share one process-wide model object with recurrent state; tests run each path in its own process or create-and-run one module at a time.
+6. **Startup-state bugs (found and fixed, then audited across all effects).** `ParameterChanged` only fires when a value changes, and first-boot storage equals the metadata defaults, so state derived
+   from a parameter only inside `ParameterChanged` is never set up for the defaults. Found and fixed:
+   * **Compressor** (above) and **Tape Delay**: `Init()` computed the wet/dry balance from `m_smoothedMix` before it was set (the member was uninitialised), so the effect started dry-only (zero memory) or silent
+     (NaN bits); and the balance was only recomputed on a Mix change, from the still-trailing smoothed value, so a one-step Mix change ended up at the previous mix. Fixed by initialising the members, calling
+     `ResetInternalState()` before `UpdateMix()` in `Init()`, and calling `UpdateMix()` every sample after smoothing.
+   * **Spectral Delay**: the per-bin delay and feedback tables were only built when Time, Feedback or a mode changed, so it started with 100-sample delays and no feedback. `Init()` now applies them.
+   * **Drum**: Timbre, Tone (and Decay, MIDI Voice, Beats) were only applied on change, so the voices kept DaisySP's built-in settings. `Init()` now applies them.
+   * **PluckEcho**: String Decay likewise. (The keyboard effects are disabled in the default build.)
+   * **CloudSeed**: the Preset default was index 6 (SmallRoom) but `Init()` starts the reverb on RubiKa Fields, so the menu showed one preset while another ran. The default is now RubiKa (index 5), matching `Init()`.
+     (The CloudSeed test now selects each preset via a fixed intermediate preset: presets do not fully reset the controller, and in the original code one preset, SmallRoom, was never actually loaded in the test.)
+
+   The audit (`tests/host/run_defaults_audit.sh`, see `tests/host/README.md`) now covers all 39 effects: 37 are clean. Two known findings remain and are listed in the script: **CloudSeed** (`Init()` forces
+   the line count to 3, a comment says higher froze the pedal, while selecting any preset afterwards restores the controller's own line count, so startup differs from a menu-selected preset by about 9% of peak) and
+   **Modal Keys** (an uninitialised DaisySP voice, in a disabled effect). Whether CloudSeed's startup line count should apply after a preset change too is a design decision that needs hardware testing.
+7. NAM models share one process-wide model object with recurrent state; tests run each path in its own process or create-and-run one module at a time.
 
 ## What was added to the framework
 
@@ -92,6 +106,7 @@ Level defaults: before this work Crusher was 1.0, Dual Echo 0.4 and Overdrive 0.
 
 ## Candidate next steps
 
+0. **Run `tests/host/run_defaults_audit.sh` after adding or changing an effect** (it catches defaults that are not applied at startup), and decide the CloudSeed line-count question above.
 1. **Measure and calibrate Crusher and Dual Echo.** Their defaults were only moved to 0.5; the actual gain at default has not been measured. Add `tests/host/levels/test_level_<name>.cpp`
    (copy `test_level_overdrive.cpp`) and a `run <name> ...` line in `run_level_tests.sh`.
 2. **Other effects that have a Level-like control but were not measured:** Drum, IR (Level range 0..2, input scaled 0.5), SciFi (Level 0..1), Pluck Echo, Looper (Input Level, Loop Level), the keyboard

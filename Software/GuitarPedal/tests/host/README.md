@@ -23,7 +23,11 @@ BASE_REF=053079b tests/host/run_tests.sh   # compare against another ref
 | NAM | direct block path vs per-sample path | block output equals per-sample output delayed by 48 samples, for EQ and IR-cab on/off |
 | SciFi | original (`BASE_REF`) vs new | bit-exact, 4 parameter sets with automation |
 | Tape Delay | original (`BASE_REF`) vs new | bit-exact, all modes (fixed / multi / single / lo-fi), head configs, tap divisions, mono and stereo input |
+| Tape Delay defaults | startup state (only `Init()` run) vs the state after touching Mix to its default | regression test for a past bug (see below); includes memory pre-filled with zero / garbage / NaN bytes and a one-step Mix change |
 | CloudSeed | original (`BASE_REF`) vs new | bit-exact when the new module code is built with block size 1; at the shipped block size only finite and close in level (the block size shifts the reverb's feedback timing by a few samples) |
+
+Note on the Tape Delay equivalence step: the original code has the Mix bug fixed in `test_tape_delay_defaults.cpp`, so `run_tests.sh` applies the same two-line fix to its copy of the
+original before comparing. That keeps the step checking only that the refactor itself changed nothing; if the original ever changes so the patch no longer applies, the script stops with a clear message.
 
 ## How it works
 
@@ -59,3 +63,18 @@ module code. Rule of thumb for the project: between **0 dB and +6 dB** at defaul
 Calibrated so far: Distortion (`normalizeVolume` factors in `distortion_module.cpp`), the NAM amp models (`outputGain` in
 `Effect-Modules/Nam/model_data_nam_a2.h`), the Overdrive (Level range in `overdrive_module.cpp`) and the Compressor (default Ratio, Threshold,
 Attack, Release and Level; its parameters are stored in real units and `Init()` applies them, which the test checks).
+
+## Startup-state audit
+
+`tests/host/run_defaults_audit.sh` checks that every effect applies the state derived from its parameter **defaults** when only `Init()` has run, as on the pedal. `ParameterChanged()` only fires
+when a value changes, and first-boot storage equals the metadata defaults, so an effect that derives state from a parameter only inside `ParameterChanged()` never applies that default at startup
+(the Compressor and Tape Delay had this; the menu then shows values that are not what is running).
+
+For each of the 39 effect modules it runs a test signal through three instances, one process each, and compares the outputs: **startup** (`Init()` only), **touched** (`Init()`, then every parameter
+moved away from its default and straight back, which fires `ParameterChanged` for each) and **poison** (startup over memory pre-filled with 0xFF bytes, to expose reads of uninitialised members). A second
+startup run checks determinism (the harness makes `rand()` constant, so random-table effects compare fairly). `--bisect <effect_file_stem>` touches one parameter at a time to show which default is not applied.
+
+Findings that are known and understood are listed in the `KNOWN` variable of the script (CloudSeed: `Init()` forces a line count of 3 that selecting a preset later restores; Modal Keys: an uninitialised DaisySP
+voice, in an effect that is disabled in the default build). The script fails only on something new. Limits: effects that output nothing without their own input (Tuner, FM Keys, the other keyboard effects
+without MIDI notes) are barely exercised, and an effect whose behaviour depends on state the harness does not reach (tempo, MIDI) is only tested on its audio path. It takes a few minutes the first time
+(it builds the shared objects), and less afterwards.
