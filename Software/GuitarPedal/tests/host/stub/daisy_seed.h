@@ -26,6 +26,14 @@ struct OneBitGraphicsDisplay {
     template <class... A> void Fill(A...) {}
     template <class... A> void SetCursor(A...) {}
     template <class... A> void WriteString(A...) {}
+    template <class... A> void DrawRect(A...) {}
+    template <class... A> void DrawCircle(A...) {}
+    template <class... A> void DrawPixel(A...) {}
+    template <class... A> void WriteChar(A...) {}
+};
+struct System {
+    static uint32_t GetNow() { return 0; }
+    static void Delay(uint32_t) {}
 };
 } // namespace daisy
 using namespace daisy;
@@ -35,3 +43,4 @@ using namespace daisy;
 #define DSY_QSPI_BSS
 #define DSY_QSPI_DATA
 #define DSY_SDRAM_DATA
+#define FLT_VAR(n, x) (int)(x), (int)(fabsf((x) - (int)(x)) * 1000)
