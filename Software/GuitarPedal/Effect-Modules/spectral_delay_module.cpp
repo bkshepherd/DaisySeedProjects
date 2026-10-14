@@ -206,6 +206,12 @@ void SpectralDelayModule::Init(float sample_rate) {
         delay_array_imag[i].feedback = 0.0;
         delay_array_imag[i].active = true;
     }
+
+    // The per-bin delay and feedback tables are only built from the parameters when one of them changes, so apply the defaults here
+    // (Time also covers Time Mode, Feedback also covers Feedback Mode).
+    ParameterChanged(TIME);
+    ParameterChanged(FDBK);
+    ParameterChanged(TONE);
 }
 
 void SpectralDelayModule::ParameterChanged(int parameter_id) // Somewhere here is causeing issues on start up, if I take them out it
