@@ -25,9 +25,11 @@ FLAGS="-std=c++20 -O1 -w -I$T/stub -I$T/stub_cmsis -I. -IEffect-Modules -IUtil -
 # Findings that are known and understood. An unexpected finding fails the audit; a known one that disappears is reported so it can be removed here.
 #   cloudseed_module:STARTUP!=TOUCHED  Init() forces the reverb line count to 3 (a comment explains why); selecting any preset afterwards restores the
 #                                      controller's own line count, so startup differs from a preset selected from the menu.
+#   neptune_module:STARTUP!=TOUCHED    Changing the Rev Mode setting mutes the output for 1000 samples while the reverb is cleared and the preset loaded (as in the original), so
+#                                      moving it and back changes the output. The default itself is applied at startup (Init() loads the mode); --bisect shows only Rev Mode.
 #   modal_keys_module:UNINIT-READ      the DaisySP ModalVoice member has uninitialised state until the first note (the keyboard effects are disabled
 #                                      in the default build).
-KNOWN="cloudseed_module:STARTUP!=TOUCHED modal_keys_module:UNINIT-READ"
+KNOWN="cloudseed_module:STARTUP!=TOUCHED modal_keys_module:UNINIT-READ neptune_module:STARTUP!=TOUCHED"
 
 # Effect classes: stem -> class name, found from the headers
 python3 -I - > "$B/effects.txt" <<'PYEOF'

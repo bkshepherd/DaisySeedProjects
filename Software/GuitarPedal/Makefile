@@ -86,10 +86,12 @@ CPP_SOURCES += Effect-Modules/effect_chain.cpp
 #CPP_SOURCES += Effect-Modules/spectral_delay_module.cpp
 #CPP_SOURCES += Effect-Modules/tape_delay_module.cpp
 #CPP_SOURCES += Effect-Modules/tuner_module.cpp
-CPP_SOURCES += Effect-Modules/venus_module.cpp
-CPP_SOURCES += Effect-Modules/cloudseed_pool.cpp # the CloudSeed engine's delay line pool, needed by the CloudSeed and Jupiter modules
-CPP_SOURCES += Effect-Modules/jupiter_module.cpp
-CPP_SOURCES += Effect-Modules/saturn_module.cpp
+#CPP_SOURCES += Effect-Modules/venus_module.cpp
+#CPP_SOURCES += Effect-Modules/cloudseed_pool.cpp # the CloudSeed engine's delay line pool, needed by the CloudSeed and Jupiter modules
+#CPP_SOURCES += Effect-Modules/jupiter_module.cpp
+#CPP_SOURCES += Effect-Modules/saturn_module.cpp
+#CPP_SOURCES += Effect-Modules/neptune_module.cpp
+CPP_SOURCES += Effect-Modules/uranus_module.cpp
 #CPP_SOURCES += Effect-Modules/reverb_delay_module.cpp
 
 # Keyboard oriented modules

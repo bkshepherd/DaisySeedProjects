@@ -20,6 +20,13 @@ sits next to this repository as `../FunBox`, `software/<Effect>/`). Venus is don
   Same recipe as Venus (sliced STFT scheduled by sample count + CMSIS FFT, now shared from `Util/STFT/sliced_fourier.h` and `Util/STFT/cmsis_fft.h`), N = 1024, two transforms for stereo. Its frames and work buffers are in
   the otherwise empty on-chip RAM_D2 (`__attribute__((section(".sram_d2_bss")))`, see `nam_a2_sections.lds`), which keeps DTCM unchanged (79%); the delay lines (2.9 MB) are in SDRAM. SRAM 56% -> 60%.
   Not heard or run on the pedal (check the average/peak readout and the sound, in particular that the 48-sample blocks keep up with the two transforms).
+* **Neptune** (reverb + delay with normal, octave and reverse modes): converted. `Effect-Modules/neptune_module.{h,cpp}` and `Effect-Modules/Neptune/` (README with the controls and the changes; the delay line headers
+  carry Veno-Echo's MIT licence text). Same approach as Jupiter on the CloudSeed engine; the pool in `cloudseed_pool.cpp` is now 19.7 MB (three engine instances). The original's "alternate mode" (hold FS1) controls
+  became menu items. Delay samples (4.6 MB) are in SDRAM with their bookkeeping on chip (lesson from Saturn). Bugs found in the original and fixed are listed in its README (divide by zero in the reverse line at start,
+  an out-of-bounds read, one shared low-pass for both channels). SRAM 62%, SDRAM 44%. Not heard or run on the pedal (check the average/peak readout, in particular in reverse mode and with the reverb mode switch).
+* **Uranus** (granular delay and synth, MIDI): converted. `Effect-Modules/uranus_module.{h,cpp}` and `Effect-Modules/Uranus/` (README with the controls, the MIDI notes and the changes). Reuses `Util/granularplayermod.*` (Granular
+  Delay) and the FM voices, which moved from `fm_keys_module.h` to `Util/fm_voices.h`. The half second of audio is in RAM_D2 (84% now: NAM's 77 KB would no longer fit next to it); DTCM 82%. MIDI: the framework already routes notes (`OnNoteOn/OnNoteOff`) and
+  CCs (`midiCCMapping`) to the active effect; Uranus uses both. Runs on the pedal (as the only effect in the build) but **the MIDI input is untested on hardware: no MIDI connector was available. Test the notes (granular and FM synth modes), the CCs and the MIDI channel with a keyboard.**
 * Not checked on the pedal: the CPU load and, above all, whether the 48-sample blocks keep up (see "Real time" below), and the sound.
 
 ## Which FunBox effects are new here
@@ -32,9 +39,9 @@ sits next to this repository as `../FunBox`, `software/<Effect>/`). Venus is don
 | Saturn | Spectral delay | **Converted** (Saturn module, the full effect; the repository's older Spectral Delay is a reduced version of it) |
 | Earth | Dattorro plate reverb and octaves | Dattorro (GPL) - **converted**, see Status |
 | Jupiter | Stereo reverb built on CloudSeed | CloudSeed engine - **converted** (Jupiter module) |
-| Neptune | Reverb + delay built on CloudSeed | CloudSeed |
+| Neptune | Reverb + delay built on CloudSeed | **Converted** (Neptune module) |
 | Mars, Mercury | Amp sims with NAM models and cabinet IRs | NAM and IR |
-| Uranus | Granular delay and synth | Granular Delay |
+| Uranus | Granular delay and synth (with MIDI) | **Converted** (Uranus module; Granular Delay is the same grain player without the feedback, grain modes and synth modes) |
 | Venus | Spectral reverb | **Converted** |
 
 ## The conversion recipe
@@ -81,6 +88,12 @@ sits next to this repository as `../FunBox`, `software/<Effect>/`). Venus is don
 * **Level.** An output gain of 1.4 gives about +2 dB at the defaults. The octave up and down with a loud input can exceed full scale (same as the original).
 * **Defaults** are mine (the pedal's switches have none): Octave None, FS Action Freeze, Size Medium, Mix 0.4, Decay 0.8.
 * Not yet heard or run on the pedal, including the CPU load and the footswitch actions.
+
+## Current build: only Uranus is enabled
+
+Having all five converted effects (Venus, Jupiter, Saturn, Neptune, Uranus) enabled together did **not boot** on the pedal (some memory ran out: with everything, DTCM was 82% and RAM_D2 84% static; my guess is the DTCM heap, where the effects'
+`new` allocations go, but that was not confirmed). The Makefile and `loaded_effects.h` now enable **only Uranus** (the other four are commented out, and `cloudseed_pool.cpp` with them since only Jupiter and Neptune need it); that build boots and runs. Bring the others back one or two at
+a time (uncomment the Makefile line and the include and instance in `loaded_effects.h`), checking the memory report and that it boots. Venus, Jupiter and Saturn were each run on the pedal in earlier builds (with the older sets of effects); Neptune has not been run on the pedal at all yet.
 
 ## Venus tuning (second pass)
 

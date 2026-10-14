@@ -111,6 +111,18 @@ sed -i 's/static const int bufferSize = [0-9]*;/static const int bufferSize = 1;
 if XFLAGS="-I$B/jp_n1/Effect-Modules -I$B/jp_n1/dependencies/CloudSeed" build "$B/t_jupiter" $T/test_jupiter.cpp "$B/jp_n1/Effect-Modules/jupiter_module.cpp" "$B/jp_n1/Effect-Modules/cloudseed_pool.cpp" \
    $(for f in $JPSRC; do echo "$B/jp_n1/$f" | sed "s|$B/jp_n1/dependencies|$B/jp_n1/dependencies|"; done) $BASEMOD; then check "$B/t_jupiter"; else FAILS=$((FAILS + 1)); fi
 
+step "Neptune: block vs per-sample (engine block size 1), delay modes, reverb modes, controls"
+rm -rf "$B/np_n1"; mkdir -p "$B/np_n1/Effect-Modules" "$B/np_n1/dependencies"
+cp Effect-Modules/neptune_module.cpp Effect-Modules/neptune_module.h Effect-Modules/cloudseed_pool.cpp "$B/np_n1/Effect-Modules/"
+cp -r Effect-Modules/Neptune "$B/np_n1/Effect-Modules/Neptune"
+cp -r dependencies/CloudSeed "$B/np_n1/dependencies/CloudSeed"; rm -rf "$B/np_n1/dependencies/CloudSeed/build"
+sed -i 's/static const int bufferSize = [0-9]*;/static const int bufferSize = 1;/' "$B/np_n1/dependencies/CloudSeed/ReverbController.h"
+if XFLAGS="-I$B/np_n1/Effect-Modules -I$B/np_n1/dependencies/CloudSeed" build "$B/t_neptune" $T/test_neptune.cpp "$B/np_n1/Effect-Modules/neptune_module.cpp" "$B/np_n1/Effect-Modules/cloudseed_pool.cpp" \
+   $(for f in $JPSRC; do echo "$B/np_n1/$f"; done) $BASEMOD $LGPL/Filters/tone.cpp; then check "$B/t_neptune"; else FAILS=$((FAILS + 1)); fi
+
+step "Uranus: block vs per-sample, controls, MIDI notes and CCs (granular and FM synth)"
+if XFLAGS= build "$B/t_uranus" $T/test_uranus.cpp Effect-Modules/uranus_module.cpp Util/granularplayermod.cpp Util/operator.cpp $BASEMOD $DSP/Synthesis/oscillator.cpp $DSP/Control/adsr.cpp $DSP/Control/phasor.cpp; then check "$B/t_uranus"; else FAILS=$((FAILS + 1)); fi
+
 step "Earth: reverb arena, octave, freeze, overdrive swell, block vs per-sample"
 if XFLAGS= build "$B/t_earth" $T/test_earth.cpp Effect-Modules/earth_module.cpp Effect-Modules/Dattorro/Dattorro.cpp $BASEMOD $DSP/Effects/overdrive.cpp; then check "$B/t_earth"; else FAILS=$((FAILS + 1)); fi
 
