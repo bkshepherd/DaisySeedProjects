@@ -39,12 +39,12 @@ PYEOF
 
 # Shared objects (all DaisySP, Util, helper modules), built once and rebuilt when any of their sources or the host stubs are newer
 SHARED_DIRS="Util Effect-Modules/Dattorro Effect-Modules/Chopper Effect-Modules/ImpulseResponse dependencies/CloudSeed $T/stub $T/stub_cmsis"
-if [ ! -f "$B/libshared.a" ] || [ -n "$(find $SHARED_DIRS Effect-Modules/base_effect_module.cpp Effect-Modules/base_effect_module.h -type f -newer "$B/libshared.a" -print -quit)" ]; then
+if [ ! -f "$B/libshared.a" ] || [ -n "$(find $SHARED_DIRS Effect-Modules/base_effect_module.cpp Effect-Modules/base_effect_module.h Effect-Modules/cloudseed_pool.cpp -type f -newer "$B/libshared.a" -print -quit)" ]; then
     echo "building shared objects..."
     rm -f "$B/libshared.a" "$B"/obj/*.o
     { find dependencies/DaisySP/Source dependencies/DaisySP/DaisySP-LGPL/Source -name "*.cpp"; ls Util/*.cpp
       echo Effect-Modules/base_effect_module.cpp; echo Effect-Modules/Chopper/chopper.cpp; echo Effect-Modules/Dattorro/Dattorro.cpp
-      echo Effect-Modules/ImpulseResponse/ImpulseResponse.cpp; echo Effect-Modules/ImpulseResponse/ir_data.cpp
+      echo Effect-Modules/cloudseed_pool.cpp; echo Effect-Modules/ImpulseResponse/ImpulseResponse.cpp; echo Effect-Modules/ImpulseResponse/ir_data.cpp
       ls dependencies/CloudSeed/AudioLib/*.cpp dependencies/CloudSeed/FastSin.cpp dependencies/CloudSeed/Utils/Sha256.cpp; } |
     xargs -P "$(nproc)" -I{} sh -c "$CXX $FLAGS -c {} -o $B/obj/\$(echo {} | tr / _).o 2>/dev/null || echo 'could not compile {}'"
     rm -f "$B/libshared.a"; ar rcs "$B/libshared.a" "$B"/obj/*.o

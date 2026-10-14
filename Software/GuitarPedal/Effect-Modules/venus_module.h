@@ -2,8 +2,8 @@
 #ifndef VENUS_MODULE_H
 #define VENUS_MODULE_H
 
-#include "Venus/cmsis_fft.h"
-#include "Venus/sliced_fourier.h"
+#include "../Util/STFT/cmsis_fft.h"
+#include "../Util/STFT/sliced_fourier.h"
 #include "Venus/venus_spectral.h"
 #include "base_effect_module.h"
 #include "daisysp-lgpl.h"
@@ -60,8 +60,8 @@ class VenusModule : public BaseEffectModule {
     void ApplyDriftMode();
 
     venus::SpectralReverb m_reverb;
-    venus::CmsisRealFft<venus::kN> *m_fft;
-    soundmath::SlicedFourier<float, venus::kN, venus::CmsisRealFft<venus::kN>> *m_stft;
+    soundmath::CmsisRealFft<venus::kN> *m_fft;
+    soundmath::SlicedFourier<float, venus::kN, soundmath::CmsisRealFft<venus::kN>> *m_stft;
 
     SampleRateReducer m_reducer;
     Tone m_lowpass;

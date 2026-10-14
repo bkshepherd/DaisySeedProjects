@@ -23,8 +23,8 @@ The original's acknowledgements apply here too:
 |---|---|
 | `../venus_module.{h,cpp}` | The effect module: parameters, the lo-fi and drift modes, the dry/wet mix |
 | `venus_spectral.h` | The per-bin reverb (`SpectralReverb`), header only and free of hardware dependencies so the host tests can use it |
-| `cmsis_fft.h` | A real FFT with ShyFFT's interface and spectrum layout, computed by CMSIS-DSP's `arm_rfft_fast_f32` |
-| `sliced_fourier.h` | An STFT that spreads each frame's work over several audio blocks (see below) |
+| `../../Util/STFT/cmsis_fft.h` | A real FFT with ShyFFT's interface and spectrum layout, computed by CMSIS-DSP's `arm_rfft_fast_f32` |
+| `../../Util/STFT/sliced_fourier.h` | An STFT that spreads each frame's work over several audio blocks (see below) |
 
 ## Controls
 
@@ -52,7 +52,7 @@ The original's acknowledgements apply here too:
   (27 per hop, 1.5 times what is needed), not one per block, so the schedule is the same for any block size. The parameters are latched once per frame.
   `tests/host/test_venus.cpp` checks that this gives exactly the same audio as running every stage immediately, at 48- and at 256-sample blocks.
 * **Audio settings.** The original runs at 32 kHz with 256-sample blocks because its transforms run inside one block. Here the
-  stages are spread over blocks and the FFT works in on-chip RAM (see `cmsis_fft.h`), so the pedal's own 48 kHz / 48-sample settings work (measured on the pedal: peak
+  stages are spread over blocks and the FFT works in on-chip RAM (see `Util/STFT/cmsis_fft.h`), so the pedal's own 48 kHz / 48-sample settings work (measured on the pedal: peak
   block load 76%). `kAudioSampleRate` / `kAudioBlockSize` (top of `guitar_pedal.cpp`) can be changed to 32 kHz and 256 (the original's) or 48 kHz / 256, which also work;
   at 32 kHz nothing needs rescaling (`m_srRatio` is 1).
 * **Cheaper random phase.** The original calls `rand()`, `cos()` and `sin()` for every bin of every frame; this uses a table of 1024 angles and a small

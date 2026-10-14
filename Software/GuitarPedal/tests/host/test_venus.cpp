@@ -6,7 +6,7 @@
 //  3. VenusModule: the block path and the per-sample path give the same output (constant parameters).
 //  4. Informational: the worst per-block time of the sliced pipeline against the one-shot one (host speed, so only the ratio means something).
 #include "venus_module.h"
-#include "Venus/cmsis_fft.h"
+#include "STFT/cmsis_fft.h"
 #include "../../Util/STFT/fourier.h"
 #include <algorithm>
 #include <chrono>
@@ -158,9 +158,9 @@ int main() {
         const auto shy = runPipeline(Run::Sliced, c.p0, nullptr, 0, w);
         static SpectralReverb rev2;
         rev2.Init(); rev2.SetParams(c.p0);
-        static CmsisRealFft<kN> cfft; cfft.Init();
+        static soundmath::CmsisRealFft<kN> cfft; cfft.Init();
         std::vector<float> bi(kN * kSlotsSliced, 0.0f), bm(kN, 0.0f), bo(kN, 0.0f), out2(kTotal), in = makeInput(kTotal);
-        SlicedFourier<float, kN, CmsisRealFft<kN>> stft(&SpectralReverb::ProcessChunk, &SpectralReverb::BeginFrame, &rev2, kChunks, &cfft, &g_hann, kLaps, bi.data(), bm.data(), bo.data());
+        SlicedFourier<float, kN, soundmath::CmsisRealFft<kN>> stft(&SpectralReverb::ProcessChunk, &SpectralReverb::BeginFrame, &rev2, kChunks, &cfft, &g_hann, kLaps, bi.data(), bm.data(), bo.data());
         int stepAccum = 0;
         for (size_t o = 0; o < kTotal; o += kBlock) {
             stepAccum += (int)kBlock * kStepsPerHop;

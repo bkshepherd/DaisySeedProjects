@@ -38,8 +38,9 @@ $(CMSIS_DSP_DIR)/Source/TransformFunctions/arm_bitreversal2.c \
 $(CMSIS_DSP_DIR)/Source/CommonTables/arm_common_tables.c \
 $(CMSIS_DSP_DIR)/Source/CommonTables/arm_const_structs.c
 C_DEFS += -DARM_MATH_LOOPUNROLL
-# Only the tables the 4096-point real FFT of Venus needs (it is a 2048-point complex FFT plus a real-FFT twiddle table); without these all of CMSIS-DSP's FFT tables are linked in (about 120 KB)
-C_DEFS += -DARM_DSP_CONFIG_TABLES -DARM_FFT_ALLOW_TABLES -DARM_TABLE_TWIDDLECOEF_F32_2048 -DARM_TABLE_BITREVIDX_FLT_2048 -DARM_TABLE_TWIDDLECOEF_RFFT_F32_4096
+# Only the tables the real FFTs of Venus (4096 points) and Saturn (1024) need (each is a half-size complex FFT plus a real-FFT twiddle table); without these all of CMSIS-DSP's FFT tables are linked in (about 120 KB)
+C_DEFS += -DARM_DSP_CONFIG_TABLES -DARM_FFT_ALLOW_TABLES -DARM_TABLE_TWIDDLECOEF_F32_2048 -DARM_TABLE_BITREVIDX_FLT_2048 -DARM_TABLE_TWIDDLECOEF_RFFT_F32_4096 \
+  -DARM_TABLE_TWIDDLECOEF_F32_512 -DARM_TABLE_BITREVIDX_FLT_512 -DARM_TABLE_TWIDDLECOEF_RFFT_F32_1024
 
 CPP_SOURCES = guitar_pedal.cpp guitar_pedal_storage.cpp $(wildcard UI/*.cpp) $(wildcard Util/*.cpp) \
 $(wildcard Hardware-Modules/*.cpp)
@@ -86,6 +87,9 @@ CPP_SOURCES += Effect-Modules/effect_chain.cpp
 #CPP_SOURCES += Effect-Modules/tape_delay_module.cpp
 #CPP_SOURCES += Effect-Modules/tuner_module.cpp
 CPP_SOURCES += Effect-Modules/venus_module.cpp
+CPP_SOURCES += Effect-Modules/cloudseed_pool.cpp # the CloudSeed engine's delay line pool, needed by the CloudSeed and Jupiter modules
+CPP_SOURCES += Effect-Modules/jupiter_module.cpp
+CPP_SOURCES += Effect-Modules/saturn_module.cpp
 #CPP_SOURCES += Effect-Modules/reverb_delay_module.cpp
 
 # Keyboard oriented modules

@@ -12,6 +12,14 @@ sits next to this repository as `../FunBox`, `software/<Effect>/`). Venus is don
   and `loaded_effects.h` and is registered next to it. `Effect-Modules/earth_module.{h,cpp}` and `Effect-Modules/Earth/` (README with the licence, origin, controls and changes). It reuses the
   repo's fixed Dattorro engine rather than a second copy (saving about 25 KB of SRAM); the engine's constructor gained an optional pre-delay length for it. SRAM 93.1% -> 94.9% (about 24 KB left), SDRAM
   74% -> 77% (2 MiB arena for the delay lines). Nothing had to be disabled.
+* **Jupiter** (stereo reverb on the CloudSeed engine): converted. `Effect-Modules/jupiter_module.{h,cpp}` and `Effect-Modules/Jupiter/` (README with the controls and changes). MIT. It is only a different control
+  mapping on the repository's existing CloudSeed engine; the CloudSeed module's SDRAM pool moved to `Effect-Modules/cloudseed_pool.cpp` and grew to 12.6 MB (one engine instance takes 4.9 MB; the CloudSeed module is currently
+  not in the build). Found by the tests: this repository's RubiKa preset has the post-reverb shelves off, so Jupiter switches them on (and the cutoff off) itself. Control changes are pushed to the engine one per block.
+  SRAM 47% -> 56%, SDRAM 15 MB. Not heard or run on the pedal.
+* **Saturn** (spectral delay): converted. `Effect-Modules/saturn_module.{h,cpp}` and `Effect-Modules/Saturn/` (README with the controls, notes and the list of changes; the original has quirks that are documented there).
+  Same recipe as Venus (sliced STFT scheduled by sample count + CMSIS FFT, now shared from `Util/STFT/sliced_fourier.h` and `Util/STFT/cmsis_fft.h`), N = 1024, two transforms for stereo. Its frames and work buffers are in
+  the otherwise empty on-chip RAM_D2 (`__attribute__((section(".sram_d2_bss")))`, see `nam_a2_sections.lds`), which keeps DTCM unchanged (79%); the delay lines (2.9 MB) are in SDRAM. SRAM 56% -> 60%.
+  Not heard or run on the pedal (check the average/peak readout and the sound, in particular that the 48-sample blocks keep up with the two transforms).
 * Not checked on the pedal: the CPU load and, above all, whether the 48-sample blocks keep up (see "Real time" below), and the sound.
 
 ## Which FunBox effects are new here
@@ -21,9 +29,10 @@ sits next to this repository as `../FunBox`, `software/<Effect>/`). Venus is don
 | **Balnea** | Digital delay and pitch shifter (CBA Thermae style) | New (there is a Delay, a Pitch Shifter and a Multi Delay, but not this combination) |
 | **Cassini** | Chromatic sampler played from a MIDI keyboard | New |
 | **Pluto** | Dual/stereo looper with variable-speed playback and effects | New (there is a Looper) |
-| Saturn | Spectral delay | Spectral Delay (`spectral_delay_module`, from the same STFT code) |
+| Saturn | Spectral delay | **Converted** (Saturn module, the full effect; the repository's older Spectral Delay is a reduced version of it) |
 | Earth | Dattorro plate reverb and octaves | Dattorro (GPL) - **converted**, see Status |
-| Jupiter, Neptune | Stereo reverb / reverb + delay built on CloudSeed | CloudSeed |
+| Jupiter | Stereo reverb built on CloudSeed | CloudSeed engine - **converted** (Jupiter module) |
+| Neptune | Reverb + delay built on CloudSeed | CloudSeed |
 | Mars, Mercury | Amp sims with NAM models and cabinet IRs | NAM and IR |
 | Uranus | Granular delay and synth | Granular Delay |
 | Venus | Spectral reverb | **Converted** |
@@ -83,7 +92,7 @@ Venus gave sound but dropped blocks constantly at 48 kHz / 48 samples: each 4096
   other effects come back (they were written and measured at those settings). `kMaxBlock` in the callback is 256 now.
 * **Stage schedule by sample count** (27 stages per 1024-sample hop), so Venus no longer assumes a block size; drift and parameter updates use sample counters too.
 * **Work buffers shrunk and moved on chip:** `middle`/`out` are one frame each (16 KB) in DTCM instead of nine frames each in SDRAM. SDRAM use fell from 441 KB to 147 KB.
-* **CMSIS-DSP FFT** instead of ShyFFT (`Effect-Modules/Venus/cmsis_fft.h`; the Makefile adds the CMSIS transform sources and, via `ARM_DSP_CONFIG_TABLES`, only the tables the 4096-point real FFT needs, +42 KB SRAM).
+* **CMSIS-DSP FFT** instead of ShyFFT (`Util/STFT/cmsis_fft.h` (shared with Saturn); the Makefile adds the CMSIS transform sources and, via `ARM_DSP_CONFIG_TABLES`, only the tables the 4096-point real FFT needs, +42 KB SRAM).
   Same spectrum layout, so the spectral code is unchanged; differs from ShyFFT by rounding only (about 1e-6 relative). `tests/host/test_cmsis_fft.cpp` checks the real library, and the host `stub_cmsis/arm_math.h` has a stand-in for the other tests. On its own it did not change the CPU load.
 * **The real fix: run the FFT passes in on-chip RAM, not SDRAM.** Both FFT libraries work in place, and the frames are in SDRAM; one frame's transform took ~2 ms and overran 48-sample blocks (Show Debug read
   33% average / 225% peak). `CmsisRealFft` now copies the frame in, transforms in a DTCM workspace and copies it out (+16 KB DTCM, now 79%). **Result on the pedal: peak 76%, no dropouts at 48 kHz / 48-sample blocks.**

@@ -533,6 +533,16 @@ void BaseEffectModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, 
     }
 
     if (showDebug) {
+        // The effect's own debug text (up to two lines) at the top of the area under the name
+        char text[48];
+        GetDebugText(text, sizeof(text));
+        char *second = strchr(text, '\n');
+        if (second != nullptr) *second++ = '\0';
+        if (text[0] != '\0') display.WriteStringAligned(text, Font_6x8, boundsToDrawIn, Alignment::topCentered, true);
+        if (second != nullptr && second[0] != '\0') display.WriteStringAligned(second, Font_6x8, boundsToDrawIn.Translated(0, 9), Alignment::topCentered, true);
+    }
+
+    if (showDebug) {
         // Small text at the bottom centre, between the input and output level readouts
         char cpuStr[16];
         // average / peak (the slowest block of the last two seconds); a peak over 100% is a block that took longer than it lasts

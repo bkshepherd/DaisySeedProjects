@@ -85,7 +85,7 @@ if XFLAGS="-I$T/stub_cmsis" build "$B/t_venus" $T/test_venus.cpp Effect-Modules/
 
 step "Venus FFT: the real CMSIS-DSP real FFT (firmware table configuration) vs ShyFFT"
 CMS=dependencies/libDaisy/Drivers/CMSIS-DSP
-CMSDEFS="-DARM_DSP_CONFIG_TABLES -DARM_FFT_ALLOW_TABLES -DARM_TABLE_TWIDDLECOEF_F32_2048 -DARM_TABLE_BITREVIDX_FLT_2048 -DARM_TABLE_TWIDDLECOEF_RFFT_F32_4096 -D__GNUC_PYTHON__"
+CMSDEFS="-DARM_DSP_CONFIG_TABLES -DARM_FFT_ALLOW_TABLES -DARM_TABLE_TWIDDLECOEF_F32_2048 -DARM_TABLE_BITREVIDX_FLT_2048 -DARM_TABLE_TWIDDLECOEF_RFFT_F32_4096 -DARM_TABLE_TWIDDLECOEF_F32_512 -DARM_TABLE_BITREVIDX_FLT_512 -DARM_TABLE_TWIDDLECOEF_RFFT_F32_1024 -D__GNUC_PYTHON__"
 CMSINC="-I$CMS/Include -I$CMS/PrivateInclude"
 mkdir -p "$B/cmsis"
 CMSOBJS=""
@@ -97,6 +97,19 @@ for f in TransformFunctions/arm_rfft_fast_f32 TransformFunctions/arm_rfft_fast_i
     CMSOBJS="$CMSOBJS $o"
 done
 if [ "$CMSOK" = 1 ] && $CXX -std=c++20 -O1 -w $CMSDEFS $CMSINC -I$T/stub -IEffect-Modules $T/test_cmsis_fft.cpp $CMSOBJS -o "$B/t_cmsis_fft" 2>&1 | grep -E "error|undefined" | head -5; [ -x "$B/t_cmsis_fft" ]; then check "$B/t_cmsis_fft"; else FAILS=$((FAILS + 1)); fi
+
+step "Saturn: block vs per-sample, 256-sample blocks, signal path, controls"
+if XFLAGS="-I$T/stub_cmsis" build "$B/t_saturn" $T/test_saturn.cpp Effect-Modules/saturn_module.cpp $BASEMOD $DSP/Synthesis/oscillator.cpp; then check "$B/t_saturn"; else FAILS=$((FAILS + 1)); fi
+
+step "Jupiter: block vs per-sample (engine block size 1), controls, Stereo In"
+JPSRC="dependencies/CloudSeed/AudioLib/Biquad2.cpp dependencies/CloudSeed/AudioLib/ShaRandom.cpp dependencies/CloudSeed/AudioLib/ValueTables.cpp \
+ dependencies/CloudSeed/FastSin.cpp dependencies/CloudSeed/Utils/Sha256.cpp"
+rm -rf "$B/jp_n1"; mkdir -p "$B/jp_n1/Effect-Modules" "$B/jp_n1/dependencies"
+cp Effect-Modules/jupiter_module.cpp Effect-Modules/jupiter_module.h Effect-Modules/cloudseed_pool.cpp "$B/jp_n1/Effect-Modules/"
+cp -r dependencies/CloudSeed "$B/jp_n1/dependencies/CloudSeed"; rm -rf "$B/jp_n1/dependencies/CloudSeed/build"
+sed -i 's/static const int bufferSize = [0-9]*;/static const int bufferSize = 1;/' "$B/jp_n1/dependencies/CloudSeed/ReverbController.h"
+if XFLAGS="-I$B/jp_n1/Effect-Modules -I$B/jp_n1/dependencies/CloudSeed" build "$B/t_jupiter" $T/test_jupiter.cpp "$B/jp_n1/Effect-Modules/jupiter_module.cpp" "$B/jp_n1/Effect-Modules/cloudseed_pool.cpp" \
+   $(for f in $JPSRC; do echo "$B/jp_n1/$f" | sed "s|$B/jp_n1/dependencies|$B/jp_n1/dependencies|"; done) $BASEMOD; then check "$B/t_jupiter"; else FAILS=$((FAILS + 1)); fi
 
 step "Earth: reverb arena, octave, freeze, overdrive swell, block vs per-sample"
 if XFLAGS= build "$B/t_earth" $T/test_earth.cpp Effect-Modules/earth_module.cpp Effect-Modules/Dattorro/Dattorro.cpp $BASEMOD $DSP/Effects/overdrive.cpp; then check "$B/t_earth"; else FAILS=$((FAILS + 1)); fi
@@ -113,8 +126,8 @@ cp Effect-Modules/cloudseed_module.cpp Effect-Modules/cloudseed_module.h Effect-
 cp -r dependencies/CloudSeed "$B/cs_n1/dependencies/CloudSeed"; rm -rf "$B/cs_n1/dependencies/CloudSeed/build"
 sed -i 's/static const int bufferSize = [0-9]*;/static const int bufferSize = 1;/' "$B/cs_n1/dependencies/CloudSeed/ReverbController.h"
 if XFLAGS="-I$B/cs_old/Effect-Modules -I$B/cs_old/dependencies/CloudSeed" build "$B/cs_old_bin" $T/test_cloudseed.cpp "$B/cs_old/Effect-Modules/cloudseed_module.cpp" $CSSRC \
-   && XFLAGS="-I$B/cs_n1/Effect-Modules -I$B/cs_n1/dependencies/CloudSeed" build "$B/cs_n1_bin" $T/test_cloudseed.cpp "$B/cs_n1/Effect-Modules/cloudseed_module.cpp" $CSSRC \
-   && XFLAGS="-Idependencies/CloudSeed" build "$B/cs_new_bin" $T/test_cloudseed.cpp Effect-Modules/cloudseed_module.cpp $CSSRC; then
+   && XFLAGS="-I$B/cs_n1/Effect-Modules -I$B/cs_n1/dependencies/CloudSeed" build "$B/cs_n1_bin" $T/test_cloudseed.cpp "$B/cs_n1/Effect-Modules/cloudseed_module.cpp" Effect-Modules/cloudseed_pool.cpp $CSSRC \
+   && XFLAGS="-Idependencies/CloudSeed" build "$B/cs_new_bin" $T/test_cloudseed.cpp Effect-Modules/cloudseed_module.cpp Effect-Modules/cloudseed_pool.cpp $CSSRC; then
     "$B/cs_old_bin" sample "$B/cs_old.bin"; "$B/cs_n1_bin" block "$B/cs_n1.bin"; "$B/cs_new_bin" block "$B/cs_new.bin"
     check python3 -I $T/compare_cloudseed.py "$B"
 else FAILS=$((FAILS + 1)); fi

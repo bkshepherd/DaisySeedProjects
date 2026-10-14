@@ -40,7 +40,9 @@
 // #include "Effect-Modules/spectral_delay_module.h"
 // #include "Effect-Modules/tape_delay_module.h"
 // #include "Effect-Modules/tuner_module.h"
-#include "Effect-Modules/venus_module.h" // Spectral reverb from the FunBox project (MIT). Takes about 440 KB of SDRAM
+#include "Effect-Modules/saturn_module.h" // Spectral delay from the FunBox project (MIT). Takes about 2.9 MB of SDRAM
+#include "Effect-Modules/jupiter_module.h" // Stereo reverb from the FunBox project (MIT), on the CloudSeed engine. Takes about 4.9 MB of SDRAM
+#include "Effect-Modules/venus_module.h" // Spectral reverb from the FunBox project (MIT). Takes about 150 KB of SDRAM
 
 // Keyboard modules
 // #include "Effect-Modules/fm_keys_module.h"
@@ -77,6 +79,8 @@ void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffec
         // new NoiseGateModule(),
         // new CloudSeedModule(), // single-instance only
         new VenusModule(), // single-instance only
+        new JupiterModule(), // single-instance only
+        new SaturnModule(), // single-instance only
         // new DelayModule(), // single-instance only
         // new TapeDelayModule(),  // single-instance-only
         // new DualEchoModule(),  // single-instance-only

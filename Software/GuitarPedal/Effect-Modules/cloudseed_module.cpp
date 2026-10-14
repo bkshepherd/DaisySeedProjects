@@ -2,24 +2,7 @@
 #include "../Util/audio_utilities.h"
 #include <array>
 
-// This is used in the modified CloudSeed code for allocating
-// delay line memory to SDRAM (64MB available on Daisy)
-// #define CUSTOM_POOL_SIZE (48*1024*1024)
-// #define CUSTOM_POOL_SIZE (48*512*512) // works
-#define CUSTOM_POOL_SIZE (48 * 384 * 384) // Works! test more thoroughly with other presets, if it freezes, check here first TODO
-// #define CUSTOM_POOL_SIZE (48*256*256) // freezes
-
-DSY_SDRAM_BSS char custom_pool[CUSTOM_POOL_SIZE];
-size_t pool_index = 0;
-int allocation_count = 0;
-void *custom_pool_allocate(size_t size) {
-    if (pool_index + size >= CUSTOM_POOL_SIZE) {
-        return 0;
-    }
-    void *ptr = &custom_pool[pool_index];
-    pool_index += size;
-    return ptr;
-}
+// The delay line memory for the CloudSeed reverb engine comes from the pool in cloudseed_pool.cpp (shared with the Jupiter module).
 
 using namespace bkshepherd;
 

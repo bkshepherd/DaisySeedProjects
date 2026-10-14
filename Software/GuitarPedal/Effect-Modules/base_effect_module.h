@@ -339,6 +339,10 @@ class BaseEffectModule {
 
     void SetCPUUsage(float cpuUsage) { m_cpuUsage = cpuUsage; };
     float GetCPUUsage() const { return m_cpuUsage; }
+    /** Optional extra text for the Show Debug screen (up to two lines separated by '\n', short: the font is 6 pixels wide), e.g. timings of the effect's own stages. */
+    virtual void GetDebugText(char *buffer, size_t size) const {
+        if (size > 0) buffer[0] = '\0';
+    }
     void SetCPUPeak(float cpuPeak) { m_cpuPeak = cpuPeak; }
     float GetCPUPeak() const { return m_cpuPeak; }
 

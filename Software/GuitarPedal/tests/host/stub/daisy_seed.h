@@ -33,6 +33,8 @@ struct OneBitGraphicsDisplay {
 };
 struct System {
     static uint32_t GetNow() { return 0; }
+    static uint32_t GetTick() { return 0; }
+    static uint32_t GetTickFreq() { return 200000000; }
     static void Delay(uint32_t) {}
 };
 } // namespace daisy

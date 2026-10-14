@@ -32,7 +32,7 @@ constexpr float kIntervalSamples = 8192.0f; // ceil(window_samples / laps) in th
 float DSY_SDRAM_BSS s_in[venus::kN * kSlots];
 float s_middle[venus::kN]; // unprocessed frequency domain data
 float s_out[venus::kN];    // processed frequency domain data
-venus::CmsisRealFft<venus::kN> s_fft; // the FFT with its two 16 KB workspaces: must be in the ordinary (DTCM) RAM, not SDRAM (see cmsis_fft.h)
+soundmath::CmsisRealFft<venus::kN> s_fft; // the FFT with its two 16 KB workspaces: must be in the ordinary (DTCM) RAM, not SDRAM (see cmsis_fft.h)
 
 soundmath::Wave<float> s_hann([](float phase) -> float { return 0.5f * (1.0f - std::cos(2.0f * 3.14159265358979f * phase)); });
 
@@ -172,7 +172,7 @@ void VenusModule::Init(float sample_rate) {
     delete m_stft;
     m_fft = &s_fft;
     m_fft->Init();
-    m_stft = new soundmath::SlicedFourier<float, venus::kN, venus::CmsisRealFft<venus::kN>>(&venus::SpectralReverb::ProcessChunk, &venus::SpectralReverb::BeginFrame, &m_reverb,
+    m_stft = new soundmath::SlicedFourier<float, venus::kN, soundmath::CmsisRealFft<venus::kN>>(&venus::SpectralReverb::ProcessChunk, &venus::SpectralReverb::BeginFrame, &m_reverb,
                                                             venus::kChunks, m_fft, &s_hann, venus::kLaps, s_in, s_middle, s_out);
 
     m_reducer.Init();

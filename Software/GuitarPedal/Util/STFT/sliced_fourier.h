@@ -1,10 +1,10 @@
 // sliced_fourier.h
 //
-// A short-time Fourier transform like soundmath::Fourier (Util/STFT/fourier.h, from DaisySTFT by amcerbu), but the per-frame work is spread over
+// A short-time Fourier transform like soundmath::Fourier (fourier.h in this directory, from DaisySTFT by amcerbu), but the per-frame work is spread over
 // later calls instead of running inside write().
 //
 // Fourier::write() runs the forward FFT, the user's spectral processing and the inverse FFT all at once whenever a frame completes. For a large
-// transform (Venus uses N = 4096) that is several milliseconds in a single audio callback, far more than a 48-sample block (1 ms) allows. Here a
+// transform (Venus uses N = 4096, Saturn N = 1024) that is several milliseconds in a single audio callback, far more than a 48-sample block (1 ms) allows. Here a
 // completed frame is queued, and each call to Step() (the module calls it once per block) runs one stage of the oldest queued frame:
 //     stage 0                 begin() hook, then the forward FFT
 //     stages 1 .. chunkCount  the user's processing, one chunk of the spectrum at a time
@@ -21,7 +21,7 @@
 // frame on the frames sit one sample later than Fourier's (inaudible). tests/host/test_venus.cpp checks both the match and that spreading the stages
 // over blocks changes nothing.
 #pragma once
-#ifndef VENUS_SLICED_FOURIER_H
+#ifndef STFT_SLICED_FOURIER_H
 
 #include <cmath>
 #include <cstddef>
@@ -29,12 +29,12 @@
 #include <cstring>
 #include <functional>
 // (the STFT headers use uint8_t, memset, std::function and trigonometry without including them)
-#include "../../Util/STFT/shy_fft.h"
-#include "../../Util/STFT/wave.h"
+#include "shy_fft.h"
+#include "wave.h"
 
 namespace soundmath {
 
-// FFT: anything with Direct(T *in, T *out) and Inverse(T *in, T *out) in ShyFFT's layout (ShyFFT itself, or venus::CmsisRealFft)
+// FFT: anything with Direct(T *in, T *out) and Inverse(T *in, T *out) in ShyFFT's layout (ShyFFT itself, or soundmath::CmsisRealFft)
 template <typename T, size_t N, typename FFT = ShyFFT<T, N, RotationPhasor>> class SlicedFourier {
   public:
     /** Processes chunk `chunk` of `chunkCount` of one frame: reads the spectrum from `in`, writes the processed spectrum to `out`. Called for the chunks in
@@ -43,11 +43,13 @@ template <typename T, size_t N, typename FFT = ShyFFT<T, N, RotationPhasor>> cla
     /** Called once at the start of every frame (before its forward FFT), e.g. to take a snapshot of the parameters used for the whole frame. */
     using FrameBegin = void (*)(void *context);
 
-    // in needs to be an array of size (N * slotCount()), where slotCount() = 2 * laps + 1; middle and out are arrays of size N
+    // in needs to be an array of size (N * slotCount()), where slotCount() = 2 * laps + 1; middle and out are arrays of size N.
+    // windowTable (optional, N entries): the window sampled at the N frame positions, window((T)i / N). Same values as evaluating the Wave for every sample, but a
+    // table lookup instead of an interpolated one: the window is applied twice per input sample for every frame in progress, which adds up (Saturn, 2 channels).
     SlicedFourier(ChunkProcessor processChunk, FrameBegin beginFrame, void *context, size_t chunkCount, FFT *fft,
-                  Wave<T> *window, size_t laps, T *in, T *middle, T *out)
+                  Wave<T> *window, size_t laps, T *in, T *middle, T *out, const T *windowTable = nullptr)
         : processChunk_(processChunk), beginFrame_(beginFrame), context_(context), chunkCount_(chunkCount), in_(in), middle_(middle), out_(out),
-          fft_(fft), window_(window), laps_(laps), stride_(N / laps), slots_(2 * laps + 1) {
+          fft_(fft), window_(window), windowTable_(windowTable), laps_(laps), stride_(N / laps), slots_(2 * laps + 1) {
         writepoint_ = new int[slots_];
         readpoint_ = new int[slots_];
         state_ = new uint8_t[slots_];
@@ -119,12 +121,14 @@ template <typename T, size_t N, typename FFT = ShyFFT<T, N, RotationPhasor>> cla
         }
     }
 
+    T windowAt(int i) { return windowTable_ ? windowTable_[i] : (*window_)((T)i / N); }
+
     // writes a single sample (with windowing) into the in array of every slot that is collecting input
     void write(T x) {
         for (size_t i = 0; i < slots_; i++) {
             if (state_[i] != kWriting) continue;
             if (writepoint_[i] >= 0) {
-                const T amp = (*window_)((T)writepoint_[i] / N);
+                const T amp = windowAt(writepoint_[i]);
                 in_[writepoint_[i] + N * i] = amp * x;
             }
             writepoint_[i]++;
@@ -149,7 +153,7 @@ template <typename T, size_t N, typename FFT = ShyFFT<T, N, RotationPhasor>> cla
                 readpoint_[i] = 0;
             }
             if (state_[i] == kReading) {
-                const T amp = (*window_)((T)readpoint_[i] / N);
+                const T amp = windowAt(readpoint_[i]);
                 accum += amp * in_[readpoint_[i] + N * i];
                 readpoint_[i]++;
 
@@ -176,6 +180,7 @@ template <typename T, size_t N, typename FFT = ShyFFT<T, N, RotationPhasor>> cla
     T *in_, *middle_, *out_;
     FFT *fft_;
     Wave<T> *window_;
+    const T *windowTable_;
     size_t laps_, stride_, slots_;
 
     int *writepoint_;
@@ -191,5 +196,5 @@ template <typename T, size_t N, typename FFT = ShyFFT<T, N, RotationPhasor>> cla
 };
 } // namespace soundmath
 
-#define VENUS_SLICED_FOURIER_H
+#define STFT_SLICED_FOURIER_H
 #endif

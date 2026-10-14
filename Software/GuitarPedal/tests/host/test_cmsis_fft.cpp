@@ -1,4 +1,4 @@
-// Checks the real CMSIS-DSP real FFT (built with the firmware's table configuration, see run_tests.sh) through venus::CmsisRealFft against ShyFFT and a plain
+// Checks the real CMSIS-DSP real FFT (built with the firmware's table configuration, see run_tests.sh) through soundmath::CmsisRealFft against ShyFFT and a plain
 // DFT: the same spectrum in ShyFFT's layout, an inverse that undoes it, and that the table configuration really includes the 4096-point FFT.
 #include <algorithm>
 #include <chrono>
@@ -7,23 +7,23 @@
 #include <cstring>
 #include <functional>
 #include <vector>
-#include "Venus/cmsis_fft.h"
+#include "STFT/cmsis_fft.h"
 #include "../../Util/STFT/shy_fft.h"
 
 static int g_fails = 0;
 static void check(bool ok, const char *what) { printf("  %-70s %s\n", what, ok ? "OK" : "FAIL"); if (!ok) g_fails++; }
 
-int main() {
-    constexpr size_t N = 4096;
+template <size_t N> static void testSize() {
+    printf("%zu-point transform:\n", N);
     arm_rfft_fast_instance_f32 probe;
-    check(arm_rfft_fast_init_f32(&probe, N) == ARM_MATH_SUCCESS, "the 4096-point real FFT is available in the firmware's table configuration");
+    check(arm_rfft_fast_init_f32(&probe, N) == ARM_MATH_SUCCESS, "this real FFT size is available in the firmware's table configuration");
 
     std::vector<float> x(N), a(N), b(N), spectrumShy(N), spectrumCms(N);
     unsigned s = 12345u;
     for (size_t i = 0; i < N; i++) { s = 1664525u * s + 1013904223u; x[i] = ((s >> 8) & 0xFFFF) / 32768.0f - 1.0f + 0.3f * std::sin(0.05f * i); }
 
     ShyFFT<float, N, RotationPhasor> shy; shy.Init();
-    static venus::CmsisRealFft<N> cms; cms.Init();
+    static soundmath::CmsisRealFft<N> cms; cms.Init();
 
     a = x; shy.Direct(a.data(), spectrumShy.data());
     b = x; cms.Direct(b.data(), spectrumCms.data());
@@ -34,7 +34,7 @@ int main() {
 
     // against a plain DFT for a few bins (layout: Re in [k], Nyquist in [N/2], -Im in [N/2 + k])
     bool dftOk = true;
-    for (int k : {1, 2, 7, 100, 1023, 2047}) {
+    for (int k : {1, 2, 7, 100, 255, 511}) {
         double re = 0, im = 0;
         for (size_t n = 0; n < N; n++) { re += x[n] * std::cos(2 * M_PI * k * n / N); im -= x[n] * std::sin(2 * M_PI * k * n / N); }
         dftOk &= std::fabs(spectrumCms[k] - re) < 1e-2 && std::fabs(spectrumCms[N / 2 + k] + im) < 1e-2;
@@ -56,6 +56,11 @@ int main() {
     const double tCms = timeIt([&] { b = x; cms.Direct(b.data(), spectrumCms.data()); });
     printf("  host time per forward transform: ShyFFT %.4f ms, CMSIS %.4f ms\n", tShy, tCms);
 
+}
+
+int main() {
+    testSize<4096>(); // Venus
+    testSize<1024>(); // Saturn
     printf("\n%s\n", g_fails ? "CMSIS FFT: FAILURES" : "CMSIS FFT OK");
     return g_fails != 0;
 }

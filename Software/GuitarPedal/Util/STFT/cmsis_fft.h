@@ -20,7 +20,7 @@
 #include <cstddef>
 #include <cstring>
 
-namespace venus {
+namespace soundmath {
 
 template <size_t N> class CmsisRealFft {
   public:
@@ -57,4 +57,4 @@ template <size_t N> class CmsisRealFft {
     float work_[N]; // the time signal the transform works on; 16 KB for N = 4096
 };
 
-} // namespace venus
+} // namespace soundmath
