@@ -58,6 +58,17 @@ else FAILS=$((FAILS + 1)); fi
 
 step "Tape Delay: original ($BASE) vs new"
 mkdir -p "$B/td_old"; base_file Effect-Modules/tape_delay_module.cpp > "$B/td_old/tape_delay_module.cpp"; base_file Effect-Modules/tape_delay_module.h > "$B/td_old/tape_delay_module.h"
+# The original computes the wet/dry balance from an uninitialised smoothed mix at startup and only on a Mix change (a known bug, fixed in the new code and
+# covered by test_tape_delay_defaults.cpp). Mirror the same fix into the reference so this step still checks that the refactor itself changed nothing.
+python3 -I - "$B/td_old/tape_delay_module.cpp" <<'PYFIX'
+import sys
+p = sys.argv[1]; s = open(p).read()
+for old, new in (("    UpdateMix();\n    ResetInternalState();\n}", "    ResetInternalState();\n    UpdateMix();\n}"),
+                 ("    fonepole(m_smoothedRepeats, GetParameterAsFloat(REPEATS), 0.02f);\n", "    fonepole(m_smoothedRepeats, GetParameterAsFloat(REPEATS), 0.02f);\n    UpdateMix();\n")):
+    assert old in s, "reference patch no longer applies: " + old[:40]
+    s = s.replace(old, new, 1)
+open(p, "w").write(s)
+PYFIX
 TDSRC="Util/tape_modulator.cpp $BASEMOD $REVSC $LGPL/Filters/tone.cpp $DSP/Filters/svf.cpp $DSP/Synthesis/oscillator.cpp"
 if XFLAGS="-I$B/td_old" build "$B/td_old_bin" $T/test_tape_delay.cpp "$B/td_old/tape_delay_module.cpp" $TDSRC && build "$B/td_new_bin" $T/test_tape_delay.cpp Effect-Modules/tape_delay_module.cpp $TDSRC; then
     for inp in mono stereo; do
@@ -65,6 +76,9 @@ if XFLAGS="-I$B/td_old" build "$B/td_old_bin" $T/test_tape_delay.cpp "$B/td_old/
         check python3 -I $T/compare_exact.py "Tape Delay ($inp in)" "$B" td_old_$inp.bin td_ps_$inp.bin td_blk_$inp.bin
     done
 else FAILS=$((FAILS + 1)); fi
+
+step "Tape Delay: defaults regression (startup state, Mix tracking)"
+if XFLAGS= build "$B/t_td_defaults" $T/test_tape_delay_defaults.cpp Effect-Modules/tape_delay_module.cpp $TDSRC; then check "$B/t_td_defaults"; else FAILS=$((FAILS + 1)); fi
 
 step "CloudSeed: original ($BASE) vs new (bit-exact at block size 1; shipped block size checked for level/finite)"
 CSSRC="dependencies/CloudSeed/AudioLib/Biquad2.cpp dependencies/CloudSeed/AudioLib/ShaRandom.cpp dependencies/CloudSeed/AudioLib/ValueTables.cpp \

@@ -40,7 +40,6 @@ class TapeDelayModule : public BaseEffectModule {
     ~TapeDelayModule();
 
     void Init(float sample_rate) override;
-    void ParameterChanged(int parameter_id) override;
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;
     void ProcessMonoBlock(const float *in, float *outL, float *outR, size_t n) override;

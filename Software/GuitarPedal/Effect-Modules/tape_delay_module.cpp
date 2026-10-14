@@ -136,7 +136,7 @@ TapeDelayModule::TapeDelayModule()
       m_contourHpMin(20.0f), m_contourHpMax(350.0f), m_wowRateMin(0.15f), m_wowRateMax(2.0f), m_flutterRateMin(2.0f),
                         m_flutterRateMax(14.0f), m_wowDepthMaxSamples(55.0f), m_flutterDepthMaxSamples(16.0f), m_dropoutGain(1.0f),
             m_dropoutGainTarget(1.0f), m_crinkleOffset(0.0f), m_crinkleOffsetTarget(0.0f), m_dropoutSamplesRemaining(0.0f),
-            m_crinkleSamplesRemaining(0.0f), m_imperfectionCooldownSamples(0.0f), m_randState(0xA57E1B3Fu), m_ledValue(0.0f),
+            m_crinkleSamplesRemaining(0.0f), m_imperfectionCooldownSamples(0.0f), m_randState(0xA57E1B3Fu), m_smoothedTime(0.0f), m_smoothedMix(0.0f), m_smoothedRepeats(0.0f), m_ledValue(0.0f),
             m_sampleRate(48000.0f), m_delayL(nullptr), m_delayR(nullptr), m_reverb(nullptr) {
     m_name = "Tape Delay";
     m_paramMetaData = s_metaData.data();
@@ -456,14 +456,9 @@ void TapeDelayModule::Init(float sample_rate) {
     m_ledOsc.SetAmp(1.0f);
     m_ledOsc.SetFreq(2.0f);
 
-    UpdateMix();
+    // The smoothed values come from the parameters, and the wet/dry balance is derived from the smoothed mix, so the order matters.
     ResetInternalState();
-}
-
-void TapeDelayModule::ParameterChanged(int parameter_id) {
-    if (parameter_id == MIX) {
-        UpdateMix();
-    }
+    UpdateMix();
 }
 
 void TapeDelayModule::ProcessSamples(const float *inL, const float *inR, float *outL, float *outR, size_t n) {
@@ -527,6 +522,7 @@ void TapeDelayModule::ProcessSamples(const float *inL, const float *inR, float *
         fonepole(m_smoothedTime, timeParam, 0.0005f);
         fonepole(m_smoothedMix, mixParam, 0.02f);
         fonepole(m_smoothedRepeats, repeatsParam, 0.02f);
+        UpdateMix(); // wet/dry follows the smoothed mix every sample, so it always converges to the Mix parameter
 
         UpdateDelayTimeAndLed(isLoFi, wobble);
 
