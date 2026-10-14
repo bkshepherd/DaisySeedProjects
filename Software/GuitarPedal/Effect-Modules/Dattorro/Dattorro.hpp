@@ -183,8 +183,9 @@ class Dattorro1997Tank {
 
 class Dattorro {
   public:
-    Dattorro(const float initMaxSampleRate = 32000.0, const float initMaxLfoDepth = 16.0,
-              const float initMaxTimeScale = 1.0);
+    // initMaxPreDelaySamples is the length of the pre-delay buffer (the default is 200 ms at 48 kHz; Earth, which allows about 700 ms, passes more)
+    Dattorro(const float initMaxSampleRate = 32000.0, const float initMaxLfoDepth = 16.0, const float initMaxTimeScale = 1.0,
+              const unsigned int initMaxPreDelaySamples = 9600);
     void process(float leftInput, float rightInput);
     void clear();
 

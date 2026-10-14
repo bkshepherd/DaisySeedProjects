@@ -309,12 +309,12 @@ void Dattorro1997Tank::rescaleTapTimes() {
     }
 }
 
-Dattorro::Dattorro(const float initMaxSampleRate, const float initMaxLfoDepth, const float initMaxTimeScale)
+Dattorro::Dattorro(const float initMaxSampleRate, const float initMaxLfoDepth, const float initMaxTimeScale, const unsigned int initMaxPreDelaySamples)
     : tank(initMaxSampleRate, initMaxLfoDepth, initMaxTimeScale) {
     sampleRate = initMaxSampleRate;
     dattorroScaleFactor = sampleRate / dattorroSampleRate;
 
-    preDelay = InterpDelay(9600, 0.0f); // 200ms max @ 48kHz
+    preDelay = InterpDelay(initMaxPreDelaySamples, 0.0f); // 9600 samples (200 ms at 48 kHz) unless the caller asks for more
 
     inputLpf = OnePoleLPFilter(22000.0f);
     inputHpf = OnePoleHPFilter(0.0f);

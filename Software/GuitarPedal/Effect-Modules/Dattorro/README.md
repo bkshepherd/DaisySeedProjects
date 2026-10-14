@@ -5,6 +5,9 @@ General Public License v3 (or later), not the MIT license the rest of this repos
 [`LICENSE-GPLv3.txt`](LICENSE-GPLv3.txt). It is not compiled into GuitarPedal by default; see
 "Opting in" below for what that means for your build.
 
+**Earth** (`../earth_module.*`, adapted from the FunBox Earth pedal, also GPLv3, see `../Earth/README.md`) uses this engine as well. For it the `Dattorro` constructor takes an optional
+fourth argument, the length of the pre-delay buffer in samples (default 9600, 200 ms at 48 kHz, unchanged for the Dattorro module).
+
 ## Provenance
 
 1. **Valley Audio Soft / Dale Johnson**, *Plateau* (`PlateauNEVersio`), Copyright (C) 2020 —
