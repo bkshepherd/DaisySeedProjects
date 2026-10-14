@@ -11,7 +11,7 @@
 // which wipes all saved effect settings/presets, not just the new field.
 // Also bump it when a stored parameter changes meaning or range (e.g. the Compressor's parameters moving from 0..1 to real units in v13):
 // the layout hash only covers parameter counts and types, so old values would otherwise load into the new ranges.
-#define SETTINGS_FILE_FORMAT_VERSION 14
+#define SETTINGS_FILE_FORMAT_VERSION 15
 
 // Arbitrarily limiting this to 4KB of stored presets since this sits in DTCMRAM which is limited to 128KB.
 // TODO: In the future it would be better if this worked with the QSPI directly instead of using
@@ -32,6 +32,8 @@ struct Settings {
     bool globalSplitMonoInputToStereo;
     bool globalEffectOn; // Pedal's on/off (bypass) state, restored on boot.
     bool globalAutoSave; // Save changed effect parameters to preset 0 after a quiet period.
+    bool globalShowDebug; // Draw the CPU load and input/output level readouts on the default effect screen.
+    bool globalLockKnobs; // Ignore the knobs; parameters are changed from the display only.
 
     // Set aside a block of memory for individual effect params.
     // Please note this MUST be a fixed amount of memory in the struct and cannot be a pointer to dynamic memory!
@@ -45,7 +47,7 @@ struct Settings {
             globalMidiEnabled != rhs.globalMidiEnabled || globalMidiThrough != rhs.globalMidiThrough ||
             globalMidiChannel != rhs.globalMidiChannel || globalRelayBypassEnabled != rhs.globalRelayBypassEnabled ||
             globalSplitMonoInputToStereo != rhs.globalSplitMonoInputToStereo || globalEffectOn != rhs.globalEffectOn ||
-            globalAutoSave != rhs.globalAutoSave) {
+            globalAutoSave != rhs.globalAutoSave || globalShowDebug != rhs.globalShowDebug || globalLockKnobs != rhs.globalLockKnobs) {
             return false;
         }
 

@@ -10,7 +10,6 @@ extern PersistentStorage<Settings> storage;
 extern int availableEffectsCount;
 extern BaseEffectModule **availableEffects;
 extern int activeEffectID;
-extern bool disableKnobs;
 extern BaseEffectModule *activeEffect;
 extern void ResetAutoSaveTrackingForEffect(int effectID);
 
@@ -401,15 +400,19 @@ void GuitarPedalUI::InitGlobalSettingsUIPages() {
 
     m_globalSettingsMenuItems[6].type = AbstractMenu::ItemType::checkboxItem;
     m_globalSettingsMenuItems[6].text = "Lock Knobs"; // max about 10 characters in the 11x18 menu font; longer text is not drawn
-    m_globalSettingsMenuItems[6].asCheckboxItem.valueToModify = &disableKnobs;
+    m_globalSettingsMenuItems[6].asCheckboxItem.valueToModify = &settings.globalLockKnobs;
 
-    m_globalSettingsMenuItems[7].type = AbstractMenu::ItemType::callbackFunctionItem;
-    m_globalSettingsMenuItems[7].text = "Reboot";
-    m_globalSettingsMenuItems[7].asCallbackFunctionItem.callbackFunction = &RebootToBootloader;
-    m_globalSettingsMenuItems[7].asCallbackFunctionItem.context = this;
+    m_globalSettingsMenuItems[7].type = AbstractMenu::ItemType::checkboxItem;
+    m_globalSettingsMenuItems[7].text = "Show Debug"; // exactly the 10 characters that fit in the 11x18 menu font
+    m_globalSettingsMenuItems[7].asCheckboxItem.valueToModify = &settings.globalShowDebug;
 
-    m_globalSettingsMenuItems[8].type = AbstractMenu::ItemType::closeMenuItem;
-    m_globalSettingsMenuItems[8].text = "Back";
+    m_globalSettingsMenuItems[8].type = AbstractMenu::ItemType::callbackFunctionItem;
+    m_globalSettingsMenuItems[8].text = "Reboot";
+    m_globalSettingsMenuItems[8].asCallbackFunctionItem.callbackFunction = &RebootToBootloader;
+    m_globalSettingsMenuItems[8].asCallbackFunctionItem.context = this;
+
+    m_globalSettingsMenuItems[9].type = AbstractMenu::ItemType::closeMenuItem;
+    m_globalSettingsMenuItems[9].text = "Back";
 
     m_globalSettingsMenu.Init(m_globalSettingsMenuItems, kNumGlobalSettingsMenuItems);
 

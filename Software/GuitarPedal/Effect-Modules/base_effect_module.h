@@ -348,6 +348,11 @@ class BaseEffectModule {
     float GetInputLevelDb() const { return m_inputLevelDb; }
     float GetOutputLevelDb() const { return m_outputLevelDb; }
 
+    /** Whether the default UI should draw the debug readouts (CPU percentage and input/output level). Set by the main loop from the
+        "Show Debug" global setting. */
+    void SetShowDebug(bool show) { m_showDebug = show; }
+    bool GetShowDebug() const { return m_showDebug; }
+
   protected:
     /** Initializes the Parameter Storage and creates space for the specified number of stored Effect Parameters
         \param count  The number of stored parameters
@@ -379,6 +384,7 @@ class BaseEffectModule {
     float m_inputLevelDb = -100.0f;  // averaged input peak in dB, can be used for rendering to display
     float m_outputLevelDb = -100.0f; // averaged output peak in dB
     float m_cpuUsage;   // CPU usage of the audio callback, can be used for rendering to display
+    bool m_showDebug = false; // draw the CPU and input/output level readouts on the default UI
 };
 } // namespace bkshepherd
 #endif

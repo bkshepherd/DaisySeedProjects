@@ -59,12 +59,11 @@ BaseEffectModule *activeEffect = nullptr;
 GuitarPedalUI guitarPedalUI;
 
 // Hardware Related Variables
-bool useDebugDisplay = false;
 
-// Diagnostic switch: when true the knobs are neither read nor applied, so every effect parameter stays at its default (or whatever the
-// menu sets). Useful for measuring CPU load without knob noise causing parameter updates. Toggled at runtime by the "Disable knobs" item in the
-// Global Settings menu. Deliberately not saved, so the pedal always boots with working knobs.
-bool disableKnobs = false;
+// Developer switch (compile time): replaces the whole display with a plain text page (footswitch taps and BPM) instead of the normal UI.
+// The CPU and level readouts are not part of this; they are the saved "Show Debug" setting (settings.globalShowDebug).
+constexpr bool useDebugTextScreen = false;
+
 bool effectOn = false;
 
 bool muteOn = false;
@@ -437,9 +436,7 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
     float led2Brightness = 0.0f;
 
     // Handle Inputs
-    if (!disableKnobs) {
-        hardware.ProcessAnalogControls();
-    }
+    hardware.ProcessAnalogControls();
     hardware.ProcessDigitalControls();
     guitarPedalUI.GenerateUIEvents();
 
@@ -447,9 +444,7 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
     Settings &settings = storage.GetSettings();
 
     // Process the Pots
-    if (!disableKnobs) {
-        processPots(size);
-    }
+    processPots(size);
 
     processFootswitches(size, settings);
 
@@ -854,7 +849,12 @@ int main(void) {
             knobValuesInitialized = true;
         }
 
-        if (!disableKnobs && knobValuesInitialized) {
+        if (settings.globalLockKnobs) {
+            // The knobs are still sampled (so their cached state is valid when they are unlocked) but never applied
+            for (int i = 0; i < hardware.GetKnobCount(); i++) {
+                knobValueCacheChanged[i] = false;
+            }
+        } else if (knobValuesInitialized) {
             for (int i = 0; i < hardware.GetKnobCount(); i++) {
                 if (knobValueCacheChanged[i]) {
                     int parameterID = activeEffect->GetMappedParameterIDForKnob(i);
@@ -918,13 +918,14 @@ int main(void) {
         }
 
         // Set the latest cpu load to the effect
+        activeEffect->SetShowDebug(settings.globalShowDebug);
         activeEffect->SetCPUUsage(cpuLoadMeter.GetAvgCpuLoad());
         activeEffect->SetLevelsDb(linearToDb(avgInputPeak), linearToDb(avgOutputPeak));
 
         // Handle Display
         if (hardware.SupportsDisplay()) {
-            if (useDebugDisplay) {
-                // Debug Display hijacks the display to simply output text
+            if (useDebugTextScreen) {
+                // Debug text screen hijacks the display to simply output text
                 char strbuff[128];
                 hardware.display.Fill(false);
                 hardware.display.SetCursor(0, 0);

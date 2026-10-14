@@ -1,12 +1,6 @@
 #include "base_effect_module.h"
 #include "../Util/audio_utilities.h"
 
-// This can be used to show the CPU on the default UI
-constexpr bool showCPU = true;
-
-// Show the averaged peak input and output level in dB on the default UI
-constexpr bool showLevels = true;
-
 using namespace bkshepherd;
 
 // Default Constructor
@@ -529,20 +523,23 @@ void BaseEffectModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, 
 
     display.WriteStringAligned(m_name, Font_11x18, topRowRect, Alignment::centered, true);
 
-    if (showCPU || showLevels) {
+    // The CPU percentage and the averaged input/output peak level (dB) are debug readouts, shown only when "Show Debug" is on
+    const bool showDebug = GetShowDebug();
+
+    if (showDebug) {
         // Thin separator line just above the small-print readouts (8 px tall text at the very bottom, 3 px gap)
         const int16_t lineY = boundsToDrawIn.GetBottom() - 12;
         display.DrawLine(boundsToDrawIn.GetX(), lineY, boundsToDrawIn.GetRight() - 1, lineY, true);
     }
 
-    if (showCPU) {
+    if (showDebug) {
         // Small text at the bottom centre, between the input and output level readouts
         char cpuStr[16];
         snprintf(cpuStr, sizeof(cpuStr), "%d%%", (int)lroundf(GetCPUUsage() * 100.0f));
         display.WriteStringAligned(cpuStr, Font_6x8, boundsToDrawIn, Alignment::bottomCentered, true);
     }
 
-    if (showLevels) {
+    if (showDebug) {
         // Small text in the bottom corners, either side of the CPU readout
         char levelStr[16];
         auto bottomRowRect = boundsToDrawIn.WithTrimmedTop(boundsToDrawIn.GetHeight() - 8);

@@ -16,8 +16,8 @@ about moving the per-sample `ProcessMono`/`ProcessStereo` interface to whole buf
 * **`AudioCallback` restructure** (`guitar_pedal.cpp`): the active effect runs over the whole block first, then a per-sample
   loop does mute/bypass timing and the master crossfade. Effect on/off is decided once per block.
 * **Block overrides** for NAM, IR, CloudSeed, Reverb, Dattorro, SciFi and Tape Delay.
-* **CPU readout** on the default effect screen (`showCPU` in `base_effect_module.cpp`).
-* **`disableKnobs` flag** in `guitar_pedal.cpp` (default `false`): when `true`, knobs are neither read nor applied, so parameters stay
+* **CPU readout** on the default effect screen (originally the `showCPU` constant; now the saved "Show Debug" setting, see `HANDOFF_level_calibration.md`).
+* **`disableKnobs` flag** in `guitar_pedal.cpp` (default `false`; replaced by the saved "Lock Knobs" setting): when `true`, knobs are neither read nor applied, so parameters stay
   at defaults and CPU readings are steady. Flip to `true` when measuring.
 * **Host tests** in `tests/host/` (see its README). Run `tests/host/run_tests.sh` after any change to these modules.
 
@@ -67,7 +67,7 @@ The CloudSeed "before" figure was derived from relative readings, not measured d
 * `Makefile` still has an **uncommitted local change**: `GCC_VERSION_MAJOR_REQUIRED := 13` (the author's toolchain is
   arm-none-eabi-gcc 13.3). It was a local change before this work started and was intentionally not committed.
 * Untracked `BlockProcessing_step*.diff` files in this directory are the author's own snapshots; ignore or delete.
-* `showCPU` is on in this branch, which draws the load number on every effect that uses the default screen.
+* The CPU readout is shown through the saved "Show Debug" setting (off by default); it draws on every effect that uses the default screen.
 
 ## Candidate next steps (by measured CPU, knobs-disabled baselines)
 
