@@ -64,7 +64,7 @@ The CloudSeed "before" figure was derived from relative readings, not measured d
   A GCC 13 warning scan of the project found no undefined-behaviour-class warnings; the only "may be used uninitialized" warnings are in
   Dattorro's `AllpassFilter` and the third-party `q` pitch detector (tuner), which are the first places to look if something else
   misbehaves on a newer compiler. Knobs, switches and encoders use the same stack-then-copy pattern but initialise what they use.
-* `Makefile` still has an **uncommitted local change**: `GCC_VERSION_MAJOR_REQUIRED := 13` (the author's toolchain is
+* (Obsolete: the Makefile's compiler version check has been removed, so no local change is needed any more.) `Makefile` still has an **uncommitted local change**: `GCC_VERSION_MAJOR_REQUIRED := 13` (the author's toolchain is
   arm-none-eabi-gcc 13.3). It was a local change before this work started and was intentionally not committed.
 * Untracked `BlockProcessing_step*.diff` files in this directory are the author's own snapshots; ignore or delete.
 * The CPU readout is shown through the saved "Show Debug" setting (off by default); it draws on every effect that uses the default screen.

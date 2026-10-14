@@ -95,7 +95,7 @@ Level defaults: before this work Crusher was 1.0, Dual Echo 0.4 and Overdrive 0.
 
 * **SRAM is at 91.7%** (450,944 of 491,520 bytes, about 40 KB free). It was 84.9% at the start of the block-processing work; the block code, the Dattorro enable
   (a separate commit on `block-processing`, GPL-3.0) and the parameter-metadata fields account for most of the rise. See "Memory and code size" below.
-* `Makefile` still has an **uncommitted local change** (`GCC_VERSION_MAJOR_REQUIRED := 13`), as on the previous branch. The author builds with arm-none-eabi-gcc 13.3.
+* (Obsolete: the Makefile's compiler version check has been removed, so no local change is needed any more.) `Makefile` still has an **uncommitted local change** (`GCC_VERSION_MAJOR_REQUIRED := 13`), as on the previous branch. The author builds with arm-none-eabi-gcc 13.3.
 * `libDaisy` is on the commit the repository records (v8.1.0-10). A fork with the uninitialised-`pwm_` LED fix exists (`spamatica/libDaisy`, untracked clone in
   `dependencies/libDaisy_spamatica/`); the project works around that bug in `BaseHardwareModule::InitLeds` (see `HANDOFF_block_processing.md`), so stock libDaisy is fine.
 * **Show Debug and Lock Knobs are saved Global Settings checkboxes** (`settings.globalShowDebug` default off, `settings.globalLockKnobs` default on since the Venus/Jupiter work; `SETTINGS_FILE_FORMAT_VERSION` is 15).

@@ -1,0 +1,480 @@
+{
+ "_note": "Effect manifest read by tools/effects.py. The order of the effects is the order of the effect list in the firmware (it decides the menu order and the layout of the saved settings: changing it resets saved settings on the next boot). 'requires' names components below. Effects with license 'gpl' need ALLOW_GPL=y in the config.",
+ "components": {
+  "cloudseed_pool": {
+   "doc": "The CloudSeed engine's delay line memory (SDRAM), needed by every effect built on the engine; its size follows the number of effects that use it (CLOUDSEED_ENGINES, 1 to 3).",
+   "sources": [
+    "Effect-Modules/cloudseed_pool.cpp"
+   ],
+   "count_define": "CLOUDSEED_ENGINES",
+   "libs": [
+    "dependencies/CloudSeed/build/libcloudseed.a"
+   ],
+   "measure": "libs"
+  },
+  "cmsis_fft": {
+   "doc": "CMSIS-DSP real FFT (arm_rfft_fast_f32) sources; the tables are chosen per size below.",
+   "c_sources": [
+    "$(CMSIS_DSP_DIR)/Source/TransformFunctions/arm_rfft_fast_f32.c",
+    "$(CMSIS_DSP_DIR)/Source/TransformFunctions/arm_rfft_fast_init_f32.c",
+    "$(CMSIS_DSP_DIR)/Source/TransformFunctions/arm_cfft_f32.c",
+    "$(CMSIS_DSP_DIR)/Source/TransformFunctions/arm_cfft_init_f32.c",
+    "$(CMSIS_DSP_DIR)/Source/TransformFunctions/arm_cfft_radix8_f32.c",
+    "$(CMSIS_DSP_DIR)/Source/TransformFunctions/arm_bitreversal2.c",
+    "$(CMSIS_DSP_DIR)/Source/CommonTables/arm_common_tables.c",
+    "$(CMSIS_DSP_DIR)/Source/CommonTables/arm_const_structs.c"
+   ],
+   "defines": [
+    "-DARM_DSP_CONFIG_TABLES",
+    "-DARM_FFT_ALLOW_TABLES"
+   ],
+   "measure": "manual"
+  },
+  "cmsis_tables_4096": {
+   "doc": "The tables for a 4096-point real FFT (a 2048-point complex FFT plus the real-FFT twiddles): about 36 KB of code space.",
+   "defines": [
+    "-DARM_TABLE_TWIDDLECOEF_F32_2048",
+    "-DARM_TABLE_BITREVIDX_FLT_2048",
+    "-DARM_TABLE_TWIDDLECOEF_RFFT_F32_4096"
+   ],
+   "measure": "manual"
+  },
+  "cmsis_tables_1024": {
+   "doc": "The tables for a 1024-point real FFT.",
+   "defines": [
+    "-DARM_TABLE_TWIDDLECOEF_F32_512",
+    "-DARM_TABLE_BITREVIDX_FLT_512",
+    "-DARM_TABLE_TWIDDLECOEF_RFFT_F32_1024"
+   ],
+   "measure": "manual"
+  },
+  "dattorro_engine": {
+   "doc": "The Dattorro reverb engine (GPL-3.0-or-later).",
+   "sources": [
+    "Effect-Modules/Dattorro/Dattorro.cpp"
+   ],
+   "license": "gpl"
+  }
+ },
+ "effects": [
+  {
+   "id": "modulated_tremolo",
+   "class": "ModulatedTremoloModule",
+   "header": "modulated_tremolo_module.h",
+   "sources": [
+    "Effect-Modules/modulated_tremolo_module.cpp"
+   ]
+  },
+  {
+   "id": "overdrive",
+   "class": "OverdriveModule",
+   "header": "overdrive_module.h",
+   "sources": [
+    "Effect-Modules/overdrive_module.cpp"
+   ]
+  },
+  {
+   "id": "autopan",
+   "class": "AutoPanModule",
+   "header": "autopan_module.h",
+   "sources": [
+    "Effect-Modules/autopan_module.cpp"
+   ]
+  },
+  {
+   "id": "chorus",
+   "class": "ChorusModule",
+   "header": "chorus_module.h",
+   "sources": [
+    "Effect-Modules/chorus_module.cpp"
+   ]
+  },
+  {
+   "id": "chopper",
+   "class": "ChopperModule",
+   "header": "chopper_module.h",
+   "sources": [
+    "Effect-Modules/Chopper/chopper.cpp",
+    "Effect-Modules/chopper_module.cpp"
+   ]
+  },
+  {
+   "id": "reverb",
+   "class": "ReverbModule",
+   "header": "reverb_module.h",
+   "sources": [
+    "Effect-Modules/reverb_module.cpp"
+   ],
+   "note": "single-instance only"
+  },
+  {
+   "id": "multi_delay",
+   "class": "MultiDelayModule",
+   "header": "multi_delay_module.h",
+   "sources": [
+    "Effect-Modules/multi_delay_module.cpp"
+   ],
+   "note": "single-instance only"
+  },
+  {
+   "id": "metro",
+   "class": "MetroModule",
+   "header": "metro_module.h",
+   "sources": [
+    "Effect-Modules/metro_module.cpp"
+   ]
+  },
+  {
+   "id": "tuner",
+   "class": "TunerModule",
+   "header": "tuner_module.h",
+   "sources": [
+    "Effect-Modules/tuner_module.cpp"
+   ],
+   "note": "single-instance only"
+  },
+  {
+   "id": "pitch_shifter",
+   "class": "PitchShifterModule",
+   "header": "pitch_shifter_module.h",
+   "sources": [
+    "Effect-Modules/pitch_shifter_module.cpp"
+   ],
+   "note": "single-instance only"
+  },
+  {
+   "id": "compressor",
+   "class": "CompressorModule",
+   "header": "compressor_module.h",
+   "sources": [
+    "Effect-Modules/compressor_module.cpp"
+   ]
+  },
+  {
+   "id": "looper",
+   "class": "LooperModule",
+   "header": "looper_module.h",
+   "sources": [
+    "Effect-Modules/looper_module.cpp"
+   ],
+   "note": "single-instance only"
+  },
+  {
+   "id": "geq",
+   "class": "GraphicEQModule",
+   "header": "geq_module.h",
+   "sources": [
+    "Effect-Modules/geq_module.cpp"
+   ]
+  },
+  {
+   "id": "peq",
+   "class": "ParametricEQModule",
+   "header": "peq_module.h",
+   "sources": [
+    "Effect-Modules/peq_module.cpp"
+   ]
+  },
+  {
+   "id": "noise_gate",
+   "class": "NoiseGateModule",
+   "header": "noise_gate_module.h",
+   "sources": [
+    "Effect-Modules/noise_gate_module.cpp"
+   ]
+  },
+  {
+   "id": "cloudseed",
+   "class": "CloudSeedModule",
+   "header": "cloudseed_module.h",
+   "sources": [
+    "Effect-Modules/cloudseed_module.cpp"
+   ],
+   "note": "single-instance only",
+   "requires": [
+    "cloudseed_pool"
+   ]
+  },
+  {
+   "id": "venus",
+   "class": "VenusModule",
+   "header": "venus_module.h",
+   "sources": [
+    "Effect-Modules/venus_module.cpp"
+   ],
+   "note": "Spectral reverb from the FunBox project (MIT); single-instance only",
+   "requires": [
+    "cmsis_fft",
+    "cmsis_tables_4096"
+   ]
+  },
+  {
+   "id": "jupiter",
+   "class": "JupiterModule",
+   "header": "jupiter_module.h",
+   "sources": [
+    "Effect-Modules/jupiter_module.cpp"
+   ],
+   "note": "Stereo reverb from the FunBox project (MIT), on the CloudSeed engine; single-instance only",
+   "requires": [
+    "cloudseed_pool"
+   ]
+  },
+  {
+   "id": "saturn",
+   "class": "SaturnModule",
+   "header": "saturn_module.h",
+   "sources": [
+    "Effect-Modules/saturn_module.cpp"
+   ],
+   "note": "Spectral delay from the FunBox project (MIT); single-instance only",
+   "requires": [
+    "cmsis_fft",
+    "cmsis_tables_1024"
+   ]
+  },
+  {
+   "id": "neptune",
+   "class": "NeptuneModule",
+   "header": "neptune_module.h",
+   "sources": [
+    "Effect-Modules/neptune_module.cpp"
+   ],
+   "note": "Reverb and delay from the FunBox project (MIT), on the CloudSeed engine; single-instance only",
+   "requires": [
+    "cloudseed_pool"
+   ]
+  },
+  {
+   "id": "uranus",
+   "class": "UranusModule",
+   "header": "uranus_module.h",
+   "sources": [
+    "Effect-Modules/uranus_module.cpp"
+   ],
+   "note": "Granular delay and synth from the FunBox project (MIT); uses MIDI notes for its synth modes; single-instance only"
+  },
+  {
+   "id": "delay",
+   "class": "DelayModule",
+   "header": "delay_module.h",
+   "sources": [
+    "Effect-Modules/delay_module.cpp"
+   ],
+   "note": "single-instance only"
+  },
+  {
+   "id": "tape_delay",
+   "class": "TapeDelayModule",
+   "header": "tape_delay_module.h",
+   "sources": [
+    "Effect-Modules/tape_delay_module.cpp"
+   ],
+   "note": "single-instance only"
+  },
+  {
+   "id": "dual_echo",
+   "class": "DualEchoModule",
+   "header": "dual_echo_module.h",
+   "sources": [
+    "Effect-Modules/dual_echo_module.cpp"
+   ],
+   "note": "single-instance only"
+  },
+  {
+   "id": "nam",
+   "class": "NamA2Module",
+   "header": "nam_a2_module.h",
+   "sources": [
+    "Effect-Modules/nam_a2_module.cpp"
+   ],
+   "note": "single-instance only"
+  },
+  {
+   "id": "scifi",
+   "class": "SciFiModule",
+   "header": "scifi_module.h",
+   "sources": [
+    "Effect-Modules/scifi_module.cpp"
+   ],
+   "note": "single-instance only"
+  },
+  {
+   "id": "polyoctave",
+   "class": "PolyOctaveModule",
+   "header": "polyoctave_module.h",
+   "sources": [
+    "Effect-Modules/polyoctave_module.cpp"
+   ]
+  },
+  {
+   "id": "spectral_delay",
+   "class": "SpectralDelayModule",
+   "header": "spectral_delay_module.h",
+   "sources": [
+    "Effect-Modules/spectral_delay_module.cpp"
+   ],
+   "note": "single-instance only"
+  },
+  {
+   "id": "distortion",
+   "class": "DistortionModule",
+   "header": "distortion_module.h",
+   "sources": [
+    "Effect-Modules/distortion_module.cpp"
+   ]
+  },
+  {
+   "id": "granular_delay",
+   "class": "GranularDelayModule",
+   "header": "granulardelay_module.h",
+   "sources": [
+    "Effect-Modules/granulardelay_module.cpp"
+   ],
+   "note": "single-instance only"
+  },
+  {
+   "id": "ir",
+   "class": "IrModule",
+   "header": "ir_module.h",
+   "sources": [
+    "Effect-Modules/ImpulseResponse/ImpulseResponse.cpp",
+    "Effect-Modules/ImpulseResponse/ir_data.cpp",
+    "Effect-Modules/ir_module.cpp"
+   ]
+  },
+  {
+   "id": "drum",
+   "class": "DrumModule",
+   "header": "drum_module.h",
+   "sources": [
+    "Effect-Modules/drum_module.cpp"
+   ],
+   "note": "can be used with a MIDI keyboard as a drum machine"
+  },
+  {
+   "id": "phaser",
+   "class": "PhaserModule",
+   "header": "phaser_module.h",
+   "sources": [
+    "Effect-Modules/phaser_module.cpp"
+   ]
+  },
+  {
+   "id": "flanger",
+   "class": "FlangerModule",
+   "header": "flanger_module.h",
+   "sources": [
+    "Effect-Modules/flanger_module.cpp"
+   ]
+  },
+  {
+   "id": "crusher",
+   "class": "CrusherModule",
+   "header": "crusher_module.h",
+   "sources": [
+    "Effect-Modules/crusher_module.cpp"
+   ]
+  },
+  {
+   "id": "harmonic_tremolo",
+   "class": "HarmonicTremoloModule",
+   "header": "harmonic_tremolo_module.h",
+   "sources": [
+    "Effect-Modules/harmonic_tremolo_module.cpp"
+   ]
+  },
+  {
+   "id": "scope",
+   "class": "ScopeModule",
+   "header": "scope_module.h",
+   "sources": [
+    "Effect-Modules/scope_module.cpp"
+   ],
+   "note": "was compiled but never instantiated before the effect list was generated"
+  },
+  {
+   "id": "reverb_delay",
+   "class": "ReverbDelayModule",
+   "header": "reverb_delay_module.h",
+   "sources": [
+    "Effect-Modules/reverb_delay_module.cpp"
+   ],
+   "note": "single-instance only; cannot be built together with delay (both headers define MAX_DELAY_REV and delay_spread); was not in the default build",
+   "conflicts": [
+    "delay"
+   ]
+  },
+  {
+   "id": "midi_keys",
+   "class": "MidiKeysModule",
+   "header": "midi_keys_module.h",
+   "sources": [
+    "Effect-Modules/midi_keys_module.cpp"
+   ],
+   "note": "needs a MIDI keyboard"
+  },
+  {
+   "id": "pluckecho",
+   "class": "PluckEchoModule",
+   "header": "pluckecho_module.h",
+   "sources": [
+    "Effect-Modules/pluckecho_module.cpp"
+   ],
+   "note": "needs a MIDI keyboard; single-instance only"
+  },
+  {
+   "id": "string_keys",
+   "class": "StringKeysModule",
+   "header": "string_keys_module.h",
+   "sources": [
+    "Effect-Modules/string_keys_module.cpp"
+   ],
+   "note": "needs a MIDI keyboard"
+  },
+  {
+   "id": "modal_keys",
+   "class": "ModalKeysModule",
+   "header": "modal_keys_module.h",
+   "sources": [
+    "Effect-Modules/modal_keys_module.cpp"
+   ],
+   "note": "needs a MIDI keyboard"
+  },
+  {
+   "id": "fm_keys",
+   "class": "FmKeysModule",
+   "header": "fm_keys_module.h",
+   "sources": [
+    "Effect-Modules/fm_keys_module.cpp"
+   ],
+   "note": "needs a MIDI keyboard"
+  },
+  {
+   "id": "dattorro",
+   "class": "DattorroReverbModule",
+   "header": "dattorro_reverb_module.h",
+   "sources": [
+    "Effect-Modules/dattorro_reverb_module.cpp"
+   ],
+   "note": "Dattorro plate reverb; GPL-3.0-or-later: see Effect-Modules/Dattorro/README.md",
+   "requires": [
+    "dattorro_engine"
+   ],
+   "license": "gpl"
+  },
+  {
+   "id": "earth",
+   "class": "EarthModule",
+   "header": "earth_module.h",
+   "sources": [
+    "Effect-Modules/earth_module.cpp"
+   ],
+   "note": "Plate reverb and octave from the FunBox project, built on the Dattorro engine; GPL-3.0-or-later; single-instance only",
+   "requires": [
+    "dattorro_engine"
+   ],
+   "license": "gpl"
+  }
+ ]
+}

@@ -28,90 +28,21 @@ CMSIS_DSP_SRC = \
 $(CMSIS_DSP_DIR)/Source/FilteringFunctions/arm_fir_f32.c \
 $(CMSIS_DSP_DIR)/Source/FilteringFunctions/arm_fir_init_f32.c \
 $(CMSIS_DSP_DIR)/Source/SupportFunctions/arm_fill_f32.c \
-$(CMSIS_DSP_DIR)/Source/BasicMathFunctions/arm_scale_f32.c \
-$(CMSIS_DSP_DIR)/Source/TransformFunctions/arm_rfft_fast_f32.c \
-$(CMSIS_DSP_DIR)/Source/TransformFunctions/arm_rfft_fast_init_f32.c \
-$(CMSIS_DSP_DIR)/Source/TransformFunctions/arm_cfft_f32.c \
-$(CMSIS_DSP_DIR)/Source/TransformFunctions/arm_cfft_init_f32.c \
-$(CMSIS_DSP_DIR)/Source/TransformFunctions/arm_cfft_radix8_f32.c \
-$(CMSIS_DSP_DIR)/Source/TransformFunctions/arm_bitreversal2.c \
-$(CMSIS_DSP_DIR)/Source/CommonTables/arm_common_tables.c \
-$(CMSIS_DSP_DIR)/Source/CommonTables/arm_const_structs.c
+$(CMSIS_DSP_DIR)/Source/BasicMathFunctions/arm_scale_f32.c
 C_DEFS += -DARM_MATH_LOOPUNROLL
-# Only the tables the real FFTs of Venus (4096 points) and Saturn (1024) need (each is a half-size complex FFT plus a real-FFT twiddle table); without these all of CMSIS-DSP's FFT tables are linked in (about 120 KB)
-C_DEFS += -DARM_DSP_CONFIG_TABLES -DARM_FFT_ALLOW_TABLES -DARM_TABLE_TWIDDLECOEF_F32_2048 -DARM_TABLE_BITREVIDX_FLT_2048 -DARM_TABLE_TWIDDLECOEF_RFFT_F32_4096 \
-  -DARM_TABLE_TWIDDLECOEF_F32_512 -DARM_TABLE_BITREVIDX_FLT_512 -DARM_TABLE_TWIDDLECOEF_RFFT_F32_1024
+# (the FFT sources and the table defines that go with the effects that need them come from generated/effects.mk)
 
 CPP_SOURCES = guitar_pedal.cpp guitar_pedal_storage.cpp $(wildcard UI/*.cpp) $(wildcard Util/*.cpp) \
 $(wildcard Hardware-Modules/*.cpp)
 CPP_SOURCES += Effect-Modules/base_effect_module.cpp
 C_SOURCES += $(CMSIS_DSP_SRC)
 
-# Naming the module sources explicitly to make it easier to add/remove from build. Otherwise all global attributes
-#  will be included in the build and take up memory resources, even when the .h file is commented out. 
-
-#CPP_SOURCES += Effect-Modules/autopan_module.cpp
-#CPP_SOURCES += Effect-Modules/Chopper/chopper.cpp
-#CPP_SOURCES += Effect-Modules/chopper_module.cpp
-#CPP_SOURCES += Effect-Modules/chorus_module.cpp
-#CPP_SOURCES += Effect-Modules/cloudseed_module.cpp
-#CPP_SOURCES += Effect-Modules/compressor_module.cpp
-#CPP_SOURCES += Effect-Modules/crusher_module.cpp
-#CPP_SOURCES += Effect-Modules/delay_module.cpp
-#CPP_SOURCES += Effect-Modules/drum_module.cpp
-#CPP_SOURCES += Effect-Modules/dual_echo_module.cpp
-#CPP_SOURCES += Effect-Modules/flanger_module.cpp
-#CPP_SOURCES += Effect-Modules/geq_module.cpp
-#CPP_SOURCES += Effect-Modules/granulardelay_module.cpp
-#CPP_SOURCES += Effect-Modules/distortion_module.cpp
+# Which effects are built is chosen in effects.config (edit it, or use tools/effects.py: `list`, `enable`, `disable`, `preset`, `report`). generated/effects.mk, which is
+# generated from it and from effects.json, adds the sources of the chosen effects and of what they need (the CloudSeed pool, the CMSIS FFT tables, the GPL Dattorro engine)
+# to CPP_SOURCES, C_SOURCES and C_DEFS; the effect list in loaded_effects.h is generated too. Only the chosen effects are compiled and linked: besides saving build time
+# that matters for memory, since global buffers in an object file can stay in the firmware even if nothing uses them (see PERFORMANCE_AND_MEMORY.md).
 CPP_SOURCES += Effect-Modules/effect_chain.cpp
-#CPP_SOURCES += Effect-Modules/harmonic_tremolo_module.cpp
-#CPP_SOURCES += Effect-Modules/ImpulseResponse/ImpulseResponse.cpp
-#CPP_SOURCES += Effect-Modules/ImpulseResponse/ir_data.cpp
-#CPP_SOURCES += Effect-Modules/ir_module.cpp
-#CPP_SOURCES += Effect-Modules/looper_module.cpp
-#CPP_SOURCES += Effect-Modules/metro_module.cpp
-#CPP_SOURCES += Effect-Modules/modulated_tremolo_module.cpp
-#CPP_SOURCES += Effect-Modules/multi_delay_module.cpp
-#CPP_SOURCES += Effect-Modules/nam_a2_module.cpp
-#CPP_SOURCES += Effect-Modules/noise_gate_module.cpp
-#CPP_SOURCES += Effect-Modules/overdrive_module.cpp
-#CPP_SOURCES += Effect-Modules/peq_module.cpp
-#CPP_SOURCES += Effect-Modules/phaser_module.cpp
-#CPP_SOURCES += Effect-Modules/pitch_shifter_module.cpp
-#CPP_SOURCES += Effect-Modules/polyoctave_module.cpp
-#CPP_SOURCES += Effect-Modules/reverb_module.cpp
-#CPP_SOURCES += Effect-Modules/scifi_module.cpp
-#CPP_SOURCES += Effect-Modules/scope_module.cpp
-#CPP_SOURCES += Effect-Modules/spectral_delay_module.cpp
-#CPP_SOURCES += Effect-Modules/tape_delay_module.cpp
-#CPP_SOURCES += Effect-Modules/tuner_module.cpp
-#CPP_SOURCES += Effect-Modules/venus_module.cpp
-#CPP_SOURCES += Effect-Modules/cloudseed_pool.cpp # the CloudSeed engine's delay line pool, needed by the CloudSeed and Jupiter modules
-#CPP_SOURCES += Effect-Modules/jupiter_module.cpp
-#CPP_SOURCES += Effect-Modules/saturn_module.cpp
-#CPP_SOURCES += Effect-Modules/neptune_module.cpp
-CPP_SOURCES += Effect-Modules/uranus_module.cpp
-#CPP_SOURCES += Effect-Modules/reverb_delay_module.cpp
-
-# Keyboard oriented modules
-#CPP_SOURCES += Effect-Modules/fm_keys_module.cpp
-#CPP_SOURCES += Effect-Modules/midi_keys_module.cpp
-#CPP_SOURCES += Effect-Modules/modal_keys_module.cpp
-#CPP_SOURCES += Effect-Modules/pluckecho_module.cpp
-#CPP_SOURCES += Effect-Modules/string_keys_module.cpp
-
-
-# Dattorro plate reverb and Earth - disabled by default because Effect-Modules/Dattorro/
-# is licensed GPL-3.0-or-later (see Effect-Modules/Dattorro/README.md), unlike
-# the rest of this MIT-licensed repository, and Earth (Effect-Modules/Earth/) is
-# built on it and adapted from GPLv3 code too. Uncomment the lines below (and
-# the matching block in loaded_effects.h) to opt in; doing so means the
-# resulting firmware binary must be distributed under GPLv3, or not
-# distributed at all. Earth needs the Dattorro engine, so keep them together.
-#CPP_SOURCES += Effect-Modules/Dattorro/Dattorro.cpp
-#CPP_SOURCES += Effect-Modules/dattorro_reverb_module.cpp
-#CPP_SOURCES += Effect-Modules/earth_module.cpp
+include generated/effects.mk
 
 # Compiler options
 OPT=-Ofast
@@ -132,6 +63,11 @@ LDFLAGS += -T$(abspath nam_a2_sections.lds)
 # Core location, and generic Makefile.
 SYSTEM_FILES_DIR = $(LIBDAISY_DIR)/core
 include $(SYSTEM_FILES_DIR)/Makefile
+
+# Regenerate the effect build files when the selection changes (GNU make remakes an included makefile that is out of date, and then starts over)
+generated/effects.mk: effects.config effects.json tools/effects.py
+	python3 tools/effects.py generate
+
 
 # Override libDaisy's `program-dfu` to wait for a DFU-capable device instead
 # of failing immediately if one isn't already enumerated. Without -w, you
@@ -168,22 +104,3 @@ ifdef VARIANT
 endif
 
 
-# --- ARM SDK Version check --- [start]
-# Issues have been experienced with the latest version of arm-none-eabi-gcc, so
-# we add a check here to help guide users to use a supported version
-
-# Determine which compiler to check (use GCC_PATH if set, otherwise system default)
-GCC_CHECK := arm-none-eabi-gcc
-ifdef GCC_PATH
-  GCC_CHECK := $(GCC_PATH)/arm-none-eabi-gcc
-endif
-
-# Get compiler version string safely
-GCC_VERSION := $(shell $(GCC_CHECK) -dumpversion)
-GCC_VERSION_MAJOR := $(word 1, $(subst ., ,$(GCC_VERSION)))
-GCC_VERSION_MAJOR_REQUIRED := 10
-
-ifneq ($(GCC_VERSION_MAJOR),$(GCC_VERSION_MAJOR_REQUIRED))
-$(error Compiler version of arm-none-eabi-gcc: $(GCC_VERSION) is not supported. Use version $(GCC_VERSION_MAJOR_REQUIRED).x.x)
-endif
-# --- ARM SDK Version check --- [end]

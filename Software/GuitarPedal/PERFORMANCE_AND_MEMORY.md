@@ -133,11 +133,11 @@ buffers are in RAM_D2, not SDRAM.
 
 ## 5. The compiler
 
-* The Makefile requires **GCC 10.x** (`GCC_VERSION_MAJOR_REQUIRED := 10`, "issues have been experienced with the latest version"). Earlier notes record that GCC 13 also worked once a libDaisy LED
-  initialisation bug was worked around (see `HANDOFF_block_processing.md`). All the performance work above was done with GCC 10.2.1.
-* In October 2026 the author's toolchain became **Arm GNU Toolchain 15.3.1**. Findings (the first two are traps worth knowing):
-  * **The version guard also stops `make clean`**, which then fails silently if you redirect its output. A `make clean && make` with a new compiler therefore did *not* clean, and only the changed sources were
-    recompiled: the result was a firmware with a mix of GCC 15 and GCC 10 objects. Use `make clean GCC_VERSION_MAJOR_REQUIRED=15` (and `make GCC_VERSION_MAJOR_REQUIRED=15`; a command-line value overrides the file's), or edit the guard.
+* The Makefile used to refuse any compiler but **GCC 10.x** (a version guard, "issues have been experienced with the latest version"). **That guard has been removed**: it was no longer justified (GCC 13 and then 15 build
+  and link fine; GCC 13 needed a libDaisy LED initialisation workaround, see `HANDOFF_block_processing.md`). All the performance work above was done with GCC 10.2.1.
+* In October 2026 the author's toolchain became **Arm GNU Toolchain 15.3.1**. Findings (the first two are traps worth knowing; the first one is gone with the guard, the lesson is that **a compiler change never triggers a rebuild**):
+  * **With the guard in place it also stopped `make clean`**, which then failed silently if its output was redirected. A `make clean && make` with a new compiler therefore did *not* clean, and only the changed sources were
+    recompiled: the result was a firmware with a mix of GCC 15 and GCC 10 objects. After changing compiler always run a real `make clean` (the Makefile does not notice a compiler change by itself) and rebuild the libraries below.
   * **The prebuilt libraries are not rebuilt by the project's `make`:** `dependencies/libDaisy/build/libdaisy.a`, `dependencies/DaisySP/build/libdaisysp.a`, `dependencies/DaisySP/DaisySP-LGPL/build/libdaisysp-lgpl.a` and
     `dependencies/CloudSeed/build/libcloudseed.a` stay as they were built (GCC 10) until each is rebuilt in its own directory (`make clean && make`). The compiler tag of a binary shows what is in it:
     `arm-none-eabi-readelf -p .comment build/guitarpedal.elf` (a mixed build lists both versions).
@@ -163,51 +163,57 @@ The Makefile and `loaded_effects.h` enable only Uranus at the time of writing; t
 * **`tests/host/run_heap_report.sh`:** the heap table in section 2 (needs the host toolchain only; counts `new` during each effect's constructor and `Init()`).
 * **Build report and ELF:** the linker's "Memory region" table; `arm-none-eabi-nm build/guitarpedal.elf | grep ' end$'`; `arm-none-eabi-readelf -S` and `-p .comment`.
 * **Host tests** (`tests/host/README.md`): `run_tests.sh` (block path equals per-sample path, signal paths, controls), `run_level_tests.sh` (default levels), `run_defaults_audit.sh` (defaults applied at startup).
-* **Not built yet:** a heap readout on the pedal (free heap = `0x30048000` minus `sbrk(0)`, shown in Show Debug), which would turn the estimates below into measurements, and a start-up guard that refuses to start an
+* **`tools/effects.py` (effect selection and budget):** which effects are built is chosen in `effects.config` (presets in `configs/`); the tool generates `generated/effects.mk` (sources and defines, included by the Makefile) and the
+  effect list for `loaded_effects.h`, so neither has to be edited by hand, and only the chosen effects are compiled (which also stops unused global buffers from taking memory: an object file with an explicitly placed
+  buffer, like Saturn's in `.sram_d2_bss`, keeps all of that section even when nothing uses it). `list`, `report` and `matrix` show the memory budget; `measure` and `calibrate` refresh `effects-memory.json` from the last build
+  (to measure every effect: `preset everything`, `make -k`, `measure`, then `preset` the real selection and build, `calibrate`). The CloudSeed pool's size follows the number of effects that use the engine
+  (`-DCLOUDSEED_ENGINES`, 7.1 / 12.6 / 19.7 MB). See the README.
+* **Not built yet:** (stage 3 of the plan for the tool) a heap readout on the pedal (free heap = `0x30048000` minus `sbrk(0)`, shown in Show Debug), which would turn the estimates below into measurements, and a start-up guard that refuses to start an
   effect whose heap would not fit instead of running into unmapped memory.
 
-## 8. The matrix of effects that can be enabled together (first draft)
+## 8. The matrix of effects that can be enabled together
 
-Constraint used: **RAM_D2 static data + heap <= 256 KB** (the heap is what limited the all-effects build; DTCM, code and SDRAM all have room for every combination: all five are 82% DTCM, 66% SRAM, 44% SDRAM).
-Per effect: static RAM_D2 (Saturn 124.7 KB, Uranus 96.0 KB, the others 0) plus heap (Venus 17.3 KB, Saturn 1.8 KB, Uranus 13.0 KB, and **110 KB per CloudSeed engine as a planning figure**, Jupiter and Neptune; see
-section 2 for why this is inferred). A few KB of framework heap is not counted. The three bold rows are observations on the pedal; the rest are arithmetic and **unverified**, and the engine figure is the weak point:
-a result within about 20 KB of 256 KB should be tried, not trusted.
+**This is now generated by `tools/effects.py` (`python3 tools/effects.py matrix venus jupiter saturn neptune uranus` prints the table below; `report` does the same for the current selection)**, from the memory
+figures in `effects-memory.json` (static sizes measured from the object files by `tools/effects.py measure` and `calibrate`; heap figures from section 2) and from what has been tried on the pedal (the `observed` list in the same file).
+Constraint used: **RAM_D2 static data + heap <= 256 KB** (the heap is what limited the all-effects build), with DTCM (minus a 16 KB reserve for the stack), code space and SDRAM checked too. Verdicts: *fits*, *tight* (over 92% of a
+region) and *does not fit*. A few KB of framework heap is not counted, and **the heap per CloudSeed engine (110 KB for Jupiter and Neptune) is a planning figure inferred from what booted, not a measurement**: a result near
+the limit should be tried, not trusted. Observed results are in bold; with the generated table the estimate for the observed rows can be compared with what happened.
 
-| Combination | RAM_D2 demand | Verdict |
-|---|---|---|
-| Venus | 17 KB | fits (estimate) |
-| Jupiter | 107 KB | fits (estimate) |
-| Saturn | 124 KB | fits (estimate) |
-| Neptune | 107 KB | fits (estimate) |
-| Uranus | 106 KB | boots (observed) |
-| Venus + Jupiter | 124 KB | fits (estimate) |
-| Venus + Saturn | 140 KB | fits (estimate) |
-| Venus + Neptune | 124 KB | fits (estimate) |
-| Venus + Uranus | 123 KB | fits (estimate) |
-| Jupiter + Saturn | 231 KB | fits (estimate) |
-| Jupiter + Neptune | 215 KB | fits (estimate) |
-| Jupiter + Uranus | 214 KB | fits (estimate) |
-| Saturn + Neptune | 231 KB | fits (estimate) |
-| Saturn + Uranus | 230 KB | fits (estimate) |
-| Neptune + Uranus | 214 KB | fits (estimate) |
-| Venus + Jupiter + Saturn | 248 KB | boots (observed) |
-| Venus + Jupiter + Neptune | 232 KB | fits (estimate) |
-| Venus + Jupiter + Uranus | 231 KB | fits (estimate) |
-| Venus + Saturn + Neptune | 248 KB | fits (estimate) |
-| Venus + Saturn + Uranus | 247 KB | fits (estimate) |
-| Venus + Neptune + Uranus | 231 KB | fits (estimate) |
-| Jupiter + Saturn + Neptune | 338 KB | does not fit (estimate) |
-| Jupiter + Saturn + Uranus | 337 KB | does not fit (estimate) |
-| Jupiter + Neptune + Uranus | 321 KB | does not fit (estimate) |
-| Saturn + Neptune + Uranus | 337 KB | does not fit (estimate) |
-| Venus + Jupiter + Saturn + Neptune | 355 KB | does not fit (estimate) |
-| Venus + Jupiter + Saturn + Uranus | 354 KB | does not fit (estimate) |
-| Venus + Jupiter + Neptune + Uranus | 338 KB | does not fit (estimate) |
-| Venus + Saturn + Neptune + Uranus | 354 KB | does not fit (estimate) |
-| Jupiter + Saturn + Neptune + Uranus | 445 KB | does not fit (estimate) |
-| Venus + Jupiter + Saturn + Neptune + Uranus | 462 KB | does not boot (observed) |
+| Combination | RAM_D2 | SRAM | DTCM | SDRAM | Estimate | Observed on the pedal |
+|---|---|---|---|---|---|---|
+| venus | 16 KB | 233 KB | 101 KB | 0.1 MB | fits | **boots and runs** |
+| jupiter | 107 KB | 219 KB | 29 KB | 9.2 MB | fits |  |
+| saturn | 123 KB | 209 KB | 29 KB | 2.7 MB | fits |  |
+| neptune | 107 KB | 219 KB | 29 KB | 13.6 MB | fits |  |
+| uranus | 106 KB | 192 KB | 32 KB | 0.0 MB | fits | **boots and runs** |
+| venus + jupiter | 124 KB | 267 KB | 101 KB | 9.3 MB | fits | **boots and runs** |
+| venus + saturn | 140 KB | 252 KB | 101 KB | 2.9 MB | fits |  |
+| venus + neptune | 124 KB | 268 KB | 101 KB | 13.7 MB | fits |  |
+| venus + uranus | 123 KB | 240 KB | 104 KB | 0.1 MB | tight |  |
+| jupiter + saturn | 230 KB | 244 KB | 29 KB | 11.9 MB | tight |  |
+| jupiter + neptune | 214 KB | 246 KB | 29 KB | 18.8 MB | fits |  |
+| jupiter + uranus | 213 KB | 226 KB | 32 KB | 9.2 MB | fits |  |
+| saturn + neptune | 230 KB | 244 KB | 29 KB | 16.3 MB | tight |  |
+| saturn + uranus | 229 KB | 217 KB | 32 KB | 2.7 MB | tight |  |
+| neptune + uranus | 213 KB | 227 KB | 32 KB | 13.6 MB | fits |  |
+| venus + jupiter + saturn | 247 KB | 287 KB | 101 KB | 12.0 MB | tight | **boots and runs** |
+| venus + jupiter + neptune | 231 KB | 295 KB | 101 KB | 18.9 MB | tight |  |
+| venus + jupiter + uranus | 230 KB | 275 KB | 104 KB | 9.3 MB | tight |  |
+| venus + saturn + neptune | 247 KB | 287 KB | 101 KB | 16.4 MB | tight |  |
+| venus + saturn + uranus | 246 KB | 259 KB | 104 KB | 2.9 MB | tight |  |
+| venus + neptune + uranus | 230 KB | 276 KB | 104 KB | 13.7 MB | tight |  |
+| jupiter + saturn + neptune | 338 KB | 271 KB | 29 KB | 21.5 MB | does not fit |  |
+| jupiter + saturn + uranus | 337 KB | 251 KB | 32 KB | 11.9 MB | does not fit |  |
+| jupiter + neptune + uranus | 321 KB | 254 KB | 32 KB | 18.8 MB | does not fit |  |
+| saturn + neptune + uranus | 337 KB | 252 KB | 32 KB | 16.3 MB | does not fit |  |
+| venus + jupiter + saturn + neptune | 355 KB | 314 KB | 101 KB | 21.7 MB | does not fit |  |
+| venus + jupiter + saturn + uranus | 354 KB | 294 KB | 104 KB | 12.0 MB | does not fit |  |
+| venus + jupiter + neptune + uranus | 338 KB | 302 KB | 104 KB | 18.9 MB | does not fit |  |
+| venus + saturn + neptune + uranus | 354 KB | 295 KB | 104 KB | 16.4 MB | does not fit |  |
+| jupiter + saturn + neptune + uranus | 444 KB | 279 KB | 32 KB | 21.5 MB | does not fit |  |
+| venus + jupiter + saturn + neptune + uranus | 461 KB | 322 KB | 104 KB | 21.7 MB | does not fit | **does not boot** |
 
-To turn this into a real matrix: add the heap readout (section 7), then for each combination that the estimate calls fits or borderline, flash it and record the free heap, the boot result and the Show Debug peak.
+To improve it: add the heap readout (section 7), then for each combination that the estimate calls fits or tight, flash it and add the free heap, the boot result and the Show Debug peak to `observed` in `effects-memory.json`.
 Ideas for making more combinations fit, from least to most work:
 
 1. **Share one CloudSeed engine** between the CloudSeed, Jupiter and Neptune modules (only one is active at a time): saves about 110 to 130 KB of heap per extra reverb effect and 4.9 MB of SDRAM. Needs an "effect became

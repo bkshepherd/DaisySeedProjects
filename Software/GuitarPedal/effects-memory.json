@@ -1,0 +1,410 @@
+{
+ "_note": "Memory cost of the effects, read by tools/effects.py. Static figures are bytes per region measured from the object files (`tools/effects.py measure`). 'heap' is what the effect allocates with new: host estimates from tests/host/run_heap_report.sh (the CloudSeed engine's 110000 is a planning figure inferred from what booted, see PERFORMANCE_AND_MEMORY.md); null means not measured.",
+ "regions": {
+  "dtcm": 131072,
+  "ram_d2": 262144,
+  "sram": 491520,
+  "sdram": 67108864
+ },
+ "reserve": {
+  "dtcm": 16384,
+  "ram_d2": 8192
+ },
+ "base": {
+  "dtcm": 29944,
+  "ram_d2": 0,
+  "sram": 188869,
+  "sdram": 0,
+  "heap": 0,
+  "_calibrated_with": "the build of: uranus"
+ },
+ "components": {
+  "cloudseed_pool": {
+   "dtcm": 0,
+   "ram_d2": 0,
+   "sram": 7967,
+   "sdram": 2531132
+  },
+  "dattorro_engine": {
+   "dtcm": 21,
+   "ram_d2": 0,
+   "sram": 18967,
+   "sdram": 0
+  },
+  "cmsis_fft": {
+   "sram": 6144,
+   "_source": "approximate, from build reports"
+  },
+  "cmsis_tables_4096": {
+   "sram": 36864,
+   "_source": "approximate: the 2048-point complex FFT twiddles and bit reversal plus the 4096 real-FFT twiddles (build reports: +42 KB with the FFT code)"
+  },
+  "cmsis_tables_1024": {
+   "sram": 9216,
+   "_source": "approximate, scaled from the 4096 tables"
+  }
+ },
+ "effects": {
+  "venus": {
+   "heap": 17281,
+   "dtcm": 73820,
+   "ram_d2": 0,
+   "sram": 6946,
+   "sdram": 147456,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "jupiter": {
+   "heap": 110000,
+   "dtcm": 68,
+   "ram_d2": 0,
+   "sram": 27495,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "saturn": {
+   "heap": 1782,
+   "dtcm": 36,
+   "ram_d2": 124688,
+   "sram": 10394,
+   "sdram": 2873600,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "neptune": {
+   "heap": 110000,
+   "dtcm": 244,
+   "ram_d2": 0,
+   "sram": 28154,
+   "sdram": 4608000,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "uranus": {
+   "heap": 13028,
+   "dtcm": 3348,
+   "ram_d2": 96000,
+   "sram": 7757,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "cloudseed": {
+   "heap": 110000,
+   "dtcm": 612,
+   "ram_d2": 0,
+   "sram": 31796,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "modulated_tremolo": {
+   "dtcm": 32,
+   "ram_d2": 0,
+   "sram": 1227,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "overdrive": {
+   "dtcm": 0,
+   "ram_d2": 0,
+   "sram": 890,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "autopan": {
+   "dtcm": 32,
+   "ram_d2": 0,
+   "sram": 1775,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "chorus": {
+   "dtcm": 0,
+   "ram_d2": 0,
+   "sram": 1034,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "chopper": {
+   "dtcm": 462,
+   "ram_d2": 0,
+   "sram": 2236,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "reverb": {
+   "dtcm": 0,
+   "ram_d2": 0,
+   "sram": 1409,
+   "sdram": 396100,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "multi_delay": {
+   "dtcm": 52,
+   "ram_d2": 0,
+   "sram": 4843,
+   "sdram": 3597048,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "metro": {
+   "dtcm": 12,
+   "ram_d2": 0,
+   "sram": 1941,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "tuner": {
+   "dtcm": 0,
+   "ram_d2": 0,
+   "sram": 1999,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "pitch_shifter": {
+   "dtcm": 216,
+   "ram_d2": 0,
+   "sram": 8408,
+   "sdram": 48000,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "compressor": {
+   "dtcm": 0,
+   "ram_d2": 0,
+   "sram": 1423,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "looper": {
+   "dtcm": 28,
+   "ram_d2": 0,
+   "sram": 4225,
+   "sdram": 23040000,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "geq": {
+   "dtcm": 504,
+   "ram_d2": 0,
+   "sram": 3068,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "peq": {
+   "dtcm": 552,
+   "ram_d2": 0,
+   "sram": 3724,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "noise_gate": {
+   "dtcm": 12,
+   "ram_d2": 0,
+   "sram": 1791,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "delay": {
+   "dtcm": 76,
+   "ram_d2": 0,
+   "sram": 5783,
+   "sdram": 6163364,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "tape_delay": {
+   "dtcm": 40,
+   "ram_d2": 0,
+   "sram": 7036,
+   "sdram": 3468124,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "dual_echo": {
+   "dtcm": 20,
+   "ram_d2": 0,
+   "sram": 6622,
+   "sdram": 592408,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "nam": {
+   "dtcm": 11788,
+   "ram_d2": 76640,
+   "sram": 47914,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "scifi": {
+   "dtcm": 176,
+   "ram_d2": 0,
+   "sram": 11732,
+   "sdram": 396100,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "polyoctave": {
+   "dtcm": 176,
+   "ram_d2": 0,
+   "sram": 10626,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "spectral_delay": {
+   "dtcm": 13085,
+   "ram_d2": 0,
+   "sram": 5206,
+   "sdram": 749376,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "distortion": {
+   "dtcm": 132,
+   "ram_d2": 0,
+   "sram": 5020,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "granular_delay": {
+   "dtcm": 12,
+   "ram_d2": 0,
+   "sram": 2304,
+   "sdram": 96000,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "ir": {
+   "dtcm": 44,
+   "ram_d2": 0,
+   "sram": 10830,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "drum": {
+   "dtcm": 100,
+   "ram_d2": 0,
+   "sram": 5436,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "phaser": {
+   "dtcm": 0,
+   "ram_d2": 0,
+   "sram": 1970,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "flanger": {
+   "dtcm": 0,
+   "ram_d2": 0,
+   "sram": 1279,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "crusher": {
+   "dtcm": 0,
+   "ram_d2": 0,
+   "sram": 3490,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "harmonic_tremolo": {
+   "dtcm": 0,
+   "ram_d2": 0,
+   "sram": 3290,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "scope": {
+   "dtcm": 0,
+   "ram_d2": 0,
+   "sram": 540,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "reverb_delay": {
+   "dtcm": 52,
+   "ram_d2": 0,
+   "sram": 7244,
+   "sdram": 6163364,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "midi_keys": {
+   "dtcm": 1440,
+   "ram_d2": 0,
+   "sram": 3541,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "pluckecho": {
+   "dtcm": 0,
+   "ram_d2": 0,
+   "sram": 2102,
+   "sdram": 1920012,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "string_keys": {
+   "dtcm": 0,
+   "ram_d2": 0,
+   "sram": 1053,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "modal_keys": {
+   "dtcm": 0,
+   "ram_d2": 0,
+   "sram": 1036,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "fm_keys": {
+   "dtcm": 0,
+   "ram_d2": 0,
+   "sram": 3836,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "dattorro": {
+   "dtcm": 13,
+   "ram_d2": 0,
+   "sram": 2976,
+   "sdram": 1048576,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "earth": {
+   "dtcm": 49,
+   "ram_d2": 0,
+   "sram": 13670,
+   "sdram": 2097152,
+   "static_source": "object files (arm-none-eabi-size -A)"
+  }
+ },
+ "observed": [
+  {
+   "effects": [
+    "uranus"
+   ],
+   "result": "boots and runs",
+   "note": "audio only; MIDI untested"
+  },
+  {
+   "effects": [
+    "venus"
+   ],
+   "result": "boots and runs"
+  },
+  {
+   "effects": [
+    "venus",
+    "jupiter"
+   ],
+   "result": "boots and runs"
+  },
+  {
+   "effects": [
+    "venus",
+    "jupiter",
+    "saturn"
+   ],
+   "result": "boots and runs"
+  },
+  {
+   "effects": [
+    "venus",
+    "jupiter",
+    "saturn",
+    "neptune",
+    "uranus"
+   ],
+   "result": "does not boot"
+  }
+ ]
+}

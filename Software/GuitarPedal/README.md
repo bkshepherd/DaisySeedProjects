@@ -124,7 +124,7 @@ By default this project is configured to use the custom Boot Loader. To get up a
 
 If you run into trouble with the bootloader. Electro-Smith has better documentation on how to get it working here: https://github.com/electro-smith/libDaisy/blob/master/doc/md/_a7_Getting-Started-Daisy-Bootloader.md
 
-If you want to use built in flash memory only, you _can_, but it severely limits which effects you can use and how many you can have installed at once. I'd recommend editing the list of active effects in the loaded_effects.h file to perhaps just 1 or 2. Then do the following to get running on internal flash:
+If you want to use built in flash memory only, you _can_, but it severely limits which effects you can use and how many you can have installed at once. I'd recommend choosing just 1 or 2 effects (see "Choosing which effects are built" below). Then do the following to get running on internal flash:
 
 1. Remove the "APP_TYPE = BOOT_SRAM" line from the Make File:
 2. Put your Daisy Seed into DFU mode.
@@ -139,25 +139,39 @@ Plug your guitar into the Input and connect the Output to your amp.
 - 
 ### 6. Enjoy!!!
 
+## Choosing which effects are built
+
+Which effects go into the firmware is chosen in **`effects.config`**, with the tool `tools/effects.py` (Python 3, no packages needed). The tool also generates what depends on the choice:
+`generated/effects.mk` (the sources, and the sources and defines of what the chosen effects need, which the `Makefile` includes) and the effect list that `loaded_effects.h` includes.
+`make` regenerates them by itself when `effects.config` changes, so after editing the file (or running one of these) just build:
+
+```text
+python3 tools/effects.py list                      # all effects, what is enabled, and what each costs in memory
+python3 tools/effects.py preset uranus-only        # start from a preset (configs/*.config; "everything" enables all effects)
+python3 tools/effects.py enable venus saturn       # enable effects (disable does the opposite)
+python3 tools/effects.py report                    # how much of DTCM, RAM_D2 (static data + heap), code space and SDRAM the current selection needs
+python3 tools/effects.py matrix venus jupiter ...  # the same for every combination of the named effects
+```
+
+Only the chosen effects are compiled and linked, which matters for memory: global buffers in an object file can stay in the firmware even if nothing uses them. **Not every selection boots**: the pedal's
+heap (in RAM_D2) is small and unchecked, so too many large effects lock it up at start. `report` and `matrix` estimate that (and show what has been tried on the pedal); the details are in
+[`PERFORMANCE_AND_MEMORY.md`](PERFORMANCE_AND_MEMORY.md). The order of the enabled effects (the order in `effects.json`) is the order in the menu and decides the layout of the saved settings, so enabling or disabling an effect
+resets the saved settings on the next boot. To add an effect, add it to `effects.json` (sources, header, class, what it needs); `tools/effects.py measure` and `calibrate` update its memory figures after a build.
+
 ## Optional: Dattorro plate reverb (GPLv3)
 
 `Effect-Modules/Dattorro/` contains a Dattorro (1997) plate reverb, in the same family used by
-the Hothouse "Flick" and "MuleBox" pedals. It's disabled by default and commented out of both the
-`Makefile` and `loaded_effects.h`, because that code is licensed **GPL-3.0-or-later**, not MIT
+the Hothouse "Flick" and "MuleBox" pedals. It's disabled by default (not in any preset, and the tool refuses it without `ALLOW_GPL=y`), because that code is licensed **GPL-3.0-or-later**, not MIT
 like the rest of this repository — see [`Effect-Modules/Dattorro/README.md`](Effect-Modules/Dattorro/README.md)
 for the full provenance chain and license text. Enabling it means the firmware binary you build
 must be distributed under GPLv3 (or not distributed at all); leaving it commented out keeps your
 build entirely MIT.
 
-To opt in:
-
-1. Uncomment the two `Dattorro` lines in the `Makefile`.
-2. Uncomment the `#include` and `new DattorroReverbModule(),` lines in `loaded_effects.h`.
-3. Rebuild and flash.
+To opt in: set `ALLOW_GPL=y` in `effects.config` (the tool refuses to build them otherwise), enable `dattorro` (and `earth`, which is built on it) with `python3 tools/effects.py enable dattorro earth`, then rebuild and flash.
 
 ## MIDI Effect and Preset Recall
 
-On MIDI-enabled hardware, Program Change always selects an effect using its zero-based position in `loaded_effects.h`. To also recall a saved preset for that effect, send standard Bank Select messages before the Program Change:
+On MIDI-enabled hardware, Program Change always selects an effect using its zero-based position in the effect list (the enabled effects, in the order of `effects.json`). To also recall a saved preset for that effect, send standard Bank Select messages before the Program Change:
 
 ```text
 CC 0  = Bank Select MSB

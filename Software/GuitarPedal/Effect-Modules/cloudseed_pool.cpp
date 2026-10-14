@@ -6,7 +6,17 @@
 #include "daisy_seed.h"
 #include <cstddef>
 
-#define CUSTOM_POOL_SIZE (48 * 640 * 640)
+// The size follows the number of effects that use the engine: CLOUDSEED_ENGINES is set by the build (tools/effects.py counts them); 3 if it is not set (the host tests).
+#ifndef CLOUDSEED_ENGINES
+#define CLOUDSEED_ENGINES 3
+#endif
+#if CLOUDSEED_ENGINES <= 1
+#define CUSTOM_POOL_SIZE (48 * 384 * 384) // 7.1 MB
+#elif CLOUDSEED_ENGINES == 2
+#define CUSTOM_POOL_SIZE (48 * 512 * 512) // 12.6 MB
+#else
+#define CUSTOM_POOL_SIZE (48 * 640 * 640) // 19.7 MB
+#endif
 
 DSY_SDRAM_BSS char custom_pool[CUSTOM_POOL_SIZE];
 size_t pool_index = 0;
