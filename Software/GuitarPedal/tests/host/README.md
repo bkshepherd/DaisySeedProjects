@@ -24,6 +24,8 @@ BASE_REF=053079b tests/host/run_tests.sh   # compare against another ref
 | SciFi | original (`BASE_REF`) vs new | bit-exact, 4 parameter sets with automation |
 | Tape Delay | original (`BASE_REF`) vs new | bit-exact, all modes (fixed / multi / single / lo-fi), head configs, tap divisions, mono and stereo input |
 | Tape Delay defaults | startup state (only `Init()` run) vs the state after touching Mix to its default | regression test for a past bug (see below); includes memory pre-filled with zero / garbage / NaN bytes and a one-step Mix change |
+| Venus | sliced STFT vs one-shot `Fourier` (exact), module block vs per-sample | exact; the sliced pipeline matches the original `Fourier` delayed by a hop until the original's slot-reuse drift begins |
+| Earth | arena size, octave, freeze, overdrive swell, finite output, block vs per-sample | block and per-sample paths identical; behaviour checks on the PC |
 | CloudSeed | original (`BASE_REF`) vs new | bit-exact when the new module code is built with block size 1; at the shipped block size only finite and close in level (the block size shifts the reverb's feedback timing by a few samples) |
 
 Note on the Tape Delay equivalence step: the original code has the Mix bug fixed in `test_tape_delay_defaults.cpp`, so `run_tests.sh` applies the same two-line fix to its copy of the
@@ -78,3 +80,6 @@ Findings that are known and understood are listed in the `KNOWN` variable of the
 voice, in an effect that is disabled in the default build). The script fails only on something new. Limits: effects that output nothing without their own input (Tuner, FM Keys, the other keyboard effects
 without MIDI notes) are barely exercised, and an effect whose behaviour depends on state the harness does not reach (tempo, MIDI) is only tested on its audio path. It takes a few minutes the first time
 (it builds the shared objects), and less afterwards.
+
+`tests/host/compare_earth_engine.sh` (optional, needs a clone of the FunBox project, `FUNBOX_DIR`) compares the Dattorro engine of the FunBox Earth pedal with this repository's in impulse
+responses; see `Effect-Modules/Earth/README.md` for what it found.
