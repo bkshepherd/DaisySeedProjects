@@ -95,6 +95,8 @@ Having all five converted effects (Venus, Jupiter, Saturn, Neptune, Uranus) enab
 `new` allocations go, but that was not confirmed). The Makefile and `loaded_effects.h` now enable **only Uranus** (the other four are commented out, and `cloudseed_pool.cpp` with them since only Jupiter and Neptune need it); that build boots and runs. Bring the others back one or two at
 a time (uncomment the Makefile line and the include and instance in `loaded_effects.h`), checking the memory report and that it boots. Venus, Jupiter and Saturn were each run on the pedal in earlier builds (with the older sets of effects); Neptune has not been run on the pedal at all yet.
 
+See also `PERFORMANCE_AND_MEMORY.md`: the optimisations and what they gave, per-effect memory needs, the heap explanation of the lockup, the GCC 15 experience and a first draft of a matrix of effects that can be enabled together.
+
 ## Venus tuning (second pass)
 
 Venus gave sound but dropped blocks constantly at 48 kHz / 48 samples: each 4096-point FFT stage has to fit inside one 1 ms block. Changes made (not yet checked on the pedal):
