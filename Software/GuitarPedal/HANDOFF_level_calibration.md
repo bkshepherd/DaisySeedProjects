@@ -98,7 +98,7 @@ Level defaults: before this work Crusher was 1.0, Dual Echo 0.4 and Overdrive 0.
 * `Makefile` still has an **uncommitted local change** (`GCC_VERSION_MAJOR_REQUIRED := 13`), as on the previous branch. The author builds with arm-none-eabi-gcc 13.3.
 * `libDaisy` is on the commit the repository records (v8.1.0-10). A fork with the uninitialised-`pwm_` LED fix exists (`spamatica/libDaisy`, untracked clone in
   `dependencies/libDaisy_spamatica/`); the project works around that bug in `BaseHardwareModule::InitLeds` (see `HANDOFF_block_processing.md`), so stock libDaisy is fine.
-* **Show Debug and Lock Knobs are saved Global Settings checkboxes** (`settings.globalShowDebug` and `settings.globalLockKnobs`, both default off; `SETTINGS_FILE_FORMAT_VERSION` is 15).
+* **Show Debug and Lock Knobs are saved Global Settings checkboxes** (`settings.globalShowDebug` default off, `settings.globalLockKnobs` default on since the Venus/Jupiter work; `SETTINGS_FILE_FORMAT_VERSION` is 15).
   **Show Debug** draws the CPU percentage and the averaged input/output peak level in dB on the default effect screen. **Lock Knobs** ignores the knobs so parameters are changed from the
   display only (the knobs are still sampled, just never applied, so their cached state is valid when unlocked). The old text-page takeover that `useDebugDisplay` used to trigger is now behind
   the compile-time constant `useDebugTextScreen` (default false).
