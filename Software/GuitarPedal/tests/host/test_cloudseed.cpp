@@ -21,6 +21,11 @@ int main(int argc, char **argv) {
         for (int preset = 0; preset < 8; preset++) {
             CloudSeedModule *m = new CloudSeedModule();
             m->Init(48000.0f);
+            // Select the preset by going through a fixed other preset first, so ParameterChanged always loads it, and always via the same sequence.
+            // (Setting it straight to the module's default value would keep the preset Init() loaded; the original code had a Preset default that
+            // did not match Init(), so one preset was never loaded. Presets also do not fully reset the controller, so the sequence must be the same
+            // in the original and the new code for the comparison to be exact.)
+            m->SetParameterRaw(CloudSeedModule::PRESET, preset == 0 ? 1 : 0);
             m->SetParameterRaw(CloudSeedModule::PRESET, preset);
             m->SetParameterAsMagnitude(CloudSeedModule::MIX, 0.6f);
             if (stereo) m->SetParameterRaw(CloudSeedModule::STEREO_IN, 1);

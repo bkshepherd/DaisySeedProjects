@@ -81,7 +81,7 @@ static auto s_metaData = [] {
         valueType : ParameterValueType::Binned,
         valueBinCount : 8,
         valueBinNames : s_presetNames,
-        defaultValue : {.uint_value = 6},
+        defaultValue : {.uint_value = 5}, // RubiKa: the preset Init() loads, so the menu shows what is actually running
         knobMapping : -1,
         midiCCMapping : 20
     };
