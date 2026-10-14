@@ -37,9 +37,11 @@ for h in sorted(glob.glob('Effect-Modules/*_module.h')):
         print(os.path.basename(h)[:-2], c)
 PYEOF
 
-# Shared objects (all DaisySP, Util, helper modules), built once
-if [ ! -f "$B/libshared.a" ]; then
+# Shared objects (all DaisySP, Util, helper modules), built once and rebuilt when any of their sources or the host stubs are newer
+SHARED_DIRS="Util Effect-Modules/Dattorro Effect-Modules/Chopper Effect-Modules/ImpulseResponse dependencies/CloudSeed $T/stub $T/stub_cmsis"
+if [ ! -f "$B/libshared.a" ] || [ -n "$(find $SHARED_DIRS Effect-Modules/base_effect_module.cpp Effect-Modules/base_effect_module.h -type f -newer "$B/libshared.a" -print -quit)" ]; then
     echo "building shared objects..."
+    rm -f "$B/libshared.a" "$B"/obj/*.o
     { find dependencies/DaisySP/Source dependencies/DaisySP/DaisySP-LGPL/Source -name "*.cpp"; ls Util/*.cpp
       echo Effect-Modules/base_effect_module.cpp; echo Effect-Modules/Chopper/chopper.cpp; echo Effect-Modules/Dattorro/Dattorro.cpp
       echo Effect-Modules/ImpulseResponse/ImpulseResponse.cpp; echo Effect-Modules/ImpulseResponse/ir_data.cpp

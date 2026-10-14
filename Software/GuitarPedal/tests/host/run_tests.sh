@@ -83,6 +83,9 @@ if XFLAGS= build "$B/t_td_defaults" $T/test_tape_delay_defaults.cpp Effect-Modul
 step "Venus: sliced STFT vs original Fourier, block vs per-sample"
 if XFLAGS= build "$B/t_venus" $T/test_venus.cpp Effect-Modules/venus_module.cpp $BASEMOD $DSP/Effects/sampleratereducer.cpp $DSP/Synthesis/oscillator.cpp $LGPL/Filters/tone.cpp; then check "$B/t_venus"; else FAILS=$((FAILS + 1)); fi
 
+step "Earth: reverb arena, octave, freeze, overdrive swell, block vs per-sample"
+if XFLAGS= build "$B/t_earth" $T/test_earth.cpp Effect-Modules/earth_module.cpp Effect-Modules/Dattorro/Dattorro.cpp $BASEMOD $DSP/Effects/overdrive.cpp; then check "$B/t_earth"; else FAILS=$((FAILS + 1)); fi
+
 step "CloudSeed: original ($BASE) vs new (bit-exact at block size 1; shipped block size checked for level/finite)"
 CSSRC="dependencies/CloudSeed/AudioLib/Biquad2.cpp dependencies/CloudSeed/AudioLib/ShaRandom.cpp dependencies/CloudSeed/AudioLib/ValueTables.cpp \
  dependencies/CloudSeed/FastSin.cpp dependencies/CloudSeed/Utils/Sha256.cpp Effect-Modules/base_effect_module.cpp"
