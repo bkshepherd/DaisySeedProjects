@@ -8,38 +8,38 @@
 #include "Effect-Modules/base_effect_module.h"
 
 // Include all effect modules
-#include "Effect-Modules/autopan_module.h"
-#include "Effect-Modules/chopper_module.h"
-#include "Effect-Modules/chorus_module.h"
-#include "Effect-Modules/cloudseed_module.h" // Takes up significant SDRAM (about 30%)
-#include "Effect-Modules/compressor_module.h"
-#include "Effect-Modules/crusher_module.h"
-#include "Effect-Modules/delay_module.h"
-#include "Effect-Modules/distortion_module.h"
-#include "Effect-Modules/drum_module.h"
-#include "Effect-Modules/dual_echo_module.h"
+// #include "Effect-Modules/autopan_module.h"
+// #include "Effect-Modules/chopper_module.h"
+// #include "Effect-Modules/chorus_module.h"
+// #include "Effect-Modules/cloudseed_module.h" // Takes up significant SDRAM (about 30%)
+// #include "Effect-Modules/compressor_module.h"
+// #include "Effect-Modules/crusher_module.h"
+// #include "Effect-Modules/delay_module.h"
+// #include "Effect-Modules/distortion_module.h"
+// #include "Effect-Modules/drum_module.h"
+// #include "Effect-Modules/dual_echo_module.h"
 #include "Effect-Modules/effect_chain.h" // Some caution required - See README and examples below for usage
-#include "Effect-Modules/flanger_module.h"
-#include "Effect-Modules/geq_module.h"
-#include "Effect-Modules/granulardelay_module.h"
-#include "Effect-Modules/harmonic_tremolo_module.h"
-#include "Effect-Modules/ir_module.h"
-#include "Effect-Modules/looper_module.h"
-#include "Effect-Modules/metro_module.h"
-#include "Effect-Modules/modulated_tremolo_module.h"
-#include "Effect-Modules/multi_delay_module.h"
-#include "Effect-Modules/nam_a2_module.h"
-#include "Effect-Modules/noise_gate_module.h"
-#include "Effect-Modules/overdrive_module.h"
-#include "Effect-Modules/peq_module.h"
-#include "Effect-Modules/phaser_module.h"
-#include "Effect-Modules/pitch_shifter_module.h"
-#include "Effect-Modules/polyoctave_module.h"
-#include "Effect-Modules/reverb_module.h"
-#include "Effect-Modules/scifi_module.h"
-#include "Effect-Modules/spectral_delay_module.h"
-#include "Effect-Modules/tape_delay_module.h"
-#include "Effect-Modules/tuner_module.h"
+// #include "Effect-Modules/flanger_module.h"
+// #include "Effect-Modules/geq_module.h"
+// #include "Effect-Modules/granulardelay_module.h"
+// #include "Effect-Modules/harmonic_tremolo_module.h"
+// #include "Effect-Modules/ir_module.h"
+// #include "Effect-Modules/looper_module.h"
+// #include "Effect-Modules/metro_module.h"
+// #include "Effect-Modules/modulated_tremolo_module.h"
+// #include "Effect-Modules/multi_delay_module.h"
+// #include "Effect-Modules/nam_a2_module.h"
+// #include "Effect-Modules/noise_gate_module.h"
+// #include "Effect-Modules/overdrive_module.h"
+// #include "Effect-Modules/peq_module.h"
+// #include "Effect-Modules/phaser_module.h"
+// #include "Effect-Modules/pitch_shifter_module.h"
+// #include "Effect-Modules/polyoctave_module.h"
+// #include "Effect-Modules/reverb_module.h"
+// #include "Effect-Modules/scifi_module.h"
+// #include "Effect-Modules/spectral_delay_module.h"
+// #include "Effect-Modules/tape_delay_module.h"
+// #include "Effect-Modules/tuner_module.h"
 #include "Effect-Modules/venus_module.h" // Spectral reverb from the FunBox project (MIT). Takes about 440 KB of SDRAM
 
 // Keyboard modules
@@ -52,46 +52,46 @@
 // Dattorro plate reverb and Earth (built on it) - GPL-3.0-or-later, disabled by default. See
 // Effect-Modules/Dattorro/README.md, Effect-Modules/Earth/README.md and the matching block in the
 // Makefile before uncommenting.
-#include "Effect-Modules/dattorro_reverb_module.h"
-#include "Effect-Modules/earth_module.h"
+// #include "Effect-Modules/dattorro_reverb_module.h"
+// #include "Effect-Modules/earth_module.h"
 
 namespace bkshepherd {
 
 void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffects) {
     // clang-format off
     static BaseEffectModule* effectList[] = {
-        new ModulatedTremoloModule(),
-        new OverdriveModule(),
-        new AutoPanModule(),
-        new ChorusModule(),
-        new ChopperModule(),
-        new ReverbModule(), // single-instance only
-        new MultiDelayModule(),  // single-instance-only
-        new MetroModule(),
-        new TunerModule(), // single-instance only
-        new PitchShifterModule(),  // single-instance-only
-        new CompressorModule(),
-        new LooperModule(),  // single-instance-only
-        new GraphicEQModule(),
-        new ParametricEQModule(),
-        new NoiseGateModule(),
-        new CloudSeedModule(), // single-instance only
+        // new ModulatedTremoloModule(),
+        // new OverdriveModule(),
+        // new AutoPanModule(),
+        // new ChorusModule(),
+        // new ChopperModule(),
+        // new ReverbModule(), // single-instance only
+        // new MultiDelayModule(),  // single-instance-only
+        // new MetroModule(),
+        // new TunerModule(), // single-instance only
+        // new PitchShifterModule(),  // single-instance-only
+        // new CompressorModule(),
+        // new LooperModule(),  // single-instance-only
+        // new GraphicEQModule(),
+        // new ParametricEQModule(),
+        // new NoiseGateModule(),
+        // new CloudSeedModule(), // single-instance only
         new VenusModule(), // single-instance only
-        new DelayModule(), // single-instance only
-        new TapeDelayModule(),  // single-instance-only
-        new DualEchoModule(),  // single-instance-only
-        new NamA2Module(),  // single-instance-only
-        new SciFiModule(),  // single-instance-only
-        new PolyOctaveModule(),
-        new SpectralDelayModule(),  // single-instance-only
-        new DistortionModule(),
-        new GranularDelayModule(),  // single-instance-only
-        new IrModule(),
-        new DrumModule(),  // This module can be used with MIDI keyboard as a drum machine
-        new PhaserModule(),
-        new FlangerModule(),
-        new CrusherModule(),
-        new HarmonicTremoloModule(),
+        // new DelayModule(), // single-instance only
+        // new TapeDelayModule(),  // single-instance-only
+        // new DualEchoModule(),  // single-instance-only
+        // new NamA2Module(),  // single-instance-only
+        // new SciFiModule(),  // single-instance-only
+        // new PolyOctaveModule(),
+        // new SpectralDelayModule(),  // single-instance-only
+        // new DistortionModule(),
+        // new GranularDelayModule(),  // single-instance-only
+        // new IrModule(),
+        // new DrumModule(),  // This module can be used with MIDI keyboard as a drum machine
+        // new PhaserModule(),
+        // new FlangerModule(),
+        // new CrusherModule(),
+        // new HarmonicTremoloModule(),
 
         // The following require a MIDI keyboard
         // new MidiKeysModule(),
@@ -101,8 +101,8 @@ void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffec
         // new FmKeysModule(),
 
         // GPL-3.0-or-later - see Effect-Modules/Dattorro/README.md and Effect-Modules/Earth/README.md
-        new DattorroReverbModule(),
-        new EarthModule(), // single-instance only
+        // new DattorroReverbModule(),
+        // new EarthModule(), // single-instance only
 
         // Effects chain examples
 

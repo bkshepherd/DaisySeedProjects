@@ -81,7 +81,22 @@ step "Tape Delay: defaults regression (startup state, Mix tracking)"
 if XFLAGS= build "$B/t_td_defaults" $T/test_tape_delay_defaults.cpp Effect-Modules/tape_delay_module.cpp $TDSRC; then check "$B/t_td_defaults"; else FAILS=$((FAILS + 1)); fi
 
 step "Venus: sliced STFT vs original Fourier, block vs per-sample"
-if XFLAGS= build "$B/t_venus" $T/test_venus.cpp Effect-Modules/venus_module.cpp $BASEMOD $DSP/Effects/sampleratereducer.cpp $DSP/Synthesis/oscillator.cpp $LGPL/Filters/tone.cpp; then check "$B/t_venus"; else FAILS=$((FAILS + 1)); fi
+if XFLAGS="-I$T/stub_cmsis" build "$B/t_venus" $T/test_venus.cpp Effect-Modules/venus_module.cpp $BASEMOD $DSP/Effects/sampleratereducer.cpp $DSP/Synthesis/oscillator.cpp $LGPL/Filters/tone.cpp; then check "$B/t_venus"; else FAILS=$((FAILS + 1)); fi
+
+step "Venus FFT: the real CMSIS-DSP real FFT (firmware table configuration) vs ShyFFT"
+CMS=dependencies/libDaisy/Drivers/CMSIS-DSP
+CMSDEFS="-DARM_DSP_CONFIG_TABLES -DARM_FFT_ALLOW_TABLES -DARM_TABLE_TWIDDLECOEF_F32_2048 -DARM_TABLE_BITREVIDX_FLT_2048 -DARM_TABLE_TWIDDLECOEF_RFFT_F32_4096 -D__GNUC_PYTHON__"
+CMSINC="-I$CMS/Include -I$CMS/PrivateInclude"
+mkdir -p "$B/cmsis"
+CMSOBJS=""
+CMSOK=1
+for f in TransformFunctions/arm_rfft_fast_f32 TransformFunctions/arm_rfft_fast_init_f32 TransformFunctions/arm_cfft_f32 TransformFunctions/arm_cfft_init_f32 \
+         TransformFunctions/arm_cfft_radix8_f32 TransformFunctions/arm_bitreversal2 CommonTables/arm_common_tables CommonTables/arm_const_structs; do
+    o="$B/cmsis/$(basename $f).o"
+    gcc -O1 -w $CMSDEFS $CMSINC -c "$CMS/Source/$f.c" -o "$o" || CMSOK=0
+    CMSOBJS="$CMSOBJS $o"
+done
+if [ "$CMSOK" = 1 ] && $CXX -std=c++20 -O1 -w $CMSDEFS $CMSINC -I$T/stub -IEffect-Modules $T/test_cmsis_fft.cpp $CMSOBJS -o "$B/t_cmsis_fft" 2>&1 | grep -E "error|undefined" | head -5; [ -x "$B/t_cmsis_fft" ]; then check "$B/t_cmsis_fft"; else FAILS=$((FAILS + 1)); fi
 
 step "Earth: reverb arena, octave, freeze, overdrive swell, block vs per-sample"
 if XFLAGS= build "$B/t_earth" $T/test_earth.cpp Effect-Modules/earth_module.cpp Effect-Modules/Dattorro/Dattorro.cpp $BASEMOD $DSP/Effects/overdrive.cpp; then check "$B/t_earth"; else FAILS=$((FAILS + 1)); fi

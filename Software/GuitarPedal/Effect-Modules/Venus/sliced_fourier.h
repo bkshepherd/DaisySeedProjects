@@ -10,7 +10,11 @@
 //     stages 1 .. chunkCount  the user's processing, one chunk of the spectrum at a time
 //     stage chunkCount + 1    the inverse FFT
 // The frame's output only starts being read `stride` samples after the frame completed (a fixed extra latency of one hop), which is enough time for
-// all stages as long as stepsPerFrame() blocks fit in `stride` samples. One extra slot is needed because a slot is now busy for N + stride + N samples.
+// all stages as long as the stages get run at least stepsPerFrame() times per `stride` samples (the module calls Step() on a sample-count schedule, so this holds
+// for any block size). One extra slot is needed because a slot is now busy for N + stride + N samples.
+// Only one frame is processed at a time, so the frequency-domain work buffers (`middle`, `out`) are shared by all slots: N samples each, not N per slot. That
+// keeps them small enough to live in fast on-chip RAM, which matters because the FFT passes over them several times; only `in` (which holds each
+// frame's input and then its output) is per slot.
 //
 // Apart from that delay of `stride` samples the output matches soundmath::Fourier with the same processing. One difference: Fourier lets a slot start
 // writing again one sample early, so its frames drift by one sample per cycle; here a slot's cycle is exactly (2 * laps + 1) strides, so from the ninth
@@ -30,7 +34,8 @@
 
 namespace soundmath {
 
-template <typename T, size_t N> class SlicedFourier {
+// FFT: anything with Direct(T *in, T *out) and Inverse(T *in, T *out) in ShyFFT's layout (ShyFFT itself, or venus::CmsisRealFft)
+template <typename T, size_t N, typename FFT = ShyFFT<T, N, RotationPhasor>> class SlicedFourier {
   public:
     /** Processes chunk `chunk` of `chunkCount` of one frame: reads the spectrum from `in`, writes the processed spectrum to `out`. Called for the chunks in
         order 0 .. chunkCount - 1 for every frame. */
@@ -38,8 +43,8 @@ template <typename T, size_t N> class SlicedFourier {
     /** Called once at the start of every frame (before its forward FFT), e.g. to take a snapshot of the parameters used for the whole frame. */
     using FrameBegin = void (*)(void *context);
 
-    // in, middle and out need to be arrays of size (N * slotCount()), where slotCount() = 2 * laps + 1
-    SlicedFourier(ChunkProcessor processChunk, FrameBegin beginFrame, void *context, size_t chunkCount, ShyFFT<T, N, RotationPhasor> *fft,
+    // in needs to be an array of size (N * slotCount()), where slotCount() = 2 * laps + 1; middle and out are arrays of size N
+    SlicedFourier(ChunkProcessor processChunk, FrameBegin beginFrame, void *context, size_t chunkCount, FFT *fft,
                   Wave<T> *window, size_t laps, T *in, T *middle, T *out)
         : processChunk_(processChunk), beginFrame_(beginFrame), context_(context), chunkCount_(chunkCount), in_(in), middle_(middle), out_(out),
           fft_(fft), window_(window), laps_(laps), stride_(N / laps), slots_(2 * laps + 1) {
@@ -72,6 +77,9 @@ template <typename T, size_t N> class SlicedFourier {
     bool Busy() const { return current_ >= 0 || queueCount_ > 0; }
     /** Extra latency in samples compared to soundmath::Fourier. */
     size_t extraDelay() const { return stride_; }
+    size_t stride() const { return stride_; }
+    /** How many frames were not finished in time and had to be completed inside Process() (should stay 0). */
+    uint32_t lateFinishes() const { return lateFinishes_; }
 
     /** Feeds one input sample and returns one output sample. */
     T Process(T x) {
@@ -103,11 +111,11 @@ template <typename T, size_t N> class SlicedFourier {
     void runStage(int i, size_t stage) {
         if (stage == 0) {
             if (beginFrame_) beginFrame_(context_);
-            fft_->Direct(in_ + i * N, middle_ + i * N); // analysis
+            fft_->Direct(in_ + i * N, middle_); // analysis
         } else if (stage <= chunkCount_) {
-            processChunk_(context_, middle_ + i * N, out_ + i * N, stage - 1, chunkCount_);
+            processChunk_(context_, middle_, out_, stage - 1, chunkCount_);
         } else {
-            fft_->Inverse(out_ + i * N, in_ + i * N); // synthesis
+            fft_->Inverse(out_, in_ + i * N); // synthesis
         }
     }
 
@@ -157,6 +165,7 @@ template <typename T, size_t N> class SlicedFourier {
 
     // Fallback if Step() was not called often enough: runs the remaining stages of slot i (and of any frames queued ahead of it) synchronously.
     void finishNow(size_t slot) {
+        lateFinishes_++;
         while (state_[slot] == kQueued) Step();
     }
 
@@ -165,7 +174,7 @@ template <typename T, size_t N> class SlicedFourier {
     void *context_;
     size_t chunkCount_;
     T *in_, *middle_, *out_;
-    ShyFFT<T, N, RotationPhasor> *fft_;
+    FFT *fft_;
     Wave<T> *window_;
     size_t laps_, stride_, slots_;
 
@@ -178,6 +187,7 @@ template <typename T, size_t N> class SlicedFourier {
     int current_ = -1;
     size_t stage_ = 0;
     uint32_t tick_ = 0;
+    uint32_t lateFinishes_ = 0;
 };
 } // namespace soundmath
 

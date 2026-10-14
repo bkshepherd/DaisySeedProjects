@@ -58,6 +58,10 @@ BaseEffectModule *activeEffect = nullptr;
 // UI Related Variables
 GuitarPedalUI guitarPedalUI;
 
+// Audio sample rate and block size (see main())
+constexpr SaiHandle::Config::SampleRate kAudioSampleRate = SaiHandle::Config::SampleRate::SAI_48KHZ;
+constexpr size_t kAudioBlockSize = 48;
+
 // Hardware Related Variables
 
 // Developer switch (compile time): replaces the whole display with a plain text page (footswitch taps and BPM) instead of the normal UI.
@@ -145,6 +149,11 @@ float crossFaderTransitionTimeInSeconds = 0.1f;
 int crossFaderTransitionTimeInSamples;
 int samplesTilCrossFadingComplete;
 CpuLoadMeter cpuLoadMeter;
+
+// Slowest audio callback since the main loop last read it, in system ticks (for the peak CPU readout: the meter above only gives a smoothed average, which hides
+// the occasional block that takes longer than the time the block lasts, i.e. an overrun)
+static volatile uint32_t slowestBlockTicks = 0;
+static float ticksPerBlockInv = 0.0f;
 
 // Averaged block peaks of the pedal's input and final output (linear), for the level readout on the display
 static float avgInputPeak = 0.0f;
@@ -426,6 +435,7 @@ static float linearToDb(float linear) {
 
 static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, size_t size) {
     cpuLoadMeter.OnBlockStart();
+    const uint32_t blockStartTick = System::GetTick();
 
     // Process Audio
     float inputLeft;
@@ -451,7 +461,7 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
     // Run the active effect over the whole block up front. The effect doesn't depend on the crossfade/mute state below, so the
     // per-sample loop only has to mix the dry and effect signals.
     // Whether the effect is needed is decided once per block; if a crossfade ends mid-block the effect simply runs a few extra samples.
-    static constexpr size_t kMaxBlock = 128;
+    static constexpr size_t kMaxBlock = 256; // the largest audio block size supported (see kAudioBlockSize)
     static float dryLeft[kMaxBlock], dryRight[kMaxBlock], fxLeft[kMaxBlock], fxRight[kMaxBlock];
     const bool splitMono = settings.globalSplitMonoInputToStereo && !settings.globalRelayBypassEnabled;
     const bool runEffect = activeEffect != nullptr && (effectOn || isCrossFading);
@@ -549,6 +559,10 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
     avgOutputPeak += kLevelAvgCoeff * (outPeak - avgOutputPeak);
 
     cpuLoadMeter.OnBlockEnd();
+    const uint32_t blockTicks = System::GetTick() - blockStartTick;
+    if (blockTicks > slowestBlockTicks) {
+        slowestBlockTicks = blockTicks;
+    }
 }
 
 void SetActiveEffect(int effectID) {
@@ -713,15 +727,20 @@ void HandleMidiMessage(MidiEvent m) {
 
 int main(void) {
 
-    const size_t blockSize = 48;
+    // Audio settings. Venus (the only effect in this build) is heavy: each of its 4096-point FFT stages has to fit inside one block, which a 1 ms block (48
+    // samples) does not allow. 256 samples is 5.3 ms at 48 kHz. (The original FunBox pedal runs at 32 kHz with 256 samples; that also works and takes less CPU.)
+    // The other effects were written and measured at 48 kHz with 48-sample blocks: set kAudioBlockSize back to 48 when they are enabled again.
+    const size_t blockSize = kAudioBlockSize;
     const bool boost = true; // true enables cpu boost (480Mhz instead of 400Mhz)
 
     hardware.Init(blockSize, boost);
+    hardware.SetAudioSampleRate(kAudioSampleRate);
 
     const float sample_rate = hardware.AudioSampleRate();
 
     // Setup CPU logging of the audio callback
     cpuLoadMeter.Init(sample_rate, blockSize);
+    ticksPerBlockInv = 1.0f / ((float)System::GetTickFreq() * (float)blockSize / sample_rate);
 
     // Set the number of samples to use for the crossfade based on the hardware sample rate
     muteOffTransitionTimeInSamples = hardware.GetNumberOfSamplesForTime(muteOffTransitionTimeInSeconds);
@@ -920,6 +939,21 @@ int main(void) {
         // Set the latest cpu load to the effect
         activeEffect->SetShowDebug(settings.globalShowDebug);
         activeEffect->SetCPUUsage(cpuLoadMeter.GetAvgCpuLoad());
+
+        // Peak load: the slowest block of the last two seconds (100% = the block took as long as it lasts, a bigger value is an overrun)
+        static float peakLoad = 0.0f;
+        static float secondsSincePeakReset = 0.0f;
+        static float peakInWindow = 0.0f;
+        secondsSincePeakReset += elapsedTimeInSeconds;
+        const uint32_t ticks = slowestBlockTicks;
+        slowestBlockTicks = 0;
+        peakInWindow = std::max(peakInWindow, (float)ticks * ticksPerBlockInv);
+        if (secondsSincePeakReset >= 2.0f) {
+            secondsSincePeakReset = 0.0f;
+            peakLoad = peakInWindow;
+            peakInWindow = 0.0f;
+        }
+        activeEffect->SetCPUPeak(peakLoad);
         activeEffect->SetLevelsDb(linearToDb(avgInputPeak), linearToDb(avgOutputPeak));
 
         // Handle Display

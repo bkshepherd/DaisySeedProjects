@@ -21,7 +21,7 @@ run() { # run NAME SOURCES...   (extra compiler flags in XFLAGS)
 run distortion Effect-Modules/distortion_module.cpp $BASEMOD $LGPL/Filters/tone.cpp
 run compressor Effect-Modules/compressor_module.cpp $BASEMOD $LGPL/Dynamics/compressor.cpp
 run overdrive Effect-Modules/overdrive_module.cpp $BASEMOD dependencies/DaisySP/Source/Effects/overdrive.cpp
-run venus Effect-Modules/venus_module.cpp $BASEMOD dependencies/DaisySP/Source/Effects/sampleratereducer.cpp dependencies/DaisySP/Source/Synthesis/oscillator.cpp $LGPL/Filters/tone.cpp
+XFLAGS="-I$T/stub_cmsis" run venus Effect-Modules/venus_module.cpp $BASEMOD dependencies/DaisySP/Source/Effects/sampleratereducer.cpp dependencies/DaisySP/Source/Synthesis/oscillator.cpp $LGPL/Filters/tone.cpp
 run earth Effect-Modules/earth_module.cpp Effect-Modules/Dattorro/Dattorro.cpp $BASEMOD dependencies/DaisySP/Source/Effects/overdrive.cpp
 XFLAGS="-I$T/stub_cmsis" run nam Effect-Modules/nam_a2_module.cpp Effect-Modules/ImpulseResponse/ImpulseResponse.cpp Effect-Modules/ImpulseResponse/ir_data.cpp $BASEMOD
 echo

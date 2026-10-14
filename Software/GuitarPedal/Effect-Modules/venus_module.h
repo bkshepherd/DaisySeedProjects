@@ -2,6 +2,7 @@
 #ifndef VENUS_MODULE_H
 #define VENUS_MODULE_H
 
+#include "Venus/cmsis_fft.h"
 #include "Venus/sliced_fourier.h"
 #include "Venus/venus_spectral.h"
 #include "base_effect_module.h"
@@ -59,8 +60,8 @@ class VenusModule : public BaseEffectModule {
     void ApplyDriftMode();
 
     venus::SpectralReverb m_reverb;
-    ShyFFT<float, venus::kN, RotationPhasor> *m_fft;
-    soundmath::SlicedFourier<float, venus::kN> *m_stft;
+    venus::CmsisRealFft<venus::kN> *m_fft;
+    soundmath::SlicedFourier<float, venus::kN, venus::CmsisRealFft<venus::kN>> *m_stft;
 
     SampleRateReducer m_reducer;
     Tone m_lowpass;
@@ -68,7 +69,9 @@ class VenusModule : public BaseEffectModule {
 
     float m_sampleRate;
     float m_srRatio;           // sample rate relative to the 32 kHz the original was written for
-    int m_blockAccum;          // samples since the last block step
+    int m_stepAccum;           // schedule of the pipeline stages (see ProcessSamples)
+    int m_driftAccum;          // samples since the drift oscillators were last advanced
+    int m_paramAccum;          // samples since the frame parameters were last updated
     float m_driftValue[4];     // current drift multipliers (absolute values of the drift oscillators)
     bool m_footswitchFreeze;
 };

@@ -1,11 +1,14 @@
 // Venus tests.
 //  1. SlicedFourier + SpectralReverb must produce exactly what the one-shot soundmath::Fourier produces with the same processing, delayed by the
 //     extra `stride` samples (bit-exact), for several parameter sets. This is what makes it safe to spread each frame's work over many blocks.
-//  2. The same sliced pipeline never needs the "processing did not keep up" fallback at 48-sample blocks (the stages fit in one hop).
+//  2. The sliced pipeline is driven the way the module drives it (kStepsPerHop stages per hop, by sample count), at 48- and 256-sample blocks, and the audio
+//     is the same for both block sizes.
 //  3. VenusModule: the block path and the per-sample path give the same output (constant parameters).
 //  4. Informational: the worst per-block time of the sliced pipeline against the one-shot one (host speed, so only the ratio means something).
 #include "venus_module.h"
+#include "Venus/cmsis_fft.h"
 #include "../../Util/STFT/fourier.h"
+#include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <cstdio>
@@ -20,7 +23,9 @@ static void check(bool ok, const char *what) { printf("  %-70s %s\n", what, ok ?
 
 static constexpr size_t kBlock = 48;
 static constexpr size_t kSlotsSliced = 2 * kLaps + 1;
-static_assert((kChunks + 2) * kBlock <= kN / kLaps, "the stages of one frame must fit in one hop at 48-sample blocks");
+// Must match kStepsPerHop in venus_module.cpp: the stages are issued at 3/2 of the rate they need
+static constexpr int kStepsPerHop = (int)((kChunks + 2) * 3 / 2);
+static_assert(kStepsPerHop >= (int)(kChunks + 2), "enough stage steps per hop");
 
 static Wave<float> g_hann([](float phase) -> float { return 0.5f * (1.0f - std::cos(2.0f * 3.14159265358979f * phase)); });
 
@@ -45,7 +50,8 @@ enum class Run { OneShot, SyncStages, Sliced };
 
 // Runs a pipeline over the test input and returns its output; `worstMs` receives the slowest block. With a second parameter set, it takes effect at
 // sample `switchAt` (chosen so that every frame sees the same parameters in all three runs).
-static std::vector<float> runPipeline(Run kind, const FrameParams &p0, const FrameParams *p1, size_t switchAt, double &worstMs) {
+static uint32_t g_lateFinishes = 0; // frames that were not finished in time in the last Sliced run
+static std::vector<float> runPipeline(Run kind, const FrameParams &p0, const FrameParams *p1, size_t switchAt, double &worstMs, size_t blockSize = kBlock) {
     const size_t total = 48000 * 3;
     const std::vector<float> in = makeInput(total);
     std::vector<float> output(total);
@@ -64,20 +70,25 @@ static std::vector<float> runPipeline(Run kind, const FrameParams &p0, const Fra
         g_ref = &rev;
         std::vector<float> bi(kN * kLaps * 2, 0.0f), bm(kN * kLaps * 2, 0.0f), bo(kN * kLaps * 2, 0.0f);
         Fourier<float, kN> stft(refProcessor, &fft, &g_hann, kLaps, bi.data(), bm.data(), bo.data());
-        for (size_t o = 0; o < total; o += kBlock)
-            timed([&] { for (size_t i = o; i < o + kBlock; i++) { if (p1 && i == switchAt) rev.SetParams(*p1); stft.write(in[i]); output[i] = stft.read(); } });
+        for (size_t o = 0; o < total; o += blockSize)
+            timed([&] { for (size_t i = o; i < std::min(o + blockSize, total); i++) { if (p1 && i == switchAt) rev.SetParams(*p1); stft.write(in[i]); output[i] = stft.read(); } });
     } else {
-        std::vector<float> bi(kN * kSlotsSliced, 0.0f), bm(kN * kSlotsSliced, 0.0f), bo(kN * kSlotsSliced, 0.0f);
+        std::vector<float> bi(kN * kSlotsSliced, 0.0f), bm(kN, 0.0f), bo(kN, 0.0f); // the work buffers are shared by all slots
         SlicedFourier<float, kN> stft(&SpectralReverb::ProcessChunk, &SpectralReverb::BeginFrame, &rev, kChunks, &fft, &g_hann, kLaps, bi.data(), bm.data(), bo.data());
-        for (size_t o = 0; o < total; o += kBlock)
+        int stepAccum = 0;
+        for (size_t o = 0; o < total; o += blockSize)
             timed([&] {
-                if (kind == Run::Sliced) stft.Step();
-                for (size_t i = o; i < o + kBlock; i++) {
+                if (kind == Run::Sliced) {
+                    stepAccum += (int)blockSize * kStepsPerHop; // the module's schedule, by sample count
+                    while (stepAccum >= (int)(kN / kLaps)) { stepAccum -= (int)(kN / kLaps); stft.Step(); }
+                }
+                for (size_t i = o; i < std::min(o + blockSize, total); i++) {
                     if (p1 && i == switchAt) rev.SetParams(*p1);
                     output[i] = stft.Process(in[i]);
                     if (kind == Run::SyncStages) while (stft.Busy()) stft.Step(); // all stages straight away, as if there were no deadline
                 }
             });
+        g_lateFinishes = stft.lateFinishes();
     }
     return output;
 }
@@ -115,11 +126,15 @@ int main() {
         const FrameParams *p1 = c.hasSwitch ? &c.p1 : nullptr;
         const auto sync = runPipeline(Run::SyncStages, c.p0, p1, kSwitchAt, w1);
         const auto sliced = runPipeline(Run::Sliced, c.p0, p1, kSwitchAt, w2);
+        check(g_lateFinishes == 0, "48-sample blocks: every frame was finished by the staged schedule (no fallback inside Process)");
         const double d = maxDiff(sync, 0, sliced, 0, kTotal, peak);
         printf("  %-22s max difference %.3g\n", c.name, d);
         check(d == 0.0, "sliced output equals the run with all stages immediately, exactly");
         check(peak > 1e-3 && std::isfinite(peak), "the output is not silent and is finite");
         worstSliced = std::fmax(worstSliced, w2);
+        double w4;
+        const auto sliced256 = runPipeline(Run::Sliced, c.p0, p1, kSwitchAt, w4, 256);
+        check(maxDiff(sync, 0, sliced256, 0, kTotal, peak) == 0.0 && g_lateFinishes == 0, "256-sample blocks: the same audio, and no frame left unfinished");
 
         if (!c.hasSwitch) {
             // The original Fourier, whole frames at once: identical up to its ninth frame (see sliced_fourier.h), with the sliced one a hop later
@@ -134,6 +149,28 @@ int main() {
     }
     printf("\nWorst block time on this host: one-shot Fourier %.3f ms, sliced %.3f ms (ratio %.1fx; host speed, only the ratio means something)\n",
            worstOneShot, worstSliced, worstOneShot / std::fmax(worstSliced, 1e-9));
+
+    // The module's FFT (CmsisRealFft, here on the host's stand-in for CMSIS) instead of ShyFFT in the same pipeline: the same audio up to rounding
+    printf("\nCmsisRealFft instead of ShyFFT in the sliced pipeline (the real CMSIS library is checked in test_cmsis_fft.cpp):\n");
+    for (auto &c : cfgs) {
+        if (c.hasSwitch) continue;
+        double w, peak;
+        const auto shy = runPipeline(Run::Sliced, c.p0, nullptr, 0, w);
+        static SpectralReverb rev2;
+        rev2.Init(); rev2.SetParams(c.p0);
+        static CmsisRealFft<kN> cfft; cfft.Init();
+        std::vector<float> bi(kN * kSlotsSliced, 0.0f), bm(kN, 0.0f), bo(kN, 0.0f), out2(kTotal), in = makeInput(kTotal);
+        SlicedFourier<float, kN, CmsisRealFft<kN>> stft(&SpectralReverb::ProcessChunk, &SpectralReverb::BeginFrame, &rev2, kChunks, &cfft, &g_hann, kLaps, bi.data(), bm.data(), bo.data());
+        int stepAccum = 0;
+        for (size_t o = 0; o < kTotal; o += kBlock) {
+            stepAccum += (int)kBlock * kStepsPerHop;
+            while (stepAccum >= (int)kStride) { stepAccum -= (int)kStride; stft.Step(); }
+            for (size_t i = o; i < o + kBlock; i++) out2[i] = stft.Process(in[i]);
+        }
+        const double d = maxDiff(shy, 0, out2, 0, kTotal, peak);
+        printf("  %-22s max difference %.3g (peak %.3f)\n", c.name, d, peak);
+        check(d < 2e-4 * peak && peak > 1e-3 && stft.lateFinishes() == 0, "same audio as with ShyFFT up to rounding");
+    }
 
     printf("\nVenusModule: block path vs per-sample path:\n");
     for (int variant = 0; variant < 3; variant++) {

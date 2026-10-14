@@ -12,20 +12,27 @@ namespace {
 
 // The original runs at 32 kHz with 256-sample blocks. Everything that depends on that is rescaled by m_srRatio (sampleRate / 32000).
 constexpr float kOriginalSampleRate = 32000.0f;
-constexpr int kStepSamples = 48; // the pedal's block size: one pipeline step and one drift update per block
+// The work is scheduled by sample count, not by block, so it does not depend on the audio block size (the pedal can run at 48 or 256 samples per block).
+constexpr int kDriftIntervalSamples = 256; // the drift oscillators (0.01 .. 0.035 Hz) are advanced once per this many samples
+constexpr int kParamIntervalSamples = 48;  // the controls are turned into frame parameters at least this often
+// The stages of one frame (the forward FFT, kChunks chunks of bins, the inverse FFT) are issued at 3/2 of the rate they need, i.e. all of them are done after
+// two thirds of a hop; the rest is slack so that a slow block does not leave a frame unfinished when its output is due (which would force the whole frame to
+// be finished inside the audio callback).
+constexpr int kStepsPerHop = (int)((venus::kChunks + 2) * 3 / 2);
 constexpr size_t kSlots = 2 * venus::kLaps + 1;
-// All stages of one frame (the forward FFT, kChunks chunks of bins, the inverse FFT) run one per block and must fit in one hop. If kOrder is lowered, lower
-// kChunks too (e.g. order 11 needs at most 8 chunks at 48-sample blocks).
-static_assert((venus::kChunks + 2) * kStepSamples <= venus::kN / venus::kLaps, "the stages of one frame must fit in one hop");
 // Output makeup gain. The dry/wet crossfade attenuates (at the default Mix of 0.4 the dry signal alone is 4.4 dB down, and the reverb's own level is lower
 // than the input), so without it the effect is quieter than bypass. Calibrated with tests/host/run_level_tests.sh to about +2 dB at the default settings.
 constexpr float kOutputGain = 1.9f;
 constexpr float kIntervalSamples = 8192.0f; // ceil(window_samples / laps) in the original, which sets the scale of the shimmer and detune amounts
 
-// The FFT buffers (several overlapping frames, kN floats each): 3 x 147 KB, so they live in SDRAM. SDRAM is not zeroed at startup, Init() clears them.
-float DSY_SDRAM_BSS s_in[venus::kN * kSlots];     // audio --> in --(fft)--> middle --(process)--> out --(ifft)--> in --> audio
-float DSY_SDRAM_BSS s_middle[venus::kN * kSlots]; // unprocessed frequency domain data
-float DSY_SDRAM_BSS s_out[venus::kN * kSlots];    // processed frequency domain data
+// audio --> in --(fft)--> middle --(process)--> out --(ifft)--> in --> audio
+// `in` holds every overlapping frame (kN floats each): 147 KB, so it lives in SDRAM (SDRAM is not zeroed at startup, Init() clears it). Only one frame is
+// processed at a time, so the frequency-domain work buffers are a single frame each (16 KB), in the ordinary (DTCM) RAM: the FFT passes over them several
+// times, and that is much faster than going through the cache to SDRAM.
+float DSY_SDRAM_BSS s_in[venus::kN * kSlots];
+float s_middle[venus::kN]; // unprocessed frequency domain data
+float s_out[venus::kN];    // processed frequency domain data
+venus::CmsisRealFft<venus::kN> s_fft; // the FFT with its two 16 KB workspaces: must be in the ordinary (DTCM) RAM, not SDRAM (see cmsis_fft.h)
 
 soundmath::Wave<float> s_hann([](float phase) -> float { return 0.5f * (1.0f - std::cos(2.0f * 3.14159265358979f * phase)); });
 
@@ -135,7 +142,7 @@ static const auto s_metaData = [] {
 }();
 
 VenusModule::VenusModule()
-    : BaseEffectModule(), m_fft(nullptr), m_stft(nullptr), m_sampleRate(48000.0f), m_srRatio(1.5f), m_blockAccum(0), m_driftValue{1.0f, 1.0f, 1.0f, 1.0f},
+    : BaseEffectModule(), m_fft(nullptr), m_stft(nullptr), m_sampleRate(48000.0f), m_srRatio(1.5f), m_stepAccum(0), m_driftAccum(0), m_paramAccum(0), m_driftValue{1.0f, 1.0f, 1.0f, 1.0f},
       m_footswitchFreeze(false) {
     m_name = "Venus";
     m_paramMetaData = s_metaData.data();
@@ -143,8 +150,7 @@ VenusModule::VenusModule()
 }
 
 VenusModule::~VenusModule() {
-    delete m_stft;
-    delete m_fft;
+    delete m_stft; // the FFT object is a file-scope static
 }
 
 void VenusModule::Init(float sample_rate) {
@@ -152,7 +158,9 @@ void VenusModule::Init(float sample_rate) {
 
     m_sampleRate = sample_rate;
     m_srRatio = sample_rate / kOriginalSampleRate;
-    m_blockAccum = 0;
+    m_stepAccum = 0;
+    m_driftAccum = 0;
+    m_paramAccum = 0;
 
     // SDRAM is not zeroed at startup, and the transform must not see random memory
     std::memset(s_in, 0, sizeof(s_in));
@@ -162,16 +170,15 @@ void VenusModule::Init(float sample_rate) {
     m_reverb.Init();
 
     delete m_stft;
-    delete m_fft;
-    m_fft = new ShyFFT<float, venus::kN, RotationPhasor>();
+    m_fft = &s_fft;
     m_fft->Init();
-    m_stft = new soundmath::SlicedFourier<float, venus::kN>(&venus::SpectralReverb::ProcessChunk, &venus::SpectralReverb::BeginFrame, &m_reverb,
+    m_stft = new soundmath::SlicedFourier<float, venus::kN, venus::CmsisRealFft<venus::kN>>(&venus::SpectralReverb::ProcessChunk, &venus::SpectralReverb::BeginFrame, &m_reverb,
                                                             venus::kChunks, m_fft, &s_hann, venus::kLaps, s_in, s_middle, s_out);
 
     m_reducer.Init();
     m_lowpass.Init(sample_rate);
     for (int i = 0; i < 4; i++) {
-        m_drift[i].Init(sample_rate / kStepSamples); // the drift oscillators are advanced once per block
+        m_drift[i].Init(sample_rate / kDriftIntervalSamples); // the drift oscillators are advanced once per kDriftIntervalSamples
         m_drift[i].SetAmp(1.0f);
         m_driftValue[i] = 1.0f;
     }
@@ -274,16 +281,28 @@ void VenusModule::UpdateFrameParams() {
 }
 
 void VenusModule::ProcessSamples(const float *in, float *outL, float *outR, size_t n) {
-    // Once per block (every kStepSamples samples): advance the drift oscillators, then one stage of the frame that is being processed
-    m_blockAccum += (int)n;
-    while (m_blockAccum >= kStepSamples) {
-        m_blockAccum -= kStepSamples;
+    // Advance the drift oscillators on their own slow schedule
+    m_driftAccum += (int)n;
+    while (m_driftAccum >= kDriftIntervalSamples) {
+        m_driftAccum -= kDriftIntervalSamples;
         if (GetParameterAsBinnedValue(DRIFT) != 2) {
             for (int i = 0; i < 4; i++) m_driftValue[i] = std::fabs(m_drift[i].Process());
         }
+    }
+
+    // Run the stages of the frame that is being processed: kStepsPerHop of them per hop, however the samples are divided into blocks
+    m_stepAccum += (int)n * kStepsPerHop;
+    const int hop = (int)m_stft->stride();
+    while (m_stepAccum >= hop) {
+        m_stepAccum -= hop;
         m_stft->Step();
     }
-    UpdateFrameParams();
+
+    m_paramAccum += (int)n;
+    if (m_paramAccum >= kParamIntervalSamples) {
+        m_paramAccum = 0;
+        UpdateFrameParams();
+    }
 
     const float mix = GetParameterAsFloat(MIX);
     const float dry = 1.0f - mix;

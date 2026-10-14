@@ -535,7 +535,8 @@ void BaseEffectModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, 
     if (showDebug) {
         // Small text at the bottom centre, between the input and output level readouts
         char cpuStr[16];
-        snprintf(cpuStr, sizeof(cpuStr), "%d%%", (int)lroundf(GetCPUUsage() * 100.0f));
+        // average / peak (the slowest block of the last two seconds); a peak over 100% is a block that took longer than it lasts
+        snprintf(cpuStr, sizeof(cpuStr), "%d/%d%%", (int)lroundf(GetCPUUsage() * 100.0f), (int)lroundf(GetCPUPeak() * 100.0f));
         display.WriteStringAligned(cpuStr, Font_6x8, boundsToDrawIn, Alignment::bottomCentered, true);
     }
 

@@ -23,6 +23,7 @@ The original's acknowledgements apply here too:
 |---|---|
 | `../venus_module.{h,cpp}` | The effect module: parameters, the lo-fi and drift modes, the dry/wet mix |
 | `venus_spectral.h` | The per-bin reverb (`SpectralReverb`), header only and free of hardware dependencies so the host tests can use it |
+| `cmsis_fft.h` | A real FFT with ShyFFT's interface and spectrum layout, computed by CMSIS-DSP's `arm_rfft_fast_f32` |
 | `sliced_fourier.h` | An STFT that spreads each frame's work over several audio blocks (see below) |
 
 ## Controls
@@ -46,12 +47,18 @@ The original's acknowledgements apply here too:
   energy that feeds the reverb, the lo-fi sample rates and the shimmer/detune rates are rescaled to keep the same time constants, cut-offs and levels in
   seconds and Hz.
 * **The STFT work is spread over blocks.** `soundmath::Fourier` runs the forward FFT, the per-bin processing and the inverse FFT for a whole frame inside one
-  call. For Venus's 4096-point transform that is several milliseconds, but a 48-sample block is 1 ms. `SlicedFourier` queues a finished frame and runs one stage
-  per block (the forward FFT, 16 chunks of bins, the inverse FFT), at the price of one extra hop (about 21 ms) of latency. The parameters are latched once per
-  frame. `tests/host/test_venus.cpp` checks that this gives exactly the same audio as running every stage immediately.
+  call. For Venus's 4096-point transform that is several milliseconds, but a 48-sample block is 1 ms. `SlicedFourier` queues a finished frame and runs it as
+  separate stages (the forward FFT, 16 chunks of bins, the inverse FFT), at the price of one extra hop (1024 samples) of latency. The stages are issued by sample count
+  (27 per hop, 1.5 times what is needed), not one per block, so the schedule is the same for any block size. The parameters are latched once per frame.
+  `tests/host/test_venus.cpp` checks that this gives exactly the same audio as running every stage immediately, at 48- and at 256-sample blocks.
+* **Audio settings.** The original runs at 32 kHz with 256-sample blocks because its transforms run inside one block. Here the
+  stages are spread over blocks and the FFT works in on-chip RAM (see `cmsis_fft.h`), so the pedal's own 48 kHz / 48-sample settings work (measured on the pedal: peak
+  block load 76%). `kAudioSampleRate` / `kAudioBlockSize` (top of `guitar_pedal.cpp`) can be changed to 32 kHz and 256 (the original's) or 48 kHz / 256, which also work;
+  at 32 kHz nothing needs rescaling (`m_srRatio` is 1).
 * **Cheaper random phase.** The original calls `rand()`, `cos()` and `sin()` for every bin of every frame; this uses a table of 1024 angles and a small
   random number generator.
-* **Memory.** The three FFT buffers (3 x 147 KB) are placed in SDRAM.
+* **Memory.** Only the input frames (9 x 16 KB = 147 KB) are in SDRAM. The two frequency-domain work buffers are shared by all frames (only one is processed at a
+  time): 16 KB each, in the fast on-chip RAM instead of behind the cache.
 * **Controls.** The original's footswitch handling, expression pedal and per-knob MIDI control are replaced by this project's own (knob mapping, MIDI CC
   14-23, the secondary footswitch, bypass in the main program). The six knobs map to the same parameters; the three-way switches became menu items.
 * **Level.** A fixed output gain of 1.9 (+5.6 dB) makes the effect about +2 dB louder than bypass at its default settings, as for the other effects.

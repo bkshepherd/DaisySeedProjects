@@ -28,8 +28,18 @@ CMSIS_DSP_SRC = \
 $(CMSIS_DSP_DIR)/Source/FilteringFunctions/arm_fir_f32.c \
 $(CMSIS_DSP_DIR)/Source/FilteringFunctions/arm_fir_init_f32.c \
 $(CMSIS_DSP_DIR)/Source/SupportFunctions/arm_fill_f32.c \
-$(CMSIS_DSP_DIR)/Source/BasicMathFunctions/arm_scale_f32.c
+$(CMSIS_DSP_DIR)/Source/BasicMathFunctions/arm_scale_f32.c \
+$(CMSIS_DSP_DIR)/Source/TransformFunctions/arm_rfft_fast_f32.c \
+$(CMSIS_DSP_DIR)/Source/TransformFunctions/arm_rfft_fast_init_f32.c \
+$(CMSIS_DSP_DIR)/Source/TransformFunctions/arm_cfft_f32.c \
+$(CMSIS_DSP_DIR)/Source/TransformFunctions/arm_cfft_init_f32.c \
+$(CMSIS_DSP_DIR)/Source/TransformFunctions/arm_cfft_radix8_f32.c \
+$(CMSIS_DSP_DIR)/Source/TransformFunctions/arm_bitreversal2.c \
+$(CMSIS_DSP_DIR)/Source/CommonTables/arm_common_tables.c \
+$(CMSIS_DSP_DIR)/Source/CommonTables/arm_const_structs.c
 C_DEFS += -DARM_MATH_LOOPUNROLL
+# Only the tables the 4096-point real FFT of Venus needs (it is a 2048-point complex FFT plus a real-FFT twiddle table); without these all of CMSIS-DSP's FFT tables are linked in (about 120 KB)
+C_DEFS += -DARM_DSP_CONFIG_TABLES -DARM_FFT_ALLOW_TABLES -DARM_TABLE_TWIDDLECOEF_F32_2048 -DARM_TABLE_BITREVIDX_FLT_2048 -DARM_TABLE_TWIDDLECOEF_RFFT_F32_4096
 
 CPP_SOURCES = guitar_pedal.cpp guitar_pedal_storage.cpp $(wildcard UI/*.cpp) $(wildcard Util/*.cpp) \
 $(wildcard Hardware-Modules/*.cpp)
@@ -39,42 +49,42 @@ C_SOURCES += $(CMSIS_DSP_SRC)
 # Naming the module sources explicitly to make it easier to add/remove from build. Otherwise all global attributes
 #  will be included in the build and take up memory resources, even when the .h file is commented out. 
 
-CPP_SOURCES += Effect-Modules/autopan_module.cpp
-CPP_SOURCES += Effect-Modules/Chopper/chopper.cpp
-CPP_SOURCES += Effect-Modules/chopper_module.cpp
-CPP_SOURCES += Effect-Modules/chorus_module.cpp
-CPP_SOURCES += Effect-Modules/cloudseed_module.cpp
-CPP_SOURCES += Effect-Modules/compressor_module.cpp
-CPP_SOURCES += Effect-Modules/crusher_module.cpp
-CPP_SOURCES += Effect-Modules/delay_module.cpp
-CPP_SOURCES += Effect-Modules/drum_module.cpp
-CPP_SOURCES += Effect-Modules/dual_echo_module.cpp
-CPP_SOURCES += Effect-Modules/flanger_module.cpp
-CPP_SOURCES += Effect-Modules/geq_module.cpp
-CPP_SOURCES += Effect-Modules/granulardelay_module.cpp
-CPP_SOURCES += Effect-Modules/distortion_module.cpp
+#CPP_SOURCES += Effect-Modules/autopan_module.cpp
+#CPP_SOURCES += Effect-Modules/Chopper/chopper.cpp
+#CPP_SOURCES += Effect-Modules/chopper_module.cpp
+#CPP_SOURCES += Effect-Modules/chorus_module.cpp
+#CPP_SOURCES += Effect-Modules/cloudseed_module.cpp
+#CPP_SOURCES += Effect-Modules/compressor_module.cpp
+#CPP_SOURCES += Effect-Modules/crusher_module.cpp
+#CPP_SOURCES += Effect-Modules/delay_module.cpp
+#CPP_SOURCES += Effect-Modules/drum_module.cpp
+#CPP_SOURCES += Effect-Modules/dual_echo_module.cpp
+#CPP_SOURCES += Effect-Modules/flanger_module.cpp
+#CPP_SOURCES += Effect-Modules/geq_module.cpp
+#CPP_SOURCES += Effect-Modules/granulardelay_module.cpp
+#CPP_SOURCES += Effect-Modules/distortion_module.cpp
 CPP_SOURCES += Effect-Modules/effect_chain.cpp
-CPP_SOURCES += Effect-Modules/harmonic_tremolo_module.cpp
-CPP_SOURCES += Effect-Modules/ImpulseResponse/ImpulseResponse.cpp
-CPP_SOURCES += Effect-Modules/ImpulseResponse/ir_data.cpp
-CPP_SOURCES += Effect-Modules/ir_module.cpp
-CPP_SOURCES += Effect-Modules/looper_module.cpp
-CPP_SOURCES += Effect-Modules/metro_module.cpp
-CPP_SOURCES += Effect-Modules/modulated_tremolo_module.cpp
-CPP_SOURCES += Effect-Modules/multi_delay_module.cpp
-CPP_SOURCES += Effect-Modules/nam_a2_module.cpp
-CPP_SOURCES += Effect-Modules/noise_gate_module.cpp
-CPP_SOURCES += Effect-Modules/overdrive_module.cpp
-CPP_SOURCES += Effect-Modules/peq_module.cpp
-CPP_SOURCES += Effect-Modules/phaser_module.cpp
-CPP_SOURCES += Effect-Modules/pitch_shifter_module.cpp
-CPP_SOURCES += Effect-Modules/polyoctave_module.cpp
-CPP_SOURCES += Effect-Modules/reverb_module.cpp
-CPP_SOURCES += Effect-Modules/scifi_module.cpp
-CPP_SOURCES += Effect-Modules/scope_module.cpp
-CPP_SOURCES += Effect-Modules/spectral_delay_module.cpp
-CPP_SOURCES += Effect-Modules/tape_delay_module.cpp
-CPP_SOURCES += Effect-Modules/tuner_module.cpp
+#CPP_SOURCES += Effect-Modules/harmonic_tremolo_module.cpp
+#CPP_SOURCES += Effect-Modules/ImpulseResponse/ImpulseResponse.cpp
+#CPP_SOURCES += Effect-Modules/ImpulseResponse/ir_data.cpp
+#CPP_SOURCES += Effect-Modules/ir_module.cpp
+#CPP_SOURCES += Effect-Modules/looper_module.cpp
+#CPP_SOURCES += Effect-Modules/metro_module.cpp
+#CPP_SOURCES += Effect-Modules/modulated_tremolo_module.cpp
+#CPP_SOURCES += Effect-Modules/multi_delay_module.cpp
+#CPP_SOURCES += Effect-Modules/nam_a2_module.cpp
+#CPP_SOURCES += Effect-Modules/noise_gate_module.cpp
+#CPP_SOURCES += Effect-Modules/overdrive_module.cpp
+#CPP_SOURCES += Effect-Modules/peq_module.cpp
+#CPP_SOURCES += Effect-Modules/phaser_module.cpp
+#CPP_SOURCES += Effect-Modules/pitch_shifter_module.cpp
+#CPP_SOURCES += Effect-Modules/polyoctave_module.cpp
+#CPP_SOURCES += Effect-Modules/reverb_module.cpp
+#CPP_SOURCES += Effect-Modules/scifi_module.cpp
+#CPP_SOURCES += Effect-Modules/scope_module.cpp
+#CPP_SOURCES += Effect-Modules/spectral_delay_module.cpp
+#CPP_SOURCES += Effect-Modules/tape_delay_module.cpp
+#CPP_SOURCES += Effect-Modules/tuner_module.cpp
 CPP_SOURCES += Effect-Modules/venus_module.cpp
 #CPP_SOURCES += Effect-Modules/reverb_delay_module.cpp
 
@@ -93,9 +103,9 @@ CPP_SOURCES += Effect-Modules/venus_module.cpp
 # the matching block in loaded_effects.h) to opt in; doing so means the
 # resulting firmware binary must be distributed under GPLv3, or not
 # distributed at all. Earth needs the Dattorro engine, so keep them together.
-CPP_SOURCES += Effect-Modules/Dattorro/Dattorro.cpp
-CPP_SOURCES += Effect-Modules/dattorro_reverb_module.cpp
-CPP_SOURCES += Effect-Modules/earth_module.cpp
+#CPP_SOURCES += Effect-Modules/Dattorro/Dattorro.cpp
+#CPP_SOURCES += Effect-Modules/dattorro_reverb_module.cpp
+#CPP_SOURCES += Effect-Modules/earth_module.cpp
 
 # Compiler options
 OPT=-Ofast

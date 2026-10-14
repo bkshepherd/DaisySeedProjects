@@ -73,6 +73,24 @@ sits next to this repository as `../FunBox`, `software/<Effect>/`). Venus is don
 * **Defaults** are mine (the pedal's switches have none): Octave None, FS Action Freeze, Size Medium, Mix 0.4, Decay 0.8.
 * Not yet heard or run on the pedal, including the CPU load and the footswitch actions.
 
+## Venus tuning (second pass)
+
+Venus gave sound but dropped blocks constantly at 48 kHz / 48 samples: each 4096-point FFT stage has to fit inside one 1 ms block. Changes made (not yet checked on the pedal):
+
+* **All other effects are disabled** (Makefile and `loaded_effects.h`; the lines are only commented out) because having them all enabled locked the firmware up (probably out of memory; not investigated).
+  The build is now SRAM 38%, DTCM 54%, SDRAM 144 KB.
+* **Block size** (tried 32 kHz / 256 like the original, then 48 kHz / 256; the shipped setting is now 48 kHz / 48, see the CMSIS note below): `kAudioSampleRate` and `kAudioBlockSize` at the top of `guitar_pedal.cpp` (`SetAudioSampleRate` after `hardware.Init`). Set the block size back to 48 when the
+  other effects come back (they were written and measured at those settings). `kMaxBlock` in the callback is 256 now.
+* **Stage schedule by sample count** (27 stages per 1024-sample hop), so Venus no longer assumes a block size; drift and parameter updates use sample counters too.
+* **Work buffers shrunk and moved on chip:** `middle`/`out` are one frame each (16 KB) in DTCM instead of nine frames each in SDRAM. SDRAM use fell from 441 KB to 147 KB.
+* **CMSIS-DSP FFT** instead of ShyFFT (`Effect-Modules/Venus/cmsis_fft.h`; the Makefile adds the CMSIS transform sources and, via `ARM_DSP_CONFIG_TABLES`, only the tables the 4096-point real FFT needs, +42 KB SRAM).
+  Same spectrum layout, so the spectral code is unchanged; differs from ShyFFT by rounding only (about 1e-6 relative). `tests/host/test_cmsis_fft.cpp` checks the real library, and the host `stub_cmsis/arm_math.h` has a stand-in for the other tests. On its own it did not change the CPU load.
+* **The real fix: run the FFT passes in on-chip RAM, not SDRAM.** Both FFT libraries work in place, and the frames are in SDRAM; one frame's transform took ~2 ms and overran 48-sample blocks (Show Debug read
+  33% average / 225% peak). `CmsisRealFft` now copies the frame in, transforms in a DTCM workspace and copies it out (+16 KB DTCM, now 79%). **Result on the pedal: peak 76%, no dropouts at 48 kHz / 48-sample blocks.**
+  Lesson: the average CPU readout hid this; the peak readout (`average/peak%` in Show Debug, slowest block of the last 2 s) is what shows overruns. DTCM will be tight when NAM etc. return.
+* The host test also runs at 256-sample blocks and fails if any frame needed the "late finish" fallback (`SlicedFourier::lateFinishes()`).
+* Still to check on the pedal: that 8 ms blocks keep up (the CPU readout in Show Debug is an average; the worst block is not shown) and the sound against the original.
+
 ## Next steps
 
 1. Flash and try Venus: check for dropouts, the sound against the original pedal, and the CPU readout; adjust `kOrder`/`kChunks` or the output gain if needed.
