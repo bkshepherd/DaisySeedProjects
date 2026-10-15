@@ -1,5 +1,6 @@
 #include "base_effect_module.h"
 #include "../Util/audio_utilities.h"
+#include "../Util/heap_guard.h"
 
 using namespace bkshepherd;
 
@@ -533,13 +534,16 @@ void BaseEffectModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, 
     }
 
     if (showDebug) {
-        // The effect's own debug text (up to two lines) at the top of the area under the name
+        // The heap: how far it has grown (the most it has needed) and what is left before the end of RAM_D2; then the effect's own debug text (up to two lines)
+        char heapStr[32];
+        heapguard::Summary(heapStr, sizeof(heapStr)); // short: text wider than the 128 pixels of the display is not drawn at all
+        display.WriteStringAligned(heapStr, Font_6x8, boundsToDrawIn, Alignment::topCentered, true);
         char text[48];
         GetDebugText(text, sizeof(text));
         char *second = strchr(text, '\n');
         if (second != nullptr) *second++ = '\0';
-        if (text[0] != '\0') display.WriteStringAligned(text, Font_6x8, boundsToDrawIn, Alignment::topCentered, true);
-        if (second != nullptr && second[0] != '\0') display.WriteStringAligned(second, Font_6x8, boundsToDrawIn.Translated(0, 9), Alignment::topCentered, true);
+        if (text[0] != '\0') display.WriteStringAligned(text, Font_6x8, boundsToDrawIn.Translated(0, 9), Alignment::topCentered, true);
+        if (second != nullptr && second[0] != '\0') display.WriteStringAligned(second, Font_6x8, boundsToDrawIn.Translated(0, 18), Alignment::topCentered, true);
     }
 
     if (showDebug) {

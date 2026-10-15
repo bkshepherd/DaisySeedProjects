@@ -147,6 +147,8 @@ Which effects go into the firmware is chosen in **`effects.config`**, with the t
 
 ```text
 python3 tools/effects.py                           # the interactive full-screen selection (curses): arrows to move, space to select, s to save, h for help
+python3 tools/effects.py observe "boots and runs" --heap-used 120 --heap-free 136   # record what the pedal showed (Show Debug) for the current selection
+python3 tools/effects.py info uranus               # what is known about an effect: origin, copyright lines in its source, who committed it, memory (key i in the interactive mode)
 python3 tools/effects.py list                      # all effects, what is enabled, and what each costs in memory
 python3 tools/effects.py preset uranus-only        # start from a preset (configs/*.config; "everything" enables all effects)
 python3 tools/effects.py enable venus saturn       # enable effects (disable does the opposite)
@@ -187,6 +189,11 @@ Many switchers display Program Change numbers starting at 1 and send the display
 CC0 and CC32 are reserved for Bank Select. Multi Delay Tap Mode moved from CC32 to CC33; update controller assignments that used its old CC. Bank selection is consumed by the next Program Change, so send the complete sequence for each combined recall. The effect order is build-specific and follows `loaded_effects.h`.
 
 ## Combining Effects (EffectChain)
+
+Chains can be made without writing any C++: in the interactive tool (`python3 tools/effects.py`) press `c`, make a chain, add its effects, and map their parameters to knobs and MIDI CCs.
+They are stored in `chains.json`, and `tools/effects.py generate` (or `s` in the tool, or `make`) turns them into `generated/effects_chains.inc`, which `loaded_effects.h` includes. The effects
+of a chain are built even if they are not selected on their own (`[c]` in the list). The tool checks what `effect_chain.cpp` warns about: effects on the CloudSeed engine cannot be chained, and an effect that keeps big buffers
+can exist only once (not also on its own, not in two chains). The rest of this section describes the C++ the tool writes, which you can still write by hand in `loaded_effects.h`.
 
 `Effect-Modules/effect_chain.h` lets you wire two or more effects into a single chained entry in
 `loaded_effects.h`, processed serially (e.g. tremolo into reverb), without changing any of the

@@ -5,6 +5,7 @@
 
 #include "UI/guitar_pedal_ui.h"
 #include "Util/audio_utilities.h"
+#include "Util/heap_guard.h"
 
 using namespace daisy;
 using namespace daisysp;
@@ -725,6 +726,23 @@ void HandleMidiMessage(MidiEvent m) {
     }
 }
 
+// Three lines of text on the display, for the heap guard (see Util/heap_guard.h): the heap ran out, or an effect is estimated not to fit
+static void drawHeapMessage(const char *line1, const char *line2, const char *line3) {
+    if (!hardware.SupportsDisplay()) return;
+    hardware.display.Fill(false);
+    hardware.display.SetCursor(0, 0);
+    hardware.display.WriteString(line1, Font_7x10, true);
+    hardware.display.SetCursor(0, 16);
+    hardware.display.WriteString(line2, Font_6x8, true);
+    hardware.display.SetCursor(0, 28);
+    hardware.display.WriteString(line3, Font_6x8, true);
+    hardware.display.SetCursor(0, 46);
+    hardware.display.WriteString("Select fewer effects", Font_6x8, true);
+    hardware.display.SetCursor(0, 55);
+    hardware.display.WriteString("(tools/effects.py)", Font_6x8, true);
+    hardware.display.Update();
+}
+
 int main(void) {
 
     // Audio settings. Venus (the only effect in this build) is heavy: each of its 4096-point FFT stages has to fit inside one block, which a 1 ms block (48
@@ -735,6 +753,7 @@ int main(void) {
 
     hardware.Init(blockSize, boost);
     hardware.SetAudioSampleRate(kAudioSampleRate);
+    heapguard::SetHaltHandler(drawHeapMessage);
 
     const float sample_rate = hardware.AudioSampleRate();
 
@@ -748,9 +767,21 @@ int main(void) {
     crossFaderTransitionTimeInSamples = hardware.GetNumberOfSamplesForTime(crossFaderTransitionTimeInSeconds);
 
     // Init the Effects Modules
-    load_effects(availableEffectsCount, availableEffects);
+    const uint32_t *heapEstimates = nullptr;
+    heapguard::SetStage("creating effects");
+    load_effects(availableEffectsCount, availableEffects, heapEstimates);
 
     for (int i = 0; i < availableEffectsCount; i++) {
+        // The heap has no other limit than the end of RAM_D2, where the heap guard stops with a message. An effect that is estimated to need more than is left is announced
+        // first (the estimates are rough: it still tries, and the guard decides)
+        heapguard::SetStage(availableEffects[i]->GetName());
+        if (heapEstimates[i] > heapguard::Free() && hardware.SupportsDisplay()) {
+            char line2[32], line3[32];
+            snprintf(line2, sizeof line2, "%s", availableEffects[i]->GetName());
+            snprintf(line3, sizeof line3, "need ~%uK, %uK left", static_cast<unsigned>(heapEstimates[i] / 1024), static_cast<unsigned>(heapguard::Free() / 1024));
+            drawHeapMessage("HEAP WARNING", line2, line3);
+            System::Delay(2500);
+        }
         availableEffects[i]->Init(sample_rate);
 
         if (std::string(availableEffects[i]->GetName()) == std::string("Tuner")) {

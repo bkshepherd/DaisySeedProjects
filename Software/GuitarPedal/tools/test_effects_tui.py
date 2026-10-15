@@ -6,6 +6,7 @@ import os
 import pty
 import re
 import select
+import shutil
 import struct
 import subprocess
 import sys
@@ -20,17 +21,30 @@ import effects as fx  # noqa: E402
 import effects_tui as tui  # noqa: E402
 
 
+def make_root(path):
+    """A copy of the tool's inputs in a temporary directory (the sources are linked): uranus alone selected, no chains."""
+    for name in ("effects.json", "effects-memory.json"):
+        shutil.copy(os.path.join(fx.ROOT, name), os.path.join(path, name))
+    for name in ("Effect-Modules", "configs"):
+        os.symlink(os.path.join(fx.ROOT, name), os.path.join(path, name))
+    with open(os.path.join(path, "effects.config"), "w") as f:
+        f.write("ALLOW_GPL=n\nuranus=y\n")
+    with open(os.path.join(path, "chains.json"), "w") as f:
+        f.write('{"chains": []}\n')
+
+
 class SelectorTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
-        self.saved = (fx.CONFIG, fx.GEN)
+        make_root(self.tmp.name)
+        self.saved = (fx.CONFIG, fx.GEN, fx.CHAINS)
         fx.CONFIG = os.path.join(self.tmp.name, "effects.config")
         fx.GEN = os.path.join(self.tmp.name, "generated")
-        open(fx.CONFIG, "w").write("ALLOW_GPL=n\nuranus=y\n")
+        fx.CHAINS = os.path.join(self.tmp.name, "chains.json")
         self.sel = tui.Selector(fx)
 
     def tearDown(self):
-        fx.CONFIG, fx.GEN = self.saved
+        fx.CONFIG, fx.GEN, fx.CHAINS = self.saved
         self.tmp.cleanup()
 
     def index(self, effect_id):
@@ -91,6 +105,21 @@ class SelectorTest(unittest.TestCase):
         self.assertIn("venus_module.cpp", mk)
         self.assertIn("new VenusModule()", open(os.path.join(fx.GEN, "effects_instances.inc")).read())
 
+    def test_the_defines_are_in_a_file_of_their_own_and_change_with_the_engines(self):
+        # CLOUDSEED_ENGINES sizes the SDRAM pool; the Makefile rebuilds every object when generated/defines.mk changes (a stale pool froze the pedal with two engines)
+        defines = lambda: open(os.path.join(fx.GEN, "defines.mk")).read()
+        self.sel.toggle("jupiter")
+        self.assertTrue(self.sel.save(), self.sel.message)
+        self.assertIn("-DCLOUDSEED_ENGINES=1", defines())
+        stamp = os.stat(os.path.join(fx.GEN, "defines.mk")).st_mtime_ns
+        self.sel.toggle("modulated_tremolo")          # no new defines: the file is not touched, so nothing is rebuilt
+        self.assertTrue(self.sel.save(), self.sel.message)
+        self.assertEqual(os.stat(os.path.join(fx.GEN, "defines.mk")).st_mtime_ns, stamp)
+        self.sel.toggle("neptune")
+        self.assertTrue(self.sel.save(), self.sel.message)
+        self.assertIn("-DCLOUDSEED_ENGINES=2", defines())
+        self.assertNotIn("CLOUDSEED", open(os.path.join(fx.GEN, "effects.mk")).read().replace("cloudseed_pool", ""))  # not in effects.mk any more
+
     def test_presets(self):
         self.assertIn("everything", self.sel.presets())
         self.assertIn("uranus-only", self.sel.presets())
@@ -98,10 +127,182 @@ class SelectorTest(unittest.TestCase):
         self.assertEqual(self.sel.enabled, {"uranus"})
         self.assertTrue(self.sel.dirty)
 
+    def test_info_about_an_effect(self):
+        self.sel.cursor = self.index("uranus")
+        info = "\n".join(self.sel.info_lines())
+        self.assertIn("FunBox", info)          # the origin from the manifest
+        self.assertIn("committed by", info)    # the people from git
+        self.assertIn("Copyright", info)       # a copyright line from the source
+        self.assertIn("Uranus/README.md", info)
+        self.assertIn("from FunBox", self.sel.detail(self.sel.current()))
+
+    def test_info_without_origin_falls_back_to_the_committers(self):
+        e = next(e for e in self.sel.effects if e["id"] == "delay")
+        self.assertIn("committed by", self.sel.detail(e))
+
+    def test_effects_that_use_the_impulse_response_get_its_sources(self):
+        # nam_a2_module.cpp includes ImpulseResponse/...: without the component the link failed (the manifest once missed it)
+        for e in self.sel.effects:
+            text = "".join(open(os.path.join(fx.ROOT, s), errors="replace").read() for s in e["sources"] if os.path.exists(os.path.join(fx.ROOT, s)))
+            if '"ImpulseResponse/' in text or '"ImpulseResponse.h"' in text:
+                self.assertIn("impulse_response", e.get("requires", []), e["id"])
+
     def test_report_and_detail(self):
         self.assertTrue(any("verdict" in l for l in self.sel.report_lines()))
         gpl = next(e for e in self.sel.effects if e.get("license") == "gpl")
         self.assertIn("GPL", self.sel.detail(gpl))
+
+
+class ChainTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        make_root(self.tmp.name)
+        self.saved = (fx.CONFIG, fx.GEN, fx.CHAINS)
+        fx.CONFIG = os.path.join(self.tmp.name, "effects.config")
+        fx.GEN = os.path.join(self.tmp.name, "generated")
+        fx.CHAINS = os.path.join(self.tmp.name, "chains.json")
+        self.sel = tui.Selector(fx)
+        self.chain = {"name": "TremVerb", "slots": [], "mappings": [], "primary": 0, "toggle": []}
+        self.sel.chains.append(self.chain)
+        self.ed = tui.ChainEditor(self.sel, self.chain)
+
+    def tearDown(self):
+        fx.CONFIG, fx.GEN, fx.CHAINS = self.saved
+        self.tmp.cleanup()
+
+    def two(self):
+        self.ed.add_slot("modulated_tremolo", "Tr")
+        self.ed.add_slot("reverb", "Rv")
+        self.ed.add_mapping(0, "DEPTH", 0, 20)
+        self.ed.add_mapping(1, "TIME", 3, 23)
+        self.ed.add_mapping(1, fx.SLOT_ENABLE, None, 30)
+
+    def test_parameters_come_from_the_header_enum(self):
+        self.assertEqual(fx.effect_params(self.sel.m["by_id"]["reverb"]), ["TIME", "DAMP", "MIX"])
+        self.assertIn("DEPTH", fx.effect_params(self.sel.m["by_id"]["modulated_tremolo"]))
+
+    def test_a_chain_needs_two_effects(self):
+        self.ed.add_slot("reverb", "Rv")
+        self.assertTrue(any("at least two" in p for p in self.ed.problems()))
+        self.ed.add_slot("modulated_tremolo", "Tr")
+        self.assertEqual(self.ed.problems(), [])
+
+    def test_default_tags_are_short_and_distinct(self):
+        self.ed.add_slot("modulated_tremolo")
+        self.ed.add_slot("multi_delay")
+        tags = [s["tag"] for s in self.chain["slots"]]
+        self.assertTrue(all(0 < len(t) <= 2 for t in tags))
+        self.assertEqual(len(set(tags)), 2)
+
+    def test_deleting_and_moving_a_slot_fixes_the_references(self):
+        self.two()
+        self.chain["primary"] = 1
+        self.chain["toggle"] = [0]
+        self.ed.move_slot(0, 1)                      # the reverb is first now
+        self.assertEqual([s["effect"] for s in self.chain["slots"]], ["reverb", "modulated_tremolo"])
+        self.assertEqual(self.chain["primary"], 0)  # still the reverb
+        self.assertEqual(self.chain["toggle"], [1])  # still the tremolo
+        self.assertEqual({(m["slot"], m["param"]) for m in self.chain["mappings"]}, {(1, "DEPTH"), (0, "TIME"), (0, fx.SLOT_ENABLE)})
+        self.ed.delete_slot(0)                       # the reverb goes: its mappings go with it
+        self.assertEqual([m["param"] for m in self.chain["mappings"]], ["DEPTH"])
+        self.assertEqual(self.chain["mappings"][0]["slot"], 0)
+        self.assertEqual(self.chain["primary"], 0)
+        self.assertEqual(self.chain["toggle"], [0])
+
+    def test_changing_the_effect_of_a_slot_drops_mappings_it_cannot_have(self):
+        self.two()
+        self.ed.set_effect(1, "modulated_tremolo")   # no TIME there
+        self.assertNotIn("TIME", [m["param"] for m in self.chain["mappings"]])
+        self.assertIn(fx.SLOT_ENABLE, [m["param"] for m in self.chain["mappings"]])
+
+    def test_mapping_mistakes_are_found(self):
+        self.two()
+        self.ed.add_mapping(0, "FREQ", 0, 40)         # knob 1 twice
+        self.ed.add_mapping(0, "WAVE", 5, 20)         # CC 20 twice
+        self.ed.add_mapping(0, "NOPE", 4, 41)
+        text = "; ".join(self.ed.problems())
+        self.assertIn("knob 1 is already used", text)
+        self.assertIn("MIDI CC 20 is already used", text)
+        self.assertIn("no parameter NOPE", text)
+
+    def test_cloudseed_effects_cannot_be_slots_and_big_ones_only_once(self):
+        self.assertTrue(fx.chain_blocked(self.sel.m["by_id"]["cloudseed"], self.sel.m))
+        self.assertTrue(fx.chain_blocked(self.sel.m["by_id"]["jupiter"], self.sel.m))
+        self.two()
+        self.sel.enabled.add("reverb")                # the reverb on its own as well as in the chain
+        self.assertTrue(any("also enabled on its own" in p for p in self.ed.problems()))
+
+    def test_the_chain_builds_its_effects_and_the_status_counts_them(self):
+        self.two()
+        self.assertEqual({"uranus", "modulated_tremolo", "reverb"}, self.sel.built())
+        self.assertIn("1 chains", self.sel.status()[0])
+        self.assertTrue(self.sel.in_chain("reverb"))
+
+    def test_the_generated_code(self):
+        self.two()
+        self.chain["toggle"] = [0]
+        self.chain["primary"] = 1
+        code = fx.chain_code(self.chain, self.sel.m)
+        self.assertIn('"TremVerb"', code)
+        self.assertIn('{{"Tr", new ModulatedTremoloModule()}, {"Rv", new ReverbModule()}}', code)
+        self.assertIn("{0, ModulatedTremoloModule::DEPTH, 0, 20}", code)
+        self.assertIn("{1, ReverbModule::TIME, 3, 23}", code)
+        self.assertIn("{1, EffectChain::SLOT_ENABLE, -1, 30}", code)
+        self.assertIn("/* primarySlot */ 1,", code)
+        self.assertIn("/* footswitchTogglesSlots */ {0}", code)
+
+    def test_save_writes_chains_json_and_the_build_files(self):
+        self.two()
+        self.assertTrue(self.sel.save(), self.sel.message)
+        self.assertEqual(fx.read_chains()[0]["name"], "TremVerb")
+        gen = lambda n: open(os.path.join(fx.GEN, n)).read()
+        self.assertIn("new EffectChain(", gen("effects_chains.inc"))
+        self.assertIn("modulated_tremolo_module.cpp", gen("effects.mk"))      # compiled for the chain
+        self.assertIn("modulated_tremolo_module.h", gen("effects_includes.inc"))
+        self.assertNotIn("new ModulatedTremoloModule()", gen("effects_instances.inc"))  # but not an entry of its own
+
+    def test_the_heap_estimates_are_generated_for_every_entry(self):
+        self.two()
+        self.assertTrue(self.sel.save(), self.sel.message)
+        lines = [l for l in open(os.path.join(fx.GEN, "effects_heap.inc")).read().splitlines() if not l.startswith("//")]
+        self.assertEqual(len(lines), 2)  # uranus, then the chain
+        self.assertGreater(int(lines[0].split(",")[0]), 0)   # uranus: from effects-memory.json
+        self.assertIn("chain TremVerb", lines[1])
+        reverb = self.sel.mem["effects"]["reverb"].get("heap") or 0
+        tremolo = self.sel.mem["effects"]["modulated_tremolo"].get("heap") or 0
+        self.assertEqual(int(lines[1].split(",")[0]), reverb + tremolo)  # a chain: the sum of its effects
+
+    def test_observations_are_recorded_and_shown_in_the_matrix(self):
+        import argparse
+        import contextlib
+        import io
+        saved = fx.MEMORY
+        fx.MEMORY = os.path.join(self.tmp.name, "effects-memory.json")
+        shutil.copy(os.path.join(fx.ROOT, "effects-memory.json"), fx.MEMORY)
+        try:
+            fx.cmd_observe(argparse.Namespace(result="boots and runs", heap_used=100, heap_free=150, note="test", set_base_heap=False))
+            fx.cmd_observe(argparse.Namespace(result="does not boot", heap_used=None, heap_free=None, note=None, set_base_heap=False))  # the same selection again replaces it
+            mem = fx.load_json(fx.MEMORY)
+            mine = [o for o in mem["observed"] if o["effects"] == ["uranus"]]
+            self.assertEqual(len(mine), 1)
+            self.assertEqual(mine[0]["result"], "does not boot")
+            fx.cmd_observe(argparse.Namespace(result="boots and runs", heap_used=100, heap_free=150, note=None, set_base_heap=False))
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out):
+                fx.cmd_matrix(argparse.Namespace(ids=["uranus"]))
+            self.assertIn("heap used 100 K, free 150 K", out.getvalue())
+            # --set-base-heap: the framework's own heap is what was used minus what the effects are estimated to need
+            fx.cmd_observe(argparse.Namespace(result="boots and runs", heap_used=45, heap_free=116, note=None, set_base_heap=True))
+            mem = fx.load_json(fx.MEMORY)
+            effects_heap = mem["effects"]["uranus"]["heap"]
+            self.assertEqual(mem["base"]["heap"], 45 * 1024 - effects_heap)
+        finally:
+            fx.MEMORY = saved
+
+    def test_a_broken_chain_cannot_be_saved(self):
+        self.ed.add_slot("reverb", "Rv")
+        self.assertFalse(self.sel.save())
+        self.assertIn("cannot save", self.sel.message)
 
 
 class ScreenTest(unittest.TestCase):
@@ -110,7 +311,9 @@ class ScreenTest(unittest.TestCase):
     def run_keys(self, keys, rows=24, cols=80):
         master, slave = pty.openpty()
         fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", rows, cols, 0, 0))
-        env = dict(os.environ, TERM="xterm-256color", ESCDELAY="25")
+        self.root = tempfile.TemporaryDirectory()
+        make_root(self.root.name)
+        env = dict(os.environ, TERM="xterm-256color", ESCDELAY="25", EFFECTS_TOOL_ROOT=self.root.name)
         proc = subprocess.Popen([sys.executable, os.path.join(HERE, "effects.py"), "tui"], stdin=slave, stdout=slave, stderr=slave, env=env, close_fds=True)
         os.close(slave)
         out = b""
@@ -149,13 +352,34 @@ class ScreenTest(unittest.TestCase):
         self.assertIn("h: help", text)
 
     def test_arrows_space_help_and_quit_without_saving(self):
-        before = open(fx.CONFIG).read()
         text, code = self.run_keys([b"\x1b[B", b"\x1b[B", b" ", b"h", b"x", b"q", b"n"])
         self.assertEqual(code, 0)
         self.assertIn("Help", text)
         self.assertIn("Unsaved changes", text)  # the selection was changed, so quitting asked
         self.assertIn("* ", text)
-        self.assertEqual(open(fx.CONFIG).read(), before)  # n: nothing saved
+        self.assertEqual(open(os.path.join(self.root.name, "effects.config")).read(), "ALLOW_GPL=n\nuranus=y\n")  # n: nothing saved
+
+    def test_the_info_popup(self):
+        text, code = self.run_keys([b"i", b"x", b"q"])
+        self.assertEqual(code, 0)
+        self.assertIn("committed by", text)
+        self.assertIn("origin", text)
+
+    def test_making_and_saving_a_chain_on_the_screen(self):
+        keys = [b"c", b"n", b"\r",                      # chains, a new chain, keep the suggested name
+                b"j", b"j", b"j", b"\r", b"\r", b"\r",  # to "+ add an effect", the first effect, keep its tag
+                b"a", b"j", b"\r", b"\r",              # another effect (the second in the list), keep its tag
+                b"\x1b", b"\x1b", b"s", b"q"]          # back, back, save, quit
+        text, code = self.run_keys(keys)
+        self.assertEqual(code, 0)
+        self.assertIn("Chain1", text)
+        self.assertIn("saved", text)
+        import json
+        chains = json.load(open(os.path.join(self.root.name, "chains.json")))["chains"]
+        self.assertEqual(len(chains), 1)
+        self.assertEqual(len(chains[0]["slots"]), 2)
+        gen = open(os.path.join(self.root.name, "generated", "effects_chains.inc")).read()
+        self.assertIn("new EffectChain(", gen)
 
     def test_a_small_terminal_does_not_crash(self):
         text, code = self.run_keys([b"q"], rows=5, cols=30)

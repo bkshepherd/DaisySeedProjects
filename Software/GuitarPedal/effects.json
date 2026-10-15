@@ -1,6 +1,14 @@
 {
- "_note": "Effect manifest read by tools/effects.py. The order of the effects is the order of the effect list in the firmware (it decides the menu order and the layout of the saved settings: changing it resets saved settings on the next boot). 'requires' names components below. Effects with license 'gpl' need ALLOW_GPL=y in the config.",
+ "_note": "Effect manifest read by tools/effects.py. The order of the effects is the order of the effect list in the firmware (it decides the menu order and the layout of the saved settings: changing it resets saved settings on the next boot). 'requires' names components below. Effects with license 'gpl' need ALLOW_GPL=y in the config. 'origin' (optional) says where an effect comes from when it is not written here; the tool also shows the copyright lines found at the top of the effect's source files and the people who committed them (author_aliases merges names that are the same person).",
+ "author_aliases": {},
  "components": {
+  "impulse_response": {
+   "doc": "The FIR convolution (CMSIS) and the cabinet impulse responses, used by the IR module and by the NAM module's cabinet option.",
+   "sources": [
+    "Effect-Modules/ImpulseResponse/ImpulseResponse.cpp",
+    "Effect-Modules/ImpulseResponse/ir_data.cpp"
+   ]
+  },
   "cloudseed_pool": {
    "doc": "The CloudSeed engine's delay line memory (SDRAM), needed by every effect built on the engine; its size follows the number of effects that use it (CLOUDSEED_ENGINES, 1 to 3).",
    "sources": [
@@ -197,6 +205,7 @@
   },
   {
    "id": "venus",
+   "origin": "FunBox (GuitarML, Keith Bloemer), MIT",
    "class": "VenusModule",
    "header": "venus_module.h",
    "sources": [
@@ -210,6 +219,7 @@
   },
   {
    "id": "jupiter",
+   "origin": "FunBox (GuitarML, Keith Bloemer), MIT; CloudSeed engine by Ghost Note Audio, MIT",
    "class": "JupiterModule",
    "header": "jupiter_module.h",
    "sources": [
@@ -222,6 +232,7 @@
   },
   {
    "id": "saturn",
+   "origin": "FunBox (GuitarML, Keith Bloemer), MIT",
    "class": "SaturnModule",
    "header": "saturn_module.h",
    "sources": [
@@ -235,6 +246,7 @@
   },
   {
    "id": "neptune",
+   "origin": "FunBox (GuitarML, Keith Bloemer), MIT; CloudSeed engine by Ghost Note Audio, MIT; Veno-Echo delay lines, MIT",
    "class": "NeptuneModule",
    "header": "neptune_module.h",
    "sources": [
@@ -247,12 +259,66 @@
   },
   {
    "id": "uranus",
+   "origin": "FunBox (GuitarML, Keith Bloemer), MIT",
    "class": "UranusModule",
    "header": "uranus_module.h",
    "sources": [
     "Effect-Modules/uranus_module.cpp"
    ],
    "note": "Granular delay and synth from the FunBox project (MIT); uses MIDI notes for its synth modes; single-instance only"
+  },
+  {
+   "id": "balnea",
+   "class": "BalneaModule",
+   "header": "balnea_module.h",
+   "sources": [
+    "Effect-Modules/balnea_module.cpp"
+   ],
+   "origin": "FunBox (GuitarML, Keith Bloemer), MIT; reverse delay line by Adam Fulford, MIT",
+   "note": "Delay and pitch shifter from the FunBox project (MIT); tap tempo on the secondary footswitch; MIDI notes play a synth; 0.4 MB of SDRAM; single-instance only"
+  },
+  {
+   "id": "pluto",
+   "class": "PlutoModule",
+   "header": "pluto_module.h",
+   "sources": [
+    "Effect-Modules/pluto_module.cpp"
+   ],
+   "origin": "FunBox (GuitarML, Keith Bloemer), MIT; looper from DaisySP (Electrosmith), MIT",
+   "note": "Dual looper with variable speed from the FunBox project (MIT); 23 MB of SDRAM; single-instance only"
+  },
+  {
+   "id": "cassini",
+   "class": "CassiniModule",
+   "header": "cassini_module.h",
+   "sources": [
+    "Effect-Modules/cassini_module.cpp"
+   ],
+   "origin": "FunBox (GuitarML, Keith Bloemer), MIT; looper from DaisySP (Electrosmith), MIT",
+   "note": "Chromatic sampler for a MIDI keyboard from the FunBox project (MIT); 23 MB of SDRAM; single-instance only"
+  },
+  {
+   "id": "mars",
+   "class": "MarsModule",
+   "header": "mars_module.h",
+   "sources": [
+    "Effect-Modules/mars_module.cpp"
+   ],
+   "origin": "FunBox (GuitarML, Keith Bloemer), MIT; network after RTNeural (BSD-3-Clause)",
+   "note": "Amp sim (three GRU models, three cabinets) and delay from the FunBox project (MIT); mono; single-instance only",
+   "requires": [
+    "impulse_response"
+   ]
+  },
+  {
+   "id": "mercury",
+   "class": "MercuryModule",
+   "header": "mercury_module.h",
+   "sources": [
+    "Effect-Modules/mercury_module.cpp"
+   ],
+   "origin": "FunBox (GuitarML, Keith Bloemer), MIT; WaveNet after RTNeural-NAM (BSD-3-Clause, jatinchowdhury18)",
+   "note": "Amp sim with nine NAM pico models and a four band EQ from the FunBox project (MIT); mono; 33 KB of DTCM; single-instance only"
   },
   {
    "id": "delay",
@@ -288,7 +354,10 @@
    "sources": [
     "Effect-Modules/nam_a2_module.cpp"
    ],
-   "note": "single-instance only"
+   "note": "single-instance only",
+   "requires": [
+    "impulse_response"
+   ]
   },
   {
    "id": "scifi",
@@ -338,9 +407,10 @@
    "class": "IrModule",
    "header": "ir_module.h",
    "sources": [
-    "Effect-Modules/ImpulseResponse/ImpulseResponse.cpp",
-    "Effect-Modules/ImpulseResponse/ir_data.cpp",
     "Effect-Modules/ir_module.cpp"
+   ],
+   "requires": [
+    "impulse_response"
    ]
   },
   {
@@ -465,6 +535,7 @@
   },
   {
    "id": "earth",
+   "origin": "FunBox (GuitarML, Keith Bloemer), GPL-3.0-or-later; Dattorro engine",
    "class": "EarthModule",
    "header": "earth_module.h",
    "sources": [

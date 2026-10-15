@@ -1,5 +1,5 @@
 {
- "_note": "Memory cost of the effects, read by tools/effects.py. Static figures are bytes per region measured from the object files (`tools/effects.py measure`). 'heap' is what the effect allocates with new: host estimates from tests/host/run_heap_report.sh (the CloudSeed engine's 110000 is a planning figure inferred from what booted, see PERFORMANCE_AND_MEMORY.md); null means not measured.",
+ "_note": "Memory cost of the effects, read by tools/effects.py. Static figures are bytes per region measured from the object files (`tools/effects.py measure`). 'heap' is what the effect allocates with new: host estimates from tests/host/run_heap_report.sh (the CloudSeed engine takes about 9 KB: measured for Jupiter on the pedal; the host count of 129 KB was far too high, see PERFORMANCE_AND_MEMORY.md); null means not measured.",
  "regions": {
   "dtcm": 131072,
   "ram_d2": 262144,
@@ -11,18 +11,18 @@
   "ram_d2": 8192
  },
  "base": {
-  "dtcm": 29944,
+  "dtcm": 29976,
   "ram_d2": 0,
-  "sram": 188869,
+  "sram": 191211,
   "sdram": 0,
-  "heap": 0,
-  "_calibrated_with": "the build of: uranus"
+  "heap": 18476,
+  "_calibrated_with": "the build of: uranus, balnea, pluto, cassini, mars, mercury"
  },
  "components": {
   "cloudseed_pool": {
    "dtcm": 0,
    "ram_d2": 0,
-   "sram": 7967,
+   "sram": 7571,
    "sdram": 2531132
   },
   "dattorro_engine": {
@@ -42,6 +42,12 @@
   "cmsis_tables_1024": {
    "sram": 9216,
    "_source": "approximate, scaled from the 4096 tables"
+  },
+  "impulse_response": {
+   "dtcm": 36,
+   "ram_d2": 0,
+   "sram": 9324,
+   "sdram": 0
   }
  },
  "effects": {
@@ -54,12 +60,13 @@
    "static_source": "object files (arm-none-eabi-size -A)"
   },
   "jupiter": {
-   "heap": 110000,
+   "heap": 9216,
    "dtcm": 68,
    "ram_d2": 0,
    "sram": 27495,
    "sdram": 0,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap_source": "measured on the pedal: Show Debug heap used 45 K without Jupiter, 54 K with it"
   },
   "saturn": {
    "heap": 1782,
@@ -70,28 +77,30 @@
    "static_source": "object files (arm-none-eabi-size -A)"
   },
   "neptune": {
-   "heap": 110000,
+   "heap": 7373,
    "dtcm": 244,
    "ram_d2": 0,
    "sram": 28154,
    "sdram": 4608000,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap_source": "measured on the pedal by difference: Show Debug heap used 54 K (with Cassini, without Neptune), 60 K (without Cassini, with Neptune)"
   },
   "uranus": {
    "heap": 13028,
    "dtcm": 3348,
    "ram_d2": 96000,
-   "sram": 7757,
+   "sram": 7693,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)"
   },
   "cloudseed": {
-   "heap": 110000,
+   "heap": 9216,
    "dtcm": 612,
    "ram_d2": 0,
    "sram": 31796,
    "sdram": 0,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap_source": "inferred from Jupiter (the same engine; its delay lines are in the SDRAM pool, not on the heap)"
   },
   "modulated_tremolo": {
    "dtcm": 32,
@@ -365,6 +374,46 @@
    "sram": 13670,
    "sdram": 2097152,
    "static_source": "object files (arm-none-eabi-size -A)"
+  },
+  "balnea": {
+   "dtcm": 24,
+   "ram_d2": 0,
+   "sram": 13777,
+   "sdram": 393216,
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 3520
+  },
+  "pluto": {
+   "dtcm": 44,
+   "ram_d2": 0,
+   "sram": 9028,
+   "sdram": 23436100,
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 520
+  },
+  "cassini": {
+   "dtcm": 36,
+   "ram_d2": 0,
+   "sram": 10358,
+   "sdram": 23436100,
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 1184
+  },
+  "mars": {
+   "dtcm": 72,
+   "ram_d2": 0,
+   "sram": 13342,
+   "sdram": 672016,
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 9040
+  },
+  "mercury": {
+   "dtcm": 35096,
+   "ram_d2": 0,
+   "sram": 23365,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 312
   }
  },
  "observed": [
@@ -405,6 +454,53 @@
     "uranus"
    ],
    "result": "does not boot"
+  },
+  {
+   "effects": [
+    "balnea",
+    "cassini",
+    "mars",
+    "mercury",
+    "pluto",
+    "uranus"
+   ],
+   "result": "boots and runs",
+   "heap_used_kb": 45,
+   "heap_free_kb": 116,
+   "note": "Show Debug on the pedal, after boot",
+   "estimated_heap_kb": 26
+  },
+  {
+   "effects": [
+    "balnea",
+    "cassini",
+    "jupiter",
+    "mars",
+    "mercury",
+    "pluto",
+    "uranus"
+   ],
+   "result": "boots and runs",
+   "heap_used_kb": 54,
+   "heap_free_kb": 108,
+   "note": "Show Debug on the pedal, after boot; Jupiter added to funbox-newest",
+   "estimated_heap_kb": 152
+  },
+  {
+   "effects": [
+    "balnea",
+    "jupiter",
+    "mars",
+    "mercury",
+    "neptune",
+    "pluto",
+    "uranus"
+   ],
+   "result": "boots and runs",
+   "heap_used_kb": 60,
+   "heap_free_kb": 101,
+   "note": "Show Debug on the pedal; the heap did not change when each effect was selected in turn (Jupiter, Neptune, Uranus, Balnea, Pluto, Mars, Mercury); audio untested",
+   "estimated_heap_kb": 60
   }
  ]
 }

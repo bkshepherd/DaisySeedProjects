@@ -1,0 +1,4 @@
+{
+ "_note": "Effect chains, edited with tools/effects.py (key c in the interactive mode). knob is 0-5 for the six knobs and 6-11 for the same knobs while the alternate footswitch's shift bank is on; null for none.",
+ "chains": []
+}

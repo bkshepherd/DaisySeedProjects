@@ -13,11 +13,15 @@
 
 namespace bkshepherd {
 
-void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffects) {
+// heapEstimates: for each effect in the list, what it is estimated to allocate with new (bytes, from effects-memory.json), for the check at startup
+void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffects, const uint32_t *&heapEstimates) {
     // clang-format off
     static BaseEffectModule* effectList[] = {
         // The chosen effects (their order is the order in effects.json: it decides the menu order and the layout of the saved settings)
         #include "generated/effects_instances.inc"
+
+        // The chains of chains.json (several effects combined into one entry, see README.md: Combining Effects), made with tools/effects.py
+        #include "generated/effects_chains.inc"
 
         // Effects chain examples
 
@@ -78,8 +82,15 @@ void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffec
     };
     // clang-format on
 
+    // The first entry is a placeholder, so that the array is never empty (a list without effects)
+    static const uint32_t heapEstimateList[] = {
+        0,
+        #include "generated/effects_heap.inc"
+    };
+
     availableEffectsCount = sizeof(effectList) / sizeof(effectList[0]);
     availableEffects = effectList;
+    heapEstimates = &heapEstimateList[1];
 }
 
 } // namespace bkshepherd

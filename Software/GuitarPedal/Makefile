@@ -43,6 +43,7 @@ C_SOURCES += $(CMSIS_DSP_SRC)
 # that matters for memory, since global buffers in an object file can stay in the firmware even if nothing uses them (see PERFORMANCE_AND_MEMORY.md).
 CPP_SOURCES += Effect-Modules/effect_chain.cpp
 include generated/effects.mk
+include generated/defines.mk
 
 # Compiler options
 OPT=-Ofast
@@ -65,8 +66,12 @@ SYSTEM_FILES_DIR = $(LIBDAISY_DIR)/core
 include $(SYSTEM_FILES_DIR)/Makefile
 
 # Regenerate the effect build files when the selection changes (GNU make remakes an included makefile that is out of date, and then starts over)
-generated/effects.mk: effects.config effects.json tools/effects.py
+generated/effects.mk generated/defines.mk: effects.config chains.json effects.json tools/effects.py
 	python3 tools/effects.py generate
+
+# The defines of the selection (generated/defines.mk) change how some sources compile (the size of the CloudSeed pool, the CMSIS FFT tables): without this a changed define
+# left the old object file in the build, and the firmware had a pool for one reverb engine while two were selected.
+$(OBJECTS): generated/defines.mk
 
 
 # Override libDaisy's `program-dfu` to wait for a DFU-capable device instead

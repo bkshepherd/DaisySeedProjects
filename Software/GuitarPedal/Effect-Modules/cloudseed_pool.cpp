@@ -6,7 +6,9 @@
 #include "daisy_seed.h"
 #include <cstddef>
 
-// The size follows the number of effects that use the engine: CLOUDSEED_ENGINES is set by the build (tools/effects.py counts them); 3 if it is not set (the host tests).
+#include "../Util/heap_guard.h"
+
+// The size follows the number of effects that use the engine: CLOUDSEED_ENGINES is set by the build (tools/effects.py counts them: -DCLOUDSEED_ENGINES in generated/defines.mk); 3 if it is not set (the host tests).
 #ifndef CLOUDSEED_ENGINES
 #define CLOUDSEED_ENGINES 3
 #endif
@@ -23,7 +25,12 @@ size_t pool_index = 0;
 int allocation_count = 0;
 void *custom_pool_allocate(size_t size) {
     if (pool_index + size >= CUSTOM_POOL_SIZE) {
+#ifdef __arm__
+        // The engine does not cope with a null pointer (it freezes the pedal): say what is wrong instead
+        heapguard::Halt("OUT OF MEMORY", "CloudSeed pool full", "see CLOUDSEED_ENGINES");
+#else
         return 0;
+#endif
     }
     void *ptr = &custom_pool[pool_index];
     pool_index += size;

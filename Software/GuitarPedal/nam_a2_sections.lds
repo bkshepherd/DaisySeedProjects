@@ -26,15 +26,18 @@
     INSERT script must be listed first on the command line. Do NOT add a MEMORY
     command here.
 
-    Placement (INSERT BEFORE .heap): this just keeps the history at the bottom of
-    RAM_D2. The active heap is NOT here — newlib's _sbrk grows it from `end` in
-    DTCMRAM, and libDaisy's RAM_D2 `.heap` section is unused on this target — so the
-    exact INSERT point is benign. (Keeping the history out of DTCMRAM is what leaves
-    that DTCMRAM heap its headroom.)
+    Placement (INSERT BEFORE .heap): this keeps the .sram_d2_bss data at the bottom of
+    RAM_D2, in front of the heap. The heap (newlib's _sbrk, see Util/heap_guard.cpp) grows
+    from `end`, which libDaisy's script places right after the .heap section, i.e. in
+    RAM_D2 behind this data (checked in the ELF: `end` is in 0x3000xxxx): what is placed
+    here is paid for out of the heap, and the heap ends at _ram_d2_limit, the end of RAM_D2
+    (provided below).
 */
 
 SECTIONS
 {
+    PROVIDE(_ram_d2_limit = ORIGIN(RAM_D2) + LENGTH(RAM_D2));
+
     .sram_d2_bss (NOLOAD) :
     {
         . = ALIGN(32);
