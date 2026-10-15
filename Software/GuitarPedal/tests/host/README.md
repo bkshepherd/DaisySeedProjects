@@ -26,6 +26,11 @@ BASE_REF=053079b tests/host/run_tests.sh   # compare against another ref
 | Tape Delay defaults | startup state (only `Init()` run) vs the state after touching Mix to its default | regression test for a past bug (see below); includes memory pre-filled with zero / garbage / NaN bytes and a one-step Mix change |
 | Venus | sliced STFT vs one-shot `Fourier` (exact), module block vs per-sample | exact; the sliced pipeline matches the original `Fourier` delayed by a hop until the original's slot-reuse drift begins |
 | Earth | arena size, octave, freeze, overdrive swell, finite output, block vs per-sample | block and per-sample paths identical; behaviour checks on the PC |
+| Balnea | block vs per-sample (mono, stereo, 256-sample blocks, every option, taps, MIDI note), reverse line vs the original `delayline_reverse.h`, delay time, tap tempo, self-oscillation | block and per-sample identical; the reverse line is bit-exact to the original (kept in `tests/host/balnea/`) |
+| Pluto | block vs per-sample for every effect and speed mode; loopers (playback at 1x, 2x and backwards equals the recording, pause, clear, frippertronics, footswitch target), effects, LED | block and per-sample identical; loops equal the recorded input to 1e-6 |
+| Cassini | block vs per-sample; the sampler (record, pitch of every key, one-shot/looped, trims, backwards, banks, velocity, release), looper, filter, LED | block and per-sample identical; measured pitches within 3% of the key's |
+| Mars | the GRU network vs the original's output on RTNeural (reference data in `tests/host/mars/`), block vs per-sample for each model/cabinet/delay mode, controls, delay time and second tap | exact maths agrees to 2e-5, the fast tanh/sigmoid to 2% of the peak |
+| Mercury | the pico WaveNet vs the original's output (RTNeural-NAM, reference data in `tests/host/mercury/`) for all nine models, the short prewarm vs the original's 16384 samples, block vs per-sample, EQ bands, model change | network within 2e-5 of the original; the prewarm identical |
 | CloudSeed | original (`BASE_REF`) vs new | bit-exact when the new module code is built with block size 1; at the shipped block size only finite and close in level (the block size shifts the reverb's feedback timing by a few samples) |
 
 Note on the Tape Delay equivalence step: the original code has the Mix bug fixed in `test_tape_delay_defaults.cpp`, so `run_tests.sh` applies the same two-line fix to its copy of the
@@ -83,3 +88,10 @@ without MIDI notes) are barely exercised, and an effect whose behaviour depends 
 
 `tests/host/compare_earth_engine.sh` (optional, needs a clone of the FunBox project, `FUNBOX_DIR`) compares the Dattorro engine of the FunBox Earth pedal with this repository's in impulse
 responses; see `Effect-Modules/Earth/README.md` for what it found.
+
+
+## Reference data from RTNeural (Mars, Mercury)
+
+`tests/host/mars/gru_reference.bin` and `tests/host/mercury/wavenet_reference.bin` are the outputs of the original networks (RTNeural and RTNeural-NAM with Eigen, from a clone of
+<https://github.com/GuitarML/Funbox>) for a fixed input; the tests compare the modules' own plain C++ networks to them. They only need regenerating if the model data changes: the generators
+(`gru_reference_gen.cpp`, `wavenet_reference_gen.cpp` in the same directories) have the command line in their header comments.

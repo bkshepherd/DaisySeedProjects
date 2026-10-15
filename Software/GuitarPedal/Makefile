@@ -92,6 +92,15 @@ CPP_SOURCES += Effect-Modules/effect_chain.cpp
 #CPP_SOURCES += Effect-Modules/saturn_module.cpp
 #CPP_SOURCES += Effect-Modules/neptune_module.cpp
 CPP_SOURCES += Effect-Modules/uranus_module.cpp
+CPP_SOURCES += Effect-Modules/balnea_module.cpp
+CPP_SOURCES += Effect-Modules/pluto_module.cpp
+CPP_SOURCES += Effect-Modules/cassini_module.cpp
+CPP_SOURCES += Effect-Modules/mars_module.cpp
+CPP_SOURCES += Effect-Modules/mercury_module.cpp
+# Mars uses the IR module's FIR convolution (the IR module itself may be enabled too: listed once)
+ifeq (,$(filter Effect-Modules/ImpulseResponse/ImpulseResponse.cpp,$(CPP_SOURCES)))
+CPP_SOURCES += Effect-Modules/ImpulseResponse/ImpulseResponse.cpp
+endif
 #CPP_SOURCES += Effect-Modules/reverb_delay_module.cpp
 
 # Keyboard oriented modules

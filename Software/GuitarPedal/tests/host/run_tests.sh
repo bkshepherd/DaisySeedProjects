@@ -96,7 +96,7 @@ for f in TransformFunctions/arm_rfft_fast_f32 TransformFunctions/arm_rfft_fast_i
     gcc -O1 -w $CMSDEFS $CMSINC -c "$CMS/Source/$f.c" -o "$o" || CMSOK=0
     CMSOBJS="$CMSOBJS $o"
 done
-if [ "$CMSOK" = 1 ] && $CXX -std=c++20 -O1 -w $CMSDEFS $CMSINC -I$T/stub -IEffect-Modules $T/test_cmsis_fft.cpp $CMSOBJS -o "$B/t_cmsis_fft" 2>&1 | grep -E "error|undefined" | head -5; [ -x "$B/t_cmsis_fft" ]; then check "$B/t_cmsis_fft"; else FAILS=$((FAILS + 1)); fi
+if [ "$CMSOK" = 1 ] && $CXX -std=c++20 -O1 -w $CMSDEFS $CMSINC -I$T/stub -IEffect-Modules -IUtil $T/test_cmsis_fft.cpp $CMSOBJS -o "$B/t_cmsis_fft" 2>&1 | grep -E "error|undefined" | head -5; [ -x "$B/t_cmsis_fft" ]; then check "$B/t_cmsis_fft"; else FAILS=$((FAILS + 1)); fi
 
 step "Saturn: block vs per-sample, 256-sample blocks, signal path, controls"
 if XFLAGS="-I$T/stub_cmsis" build "$B/t_saturn" $T/test_saturn.cpp Effect-Modules/saturn_module.cpp $BASEMOD $DSP/Synthesis/oscillator.cpp; then check "$B/t_saturn"; else FAILS=$((FAILS + 1)); fi
@@ -122,6 +122,21 @@ if XFLAGS="-I$B/np_n1/Effect-Modules -I$B/np_n1/dependencies/CloudSeed" build "$
 
 step "Uranus: block vs per-sample, controls, MIDI notes and CCs (granular and FM synth)"
 if XFLAGS= build "$B/t_uranus" $T/test_uranus.cpp Effect-Modules/uranus_module.cpp Util/granularplayermod.cpp Util/operator.cpp $BASEMOD $DSP/Synthesis/oscillator.cpp $DSP/Control/adsr.cpp $DSP/Control/phasor.cpp; then check "$B/t_uranus"; else FAILS=$((FAILS + 1)); fi
+
+step "Balnea: block vs per-sample, reverse line vs the original, delay time, tap tempo, MIDI"
+if XFLAGS="-I$T" build "$B/t_balnea" $T/test_balnea.cpp Effect-Modules/balnea_module.cpp $BASEMOD $DSP/Synthesis/oscillator.cpp $DSP/Control/adsr.cpp $DSP/Filters/svf.cpp; then check "$B/t_balnea"; else FAILS=$((FAILS + 1)); fi
+
+step "Pluto: block vs per-sample, loopers (speed, direction, modes, pause, clear), effects, LED"
+if XFLAGS="-I$T" build "$B/t_pluto" $T/test_pluto.cpp Effect-Modules/pluto_module.cpp $BASEMOD $REVSC $LGPL/Filters/tone.cpp $LGPL/Filters/atone.cpp $LGPL/Dynamics/balance.cpp; then check "$B/t_pluto"; else FAILS=$((FAILS + 1)); fi
+
+step "Cassini: block vs per-sample, sampler (record, pitch, trim, banks, modes), looper, filter, LED"
+if XFLAGS="-I$T" build "$B/t_cassini" $T/test_cassini.cpp Effect-Modules/cassini_module.cpp $BASEMOD $REVSC $DSP/Control/adsr.cpp $DSP/Filters/svf.cpp; then check "$B/t_cassini"; else FAILS=$((FAILS + 1)); fi
+
+step "Mars: network vs the original (RTNeural reference data), block vs per-sample, controls, delay and its second tap"
+if XFLAGS="-I$T -I$T/stub_cmsis" build "$B/t_mars" $T/test_mars.cpp Effect-Modules/mars_module.cpp Effect-Modules/ImpulseResponse/ImpulseResponse.cpp $BASEMOD $LGPL/Filters/tone.cpp $LGPL/Filters/atone.cpp $LGPL/Dynamics/balance.cpp; then check "$B/t_mars"; else FAILS=$((FAILS + 1)); fi
+
+step "Mercury: network vs the original (RTNeural-NAM reference data), prewarm, block vs per-sample, EQ, model changes"
+if XFLAGS="-I$T" build "$B/t_mercury" $T/test_mercury.cpp Effect-Modules/mercury_module.cpp $BASEMOD; then check "$B/t_mercury"; else FAILS=$((FAILS + 1)); fi
 
 step "Earth: reverb arena, octave, freeze, overdrive swell, block vs per-sample"
 if XFLAGS= build "$B/t_earth" $T/test_earth.cpp Effect-Modules/earth_module.cpp Effect-Modules/Dattorro/Dattorro.cpp $BASEMOD $DSP/Effects/overdrive.cpp; then check "$B/t_earth"; else FAILS=$((FAILS + 1)); fi

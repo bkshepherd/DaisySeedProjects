@@ -1,7 +1,7 @@
 # Hand-off: converting FunBox effects
 
 Written so a fresh session or developer can continue converting effects from the FunBox project (<https://github.com/GuitarML/Funbox>, MIT, a clone
-sits next to this repository as `../FunBox`, `software/<Effect>/`). Venus is done; this note records the recipe that worked and what is left.
+sits next to this repository as `../FunBox`, `software/<Effect>/`). All eleven product effects are converted now; this note records what was done, the recipe that worked and what is left to check on the pedal.
 
 ## Status
 
@@ -27,20 +27,35 @@ sits next to this repository as `../FunBox`, `software/<Effect>/`). Venus is don
 * **Uranus** (granular delay and synth, MIDI): converted. `Effect-Modules/uranus_module.{h,cpp}` and `Effect-Modules/Uranus/` (README with the controls, the MIDI notes and the changes). Reuses `Util/granularplayermod.*` (Granular
   Delay) and the FM voices, which moved from `fm_keys_module.h` to `Util/fm_voices.h`. The half second of audio is in RAM_D2 (84% now: NAM's 77 KB would no longer fit next to it); DTCM 82%. MIDI: the framework already routes notes (`OnNoteOn/OnNoteOff`) and
   CCs (`midiCCMapping`) to the active effect; Uranus uses both. Runs on the pedal (as the only effect in the build) but **the MIDI input is untested on hardware: no MIDI connector was available. Test the notes (granular and FM synth modes), the CCs and the MIDI channel with a keyboard.**
+* **Balnea** (delay and pitch shifter, MIDI synth): converted. `Effect-Modules/balnea_module.{h,cpp}` and `Effect-Modules/Balnea/` (README with the controls and changes; `balnea_dsp.h` holds the tape wow/flutter modulator, the reverse delay line
+  by Adam Fulford (MIT) and the MIDI synth voices). The delay lines (2 x 16384 samples) and the reverse lines (2 x 32768) are in SDRAM (about 384 KB). The three switches, the dip switches and the alternate mode became menu parameters; tap tempo is the
+  secondary footswitch (tap on release, hold 300 ms for the self-oscillation) and writes a `Time` parameter. The reverse line is checked against the original (bit for bit) in `tests/host/test_balnea.cpp`; the original's out-of-range read at a crossfade start and the reverse mode that only reached the left channel are fixed (README).
+  Not heard or run on the pedal; the MIDI synth is untested without a keyboard.
+* **Pluto** (dual looper, variable speed, stability/filter/reverb): converted. `Effect-Modules/pluto_module.{h,cpp}`, `Effect-Modules/Pluto/`, and the looper in `Util/var_speed_looper.h` (shared with Cassini). The original ran at 96 kHz with 23 MB per looper;
+  here 48 kHz, a minute (11.5 MB) per looper, 23 MB of SDRAM for both, with linear interpolation in the playback. One footswitch (the pedal has one secondary footswitch) for the loopers: a `Footswitch` parameter chooses A + B, A or B.
+  The original read one stale sample at the start of every loop (it relied on a cleared buffer); fixed. Not heard or run on the pedal.
+* **Cassini** (chromatic sampler for a MIDI keyboard): converted. `Effect-Modules/cassini_module.{h,cpp}` and `Effect-Modules/Cassini/`. Three 20 s sample banks (11.5 MB) and the looper (11.5 MB) in SDRAM, none cleared at startup. The secondary footswitch records the sample (hold)
+  or runs the looper (tap), chosen by a `Footswitch` parameter. The original's reverse playback stalled at the start of the sample (found by the tests); fixed. Needs a MIDI keyboard; untested on hardware.
+* **Mars** (amp sim with three GRU models, three cabinets, delay with dotted eighth and triplet): converted. `Effect-Modules/mars_module.{h,cpp}` and `Effect-Modules/Mars/` (README; `mars_dsp.h`, `mars_models.h`, `mars_ir_data.h`). RTNeural and Eigen are not in this repository, so the 9-unit GRU is
+  a few lines of plain C++ with a rational `tanh` (the exact version agrees with RTNeural to 4e-6 on reference data generated with RTNeural, `tests/host/mars/`; the fast one to 2e-4); the cabinet uses the repository's CMSIS FIR (`ImpulseResponse`). Level calibrated per model and cabinet to +3 dB.
+  Mono. Not heard or run on the pedal: **check the CPU (the GRU is the heavy part: about 250 multiply-adds and 27 `tanh`/logistic per sample).**
+* **Mercury** (amp sim with nine NAM "pico" WaveNet models and a four band EQ): converted. `Effect-Modules/mercury_module.{h,cpp}` and `Effect-Modules/Mercury/` (README; `wavenet_pico.h` is a plain C++ rewrite of the RTNeural-NAM network, BSD-3-Clause, the licence text is in the directory). The output equals the original network's for all nine
+  models to 4e-6 (`tests/host/mercury/`), the prewarm after a model change is shortened from 16384 samples to the receptive field (identical result, checked), and the model change runs on the main loop with the output muted, like the NAM module. 33 KB of DTCM for the network's history. Level calibrated per model to +3 dB.
+  Not heard or run on the pedal: **check the CPU (about 500 multiply-adds and 40 `tanh` per sample for the 20 layers).**
 * Not checked on the pedal: the CPU load and, above all, whether the 48-sample blocks keep up (see "Real time" below), and the sound.
 
 ## Which FunBox effects are new here
 
 | FunBox effect | What it is | Already in this repository? |
 |---|---|---|
-| **Balnea** | Digital delay and pitch shifter (CBA Thermae style) | New (there is a Delay, a Pitch Shifter and a Multi Delay, but not this combination) |
-| **Cassini** | Chromatic sampler played from a MIDI keyboard | New |
-| **Pluto** | Dual/stereo looper with variable-speed playback and effects | New (there is a Looper) |
+| **Balnea** | Digital delay and pitch shifter (CBA Thermae style) | **Converted** (Balnea module) |
+| **Cassini** | Chromatic sampler played from a MIDI keyboard | **Converted** (Cassini module) |
+| **Pluto** | Dual/stereo looper with variable-speed playback and effects | **Converted** (Pluto module; the Looper is a simpler single/stereo looper) |
 | Saturn | Spectral delay | **Converted** (Saturn module, the full effect; the repository's older Spectral Delay is a reduced version of it) |
 | Earth | Dattorro plate reverb and octaves | Dattorro (GPL) - **converted**, see Status |
 | Jupiter | Stereo reverb built on CloudSeed | CloudSeed engine - **converted** (Jupiter module) |
 | Neptune | Reverb + delay built on CloudSeed | **Converted** (Neptune module) |
-| Mars, Mercury | Amp sims with NAM models and cabinet IRs | NAM and IR |
+| Mars, Mercury | Amp sims with small neural models (GRU / NAM pico) and cabinet IRs | **Converted** (Mars and Mercury modules; the NAM A2 module runs the official A2 Nano models and is a separate thing) |
 | Uranus | Granular delay and synth (with MIDI) | **Converted** (Uranus module; Granular Delay is the same grain player without the feedback, grain modes and synth modes) |
 | Venus | Spectral reverb | **Converted** |
 
@@ -89,11 +104,19 @@ sits next to this repository as `../FunBox`, `software/<Effect>/`). Venus is don
 * **Defaults** are mine (the pedal's switches have none): Octave None, FS Action Freeze, Size Medium, Mix 0.4, Decay 0.8.
 * Not yet heard or run on the pedal, including the CPU load and the footswitch actions.
 
-## Current build: only Uranus is enabled
+## Current build: Uranus and the five newest effects are enabled
 
-Having all five converted effects (Venus, Jupiter, Saturn, Neptune, Uranus) enabled together did **not boot** on the pedal (some memory ran out: with everything, DTCM was 82% and RAM_D2 84% static; my guess is the DTCM heap, where the effects'
-`new` allocations go, but that was not confirmed). The Makefile and `loaded_effects.h` now enable **only Uranus** (the other four are commented out, and `cloudseed_pool.cpp` with them since only Jupiter and Neptune need it); that build boots and runs. Bring the others back one or two at
-a time (uncomment the Makefile line and the include and instance in `loaded_effects.h`), checking the memory report and that it boots. Venus, Jupiter and Saturn were each run on the pedal in earlier builds (with the older sets of effects); Neptune has not been run on the pedal at all yet.
+Having all five of the first converted effects (Venus, Jupiter, Saturn, Neptune, Uranus) enabled together did **not boot** on the pedal (some memory ran out: with everything, DTCM was 82% and RAM_D2 84% static; my guess is the DTCM heap, where the effects'
+`new` allocations go, but that was not confirmed). The Makefile and `loaded_effects.h` therefore enabled **only Uranus** (Venus, Jupiter, Saturn and Neptune are commented out, and `cloudseed_pool.cpp` with them since only Jupiter and Neptune need it).
+
+The five effects converted after that (Balnea, Pluto, Cassini, Mars, Mercury) are **enabled next to Uranus**, because they are light where the lockup is suspected to come from (build report with GCC 13):
+SRAM (code) 55%, **DTCM 52% (68.6 KB; Mercury's 33 KB is the new part)**, RAM_D2 36.6% (unchanged: Uranus only), SDRAM 71% (47.9 MB, of which Pluto 23 MB, Cassini 23 MB, Mars 0.7 MB, Balnea 0.4 MB), and **about 15 KB of heap in all**
+(`tests/host/run_heap_report.sh`: Balnea 3.5, Pluto 0.5, Cassini 1.2, Mars 9.0, Mercury 0.3 KB). That is an expectation from the numbers, **not tested on the pedal: flash it and check that it boots.** If it does not, disable effects one at a time starting with the two 23 MB ones.
+The effects that need a lot of SDRAM do not fit together: Pluto + Cassini take 47 MB of the 64 MB, which leaves room for Venus, Saturn, Balnea and Mars but **not for Jupiter or Neptune**, because the CloudSeed pool they share is 19.7 MB (sized for three engines; the Looper module would add another 23 MB).
+To bring the CloudSeed effects back, disable Pluto or Cassini (or shrink the pool in `cloudseed_pool.cpp` to one engine, 4.9 MB, for Jupiter alone). Bring Venus, Jupiter, Saturn and Neptune back one or two at a time
+(uncomment the Makefile line and the include and instance in `loaded_effects.h`), checking the memory report and that it boots. Venus, Jupiter and Saturn were each run on the pedal in earlier builds (with the older sets of effects); Neptune and the five newest have not been run on the pedal at all yet.
+
+Building here needs `make GCC_VERSION_MAJOR_REQUIRED=13` (the installed compiler is GCC 13.3.1; the Makefile's own required version is 10).
 
 See also `PERFORMANCE_AND_MEMORY.md`: the optimisations and what they gave, per-effect memory needs, the heap explanation of the lockup, the GCC 15 experience and a first draft of a matrix of effects that can be enabled together.
 
@@ -117,6 +140,8 @@ Venus gave sound but dropped blocks constantly at 48 kHz / 48 samples: each 4096
 
 ## Next steps
 
-1. Flash and try Venus: check for dropouts, the sound against the original pedal, and the CPU readout; adjust `kOrder`/`kChunks` or the output gain if needed.
-2. Convert Balnea, Pluto and Cassini the same way, one at a time (read each one's README first for the controls and what it needs from the hardware, e.g. Cassini needs a MIDI keyboard).
-3. Decide whether to fix the "Oct Up+Dn" behaviour and whether to add a Level parameter to Venus.
+1. Flash and check that the firmware boots with this set (see "Current build"). If it does, try each new effect on the pedal: the CPU readout in Show Debug (average **and** peak) for Mars and Mercury in particular; the sound against the originals; the footswitch handling of Balnea (tap tempo, hold), Pluto and Cassini (record, pause, clear).
+2. Test the MIDI notes of Balnea (synth) and Cassini (sampler) and of Uranus with a keyboard.
+3. If Mars or Mercury overrun the 48-sample blocks: the GRU's `FastMath` is already used; the next steps would be a block-wise matrix product, or the original's 96-sample or larger blocks for these two. If Pluto's or Cassini's 23 MB of SDRAM clears at startup are noticeable: they are not cleared at all (only what is recorded is played).
+4. Decide whether to fix the "Oct Up+Dn" behaviour and whether to add a Level parameter to Venus.
+5. The Experiments directory of FunBox (ChorusVerb, DenoiseFFT, FmSynth, Granular, MidiKeys, NoiseFilterFFT, SamplerTest, SpectralReverb) was not converted: they are experiments, not pedals, and several overlap what is here (FM Keys, Granular Delay, MIDI Keys).

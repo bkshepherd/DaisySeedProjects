@@ -41,6 +41,11 @@
 // #include "Effect-Modules/tape_delay_module.h"
 // #include "Effect-Modules/tuner_module.h"
 #include "Effect-Modules/uranus_module.h" // Granular delay and synth from the FunBox project (MIT). Uses MIDI notes for its synth modes
+#include "Effect-Modules/balnea_module.h" // Delay and pitch shifter from the FunBox project (MIT). Takes about 384 KB of SDRAM; MIDI notes play a synth
+#include "Effect-Modules/pluto_module.h" // Dual looper from the FunBox project (MIT). Takes about 23 MB of SDRAM (like the Looper, which it can replace)
+#include "Effect-Modules/cassini_module.h" // Chromatic sampler for a MIDI keyboard from the FunBox project (MIT). Takes about 23 MB of SDRAM
+#include "Effect-Modules/mars_module.h" // Amp sim (three neural models, three cabinets) and delay from the FunBox project (MIT). Mono. Takes about 0.7 MB of SDRAM
+#include "Effect-Modules/mercury_module.h" // Amp sim with nine NAM "pico" models and a four band EQ from the FunBox project (MIT, network code BSD-3-Clause). Mono. Takes about 35 KB of DTCM
 // #include "Effect-Modules/neptune_module.h" // Reverb and delay from the FunBox project (MIT), on the CloudSeed engine. Takes about 9.4 MB of SDRAM
 // #include "Effect-Modules/saturn_module.h" // Spectral delay from the FunBox project (MIT). Takes about 2.9 MB of SDRAM
 // #include "Effect-Modules/jupiter_module.h" // Stereo reverb from the FunBox project (MIT), on the CloudSeed engine. Takes about 4.9 MB of SDRAM
@@ -85,6 +90,11 @@ void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffec
         // new SaturnModule(), // single-instance only
         // new NeptuneModule(), // single-instance only
         new UranusModule(), // single-instance only
+        new BalneaModule(), // single-instance only
+        new PlutoModule(), // single-instance only
+        new CassiniModule(), // single-instance only
+        new MarsModule(), // single-instance only
+        new MercuryModule(), // single-instance only
         // new DelayModule(), // single-instance only
         // new TapeDelayModule(),  // single-instance-only
         // new DualEchoModule(),  // single-instance-only

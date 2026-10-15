@@ -1,6 +1,6 @@
 # Performance and memory notes
 
-Written for anyone who picks this up later: what was learned while converting the FunBox effects (Venus, Jupiter, Saturn, Neptune, Uranus) about the CPU and memory limits of the pedal, which
+Written for anyone who picks this up later: what was learned while converting the FunBox effects (Venus, Jupiter, Saturn, Neptune, Uranus, and later Balnea, Pluto, Cassini, Mars, Mercury) about the CPU and memory limits of the pedal, which
 optimisations made a difference and by how much, what each effect needs in memory, how the compiler change affected things, and a first draft of a matrix of which effects can be enabled together.
 It complements `HANDOFF_funbox_effects.md` (what was converted and how), `HANDOFF_block_processing.md` (the earlier block-processing work) and `HANDOFF_level_calibration.md`.
 
@@ -37,6 +37,11 @@ Check it with: `arm-none-eabi-nm build/guitarpedal.elf | grep ' end$'` (heap sta
 | Jupiter | small | - | 4.9 MB (the CloudSeed pool) | One CloudSeed engine: 5,148,080 bytes of the pool, the same for every preset and line count (measured on the host) |
 | Neptune | small | - | 4.9 MB (the pool) + 4.6 MB | The delay lines: 2 x 4 s octave lines (1.5 MB) and 2 x 8 s reverse lines (3.1 MB) |
 | Uranus | about 13 KB (the 12 FM voices) | 96 KB | - | RAM_D2: the half second of audio the grains are cut from (24000 floats) |
+| Balnea | about 3.5 KB (the module) | - | 384 KB | Two delay lines of 16384 floats and two reverse lines of 32768 floats, read and written sequentially |
+| Pluto | small | - | 23 MB | Two loopers of a minute at 48 kHz (11.5 MB each) and a `ReverbSc` (about 0.4 MB); the loops are not cleared at startup |
+| Cassini | small | - | 23 MB | Three 20 s sample banks (11.5 MB), the looper's minute (11.5 MB) and a `ReverbSc`; not cleared at startup |
+| Mars | about 9 KB (the module, with the FIR state) | - | 0.7 MB | The delay buffer for 2 s plus the second tap; the network and the filters are small |
+| Mercury | 33 KB (the WaveNet history, 4112 slots of two channels) | - | - | 9 models x 454 floats of weights are in the program (SRAM), 16 KB |
 
 The CloudSeed pool (`Effect-Modules/cloudseed_pool.cpp`) is 19.7 MB (48 x 640 x 640) so that three engines fit (CloudSeed, Jupiter, Neptune); it is only linked when one of them is enabled.
 
@@ -47,6 +52,7 @@ Whole builds (build report):
 | Uranus only (GCC 10) | 25.2% (33.0 KB) | 36.6% (96.0 KB) | 39.3% | 0 |
 | All five effects (GCC 10) | 81.8% (107.2 KB) | 84.2% (220.7 KB) | 63.9% | 44.4% (29.8 MB) |
 | All five effects (GCC 15, clean build) | 82.0% (107.5 KB) | 84.2% (220.7 KB) | 66.3% | 44.4% (29.8 MB) |
+| Uranus + Balnea, Pluto, Cassini, Mars, Mercury (GCC 13; Venus, Jupiter, Saturn, Neptune disabled) | 52.3% (68.6 KB) | 36.6% (96.0 KB) | 55.2% | 71.4% (47.9 MB) |
 
 ### Heap (what `new` allocates), measured on the host with `tests/host/run_heap_report.sh`
 
@@ -57,6 +63,11 @@ Whole builds (build report):
 | Saturn | 1.8 KB | 15 | 1.8 KB |
 | Neptune | 129.8 KB | 4,416 | about 170 KB |
 | Uranus | 13.0 KB | 3 | 13.0 KB |
+| Balnea | 3.6 KB | 3 | 3.5 KB |
+| Pluto | 0.6 KB | 3 | 0.5 KB |
+| Cassini | 1.2 KB | 3 | 1.2 KB |
+| Mars | 9.1 KB | 3 | 9.0 KB |
+| Mercury | 0.3 KB | 3 | 0.3 KB |
 
 The two CloudSeed-based effects dominate: each engine is made of 4,400 small objects (a third of the bytes are 32-byte allocations, 20% are 512-byte ones). The host has 8-byte pointers and the Daisy 4-byte ones, so
 the Daisy's figure is lower, by an unknown amount. **Inferred** from the fact that Venus + Jupiter + Saturn booted (Saturn leaves 131 KB of heap, Venus and Saturn take 19 KB, framework objects some more): one
@@ -154,8 +165,9 @@ buffers are in RAM_D2, not SDRAM.
 | Uranus only | boots and runs (audio; the MIDI input is untested) |
 | Venus + Jupiter + Saturn | booted and ran (CPU figures in 4.1 and 4.2 are from builds with these) |
 | Venus + Jupiter + Saturn + Neptune + Uranus | does not boot |
+| Uranus + Balnea + Pluto + Cassini + Mars + Mercury | **not tried yet** (build report above: DTCM 52%, RAM_D2 37%, SDRAM 71%, about 15 KB of extra heap) |
 
-The Makefile and `loaded_effects.h` enable only Uranus at the time of writing; the other four are commented out and `cloudseed_pool.cpp` with them.
+The Makefile and `loaded_effects.h` enable Uranus and the five newest effects at the time of writing; Venus, Jupiter, Saturn and Neptune are commented out and `cloudseed_pool.cpp` with them.
 
 ## 7. Tools
 
@@ -206,6 +218,12 @@ a result within about 20 KB of 256 KB should be tried, not trusted.
 | Venus + Saturn + Neptune + Uranus | 354 KB | does not fit (estimate) |
 | Jupiter + Saturn + Neptune + Uranus | 445 KB | does not fit (estimate) |
 | Venus + Jupiter + Saturn + Neptune + Uranus | 462 KB | does not boot (observed) |
+
+The five newest effects (Balnea, Pluto, Cassini, Mars, Mercury) add no RAM_D2 and about 15 KB of heap together (3.5, 0.5, 1.2, 9.0 and 0.3 KB), so they change none of the verdicts above by more than that: each row can have them added at a
+cost of up to 15 KB of RAM_D2 demand (Mercury also needs 33 KB of DTCM: with Venus's 72 KB that is 105 KB of the 128 KB, which is too tight with the stack; Venus and Mercury together would need checking). **They do add to the SDRAM: 64 MB in all, of which the
+two loopers take 23 MB each (Pluto, Cassini; the Looper module takes 23 MB too), Neptune 9.4 MB, Jupiter 4.9 MB, Saturn 2.9 MB, Mars 0.7 MB, Balnea 0.4 MB, Venus 0.15 MB, and the CloudSeed pool (when the CloudSeed module is in the build) 19.7 MB.** Pluto and Cassini together
+take 47 MB, which leaves 17 MB: Saturn (2.9 MB), Venus, Balnea and Mars fit next to them, but **Jupiter and Neptune do not**, because the CloudSeed pool they need is 19.7 MB whatever they use (it is sized for three engines; one engine needs 4.9 MB, so shrinking the pool to the engines that are in the build would make room for Jupiter, but Neptune also needs
+4.6 MB of delay lines). Without one of the two loopers the CloudSeed effects fit again.
 
 To turn this into a real matrix: add the heap readout (section 7), then for each combination that the estimate calls fits or borderline, flash it and record the free heap, the boot result and the Show Debug peak.
 Ideas for making more combinations fit, from least to most work:

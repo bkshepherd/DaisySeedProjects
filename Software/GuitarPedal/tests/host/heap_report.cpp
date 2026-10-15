@@ -27,7 +27,12 @@ void operator delete[](void *p) noexcept { free(p); }
 void operator delete(void *p, size_t) noexcept { free(p); }
 void operator delete[](void *p, size_t) noexcept { free(p); }
 
+#include "balnea_module.h"
+#include "cassini_module.h"
 #include "jupiter_module.h"
+#include "mars_module.h"
+#include "mercury_module.h"
+#include "pluto_module.h"
 #include "neptune_module.h"
 #include "saturn_module.h"
 #include "uranus_module.h"
@@ -57,5 +62,10 @@ int main() {
     measure<bkshepherd::SaturnModule>("Saturn");
     measure<bkshepherd::NeptuneModule>("Neptune");
     measure<bkshepherd::UranusModule>("Uranus");
+    measure<bkshepherd::BalneaModule>("Balnea");
+    measure<bkshepherd::PlutoModule>("Pluto");
+    measure<bkshepherd::CassiniModule>("Cassini");
+    measure<bkshepherd::MarsModule>("Mars");
+    measure<bkshepherd::MercuryModule>("Mercury");
     printf("(host build: 8 byte pointers; the Daisy's figures are lower for pointer-heavy objects)\n");
 }
