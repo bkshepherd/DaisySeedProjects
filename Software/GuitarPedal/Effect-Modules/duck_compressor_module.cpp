@@ -2,8 +2,11 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstdio>
 
 using namespace bkshepherd;
+
+static const char *s_keyNames[2] = {"Left", "Right"};
 
 // Parameters are in real units, as in the Compressor module: Level (make-up gain) in dB, Ratio as n:1, Threshold in dB, Attack and Release in milliseconds.
 static const auto s_metaData = [] {
@@ -77,11 +80,12 @@ static const auto s_metaData = [] {
         unit : " ms",
         decimals : 0
     };
-    params[DuckCompressorModule::SIDECHAIN] = {
-        name : "Sidechain",
-        valueType : ParameterValueType::Bool,
-        valueBinCount : 0,
-        defaultValue : {.uint_value = 1}, // on: the right input is the key (not heard). Off: the audio is its own key.
+    params[DuckCompressorModule::KEY_INPUT] = {
+        name : "Key Input",
+        valueType : ParameterValueType::Binned,
+        valueBinCount : 2,
+        valueBinNames : s_keyNames,
+        defaultValue : {.uint_value = 1}, // Right: the right input is the key and is not heard (side chain). Left: the audio is its own key (a normal compressor).
         knobMapping : -1,
         midiCCMapping : -1
     };
@@ -104,6 +108,7 @@ void DuckCompressorModule::Init(float sample_rate) {
     m_simpleComp.initRuntime();
     m_simpleComp.setSampleRate(sample_rate);
     m_gainReductiondB = 0.0f;
+    m_grShown = 0.0f;
 
     // ParameterChanged() only fires when a value changes, so apply every parameter (the stored value or the default) here
     for (int p = 0; p < PARAM_COUNT; p++) {
@@ -137,13 +142,18 @@ void DuckCompressorModule::ParameterChanged(int parameter_id) {
 // The audio is compressed by the level of the key; with a key that is the audio itself it is a normal compressor
 void DuckCompressorModule::ProcessSamples(const float *audio, const float *key, float *outL, float *outR, size_t n) {
     const float level = m_levelGain;
+    float deepest = 0.0f;
     for (size_t i = 0; i < n; i++) {
         float a = audio[i];
         float unused = 0.0f;
         m_simpleComp.process(a, unused, std::fabs(key[i])); // the gain reduction goes on a only; the key is not in the output
         outL[i] = outR[i] = a * level;
+        deepest = std::min(deepest, m_simpleComp.getGainReductiondB());
     }
     m_gainReductiondB = m_simpleComp.getGainReductiondB();
+    // for the display: the deepest reduction of the block, which falls back by a twentieth of the way per block (about 1 s at 48 samples a block)
+    if (deepest < m_grShown) m_grShown = deepest;
+    else m_grShown += (0.0f - m_grShown) * 0.05f * static_cast<float>(n) / 48.0f;
 }
 
 void DuckCompressorModule::ProcessMono(float in) {
@@ -156,7 +166,7 @@ void DuckCompressorModule::ProcessMono(float in) {
 void DuckCompressorModule::ProcessStereo(float inL, float inR) {
     BaseEffectModule::ProcessStereo(inL, inR);
     float out;
-    ProcessSamples(&m_audioLeft, GetParameterAsBool(SIDECHAIN) ? &m_audioRight : &m_audioLeft, &out, &m_audioRight, 1);
+    ProcessSamples(&m_audioLeft, KeyIsRight() ? &m_audioRight : &m_audioLeft, &out, &m_audioRight, 1);
     m_audioLeft = m_audioRight;
 }
 
@@ -167,7 +177,7 @@ void DuckCompressorModule::ProcessMonoBlock(const float *in, float *outL, float 
 }
 
 void DuckCompressorModule::ProcessStereoBlock(const float *inL, const float *inR, float *outL, float *outR, size_t n) {
-    ProcessSamples(inL, GetParameterAsBool(SIDECHAIN) ? inR : inL, outL, outR, n);
+    ProcessSamples(inL, KeyIsRight() ? inR : inL, outL, outR, n);
     m_audioLeft = outL[n - 1];
     m_audioRight = outR[n - 1];
 }
@@ -177,4 +187,28 @@ float DuckCompressorModule::GetBrightnessForLED(int led_id) const {
     // The second LED shows the gain reduction: dark when the audio is untouched, full at 12 dB or more
     if (led_id == 1) return value * std::min(1.0f, -m_gainReductiondB / 12.0f);
     return value;
+}
+
+// The gain reduction as "-12.3" (no float printf on the target)
+static void formatGainReduction(char *buffer, size_t size, float dB) {
+    const int tenths = static_cast<int>(std::lround(std::fabs(dB) * 10.0f));
+    if (tenths == 0) snprintf(buffer, size, "0.0");
+    else snprintf(buffer, size, "-%d.%d", tenths / 10, tenths % 10);
+}
+
+void DuckCompressorModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int numItemsTotal, Rectangle boundsToDrawIn, bool isEditing) {
+    BaseEffectModule::DrawUI(display, currentIndex, numItemsTotal, boundsToDrawIn, isEditing);
+    // The gain reduction in the lower half of the page (with Show Debug on it is in the debug text instead, where the space is used)
+    if (GetShowDebug()) return;
+    char text[24];
+    formatGainReduction(text, sizeof(text), m_grShown);
+    char line[32];
+    snprintf(line, sizeof(line), "%s dB", text);
+    display.WriteStringAligned(line, Font_11x18, boundsToDrawIn.WithTrimmedTop(boundsToDrawIn.GetHeight() / 2), Alignment::centered, true);
+}
+
+void DuckCompressorModule::GetDebugText(char *buffer, size_t size) const {
+    char text[24];
+    formatGainReduction(text, sizeof(text), m_grShown);
+    snprintf(buffer, size, "GR %s dB", text);
 }

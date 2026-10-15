@@ -3,7 +3,7 @@
 //     down (more with a higher ratio and a lower threshold), and the gain comes back with the release time. With the key silent the output is silent.
 //  2. The audio stays clean while it is turned down (no distortion from the gain moving at audio rate).
 //  3. The ratio never makes the audio louder than the make-up gain (the imported compressor expands when given a ratio above 1: the old module passed 1..40 straight in).
-//  4. Block path = per-sample path; mono input and Sidechain off make a normal compressor; the defaults are applied at startup.
+//  4. Block path = per-sample path; mono input and Key Input Left make a normal compressor; the defaults are applied at startup.
 #include "duck_compressor_module.h"
 #include <cmath>
 #include <cstdio>
@@ -156,9 +156,9 @@ int main() {
         printf("  mono: loud input %+.2f dB, quiet input %+.2f dB\n", gl, gs);
         check(gl < 0.0 && std::fabs(gs - 3.0) < 0.05, "a mono input is its own key: the loud one is compressed, the quiet one is not");
         check(maxDiff(ml, m0) == 0.0, "mono: block path equals per-sample path");
-        // Sidechain off on a stereo input: the right input is ignored
-        const Out off = run([](DuckCompressorModule &m) { m.SetParameterRaw(DuckCompressorModule::SIDECHAIN, 0); }, loud, key, 1);
-        check(maxDiff(off, ml) == 0.0, "with Sidechain off the right input is ignored (the audio is its own key)");
+        // Key Input Left on a stereo input: the right input is ignored
+        const Out off = run([](DuckCompressorModule &m) { m.SetParameterRaw(DuckCompressorModule::KEY_INPUT, 0); }, loud, key, 1);
+        check(maxDiff(off, ml) == 0.0, "with Key Input Left the right input is ignored (the audio is its own key)");
         // the defaults are applied at startup: touching every parameter away and back changes nothing
         const Out touched = run([](DuckCompressorModule &m) {
             for (int p : {DuckCompressorModule::LEVEL, DuckCompressorModule::RATIO, DuckCompressorModule::THRESHOLD, DuckCompressorModule::ATTACK, DuckCompressorModule::RELEASE}) {
@@ -167,6 +167,25 @@ int main() {
                 m.SetParameterAsFloat(p, def);
             } }, audio, key, 1);
         check(maxDiff(base, touched) < 1e-6, "the defaults are applied at startup");
+    }
+
+    printf("\nthe gain reduction readout:\n");
+    {
+        DuckCompressorModule m;
+        m.Init((float)kRate);
+        char text[48];
+        float o1[48], o2[48];
+        m.GetDebugText(text, sizeof text);
+        check(std::strcmp(text, "GR 0.0 dB") == 0, "the readout is 0.0 dB with nothing happening");
+        for (size_t b = 0; b < kRate * 3 / 2; b += 48) m.ProcessStereoBlock(&audio[b], &key[b], o1, o2, 48);
+        m.GetDebugText(text, sizeof text);
+        printf("  with the loud key: \"%s\"\n", text);
+        float gr = 0; sscanf(text, "GR %f dB", &gr);
+        check(gr < -12.0f && gr > -40.0f, "the readout shows the gain reduction while the key is loud");
+        const std::vector<float> none(kTotal, 0.0f);
+        for (size_t b = kRate * 3 / 2; b < kRate * 4; b += 48) m.ProcessStereoBlock(&audio[b], &none[b], o1, o2, 48);
+        m.GetDebugText(text, sizeof text);
+        check(std::strcmp(text, "GR 0.0 dB") == 0, "...and falls back to 0.0 dB when the key stops");
     }
 
     printf("\n%s\n", g_fails == 0 ? "ALL DUCK COMPRESSOR TESTS PASSED" : "DUCK COMPRESSOR TESTS FAILED");
