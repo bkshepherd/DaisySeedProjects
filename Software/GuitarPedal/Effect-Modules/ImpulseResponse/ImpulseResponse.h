@@ -1,40 +1,23 @@
-//
-//  ImpulseResponse.h
-//  NeuralAmpModeler-macOS
-//
-//  Created by Steven Atkinson on 12/30/22.
-//
-// Impulse response processing
-//
-//  Modified by Keith Bloemer on 12/28/23
-//    Greatly simplified by assuming 1 channel, 1 input per Process call, and constant samplerate.
-//    For initial investigation into running IR's on the Daisy Seed
-
 #pragma once
+#include <cstdint>
 
-#include "dsp.h"
-#include <Eigen/Dense>
+#include "arm_math.h"
 
-class ImpulseResponse : public History {
+class ImpulseResponse {
   public:
     ImpulseResponse();
-    ~ImpulseResponse();
-
-    void Init(std::vector<float> irData);
-    float Process(float inputs);
+    void init(const float *ir, uint32_t len, bool normalize);
+    void processBlock(const float *in, float *out, uint32_t n);
+    void setImpulseResponse(const float *ir, uint32_t len, bool norm);
 
   private:
-    // Set the weights, given that the plugin is running at the provided sample
-    // rate.
-    void _SetWeights();
+    static constexpr uint32_t DEFAULT_FIR_LEN = 1024;
+    static constexpr uint32_t MAX_BLOCK = 128;
+    static constexpr uint32_t FIR_STATE_LEN = DEFAULT_FIR_LEN + MAX_BLOCK - 1;
 
-    // State of audio
-    // Keep a copy of the raw audio that was loaded so that it can be resampled
-    std::vector<float> mRawAudio;
-    float mRawAudioSampleRate;
-    float mSampleRate;
+    arm_fir_instance_f32 fir_{};
+    float fir_state_[FIR_STATE_LEN]{};
+    float fir_coeffs_[DEFAULT_FIR_LEN]{};
 
-    const size_t mMaxLength = 8192;
-    // The weights
-    Eigen::VectorXf mWeight;
+    static void normalise(float *c, uint32_t len);
 };

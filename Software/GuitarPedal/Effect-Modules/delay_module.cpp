@@ -187,6 +187,7 @@ void DelayModule::Init(float sample_rate) {
     delayLeft.del = &delayLineLeft;
     delayLeft.delreverse = &delayLineRevLeft;
     delayLeft.delayTarget = 24000; // in samples
+    delayLeft.currentDelay = 24000;
     delayLeft.feedback = 0.0;
     delayLeft.active = true; // Default to no delay
     delayLeft.toneOctLP.Init(sample_rate);
@@ -197,6 +198,7 @@ void DelayModule::Init(float sample_rate) {
     delayRight.del = &delayLineRight;
     delayRight.delreverse = &delayLineRevRight;
     delayRight.delayTarget = 24000; // in samples
+    delayRight.currentDelay = 24000;
     delayRight.feedback = 0.0;
     delayRight.active = true; // Default to no
     delayRight.toneOctLP.Init(sample_rate);
@@ -205,6 +207,7 @@ void DelayModule::Init(float sample_rate) {
     delayLineSpread.Init();
     delaySpread.del = &delayLineSpread;
     delaySpread.delayTarget = 1500; // in samples
+    delaySpread.currentDelay = 1500;
     delaySpread.active = true;
 
     effect_samplerate = sample_rate;
@@ -291,7 +294,7 @@ void DelayModule::ProcessModulation() {
 
         if (waveForm == 5) {
             // Tape flutter mode with dynamic min
-            const float M     = wowDepth + 0.2f * flutterDepth; // Max amplitude of tape modulation.
+            const float M = wowDepth + 0.2f * flutterDepth; // Max amplitude of tape modulation.
             const float depth = 500.0f;
 
             float baseMin = D_min + M * mod_amount * depth;
@@ -300,7 +303,7 @@ void DelayModule::ProcessModulation() {
             float base = baseMin + (baseMax - baseMin) * timeParam;
 
             delayTarget = base + mod * mod_amount * depth;
-        } else {        
+        } else {
             delayTarget = m_delaySamplesMin + (m_delaySamplesMax - m_delaySamplesMin) * timeParam + mod * mod_amount * 500;
         }
         if (delayTarget < D_min) {
@@ -310,7 +313,7 @@ void DelayModule::ProcessModulation() {
             delayTarget = MAX_DELAY_NORM - 2;
         }
 
-        delayLeft.delayTarget  = delayTarget;
+        delayLeft.delayTarget = delayTarget;
         delayRight.delayTarget = delayTarget;
     } else if (modParam == 2) {
         float mod_level = mod * mod_amount + (1.0 - mod_amount);
@@ -320,9 +323,9 @@ void DelayModule::ProcessModulation() {
         delayRight.level_reverse = mod_level;
 
     } else if (modParam == 3) {
-        _level = mod * mod_amount + (1.0 - mod_amount);
-
-    } else if (modParam == 4) {
+        // "DelayPan": pan the delay by modulating the levels in opposite
+        // directions per side (this branch previously required modParam == 4,
+        // which the 4-bin mod parameter could never produce)
         float mod_level = mod * mod_amount + (1.0 - mod_amount);
         delayLeft.level = mod_level;
         delayRight.level = 1.0 - mod_level;
@@ -510,4 +513,47 @@ float DelayModule::GetBrightnessForLED(int led_id) const {
     }
 
     return value;
+}
+
+int DelayModule::GetMappedParameterIDForKnob(int knob_id) const {
+    // If shift mode is active, remap knobs 0-5 to alternate parameters
+    if (m_shiftModeActive) {
+        switch (knob_id) {
+        case 0:
+            return MOD_AMT; // Knob 0 -> Mod Amount
+        case 1:
+            return MOD_RATE; // Knob 1 -> Mod Rate
+        case 2:
+            return MOD_WAVE; // Knob 2 -> Mod Waveform
+        case 3:
+            return MOD_PARAM; // Knob 3 -> Mod Parameter
+        case 4:
+            return SYNC_MOD_F; // Knob 4 -> Sync Mod Frequency (bool)
+        case 5:
+            return D_SPREAD; // Knob 5 -> Delay Spread
+        default:
+            return -1;
+        }
+    }
+
+    // Normal mode: use default mapping from metadata
+    return BaseEffectModule::GetMappedParameterIDForKnob(knob_id);
+}
+
+void DelayModule::AlternateFootswitchHeldFor1Second() {
+    // If held for 1 second, toggle shift mode (uses same knobs as mod controls for
+    // alternate parameter control)
+    m_shiftModeActive = !m_shiftModeActive;
+}
+
+void DelayModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, int numItemsTotal, Rectangle boundsToDrawIn,
+                         bool isEditing) {
+    // Draw the base UI
+    BaseEffectModule::DrawUI(display, currentIndex, numItemsTotal, boundsToDrawIn, isEditing);
+
+    // If shift mode is active, display a "SHIFT" indicator on the UI
+    if (m_shiftModeActive) {
+        display.SetCursor(boundsToDrawIn.GetRight() - 40, 2);
+        display.WriteString("SHIFT", Font_6x8, true);
+    }
 }

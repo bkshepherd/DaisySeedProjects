@@ -9,7 +9,7 @@
 
 #ifdef __cplusplus
 
-/** @file amp_module.h */
+/** @file ir_module.h */
 
 using namespace daisysp;
 
@@ -17,11 +17,7 @@ namespace bkshepherd {
 
 class IrModule : public BaseEffectModule {
   public:
-    enum Param {
-        IR = 0,
-        LEVEL,
-        PARAM_COUNT
-    };
+    enum Param { IR = 0, LEVEL, PARAM_COUNT };
 
     IrModule();
     ~IrModule();
@@ -32,6 +28,8 @@ class IrModule : public BaseEffectModule {
     void SelectIR();
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;
+    void ProcessMonoBlock(const float *in, float *outL, float *outR, size_t n) override;
+    void ProcessStereoBlock(const float *inL, const float *inR, float *outL, float *outR, size_t n) override;
     float GetBrightnessForLED(int led_id) const override;
     // void AlternateFootswitchPressed() override;
 
@@ -43,6 +41,11 @@ class IrModule : public BaseEffectModule {
 
     ImpulseResponse mIR;
     int m_currentIRindex = -1;
+
+    static constexpr int kBlockSize = 48;
+    float m_inputBuffer[kBlockSize];
+    float m_outputBuffer[kBlockSize];
+    int m_bufferIndex;
 };
 } // namespace bkshepherd
 #endif

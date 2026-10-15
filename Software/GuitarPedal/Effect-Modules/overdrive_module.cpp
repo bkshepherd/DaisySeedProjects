@@ -19,7 +19,7 @@ static const auto s_metaData = [] {
         name : "Level",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : {.float_value = 0.3f},
+        defaultValue : {.float_value = 0.5f},
         knobMapping : 0,
         midiCCMapping : 21
     };
@@ -29,7 +29,7 @@ static const auto s_metaData = [] {
 
 // Default Constructor
 OverdriveModule::OverdriveModule()
-    : BaseEffectModule(), m_driveMin(0.4f), m_driveMax(0.8f), m_levelMin(0.01f), m_levelMax(0.20f)
+    : BaseEffectModule(), m_driveMin(0.4f), m_driveMax(0.8f), m_levelMin(0.001794f), m_levelMax(0.0644f)
 
 {
     // Set the name of the effect

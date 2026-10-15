@@ -47,6 +47,11 @@ struct ParameterMetaData {
     int minValue = 0;  // The minimum value of the parameter
     int maxValue = 1;  // The maximum value of the parameter
     float fineStepSize = 0.01f; // For Float Parameters, this will set the fineStepSize multiple in the menu
+    // Menu presentation of Float Parameters. A Float Parameter whose minValue/maxValue are real units (e.g. ms or dB) can show them as
+    // such instead of a bare number.
+    const char *unit = "";  // Text appended to the value, including any leading space (e.g. " ms", " dB", ":1"). Empty for none.
+    uint8_t decimals = 2;   // Digits after the decimal point
+    bool showSign = false;  // Always show the sign, even for positive values (e.g. "+3.0 dB")
 };
 
 class BaseEffectModule {
@@ -68,6 +73,8 @@ class BaseEffectModule {
      \return the number of parameters for this effect.
     */
     uint16_t GetParameterCount() const;
+
+    uint32_t GetParameterChangeCount() const { return m_parameterChangeCount; }
 
     /** Gets the total number of stored presets for this effect
      \return the number of presets for this effect.
@@ -132,6 +139,12 @@ class BaseEffectModule {
     */
     const float GetParameterDefaultValueAsFloat(int parameter_id) const;
 
+    /** Gets the Default Value for an Effect Parameter as a raw uint32_t value
+     \param parameter_id Id of the parameter to retrieve.
+     \return the raw default Value of the specified parameter.
+    */
+    uint32_t GetParameterDefaultValueRaw(int parameter_id) const;
+
     /** Gets the Raw uint32_t value of an Effect Parameter
      \param parameter_id Id of the parameter to retrieve.
      \return the raw Value of the specified parameter.
@@ -160,7 +173,7 @@ class BaseEffectModule {
      \param knob_id Id of the Knob to retrieve.
      \return the Parameter ID mapped to the specified knob, or -1 if no Parameter is Mapped to that Knob
     */
-    int GetMappedParameterIDForKnob(int knob_id) const;
+    virtual int GetMappedParameterIDForKnob(int knob_id) const;
 
     /** Gets the Parameter ID of the Effect Parameter mapped to this Midi CC ID.
      \param midiCC_id Id of the MidiCC to retrieve.
@@ -228,6 +241,17 @@ class BaseEffectModule {
     */
     virtual void ProcessStereo(float inL, float inR);
 
+    /** Processes a whole block in Mono. The default implementation calls ProcessMono for every sample, so effects only need to
+     override this when they can do better on a full block. Both output buffers receive the result (mono is duplicated to right).
+     Don't mix with per-sample calls within the same block. \param in Input block. \param outL, outR Output blocks. \param n Number of samples.
+    */
+    virtual void ProcessMonoBlock(const float *in, float *outL, float *outR, size_t n);
+
+    /** Processes a whole block in Stereo. The default implementation calls ProcessStereo for every sample. \param inL, inR Input blocks.
+     \param outL, outR Output blocks. \param n Number of samples. Buffers may alias (in-place processing is allowed).
+    */
+    virtual void ProcessStereoBlock(const float *inL, const float *inR, float *outL, float *outR, size_t n);
+
     /**  Gets the most recently calculated Sample Value for the Left Stereo Channel (or Mono)
      \return Last floating point sample for the left channel.
     */
@@ -290,6 +314,11 @@ class BaseEffectModule {
     */
     float GetParameterFineStepSize(int parameter_id) const;
 
+    /** Menu presentation of a Float Parameter: the unit text appended to the value, the number of decimals, and whether to always show the sign. */
+    const char *GetParameterUnit(int parameter_id) const;
+    uint8_t GetParameterDecimals(int parameter_id) const;
+    bool GetParameterShowSign(int parameter_id) const;
+
     /** This function gets called when a MIDI CC message is received by the pedal when this effect is active.  The default
      * implementation checks to see if any Midi Parameters on this Effect map to the midi CC number and then it maps the Midi Values
      * 0..127 to a float 0.0f - 1.0f and then calls the SetParameterAsMagnitude helper function to handle how the midi values should
@@ -310,6 +339,25 @@ class BaseEffectModule {
 
     void SetCPUUsage(float cpuUsage) { m_cpuUsage = cpuUsage; };
     float GetCPUUsage() const { return m_cpuUsage; }
+    /** Optional extra text for the Show Debug screen (up to two lines separated by '\n', short: the font is 6 pixels wide), e.g. timings of the effect's own stages. */
+    virtual void GetDebugText(char *buffer, size_t size) const {
+        if (size > 0) buffer[0] = '\0';
+    }
+    void SetCPUPeak(float cpuPeak) { m_cpuPeak = cpuPeak; }
+    float GetCPUPeak() const { return m_cpuPeak; }
+
+    /** Averaged peak level of the pedal's input and output in dB (full scale = 0), for rendering to display */
+    void SetLevelsDb(float inputDb, float outputDb) {
+        m_inputLevelDb = inputDb;
+        m_outputLevelDb = outputDb;
+    }
+    float GetInputLevelDb() const { return m_inputLevelDb; }
+    float GetOutputLevelDb() const { return m_outputLevelDb; }
+
+    /** Whether the default UI should draw the debug readouts (CPU percentage and input/output level). Set by the main loop from the
+        "Show Debug" global setting. */
+    void SetShowDebug(bool show) { m_showDebug = show; }
+    bool GetShowDebug() const { return m_showDebug; }
 
   protected:
     /** Initializes the Parameter Storage and creates space for the specified number of stored Effect Parameters
@@ -335,10 +383,15 @@ class BaseEffectModule {
     float m_audioLeft;                        // Last Audio Sample value for the Left Stereo Channel (or Mono)
     float m_audioRight;                       // Last Audio Sample value for the Right Stereo Channel
     uint32_t m_settingsArrayStartIdx;         // Start index of settings persistent storage struct
+    volatile uint32_t m_parameterChangeCount;
   private:
     bool m_isEnabled;
     float m_sampleRate; // Current Sample Rate this Effect was initialized for.
+    float m_inputLevelDb = -100.0f;  // averaged input peak in dB, can be used for rendering to display
+    float m_outputLevelDb = -100.0f; // averaged output peak in dB
+    float m_cpuPeak = 0.0f; // load of the slowest audio callback in the last two seconds (1.0 = the whole block time)
     float m_cpuUsage;   // CPU usage of the audio callback, can be used for rendering to display
+    bool m_showDebug = false; // draw the CPU and input/output level readouts on the default UI
 };
 } // namespace bkshepherd
 #endif

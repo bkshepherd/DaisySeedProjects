@@ -1,15 +1,12 @@
 #include "base_effect_module.h"
 #include "../Util/audio_utilities.h"
 
-// This can be used to show the CPU on the default UI
-constexpr bool showCPU = false;
-
 using namespace bkshepherd;
 
 // Default Constructor
 BaseEffectModule::BaseEffectModule()
     : m_paramCount(0), m_presetCount(1), m_currentPreset(0), m_params(nullptr), m_audioLeft(0.0f), m_audioRight(0.0f),
-      m_settingsArrayStartIdx(0), m_isEnabled(false) {
+      m_settingsArrayStartIdx(0), m_parameterChangeCount(0), m_isEnabled(false) {
     m_name = "Base";
     m_paramMetaData = nullptr;
 }
@@ -139,6 +136,15 @@ const float BaseEffectModule::GetParameterDefaultValueAsFloat(int parameter_id) 
     return m_paramMetaData[parameter_id].defaultValue.float_value;
 }
 
+uint32_t BaseEffectModule::GetParameterDefaultValueRaw(int parameter_id) const {
+    // Make sure parameter_id is valid.
+    if (m_params == nullptr || parameter_id < 0 || parameter_id >= m_paramCount || m_paramMetaData == nullptr) {
+        return 0;
+    }
+
+    return m_paramMetaData[parameter_id].defaultValue.uint_value;
+}
+
 uint32_t BaseEffectModule::GetParameterRaw(int parameter_id) const {
     // Make sure parameter_id is valid.
     if (m_params == nullptr || parameter_id < 0 || parameter_id >= m_paramCount) {
@@ -149,7 +155,7 @@ uint32_t BaseEffectModule::GetParameterRaw(int parameter_id) const {
 }
 
 float BaseEffectModule::GetParameterAsFloat(int parameter_id) const {
-    if (parameter_id >= 0 || parameter_id < m_paramCount) {
+    if (m_params != nullptr && parameter_id >= 0 && parameter_id < m_paramCount) {
         float ret;
         uint32_t tmp = m_params[parameter_id];
         std::memcpy(&ret, &tmp, sizeof(float));
@@ -242,6 +248,30 @@ float BaseEffectModule::GetParameterFineStepSize(int parameter_id) const {
     return 0.01f;
 }
 
+const char *BaseEffectModule::GetParameterUnit(int parameter_id) const {
+    if (m_paramMetaData != nullptr && parameter_id >= 0 && parameter_id < m_paramCount && m_paramMetaData[parameter_id].unit != nullptr) {
+        return m_paramMetaData[parameter_id].unit;
+    }
+
+    return "";
+}
+
+uint8_t BaseEffectModule::GetParameterDecimals(int parameter_id) const {
+    if (m_paramMetaData != nullptr && parameter_id >= 0 && parameter_id < m_paramCount) {
+        return m_paramMetaData[parameter_id].decimals;
+    }
+
+    return 2;
+}
+
+bool BaseEffectModule::GetParameterShowSign(int parameter_id) const {
+    if (m_paramMetaData != nullptr && parameter_id >= 0 && parameter_id < m_paramCount) {
+        return m_paramMetaData[parameter_id].showSign;
+    }
+
+    return false;
+}
+
 void BaseEffectModule::SetParameterRaw(int parameter_id, uint32_t value) {
     // Make sure parameter_id is valid.
     if (m_params == nullptr || parameter_id < 0 || parameter_id >= m_paramCount) {
@@ -251,6 +281,7 @@ void BaseEffectModule::SetParameterRaw(int parameter_id, uint32_t value) {
     // Only update the value if it changed.
     if (value != m_params[parameter_id]) {
         m_params[parameter_id] = value;
+        m_parameterChangeCount = m_parameterChangeCount + 1;
 
         // Notify anyone listening if the parameter actually changed.
         ParameterChanged(parameter_id);
@@ -326,20 +357,24 @@ void BaseEffectModule::SetParameterAsMagnitude(int parameter_id, float value) {
             return;
         }
 
-        // Map values 0..1 to the bins equally
-        int mappedBin = (int)(value * GetParameterBinCount(parameter_id) + 1);
+        // Map values 0..1 to the bins equally. A magnitude of exactly 1.0
+        // (e.g. MIDI CC 127) would otherwise compute binCount + 1, which
+        // SetParameterAsBinnedValue rejects, so clamp to the last bin.
+        int binCount = GetParameterBinCount(parameter_id);
+        int mappedBin = std::min((int)(value * binCount + 1), binCount);
         SetParameterAsBinnedValue(parameter_id, mappedBin);
     }
 }
 
 void BaseEffectModule::SetParameterAsFloat(int parameter_id, float value) {
-    if (parameter_id >= 0 || parameter_id < m_paramCount) {
+    if (m_params != nullptr && parameter_id >= 0 && parameter_id < m_paramCount) {
         uint32_t tmp;
         std::memcpy(&tmp, &value, sizeof(float));
 
         // Only update the value if it changed.
         if (tmp != m_params[parameter_id]) {
             m_params[parameter_id] = tmp;
+            m_parameterChangeCount = m_parameterChangeCount + 1;
 
             // Notify anyone listening if the parameter actually changed.
             ParameterChanged(parameter_id);
@@ -376,6 +411,22 @@ void BaseEffectModule::ProcessMono(float in) {
 void BaseEffectModule::ProcessStereo(float inL, float inR) {
     m_audioLeft = inL;
     m_audioRight = inR;
+}
+
+void BaseEffectModule::ProcessMonoBlock(const float *in, float *outL, float *outR, size_t n) {
+    for (size_t i = 0; i < n; i++) {
+        ProcessMono(in[i]);
+        outL[i] = m_audioLeft;
+        outR[i] = m_audioRight;
+    }
+}
+
+void BaseEffectModule::ProcessStereoBlock(const float *inL, const float *inR, float *outL, float *outR, size_t n) {
+    for (size_t i = 0; i < n; i++) {
+        ProcessStereo(inL[i], inR[i]);
+        outL[i] = m_audioLeft;
+        outR[i] = m_audioRight;
+    }
 }
 
 float BaseEffectModule::GetAudioLeft() const { return m_audioLeft; }
@@ -471,11 +522,41 @@ void BaseEffectModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, 
     }
 
     display.WriteStringAligned(m_name, Font_11x18, topRowRect, Alignment::centered, true);
-    display.WriteStringAligned("...", Font_11x18, boundsToDrawIn, Alignment::centered, true);
 
-    if (showCPU) {
-        char cpuStr[64];
-        sprintf(cpuStr, FLT_FMT(3), FLT_VAR3(GetCPUUsage()));
-        display.WriteStringAligned(cpuStr, Font_11x18, boundsToDrawIn, Alignment::bottomCentered, true);
+    // The CPU percentage and the averaged input/output peak level (dB) are debug readouts, shown only when "Show Debug" is on
+    const bool showDebug = GetShowDebug();
+
+    if (showDebug) {
+        // Thin separator line just above the small-print readouts (8 px tall text at the very bottom, 3 px gap)
+        const int16_t lineY = boundsToDrawIn.GetBottom() - 12;
+        display.DrawLine(boundsToDrawIn.GetX(), lineY, boundsToDrawIn.GetRight() - 1, lineY, true);
+    }
+
+    if (showDebug) {
+        // The effect's own debug text (up to two lines) at the top of the area under the name
+        char text[48];
+        GetDebugText(text, sizeof(text));
+        char *second = strchr(text, '\n');
+        if (second != nullptr) *second++ = '\0';
+        if (text[0] != '\0') display.WriteStringAligned(text, Font_6x8, boundsToDrawIn, Alignment::topCentered, true);
+        if (second != nullptr && second[0] != '\0') display.WriteStringAligned(second, Font_6x8, boundsToDrawIn.Translated(0, 9), Alignment::topCentered, true);
+    }
+
+    if (showDebug) {
+        // Small text at the bottom centre, between the input and output level readouts
+        char cpuStr[16];
+        // average / peak (the slowest block of the last two seconds); a peak over 100% is a block that took longer than it lasts
+        snprintf(cpuStr, sizeof(cpuStr), "%d/%d%%", (int)lroundf(GetCPUUsage() * 100.0f), (int)lroundf(GetCPUPeak() * 100.0f));
+        display.WriteStringAligned(cpuStr, Font_6x8, boundsToDrawIn, Alignment::bottomCentered, true);
+    }
+
+    if (showDebug) {
+        // Small text in the bottom corners, either side of the CPU readout
+        char levelStr[16];
+        auto bottomRowRect = boundsToDrawIn.WithTrimmedTop(boundsToDrawIn.GetHeight() - 8);
+        snprintf(levelStr, sizeof(levelStr), "I%4ddB", (int)lroundf(fmaxf(GetInputLevelDb(), -99.0f))); // no float printf on target
+        display.WriteStringAligned(levelStr, Font_6x8, bottomRowRect, Alignment::bottomLeft, true);
+        snprintf(levelStr, sizeof(levelStr), "O%4ddB", (int)lroundf(fmaxf(GetOutputLevelDb(), -99.0f)));
+        display.WriteStringAligned(levelStr, Font_6x8, bottomRowRect, Alignment::bottomRight, true);
     }
 }

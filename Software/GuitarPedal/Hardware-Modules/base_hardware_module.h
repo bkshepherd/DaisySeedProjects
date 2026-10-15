@@ -182,6 +182,9 @@ class BaseHardwareModule {
     /** Checks to see if device hardware supports the Display*/
     bool SupportsDisplay();
 
+    /** Checks to see if device hardware supports an Encoder*/
+    bool SupportsEncoder();
+
     /** Checks to see if device hardware supports True Bypass*/
     bool SupportsTrueBypass();
 
@@ -201,6 +204,7 @@ class BaseHardwareModule {
     bool m_supportsStereo;
     bool m_supportsMidi;
     bool m_supportsDisplay;
+    bool m_supportsEncoder;
     bool m_supportsTrueBypass;
     bool m_audioBypass;
     bool m_audioMute;

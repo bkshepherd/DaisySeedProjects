@@ -1,11 +1,12 @@
 #include "base_hardware_module.h"
+#include <cstring>
 
 using namespace daisy;
 using namespace bkshepherd;
 
 BaseHardwareModule::BaseHardwareModule()
-    : m_supportsStereo(false), m_supportsMidi(false), m_supportsDisplay(false), m_supportsTrueBypass(false),
-      m_switchMetaDataParamCount(0) {
+    : m_supportsStereo(false), m_supportsMidi(false), m_supportsDisplay(false), m_supportsEncoder(false),
+      m_supportsTrueBypass(false), m_switchMetaDataParamCount(0) {
     m_switchMetaData = nullptr;
 }
 
@@ -157,6 +158,8 @@ bool BaseHardwareModule::SupportsMidi() { return m_supportsMidi; }
 
 bool BaseHardwareModule::SupportsDisplay() { return m_supportsDisplay; }
 
+bool BaseHardwareModule::SupportsEncoder() { return m_supportsEncoder; }
+
 bool BaseHardwareModule::SupportsTrueBypass() { return m_supportsTrueBypass; }
 
 void BaseHardwareModule::InitKnobs(int count, Pin pins[]) {
@@ -192,11 +195,19 @@ void BaseHardwareModule::InitEncoders(int count, Pin pins[][3]) {
         myEncoder.Init(pins[i][0], pins[i][1], pins[i][2]);
         encoders.push_back(myEncoder);
     }
+
+    if (count > 0) {
+        m_supportsEncoder = true;
+    }
 }
 
 void BaseHardwareModule::InitLeds(int count, Pin pins[]) {
     for (int i = 0; i < count; i++) {
         Led newLed;
+        // libDaisy's Led::Init() never initialises the software-PWM phase (pwm_), and Led's constructor does nothing, so a stack-allocated
+        // Led starts with whatever was left on the stack. Depending on the compiler/optimiser that can be a huge or NaN value, which keeps
+        // the LED permanently off (or on). Zero the whole object first so the PWM phase starts at 0.
+        std::memset(static_cast<void *>(&newLed), 0, sizeof(newLed));
         newLed.Init(pins[i], false, AudioCallbackRate());
         leds.push_back(newLed);
     }

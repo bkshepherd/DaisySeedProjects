@@ -8,37 +8,49 @@
 #include "Effect-Modules/base_effect_module.h"
 
 // Include all effect modules
-#include "Effect-Modules/amp_module.h"
-#include "Effect-Modules/autopan_module.h"
-#include "Effect-Modules/chopper_module.h"
-#include "Effect-Modules/chorus_module.h"
-#include "Effect-Modules/cloudseed_module.h" // Takes up significant SDRAM (about 30%)
-#include "Effect-Modules/compressor_module.h"
+// #include "Effect-Modules/autopan_module.h"
+// #include "Effect-Modules/chopper_module.h"
+// #include "Effect-Modules/chorus_module.h"
+// #include "Effect-Modules/cloudseed_module.h" // Takes up significant SDRAM (about 30%)
+// #include "Effect-Modules/compressor_module.h"
+// #include "Effect-Modules/crusher_module.h"
+// #include "Effect-Modules/delay_module.h"
+// #include "Effect-Modules/distortion_module.h"
+// #include "Effect-Modules/drum_module.h"
+// #include "Effect-Modules/dual_echo_module.h"
+#include "Effect-Modules/effect_chain.h" // Some caution required - See README and examples below for usage
+// #include "Effect-Modules/flanger_module.h"
+// #include "Effect-Modules/geq_module.h"
+// #include "Effect-Modules/granulardelay_module.h"
+// #include "Effect-Modules/harmonic_tremolo_module.h"
+// #include "Effect-Modules/ir_module.h"
+// #include "Effect-Modules/looper_module.h"
+// #include "Effect-Modules/metro_module.h"
+// #include "Effect-Modules/modulated_tremolo_module.h"
+// #include "Effect-Modules/multi_delay_module.h"
+// #include "Effect-Modules/nam_a2_module.h"
+// #include "Effect-Modules/noise_gate_module.h"
+// #include "Effect-Modules/overdrive_module.h"
+// #include "Effect-Modules/peq_module.h"
+// #include "Effect-Modules/phaser_module.h"
+// #include "Effect-Modules/pitch_shifter_module.h"
+// #include "Effect-Modules/polyoctave_module.h"
+// #include "Effect-Modules/reverb_module.h"
+// #include "Effect-Modules/scifi_module.h"
+// #include "Effect-Modules/spectral_delay_module.h"
+// #include "Effect-Modules/tape_delay_module.h"
+// #include "Effect-Modules/tuner_module.h"
+#include "Effect-Modules/uranus_module.h" // Granular delay and synth from the FunBox project (MIT). Uses MIDI notes for its synth modes
+#include "Effect-Modules/balnea_module.h" // Delay and pitch shifter from the FunBox project (MIT). Takes about 384 KB of SDRAM; MIDI notes play a synth
+#include "Effect-Modules/pluto_module.h" // Dual looper from the FunBox project (MIT). Takes about 23 MB of SDRAM (like the Looper, which it can replace)
+#include "Effect-Modules/cassini_module.h" // Chromatic sampler for a MIDI keyboard from the FunBox project (MIT). Takes about 23 MB of SDRAM
+#include "Effect-Modules/mars_module.h" // Amp sim (three neural models, three cabinets) and delay from the FunBox project (MIT). Mono. Takes about 0.7 MB of SDRAM
+#include "Effect-Modules/mercury_module.h" // Amp sim with nine NAM "pico" models and a four band EQ from the FunBox project (MIT, network code BSD-3-Clause). Mono. Takes about 35 KB of DTCM
 #include "Effect-Modules/duck_compressor_module.h"
-#include "Effect-Modules/delay_module.h"
-#include "Effect-Modules/distortion_module.h"
-#include "Effect-Modules/drum_module.h"
-#include "Effect-Modules/flanger_module.h"
-#include "Effect-Modules/geq_module.h"
-#include "Effect-Modules/granulardelay_module.h"
-#include "Effect-Modules/ir_module.h"
-#include "Effect-Modules/looper_module.h"
-#include "Effect-Modules/metro_module.h"
-#include "Effect-Modules/modulated_tremolo_module.h"
-#include "Effect-Modules/multi_delay_module.h"
-#include "Effect-Modules/nam_module.h"
-#include "Effect-Modules/noise_gate_module.h"
-#include "Effect-Modules/overdrive_module.h"
-#include "Effect-Modules/peq_module.h"
-#include "Effect-Modules/phaser_module.h"
-#include "Effect-Modules/pitch_shifter_module.h"
-#include "Effect-Modules/polyoctave_module.h"
-#include "Effect-Modules/reverb_module.h"
-#include "Effect-Modules/scifi_module.h"
-#include "Effect-Modules/spectral_delay_module.h"
-#include "Effect-Modules/tuner_module.h"
-
-#include "Effect-Modules/scope_module.h"
+// #include "Effect-Modules/neptune_module.h" // Reverb and delay from the FunBox project (MIT), on the CloudSeed engine. Takes about 9.4 MB of SDRAM
+// #include "Effect-Modules/saturn_module.h" // Spectral delay from the FunBox project (MIT). Takes about 2.9 MB of SDRAM
+// #include "Effect-Modules/jupiter_module.h" // Stereo reverb from the FunBox project (MIT), on the CloudSeed engine. Takes about 4.9 MB of SDRAM
+// #include "Effect-Modules/venus_module.h" // Spectral reverb from the FunBox project (MIT). Takes about 150 KB of SDRAM
 
 // Keyboard modules
 // #include "Effect-Modules/fm_keys_module.h"
@@ -47,47 +59,127 @@
 // #include "Effect-Modules/pluckecho_module.h"
 // #include "Effect-Modules/string_keys_module.h"
 
+// Dattorro plate reverb and Earth (built on it) - GPL-3.0-or-later, disabled by default. See
+// Effect-Modules/Dattorro/README.md, Effect-Modules/Earth/README.md and the matching block in the
+// Makefile before uncommenting.
+// #include "Effect-Modules/dattorro_reverb_module.h"
+// #include "Effect-Modules/earth_module.h"
+
 namespace bkshepherd {
 
 void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffects) {
     // clang-format off
     static BaseEffectModule* effectList[] = {
-        new ModulatedTremoloModule(),
-        new OverdriveModule(),
-        new AutoPanModule(),
-        new ChorusModule(),
-        new ChopperModule(),
-        new ReverbModule(),
-        new MultiDelayModule(),
-        new MetroModule(),
-        new TunerModule(),
-        new PitchShifterModule(),
-        new CompressorModule(),
-        new LooperModule(),
-        new GraphicEQModule(),
-        new ParametricEQModule(),
-        new NoiseGateModule(),
-        new CloudSeedModule(),
-        new AmpModule(),
-        new DelayModule(),
-        new NamModule(),
-        new SciFiModule(),
-        new PolyOctaveModule(),
-        new SpectralDelayModule(),
-        new DistortionModule(),
-        new GranularDelayModule(), 
-        new IrModule(),
-        new DrumModule(),  // This module can be used with MIDI keyboard as a drum machine
-        new PhaserModule(),
-        new FlangerModule(),
+        // new ModulatedTremoloModule(),
+        // new OverdriveModule(),
+        // new AutoPanModule(),
+        // new ChorusModule(),
+        // new ChopperModule(),
+        // new ReverbModule(), // single-instance only
+        // new MultiDelayModule(),  // single-instance-only
+        // new MetroModule(),
+        // new TunerModule(), // single-instance only
+        // new PitchShifterModule(),  // single-instance-only
+        // new CompressorModule(),
+        // new LooperModule(),  // single-instance-only
+        // new GraphicEQModule(),
+        // new ParametricEQModule(),
+        // new NoiseGateModule(),
+        // new CloudSeedModule(), // single-instance only
+        // new VenusModule(), // single-instance only
+        // new JupiterModule(), // single-instance only
+        // new SaturnModule(), // single-instance only
+        // new NeptuneModule(), // single-instance only
+        new UranusModule(), // single-instance only
+        new BalneaModule(), // single-instance only
+        new PlutoModule(), // single-instance only
+        new CassiniModule(), // single-instance only
+        new MarsModule(), // single-instance only
+        new MercuryModule(), // single-instance only
         new DuckCompressorModule(),
+        // new DelayModule(), // single-instance only
+        // new TapeDelayModule(),  // single-instance-only
+        // new DualEchoModule(),  // single-instance-only
+        // new NamA2Module(),  // single-instance-only
+        // new SciFiModule(),  // single-instance-only
+        // new PolyOctaveModule(),
+        // new SpectralDelayModule(),  // single-instance-only
+        // new DistortionModule(),
+        // new GranularDelayModule(),  // single-instance-only
+        // new IrModule(),
+        // new DrumModule(),  // This module can be used with MIDI keyboard as a drum machine
+        // new PhaserModule(),
+        // new FlangerModule(),
+        // new CrusherModule(),
+        // new HarmonicTremoloModule(),
 
         // The following require a MIDI keyboard
         // new MidiKeysModule(),
-        // new PluckEchoModule(),
+        // new PluckEchoModule(),  // single-instance-only
         // new StringKeysModule(),
         // new ModalKeysModule(),
         // new FmKeysModule(),
+
+        // GPL-3.0-or-later - see Effect-Modules/Dattorro/README.md and Effect-Modules/Earth/README.md
+        // new DattorroReverbModule(),
+        // new EarthModule(), // single-instance only
+
+        // Effects chain examples
+
+        // Combines two or more effects into one, processed serially. Note that
+        // many modules cannot be used more than once - see README.md.
+        // In this case, the ReverbModule is single-instance only, so it cannot
+        // be used standalone if it is used here.
+
+        // new EffectChain(
+        //     "TremVerb",
+        //     // Slots: a short menu tag plus the child effect instance (owned by the chain).
+        //     {{"Tr", new ModulatedTremoloModule()}, {"Rv", new ReverbModule()}},
+        //     // Knob/MIDI CC mappings: {slot, child param id, knob (-1 = none), midi CC (-1 = none)}.
+        //     {{0, ModulatedTremoloModule::DEPTH,    0, 20},
+        //      {0, ModulatedTremoloModule::FREQ,     1, 21},
+        //      {0, ModulatedTremoloModule::WAVE,     2, 22},
+
+        //      {1, ReverbModule::TIME,               3, 23},
+        //      {1, ReverbModule::DAMP,               4, 24},
+        //      {1, ReverbModule::MIX,                5, 25},
+             
+        //      // Shift bank - hold the alternate footswitch for 1s to reach these.
+        //      {0, ModulatedTremoloModule::OSC_WAVE, 6, 26},
+        //      {0, ModulatedTremoloModule::OSC_FREQ, 7, 27}}
+        // ),
+
+        // Example of the alternate footswitch's toggle mode: instead of tap
+        // tempo, pressing it toggles the tremolo off/on (and leaves the
+        // reverb and delay always-on). Change footswitchTogglesSlots to {0, 1}
+        // to toggle tremolo+delay together, or to {} to give the footswitch
+        // back to the delay for tap tempo instead.
+        // Note that DelayModule is single-instance-only so cannot be used
+        // standalone if it is used here.
+
+        // new EffectChain(
+        //     "Ambience",
+        //     {{"HT", new HarmonicTremoloModule()}, {"Dl", new DelayModule()}, {"Rv", new DattorroReverbModule()}},
+        //     // Knob/MIDI CC mappings: {slot, child param id, knob (-1 = none), midi CC (-1 = none)}.
+        //     {{2, DattorroReverbModule::MIX,       0, 20},
+        //      {0, HarmonicTremoloModule::DEPTH,    1, 21},
+        //      {0, HarmonicTremoloModule::SPEED,    2, 22},
+
+        //      {1, DelayModule::DELAY_MIX,          3, 23},
+        //      {1, DelayModule::DELAY_TIME,         4, 24},
+        //      {1, DelayModule::D_FEEDBACK,         5, 25},
+
+        //      // Shift bank - hold the alternate footswitch for 1s to reach these.
+        //      {2, DattorroReverbModule::TONE,      6, 26},
+        //      {2, DattorroReverbModule::DECAY,     7, 27},
+        //      {2, DattorroReverbModule::SIZE,      8, 28},
+             
+        //      {1, DelayModule::D_SPREAD,            9, 29},
+        //      {1, DelayModule::MOD_AMT,          10, 30},
+        //      {1, DelayModule::MOD_RATE,            11, 31}},
+        //     /* primarySlot */ 1, // delay owns the LED
+        //     /* footswitchTogglesSlots */ {0} // but footswitch toggles tremolo on/off
+        // ),
     };
     // clang-format on
 

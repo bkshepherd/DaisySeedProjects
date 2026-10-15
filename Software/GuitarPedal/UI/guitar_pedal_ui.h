@@ -5,10 +5,11 @@
 #include "CustomMappedValues.h"
 #include "daisy_seed.h"
 #include "effect_module_menu_item.h"
+#include "effect_selection_menu.h"
 using namespace daisy;
 
-const int kNumMainMenuItems = 3;
-const int kNumGlobalSettingsMenuItems = 7;
+const int kNumMainMenuItems = 4;
+const int kNumGlobalSettingsMenuItems = 10;
 const int kNumPresetSettingsItems = 3;
 
 namespace bkshepherd {
@@ -37,10 +38,10 @@ class GuitarPedalUI {
     */
     bool IsShowingSavingSettingsScreen();
 
-    /** Gets the ID of the Active Effect from the Settings Menu
+    /** Gets the confirmed effect ID selected in the Effect menu
     \return the ID of the Active Effect
     */
-    int GetActiveEffectIDFromSettingsMenu();
+    int GetSelectedEffectID();
 
     /** Generates the Appropriate UI Events */
     void GenerateUIEvents();
@@ -49,6 +50,14 @@ class GuitarPedalUI {
      * @param elapsedTime a float value of how much time (in seconds) has elapsed since the last update
      */
     void UpdateUI(float elapsedTime);
+
+    /** Resets every Parameter of the Active Effect to its factory default value. Used as the
+     * "Defaults" callbackFunctionItem in the Active Effect settings menu.
+     */
+    void ResetActiveEffectParametersToDefaults();
+    void OpenEffectSelectionMenu();
+    void SelectEffect();
+    void BackFromEffectSelectionMenu();
 
   private:
     void InitUi();
@@ -60,31 +69,44 @@ class GuitarPedalUI {
     FullScreenItemMenu m_activeEffectSettingsMenu;
     FullScreenItemMenu m_globalSettingsMenu;
     FullScreenItemMenu m_presetsMenu;
+    EffectSelectionMenu m_effectSelectionMenu;
     UiEventQueue m_eventQueue;
 
     bool m_needToCloseActiveEffectSettingsMenu;
-    float m_secondsTilReturnFromParamChange;
+    bool m_effectSelectionConfirmed = false;
+    int m_selectedEffectID = 0;
+    float m_secondsTilReturnFromParamChange = 0.0f;
     int m_paramIdToReturnTo;
 
     AbstractMenu::ItemConfig m_mainMenuItems[kNumMainMenuItems];
     AbstractMenu::ItemConfig m_globalSettingsMenuItems[kNumGlobalSettingsMenuItems];
     AbstractMenu::ItemConfig m_presetsMenuItems[kNumPresetSettingsItems];
+    AbstractMenu::ItemConfig *m_effectSelectionMenuItems = nullptr;
     int m_numActiveEffectSettingsItems;
     uint32_t m_activePresetSelected;
-    AbstractMenu::ItemConfig *m_activeEffectSettingsMenuItems;
+    // These are tested against nullptr and deleted before reallocation, so
+    // they must start out null even for non-static instances
+    AbstractMenu::ItemConfig *m_activeEffectSettingsMenuItems = nullptr;
     EffectModuleMenuItem m_effectModuleMenuItem;
 
-    const char **m_availableEffectNames;
-    MappedStringListValue *m_availableEffectListMappedValues;
-    MappedIntValue **m_activeEffectSettingIntValues;
+    MappedIntValue **m_activeEffectSettingIntValues = nullptr;
     MappedIntValue m_activePresetSettingIntValue;
-    MappedStringListValue **m_activeEffectSettingStringValues;
-    MyMappedFloatValue **m_activeEffectSettingFloatValues;
-    bool *m_activeEffectSettingBoolValues;
+    MappedStringListValue **m_activeEffectSettingStringValues = nullptr;
+    MyMappedFloatValue **m_activeEffectSettingFloatValues = nullptr;
+    bool *m_activeEffectSettingBoolValues = nullptr;
     MappedIntValue m_midiChannelSettingValue;
 
     bool m_displayingSaveSettingsNotification;
     float m_secondsSinceLastActiveEffectSettingsSave;
 };
 } // namespace bkshepherd
+
+/** Trampoline for wiring GuitarPedalUI::ResetActiveEffectParametersToDefaults() up as a
+ * callbackFunctionItem, matching how FactoryReset()/RebootToBootloader() are wired.
+ */
+void HandleResetActiveEffectParametersToDefaults(void *context);
+void HandleOpenEffectSelectionMenu(void *context);
+void HandleSelectEffect(void *context);
+void HandleBackFromEffectSelectionMenu(void *context);
+
 #endif

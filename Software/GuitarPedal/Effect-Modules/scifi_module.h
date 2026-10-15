@@ -40,9 +40,15 @@ class SciFiModule : public BaseEffectModule {
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;
+    void ProcessMonoBlock(const float *in, float *outL, float *outR, size_t n) override;
+    void ProcessStereoBlock(const float *inL, const float *inR, float *outL, float *outR, size_t n) override;
     float GetBrightnessForLED(int led_id) const override;
 
   private:
+    // Shared implementation for ProcessMono (n = 1) and the block versions. Parameters are read and converted once per call.
+    // noclone: ProcessMono calls this with n = 1, which makes GCC emit a second, specialised ~4.8 KB copy that only the rarely used per-sample path would call.
+    __attribute__((noclone)) void ProcessSamples(const float *in, float *outL, float *outR, size_t n);
+
     ReverbSc *m_reverbStereo;
     int bin_counter = 0;
     float buff[6];

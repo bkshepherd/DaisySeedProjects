@@ -177,7 +177,11 @@ void MetroModule::ProcessStereo(float inL, float inR) {
     m_audioRight = sig * level + inR * (1.0f - level);
 }
 
-void MetroModule::SetTempo(uint32_t bpm) { m_bpm = std::clamp(bpm, minTempo, maxTempo); }
+void MetroModule::SetTempo(uint32_t bpm) {
+    m_bpm = std::clamp(bpm, minTempo, maxTempo);
+    // Keep the stored/displayed TEMPO parameter in sync with tap tempo
+    SetParameterAsFloat(TEMPO, m_bpm);
+}
 
 float MetroModule::GetBrightnessForLED(int led_id) const {
     float value = BaseEffectModule::GetBrightnessForLED(led_id);

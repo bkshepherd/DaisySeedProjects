@@ -162,6 +162,13 @@ void DrumModule::Init(float sample_rate) {
                sample_rate); // Multiplying freq by 4, since beats are defined every sixteenth note, and we want BPM by quarter note
     beat_count = 0;
     led_tempo_count = 1;
+
+    // ParameterChanged only fires on a change, so apply the defaults that configure the voices (MIDI Voice first: the others depend on it)
+    ParameterChanged(BEATS);
+    ParameterChanged(MIDI_VOICE);
+    ParameterChanged(TIMBRE);
+    ParameterChanged(TONE);
+    ParameterChanged(DECAY);
 }
 
 void DrumModule::ParameterChanged(int parameter_id) {

@@ -41,11 +41,11 @@ class NoiseGateModule : public BaseEffectModule {
     // derivative cutoff freq: used when beta is > 0
     one_euro_filter<float, float> m_smoothingFilter{48000, 0.5f, 0.05f, 1.0f};
 
-    float m_holdTimer; // Timer tracking hold duration
-    bool m_gateOpen;   // Is the gate currently open?
-    float m_prevTimeSeconds;
+    float m_holdTimer = 0.0f; // Timer tracking hold duration
+    bool m_gateOpen = false;   // Is the gate currently open?
+    float m_prevTimeSeconds = 0.0f;
 
-    float m_currentGain;
+    float m_currentGain = 0.0f;
 };
 } // namespace bkshepherd
 #endif

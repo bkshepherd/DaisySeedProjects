@@ -19,13 +19,14 @@ class FrequencyDetectorQ : public FrequencyDetectorInterface {
     virtual ~FrequencyDetectorQ();
     void Init(float sampleRate) override;
     float Process(float in) override;
+    bool IsInitialized() const;
 
   private:
-    float m_cachedFrequency;
-    int m_bufferIndex;
+    float m_cachedFrequency = 0.0f;
+    int m_bufferIndex = 0;
 
-    cycfi::q::pitch_detector *m_pitchDetector = nullptr;
-    cycfi::q::signal_conditioner *m_preProcessor = nullptr;
+    static cycfi::q::pitch_detector *m_pitchDetector;
+    static cycfi::q::signal_conditioner *m_preProcessor;
 
     // inputs:
     // estimated frequency: overwritten by timestamps at runtime and not used

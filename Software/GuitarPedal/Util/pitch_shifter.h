@@ -67,6 +67,14 @@ class PitchShifter {
         force_recalc_ = false;
         sr_ = sr;
         mod_freq_ = 5.0f;
+        transpose_ = 0.0f;
+        mod_a_amt_ = mod_b_amt_ = 0.0f;
+        prev_phs_a_ = prev_phs_b_ = 0.0f;
+        for (uint8_t i = 0; i < 2; i++) {
+            slewed_mod_[i] = 0.0f;
+            mod_coeff_[i] = 0.0002f;
+            mod_[i] = 0.0f;
+        }
 
         d_[0].Init(bufferA, buffer_size);
         d_[1].Init(bufferB, buffer_size);
@@ -142,7 +150,9 @@ class PitchShifter {
         float ratio;
         if (transpose_ != transpose || force_recalc_) {
             transpose_ = quantize_semitones_ ? (int32_t)transpose : transpose;
-            ratio = pow(2.f, transpose_ / 12.f);
+            // exp2f keeps this single-precision; this runs per-sample during
+            // momentary ramps and double-precision pow is software-emulated
+            ratio = exp2f(transpose_ * (1.f / 12.f));
             mod_freq_ = ((ratio - 1.0f) * sr_) / del_size_;
             phs_[0].SetFreq(mod_freq_);
             phs_[1].SetFreq(mod_freq_);

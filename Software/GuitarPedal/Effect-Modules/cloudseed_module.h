@@ -46,6 +46,8 @@ class CloudSeedModule : public BaseEffectModule {
     void changePreset();
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;
+    void ProcessMonoBlock(const float *in, float *outL, float *outR, size_t n) override;
+    void ProcessStereoBlock(const float *inL, const float *inR, float *outL, float *outR, size_t n) override;
     float GetBrightnessForLED(int led_id) const override;
     bool AlternateFootswitchForTempo() const override { return false; }
     void AlternateFootswitchPressed() override;
@@ -60,6 +62,9 @@ class CloudSeedModule : public BaseEffectModule {
     Mix CalculateMix(float mixValue);
 
     CloudSeed::ReverbController *reverb = 0;
+
+    // Runs the reverb over up to ReverbController::MaxBlockSize samples and applies the wet/dry mix.
+    void ProcessBlockInternal(const float *inL, const float *inR, float *outL, float *outR, size_t n);
 
     float m_gainMin;
     float m_gainMax;

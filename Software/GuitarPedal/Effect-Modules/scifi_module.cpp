@@ -147,81 +147,104 @@ void SciFiModule::Init(float sample_rate) {
 void SciFiModule::ProcessMono(float in) {
     BaseEffectModule::ProcessMono(in);
 
-    float input = m_audioLeft;
-    buff[bin_counter] =
-        m_audioLeft; // making a workaround for only processing sample by sample instead of block, will add 6 samples of latency
+    float outL, outR;
+    ProcessSamples(&in, &outL, &outR, 1);
+    m_audioLeft = outL;
+    m_audioRight = outR;
+}
 
-    float dryLevel = GetParameterAsFloat(DRY);
-    float down1Level = GetParameterAsFloat(OCT_DOWN); // Setting 2 oct down and 1 oct down with one parameter
-    float down2Level = GetParameterAsFloat(OCT_DOWN); // Setting 2 oct down and 1 oct down with one parameter
-    float up1Level = GetParameterAsFloat(OCT_UP);
+void SciFiModule::ProcessMonoBlock(const float *in, float *outL, float *outR, size_t n) {
+    ProcessSamples(in, outL, outR, n);
+    m_audioLeft = outL[n - 1];
+    m_audioRight = outR[n - 1];
+}
 
-    // Process PolyOctave //////////////////////////////
+// SciFi is a mono-in, stereo-out effect: the right input is ignored
+void SciFiModule::ProcessStereoBlock(const float *inL, const float * /*inR*/, float *outL, float *outR, size_t n) {
+    ProcessMonoBlock(inL, outL, outR, n);
+}
 
-    // do calculation every 6 samples
-    if (bin_counter > 4) {
-
-        std::span<const float, resample_factor> in_chunk(&(buff[0]), resample_factor); // std::span is c++ 20 feature
-
-        const auto sample = decimate_scifi(in_chunk);
-
-        float octave_mix = 0;
-        octave_scifi.update(sample);
-        octave_mix += up1Level * octave_scifi.up1() * 2.0;
-        octave_mix += down1Level * octave_scifi.down1() * 2.0;
-        octave_mix += down2Level * octave_scifi.down2() * 2.0;
-
-        auto out_chunk = interpolate_scifi(octave_mix);
-        for (size_t j = 0; j < out_chunk.size(); ++j) {
-            float mix = eq2_scifi(eq1_scifi(out_chunk[j]));
-
-            mix += dryLevel * buff[j];
-
-            buff_out[j] = mix;
-        }
-    }
-
-    // Increments the buffer index from 0 to 5 (workaround to adapt code)
-    bin_counter += 1;
-    if (bin_counter > 5)
-        bin_counter = 0;
-
-    //////////////////////////////////////////////////////////////
-    // Calculate the Reverb
-    float sendl, sendr, wetl, wetr; // Reverb Inputs/Outputs
-
-    sendl = sendr = buff_out[bin_counter];
+void SciFiModule::ProcessSamples(const float *in, float *outL, float *outR, size_t n) {
+    // Everything that only depends on the parameters is computed once per call instead of once per sample. The expressions (and so
+    // their float/double promotions) are kept exactly as they were in the per-sample code, so results are bit-identical.
+    const float dryLevel = GetParameterAsFloat(DRY);
+    const float down1Level = GetParameterAsFloat(OCT_DOWN); // Setting 2 oct down and 1 oct down with one parameter
+    const float down2Level = GetParameterAsFloat(OCT_DOWN); // Setting 2 oct down and 1 oct down with one parameter
+    const float up1Level = GetParameterAsFloat(OCT_UP);
 
     m_reverbStereo->SetFeedback(m_timeMin + GetParameterAsFloat(TIME) * (m_timeMax - m_timeMin));
     float invertedFreq =
         1.0 - GetParameterAsFloat(DAMP); // Invert the damping param so that knob left is less dampening, knob right is more dampening
     invertedFreq = invertedFreq * invertedFreq; // also square it for exponential taper (more control over lower frequencies)
-
     m_reverbStereo->SetLpFreq(m_lpFreqMin + invertedFreq * (m_lpFreqMax - m_lpFreqMin));
 
-    m_reverbStereo->Process(sendl, sendr, &wetl, &wetr);
-
-    //////////////////////////////////////////////////////////////
-
-    // Overdrive the reverb output
-    float drive_setting = m_driveMin + (GetParameterAsFloat(DRIVE) * (m_driveMax - m_driveMin));
+    const float drive_setting = m_driveMin + (GetParameterAsFloat(DRIVE) * (m_driveMax - m_driveMin));
     m_overdriveLeft.SetDrive(drive_setting);
     m_overdriveRight.SetDrive(drive_setting);
+    // reduce volume as od drive goes up (otherwise way too loud)
+    const double odVolume = (1.0 - (drive_setting * drive_setting * 2.8 - 0.1296));
 
-    float od_out_left =
-        m_overdriveLeft.Process(wetl * 0.8) *
-        (1.0 - (drive_setting * drive_setting * 2.8 - 0.1296)); // reduce volume as od drive goes up (otherwise way too loud)
-    float od_out_right =
-        m_overdriveRight.Process(wetr * 0.8) *
-        (1.0 - (drive_setting * drive_setting * 2.8 - 0.1296)); // reduce volume as od drive goes up (otherwise way too loud)
+    const float odMix = GetParameterAsFloat(OD_MIX);
+    const float mix = GetParameterAsFloat(MIX);
+    const float level = GetParameterAsFloat(LEVEL);
 
-    // Mix regular reverb with overdriven reverb (default is full overdrive)
-    float overdrive_mix_left = od_out_left * GetParameterAsFloat(OD_MIX) * 0.6 + wetl * (1.0 - GetParameterAsFloat(OD_MIX));
-    float overdrive_mix_right = od_out_right * GetParameterAsFloat(OD_MIX) * 0.6 + wetr * (1.0 - GetParameterAsFloat(OD_MIX));
+    for (size_t i = 0; i < n; i++) {
+        const float input = in[i];
+        // making a workaround for only processing sample by sample instead of block, will add 6 samples of latency
+        buff[bin_counter] = input;
 
-    // Mix in the dry signal and set overall level
-    m_audioLeft = (overdrive_mix_left * GetParameterAsFloat(MIX) + input * (1.0 - GetParameterAsFloat(MIX))) * GetParameterAsFloat(LEVEL);
-    m_audioRight = (overdrive_mix_right * GetParameterAsFloat(MIX) + input * (1.0 - GetParameterAsFloat(MIX))) * GetParameterAsFloat(LEVEL);
+        // Process PolyOctave //////////////////////////////
+
+        // do calculation every 6 samples
+        if (bin_counter > 4) {
+
+            std::span<const float, resample_factor> in_chunk(&(buff[0]), resample_factor); // std::span is c++ 20 feature
+
+            const auto sample = decimate_scifi(in_chunk);
+
+            float octave_mix = 0;
+            octave_scifi.update(sample);
+            octave_mix += up1Level * octave_scifi.up1() * 2.0;
+            octave_mix += down1Level * octave_scifi.down1() * 2.0;
+            octave_mix += down2Level * octave_scifi.down2() * 2.0;
+
+            auto out_chunk = interpolate_scifi(octave_mix);
+            for (size_t j = 0; j < out_chunk.size(); ++j) {
+                float mixed = eq2_scifi(eq1_scifi(out_chunk[j]));
+
+                mixed += dryLevel * buff[j];
+
+                buff_out[j] = mixed;
+            }
+        }
+
+        // Increments the buffer index from 0 to 5 (workaround to adapt code)
+        bin_counter += 1;
+        if (bin_counter > 5)
+            bin_counter = 0;
+
+        //////////////////////////////////////////////////////////////
+        // Calculate the Reverb
+        float sendl, sendr, wetl, wetr; // Reverb Inputs/Outputs
+
+        sendl = sendr = buff_out[bin_counter];
+
+        m_reverbStereo->Process(sendl, sendr, &wetl, &wetr);
+
+        //////////////////////////////////////////////////////////////
+
+        // Overdrive the reverb output
+        float od_out_left = m_overdriveLeft.Process(wetl * 0.8) * odVolume;
+        float od_out_right = m_overdriveRight.Process(wetr * 0.8) * odVolume;
+
+        // Mix regular reverb with overdriven reverb (default is full overdrive)
+        float overdrive_mix_left = od_out_left * odMix * 0.6 + wetl * (1.0 - odMix);
+        float overdrive_mix_right = od_out_right * odMix * 0.6 + wetr * (1.0 - odMix);
+
+        // Mix in the dry signal and set overall level
+        outL[i] = (overdrive_mix_left * mix + input * (1.0 - mix)) * level;
+        outR[i] = (overdrive_mix_right * mix + input * (1.0 - mix)) * level;
+    }
 }
 
 void SciFiModule::ProcessStereo(float inL, float inR) {

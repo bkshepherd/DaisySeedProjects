@@ -44,7 +44,7 @@ class PluckEchoModule : public BaseEffectModule {
     // ReverbSc                                  verb;
 
     // Persistent filtered Value for smooth delay time changes.
-    float smooth_time;
+    float smooth_time = 0.0f;
 
     float m_freqMin;
     float m_freqMax;

@@ -20,6 +20,10 @@ void Operator::Init(float samplerate, bool isCarrier) {
     iscarrier_ = isCarrier;
 
     modval_ = 0.0;
+
+    // Used in Process() before the first note-on, so it must not be garbage
+    velocity_ = 0.0f;
+    velocity_amp_ = 0.0f;
 }
 
 float Operator::Process() {

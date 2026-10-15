@@ -1,58 +1,55 @@
-//
-//  ImpulseResponse.cpp
-//  NeuralAmpModeler-macOS
-//
-//  Created by Steven Atkinson on 12/30/22.
-//
-//  Modified by Keith Bloemer on 12/28/23
-//    Greatly simplified by assuming 1 channel, 1 input per Process call, and constant samplerate.
-//    For initial investigation into running IR's on the Daisy Seed
-
 #include "ImpulseResponse.h"
+
+#include <cmath>
 
 ImpulseResponse::ImpulseResponse() {}
 
-// Destructor
-ImpulseResponse::~ImpulseResponse() {
-    // No Code Needed
+void ImpulseResponse::init(const float *ir, uint32_t len, bool normalize) {
+    arm_fill_f32(0.0f, fir_state_, FIR_STATE_LEN);
+    setImpulseResponse(ir, len, normalize);
 }
 
-void ImpulseResponse::Init(std::vector<float> irData) {
-    mRawAudio = irData;
-    _SetWeights();
+// Optional: set this to 0.0 for 100% wet, 1.0 for 100% dry, or in between
+constexpr float kDryWet = 0.0f;
+
+void ImpulseResponse::processBlock(const float *in, float *out, uint32_t n) {
+    if (n > MAX_BLOCK) {
+        n = MAX_BLOCK;
+    }
+    arm_fir_f32(&fir_, in, out, n);
+
+    if constexpr (kDryWet != 0.0f) {
+        for (uint32_t i = 0; i < n; ++i) {
+            out[i] = (1.0f - kDryWet) * out[i] + kDryWet * in[i];
+        }
+    }
 }
 
-float ImpulseResponse::Process(float inputs) {
-
-    _UpdateHistory(inputs);
-
-    int j = mHistoryIndex - mHistoryRequired;
-    auto input = Eigen::Map<const Eigen::VectorXf>(&mHistory[j], mHistoryRequired + 1);
-
-    _AdvanceHistoryIndex(1); // KAB MOD - for Daisy implementation numFrames is always 1
-
-    return (float)mWeight.dot(input);
+void ImpulseResponse::setImpulseResponse(const float *ir, uint32_t len, bool norm) {
+    if (len > DEFAULT_FIR_LEN) {
+        len = DEFAULT_FIR_LEN;
+    }
+    // arm_fir_f32 expects coefficients in time-reversed order
+    // {b[numTaps-1], ..., b[0]}, so flip the IR here to get convolution
+    // rather than correlation.
+    for (uint32_t i = 0; i < len; ++i) {
+        fir_coeffs_[i] = ir[len - 1u - i];
+    }
+    if (norm) {
+        normalise(fir_coeffs_, len);
+    }
+    arm_fill_f32(0.0f, fir_state_, FIR_STATE_LEN); // Reset state
+    arm_fir_init_f32(&fir_, len, fir_coeffs_, fir_state_, MAX_BLOCK);
 }
 
-void ImpulseResponse::_SetWeights() {
+void ImpulseResponse::normalise(float *c, uint32_t len) {
+    float energy = 0.0f;
+    for (uint32_t i = 0; i < len; ++i) {
+        energy += c[i] * c[i];
+    }
 
-    const size_t irLength = std::min(mRawAudio.size(), mMaxLength);
-    mWeight.resize(irLength);
-    // Gain reduction.
-    // https://github.com/sdatkinson/NeuralAmpModelerPlugin/issues/100#issuecomment-1455273839
-    // Add sample rate-dependence
-    // const float gain = pow(10, -18 * 0.05) * 48000 / mSampleRate;  //KAB NOTE: This made a very bad/loud sound on Daisy Seed
-    for (size_t i = 0, j = irLength - 1; i < irLength; i++, j--)
-        // mWeight[j] = gain * mRawAudio[i];
-        mWeight[j] = mRawAudio[i];
-    mHistoryRequired = irLength - 1;
-
-    // Moved from HISTORY::EnsureHistorySize since only doing once for this module (assuming same size IR's)
-    //   TODO: Maybe find a more efficient method of indexing mHistory,
-    //         rather than copying the end of the vector (length of IR) back to the beginning all at once.
-    const size_t requiredHistoryArraySize =
-        5 * mHistoryRequired; // Just so we don't spend too much time copying back. // KAB NOTE: was 10 *
-    mHistory.resize(requiredHistoryArraySize);
-    std::fill(mHistory.begin(), mHistory.end(), 0.0f);
-    mHistoryIndex = mHistoryRequired;
+    if (energy > 1e-12f) {
+        float k = 1.0f / sqrtf(energy); // unit-energy
+        arm_scale_f32(c, k, c, len);
+    }
 }

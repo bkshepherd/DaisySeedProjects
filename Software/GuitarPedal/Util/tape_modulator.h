@@ -19,9 +19,11 @@ class TapeModulator {
             \param flutter_rate - Rate of the fast flutter modulation in Hz
             \param wow_depth - Depth/amount of wow effect (scaling factor)
             \param flutter_depth - Depth/amount of flutter effect (scaling factor)
+            \param flutter_mix - Relative flutter contribution in final output
             \return Speed variation value based on combined modulation sources
         */
-        float GetTapeSpeed(float wow_rate, float flutter_rate, float wow_depth, float flutter_depth);
+        float GetTapeSpeed(float wow_rate, float flutter_rate, float wow_depth, float flutter_depth,
+                           float flutter_mix = 0.2f);
 
     private:
         float sample_rate_;         ///< Audio engine sample rate

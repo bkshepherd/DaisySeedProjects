@@ -76,6 +76,9 @@ void PluckEchoModule::Init(float sample_rate) {
     // verb.Init(sample_rate);
     // verb.SetFeedback(0.85f);
     // verb.SetLpFreq(2000.0f);
+
+    // ParameterChanged only fires on a change, so apply the default string decay here
+    ParameterChanged(STRING_DECAY);
 }
 
 void PluckEchoModule::ParameterChanged(int parameter_id) {

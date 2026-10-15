@@ -2,6 +2,8 @@
 
 This directory includes all the source code for my Multi-Effect Guitar Pedal that runs on various hardware platforms.
 
+For assembly and day-to-day operation of the 125B version, see the [125B user manual](USER_MANUAL_125B.md).
+
 ## Getting Started
 
 Before you can use the software you'll need to do the following steps. There is an option [down below](#using-pre-compiled-releases) to skip setup of a development environment and use a pre-compiled .bin file, however this means you can't make any changes which can be limiting! It is recommended to try to setup your local development environment first.
@@ -25,8 +27,6 @@ Check to make sure that the following directories have files in them:
 1. `Software/GuitarPedal/dependencies/q/q`
 1. `Software/GuitarPedal/dependencies/q/infra`
 1. `Software/GuitarPedal/dependencies/gcem`
-1. `Software/GuitarPedal/dependencies/RTNeural`
-1. `Software/GuitarPedal/dependencies/eigen`
 
 If they do not have anything in them, you may need to do a `git submodule update --init --recursive`.
 
@@ -67,6 +67,7 @@ In guitar_pedal.cpp:
 // #define VARIANT_1590B
 // #define VARIANT_1590B_SMD
 // #define VARIANT_TERRARIUM
+// #define VARIANT_FUNBOX
 ```
 
 If you want to target the GuitarPedal125B hardware change the lines to:
@@ -76,6 +77,7 @@ If you want to target the GuitarPedal125B hardware change the lines to:
 // #define VARIANT_1590B
 // #define VARIANT_1590B_SMD
 // #define VARIANT_TERRARIUM
+// #define VARIANT_FUNBOX
 ```
 
 If you want to target the GuitarPedal1590B hardware change the lines to:
@@ -85,6 +87,7 @@ If you want to target the GuitarPedal1590B hardware change the lines to:
 #define VARIANT_1590B
 // #define VARIANT_1590B_SMD
 // #define VARIANT_TERRARIUM
+// #define VARIANT_FUNBOX
 ```
 
 If you want to target the GuitarPedal1590B-SMD hardware change the lines to:
@@ -94,6 +97,7 @@ If you want to target the GuitarPedal1590B-SMD hardware change the lines to:
 // #define VARIANT_1590B
 #define VARIANT_1590B_SMD
 // #define VARIANT_TERRARIUM
+// #define VARIANT_FUNBOX
 ```
 
 If you want to target the Pedal PCB hardware change the lines to:
@@ -103,6 +107,7 @@ If you want to target the Pedal PCB hardware change the lines to:
 // #define VARIANT_1590B
 // #define VARIANT_1590B_SMD
 #define VARIANT_TERRARIUM
+// #define VARIANT_FUNBOX
 ```
 
 ### 4. Build and Deploy the Code
@@ -134,6 +139,158 @@ Plug your guitar into the Input and connect the Output to your amp.
 - 
 ### 6. Enjoy!!!
 
+## Optional: Dattorro plate reverb (GPLv3)
+
+`Effect-Modules/Dattorro/` contains a Dattorro (1997) plate reverb, in the same family used by
+the Hothouse "Flick" and "MuleBox" pedals. It's disabled by default and commented out of both the
+`Makefile` and `loaded_effects.h`, because that code is licensed **GPL-3.0-or-later**, not MIT
+like the rest of this repository — see [`Effect-Modules/Dattorro/README.md`](Effect-Modules/Dattorro/README.md)
+for the full provenance chain and license text. Enabling it means the firmware binary you build
+must be distributed under GPLv3 (or not distributed at all); leaving it commented out keeps your
+build entirely MIT.
+
+To opt in:
+
+1. Uncomment the two `Dattorro` lines in the `Makefile`.
+2. Uncomment the `#include` and `new DattorroReverbModule(),` lines in `loaded_effects.h`.
+3. Rebuild and flash.
+
+## MIDI Effect and Preset Recall
+
+On MIDI-enabled hardware, Program Change always selects an effect using its zero-based position in `loaded_effects.h`. To also recall a saved preset for that effect, send standard Bank Select messages before the Program Change:
+
+```text
+CC 0  = Bank Select MSB
+CC 32 = Bank Select LSB
+PC    = effect index
+```
+
+The preset number is `(CC0 * 128) + CC32`, matching the "Preset #" shown on the pedal (Preset 0 is the power-on preset). For example, effect 4, preset 2 is `CC0=0`, `CC32=2`, `PC=4`. A Program Change without a preceding Bank Select just switches effect without loading a preset. If the requested preset doesn't exist, the effect is selected without changing its parameters.
+
+Many switchers display Program Change numbers starting at 1 and send the displayed number minus 1, so effect index 4 is entered as PC 5 on such devices. A MIDI monitor is the easiest way to confirm what your switcher actually sends.
+
+CC0 and CC32 are reserved for Bank Select. Multi Delay Tap Mode moved from CC32 to CC33; update controller assignments that used its old CC. Bank selection is consumed by the next Program Change, so send the complete sequence for each combined recall. The effect order is build-specific and follows `loaded_effects.h`.
+
+## Combining Effects (EffectChain)
+
+`Effect-Modules/effect_chain.h` lets you wire two or more effects into a single chained entry in
+`loaded_effects.h`, processed serially (e.g. tremolo into reverb), without changing any of the
+effect modules themselves or the menu/UI code. For example:
+
+```cpp
+new EffectChain(
+    "Trem+Verb",
+    // Slots: a short menu tag plus the child effect instance (owned by the chain).
+    {{"Tr", new ModulatedTremoloModule()}, {"Rv", new ReverbModule()}},
+    // Knob/MIDI CC mappings: {slot, child param id, knob (-1 = none), midi CC (-1 = none)}.
+    {{0, ModulatedTremoloModule::DEPTH, 0, 20},
+     {0, ModulatedTremoloModule::FREQ, 1, 21},
+     {1, ReverbModule::TIME, 2, 22},
+     {1, ReverbModule::DAMP, 3, 23},
+     {1, ReverbModule::MIX, 4, 24}}),
+```
+
+Every child parameter shows up in the effect's parameter menu, tagged with its slot's prefix (e.g.
+"Tr Depth", "Rv Mix") so identically-named parameters from different children stay distinct; only
+the parameters listed in the mapping array are reachable from a knob and/or MIDI CC. One slot (the
+first, by default) is the "primary" child, which owns the LED and the alternate footswitch.
+
+Every slot also gets its own "\<tag\> On" checkbox in the menu, defaulting to on, so any slot can be
+bypassed independently. This is saved with presets exactly like any other parameter.
+
+By default the alternate footswitch just forwards to the primary child (e.g. for tap tempo).
+Pass `footswitchTogglesSlots` to repurpose it as an on-off slot for one or more children, e.g.:
+
+```cpp
+new EffectChain(
+    "HT+Dly+Rv",
+    {{"Tr", new HarmonicTremoloModule()}, {"Dl", new DelayModule()}, {"Rv", new DattorroReverbModule()}},
+    {{2, DattorroReverbModule::MIX,    0, 20},
+     {0, HarmonicTremoloModule::DEPTH, 1, 21},
+     {0, HarmonicTremoloModule::SPEED, 2, 22},
+     {1, DelayModule::DELAY_TIME,      3, 23},
+     {1, DelayModule::D_FEEDBACK,      4, 24},
+     {1, DelayModule::DELAY_MIX,       5, 25}},
+    /* primarySlot */ 1,
+    /* footswitchTogglesSlots */ {0}), // or {0,1} to toggle trem+delay together
+```
+
+A `ChainMapping` can also target a slot's own "On" parameter instead of a child parameter, using the
+`EffectChain::SLOT_ENABLE` sentinel (e.g. `{0, EffectChain::SLOT_ENABLE, -1, 30}`), which puts that
+bypass on a MIDI CC regardless of whether the footswitch is also toggling it.
+
+Turning a slot off crossfades it out over about a tenth of a second and then stops processing it
+entirely, both to avoid a click and to save CPU. Note the delay/reverb trails are not preserved.
+
+If you want to have more than six physical knobs, give any `ChainMapping` a `knobMapping` of 6 or
+higher, and that parameter moves to a second knob bank instead of being unreachable: holding the alternate
+footswitch for a second toggles between the two banks (an on-screen "SHIFT" label shows when the
+second bank is active), and holding it again switches back. Physical knob 1 reads whatever's mapped
+to knob 0 normally, and whatever's mapped to knob 6 while shifted; knob 2 maps to 1/7, and so on
+through knob 6 mapping to 5/11. This only kicks in when a chain actually uses a `knobMapping` of 6 or
+higher somewhere — with every mapping in 0-5, holding the footswitch keeps forwarding to the primary
+child (or stays a no-op under `footswitchTogglesSlots`) exactly as before:
+
+```cpp
+new EffectChain(
+    "HT+Dly+Rv",
+    {{"Tr", new HarmonicTremoloModule()}, {"Dl", new DelayModule()}, {"Rv", new DattorroReverbModule()}},
+    {{2, DattorroReverbModule::MIX,       0, 20},
+     {0, HarmonicTremoloModule::DEPTH,    1, 21},
+     {0, HarmonicTremoloModule::SPEED,    2, 22},
+     {1, DelayModule::DELAY_TIME,         3, 23},
+     {1, DelayModule::D_FEEDBACK,         4, 24},
+     {1, DelayModule::DELAY_MIX,          5, 25},
+     // Shift bank - reachable by holding the alternate footswitch for 1s.
+     {2, DattorroReverbModule::PRE_DELAY, 6, 26},
+     {2, DattorroReverbModule::DECAY,     7, 27},
+     {2, DattorroReverbModule::TONE,      8, 28},
+     {2, DattorroReverbModule::DIFFUSE,   9, 29},
+     {1, DelayModule::DELAY_LPF,          10, 30},
+     {1, DelayModule::MOD_AMT,            11, 31}},
+    /* primarySlot */ 1,
+    /* footswitchTogglesSlots */ {0}),
+```
+
+This isn't meant to support every combination of effects — some modules need caution, or are a poor
+fit for chaining altogether:
+
+- **Single-instance-only modules.** Many modules that keep DSP buffers or other resources in a file-scope
+  global, where every *instance* of that class aliases the same memory. In practice this means you can
+  only create one instance. You can*use* the one instance more than once, e.g. in more than one effect
+  chain or in a combination of an effect chain and a standalone effect, but since they share their
+  parameters, any changes when viewing one patch affects all references.
+  
+  Modules in this category: `ReverbModule`, `DattorroReverbModule`, `DelayModule`, `TapeDelayModule`,
+  `MultiDelayModule`, `GranularDelayModule`, `SpectralDelayModule`, `SciFiModule`,
+  `PitchShifterModule`, `LooperModule`, `PluckEchoModule`, `NamA2Module`, `CloudSeedModule`,
+  `TunerModule`.
+- **Custom on-screen displays are lost.** A chain always draws its own generic name/parameter screen
+  instead of forwarding to a child's `DrawUI`, so these modules lose some or all of their custom
+  display when chained: `AutoPanModule`, `ChopperModule`, `DelayModule`, `GraphicEQModule`,
+  `LooperModule`, `MetroModule`, `ParametricEQModule`, `PitchShifterModule`, `TapeDelayModule`,
+  `TunerModule`. This doesn't stop them working, but it can be confusing.
+
+### Sharing a single-instance effect between chains
+
+A single-instance-only module (see above) can still show up in more than one chain, as long as
+it's the same object every time. Construct it once, put it in every `ChainSlot` that wants it, and
+mark every slot but one `ownsEffect = false` so only one of them deletes it:
+
+```cpp
+static DattorroReverbModule* reverb = new DattorroReverbModule();
+
+new EffectChain("HarmTremVerb",    {{"HT", new HarmonicTremoloModule()}, {"Rv", reverb}}, ...),                    // owns it
+new EffectChain("ModTremVerb", {{"Tr", new ModulatedTremoloModule()}, {"Rv", reverb, /* ownsEffect */ false}}, ...), // reuses it
+```
+
+The two chains are then processing the exact same reverb - its parameters are shared state, not a
+copy per chain. Switching between the chains never resets or overwrites the other's settings by
+itself; only turning that shared knob, editing it in the menu, or a MIDI CC actually changes it. The
+one gap is at power-on: every chain restores its own saved values into whatever it maps parameters
+to, so whichever chain happens to come later in `effectList` decides the shared effect's values after
+a reboot - not necessarily the chain you had active when you last powered off.
+
 ## Using pre-compiled releases
 
 1. Download the .zip for the hardware variant you have built from the latest release https://github.com/bkshepherd/DaisySeedProjects/releases
@@ -154,6 +311,16 @@ This section is most accurate for 125b version
 
 
 ## Software Updates
+
+### Software Update - September 2026
+
+1. Added distortion, granular delay, drum machine, IR loader, tape delay, phaser, flanger, crusher, harmonic tremolo, and dual echo (aka "halo") effects.
+2. Added NAM A2 support, optional IR loading, and a default set of amp models.
+3. Added effect chains with per-effect bypass, expanded knob banks, and footswitch/MIDI mapping.
+4. Added optional GPL-3.0 Dattorro plate reverb and basic Funbox hardware support.
+5. Improved pitch shifting, delay controls and preset storage.
+6. Fixed a memory leak when switching effects and improved memory use.
+7. Added an "autosave" option, whereby the most recent pedal state will be saved across restarts (note: this overwrites Preset 0 for each effect a few seconds after every parameter change).
 
 ### Software Update - November 2024
 

@@ -74,6 +74,9 @@ void TunerModule::ProcessMono(float in) {
 
     if (!m_muteOutput) {
         m_audioLeft = m_audioRight = in;
+    } else {
+        // Output silence rather than holding the last unmuted sample as DC
+        m_audioLeft = m_audioRight = 0.0f;
     }
 }
 

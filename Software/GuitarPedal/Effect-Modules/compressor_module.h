@@ -36,8 +36,8 @@ class CompressorModule : public BaseEffectModule {
     float GetBrightnessForLED(int led_id) const override;
 
   private:
-    float m_levelMin = 0.0f;
-    float m_levelMax = 1.0f;
+    // Output level as a linear gain, cached from the Level parameter (in dB) whenever it changes.
+    float m_levelGain = 1.0f;
 
     Compressor m_compressor;
 };

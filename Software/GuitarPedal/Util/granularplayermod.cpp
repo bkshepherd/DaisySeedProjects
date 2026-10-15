@@ -1,4 +1,5 @@
 #include "granularplayermod.h"
+#include <algorithm>
 
 using namespace daisysp;
 
@@ -62,10 +63,13 @@ void GranularPlayerMod::Init(float *sample, int size, float sample_rate, float p
 
 uint32_t GranularPlayerMod::WrapIdx(uint32_t idx, uint32_t sz) {
     /*wraps idx to sz*/
-    // TODO verify change >= from just =
+    if (sz == 0) {
+        return 0;
+    }
+    // The index can exceed sz by more than one full length (long grains plus
+    // the random width offset), so a single subtraction isn't enough
     if (idx >= sz) {
-        idx = idx - sz;
-        return idx;
+        idx %= sz;
     }
 
     return idx;
@@ -118,7 +122,8 @@ void GranularPlayerMod::setEnvelopeMode(int env_mode) { env_mode_ = env_mode; }
 void GranularPlayerMod::setStereoSpread(float spread) { spread_ = spread; }
 
 void GranularPlayerMod::setSampleSize(float sample_size) {
-    variable_size_ = sample_size;
+    // Guard against a zero size (division by zero below)
+    variable_size_ = std::max(sample_size, 1.0f);
     sample_frequency_ = sample_rate_ / variable_size_;
 }
 
@@ -143,8 +148,19 @@ void GranularPlayerMod::Process(float speed, float transposition, float grain_si
     idxSpeed2_ = NegativeInvert(&phs2_, speed_) * variable_size_;
     idxTransp_ = (NegativeInvert(&phsImp_, transposition_) * MsToSamps(grain_size_, sample_rate_));
     idxTransp2_ = (NegativeInvert(&phsImp2_, transposition_) * MsToSamps(grain_size_, sample_rate_));
-    idx_ = WrapIdx((uint32_t)(idxSpeed_ + idxTransp_ + rand_idx_mod_), variable_size_);
-    idx2_ = WrapIdx((uint32_t)(idxSpeed2_ + idxTransp2_ + rand_idx_mod2_), variable_size_);
+    // The random width offset can make the position negative; wrap it back
+    // into range before the unsigned conversion (negative float to unsigned
+    // is undefined behavior)
+    float idxFloat = idxSpeed_ + idxTransp_ + rand_idx_mod_;
+    float idxFloat2 = idxSpeed2_ + idxTransp2_ + rand_idx_mod2_;
+    if (idxFloat < 0.0f) {
+        idxFloat += variable_size_;
+    }
+    if (idxFloat2 < 0.0f) {
+        idxFloat2 += variable_size_;
+    }
+    idx_ = WrapIdx((uint32_t)std::max(idxFloat, 0.0f), variable_size_);
+    idx2_ = WrapIdx((uint32_t)std::max(idxFloat2, 0.0f), variable_size_);
 
     // Check for when phase output equals 0.0, then generate a new random index modifier for next grain envelope
     float phase_out1_imp = phsImp_.Process();
@@ -164,20 +180,25 @@ void GranularPlayerMod::Process(float speed, float transposition, float grain_si
     if (phase_out2_imp > 0.9)
         switch2 = true;
 
+    // The phasor can return exactly 1.0, which would index one past the end
+    // of the 512-entry envelope tables, so clamp to the last entry
+    const uint32_t envIdx1 = std::min((uint32_t)(phase_out1_imp * 512), (uint32_t)511);
+    const uint32_t envIdx2 = std::min((uint32_t)(phase_out2_imp * 512), (uint32_t)511);
+
     if (env_mode_ == 0) {
 
-        sig_ = sample_[idx_] * cosEnv_[(uint32_t)(phase_out1_imp * 512)];
-        sig2_ = sample_[idx2_] * cosEnv_[(uint32_t)(phase_out2_imp * 512)];
+        sig_ = sample_[idx_] * cosEnv_[envIdx1];
+        sig2_ = sample_[idx2_] * cosEnv_[envIdx2];
 
     } else if (env_mode_ == 1) {
 
-        sig_ = sample_[idx_] * linEnv_[(uint32_t)(phase_out1_imp * 512)];
-        sig2_ = sample_[idx2_] * linEnv_[(uint32_t)(phase_out2_imp * 512)];
+        sig_ = sample_[idx_] * linEnv_[envIdx1];
+        sig2_ = sample_[idx2_] * linEnv_[envIdx2];
 
     } else if (env_mode_ == 2) {
 
-        sig_ = sample_[idx_] * adLinEnv_[(uint32_t)(phase_out1_imp * 512)];
-        sig2_ = sample_[idx2_] * adLinEnv_[(uint32_t)(phase_out2_imp * 512)];
+        sig_ = sample_[idx_] * adLinEnv_[envIdx1];
+        sig2_ = sample_[idx2_] * adLinEnv_[envIdx2];
     }
 
     outl_ = (sig_ * (1.0 - grain_pan1_) + sig2_ * (1.0 - grain_pan2_)) / 2;
