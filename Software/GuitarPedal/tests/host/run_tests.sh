@@ -129,6 +129,9 @@ if XFLAGS="-I$T" build "$B/t_balnea" $T/test_balnea.cpp Effect-Modules/balnea_mo
 step "Heap guard: the message reaches the handler (the _sbrk limit itself only exists on the Daisy)"
 if XFLAGS= build "$B/t_heap_guard" $T/test_heap_guard.cpp Util/heap_guard.cpp; then check "$B/t_heap_guard"; else FAILS=$((FAILS + 1)); fi
 
+step "Duck Compressor: side chain, ratio/threshold/attack/release, clean audio, never boosts, block vs per-sample"
+if XFLAGS= build "$B/t_duck" $T/test_duck.cpp Effect-Modules/duck_compressor_module.cpp Effect-Modules/SimpleCompressor/SimpleComp.cpp Effect-Modules/SimpleCompressor/SimpleEnvelope.cpp $BASEMOD; then check "$B/t_duck"; else FAILS=$((FAILS + 1)); fi
+
 step "Pluto: block vs per-sample, loopers (speed, direction, modes, pause, clear), effects, LED"
 if XFLAGS="-I$T" build "$B/t_pluto" $T/test_pluto.cpp Effect-Modules/pluto_module.cpp $BASEMOD $REVSC $LGPL/Filters/tone.cpp $LGPL/Filters/atone.cpp $LGPL/Dynamics/balance.cpp; then check "$B/t_pluto"; else FAILS=$((FAILS + 1)); fi
 

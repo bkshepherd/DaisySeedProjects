@@ -63,7 +63,7 @@
    "heap": 9216,
    "dtcm": 68,
    "ram_d2": 0,
-   "sram": 27495,
+   "sram": 23523,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
    "heap_source": "measured on the pedal: Show Debug heap used 45 K without Jupiter, 54 K with it"
@@ -80,7 +80,7 @@
    "heap": 7373,
    "dtcm": 244,
    "ram_d2": 0,
-   "sram": 28154,
+   "sram": 28513,
    "sdram": 4608000,
    "static_source": "object files (arm-none-eabi-size -A)",
    "heap_source": "measured on the pedal by difference: Show Debug heap used 54 K (with Cassini, without Neptune), 60 K (without Cassini, with Neptune)"
@@ -203,7 +203,7 @@
   "noise_gate": {
    "dtcm": 12,
    "ram_d2": 0,
-   "sram": 1791,
+   "sram": 1731,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)"
   },
@@ -231,7 +231,7 @@
   "nam": {
    "dtcm": 11788,
    "ram_d2": 76640,
-   "sram": 47914,
+   "sram": 47822,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)"
   },
@@ -414,6 +414,15 @@
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
    "heap": 312
+  },
+  "duck_compressor": {
+   "dtcm": 8,
+   "ram_d2": 0,
+   "sram": 4127,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 0,
+   "heap_source": "no new in the module (host count)"
   }
  },
  "observed": [

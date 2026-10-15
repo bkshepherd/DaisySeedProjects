@@ -601,7 +601,8 @@ def source_files(effect, m):
 def copyright_lines(effect, m, limit=3):
     """Copyright and 'adapted from' comment lines found in the first 40 lines of the effect's source files (an inference from text, not a guarantee)."""
     found = []
-    pattern = re.compile(r"copyright|\(c\)|©|adapted from|ported from|based on|taken from", re.I)
+    pattern = re.compile(r"copyright|\(c\)|©|\ufffd|adapted from|ported from|based on|taken from", re.I)  # (\ufffd: a (c) sign in a Latin-1 file)
+    boilerplate = re.compile(r"above copyright notice|copyright holders|copyright owner|copyright notice", re.I)  # the licence text itself, not who wrote it
     for rel in source_files(effect, m):
         path = os.path.join(ROOT, rel)
         if not os.path.exists(path):
@@ -613,8 +614,8 @@ def copyright_lines(effect, m, limit=3):
                 stripped = line.strip()
                 if not stripped.startswith(("//", "/*", "*", "#")):
                     continue  # comments only
-                text = stripped.lstrip("/*# ").strip()
-                if text and pattern.search(text) and text not in found:
+                text = stripped.lstrip("/*# ").strip().replace("\ufffd", "(c)")
+                if text and pattern.search(text) and not boilerplate.search(text) and text not in found:
                     found.append(text[:200])
     return found[:limit]
 

@@ -25,6 +25,7 @@ XFLAGS="-Idependencies/CloudSeed" run jupiter Effect-Modules/jupiter_module.cpp 
 XFLAGS="-Idependencies/CloudSeed" run neptune Effect-Modules/neptune_module.cpp Effect-Modules/cloudseed_pool.cpp $BASEMOD $LGPL/Filters/tone.cpp dependencies/CloudSeed/AudioLib/Biquad2.cpp dependencies/CloudSeed/AudioLib/ShaRandom.cpp dependencies/CloudSeed/AudioLib/ValueTables.cpp dependencies/CloudSeed/FastSin.cpp dependencies/CloudSeed/Utils/Sha256.cpp
 run uranus Effect-Modules/uranus_module.cpp Util/granularplayermod.cpp Util/operator.cpp $BASEMOD dependencies/DaisySP/Source/Synthesis/oscillator.cpp dependencies/DaisySP/Source/Control/adsr.cpp dependencies/DaisySP/Source/Control/phasor.cpp
 run balnea Effect-Modules/balnea_module.cpp $BASEMOD dependencies/DaisySP/Source/Synthesis/oscillator.cpp dependencies/DaisySP/Source/Control/adsr.cpp dependencies/DaisySP/Source/Filters/svf.cpp
+run duck Effect-Modules/duck_compressor_module.cpp Effect-Modules/SimpleCompressor/SimpleComp.cpp Effect-Modules/SimpleCompressor/SimpleEnvelope.cpp $BASEMOD
 run pluto Effect-Modules/pluto_module.cpp $BASEMOD $LGPL/Effects/reverbsc.cpp $LGPL/Filters/tone.cpp $LGPL/Filters/atone.cpp $LGPL/Dynamics/balance.cpp
 run cassini Effect-Modules/cassini_module.cpp $BASEMOD $LGPL/Effects/reverbsc.cpp dependencies/DaisySP/Source/Control/adsr.cpp dependencies/DaisySP/Source/Filters/svf.cpp
 XFLAGS="-I$T/stub_cmsis" run mars Effect-Modules/mars_module.cpp Effect-Modules/ImpulseResponse/ImpulseResponse.cpp $BASEMOD $LGPL/Filters/tone.cpp $LGPL/Filters/atone.cpp $LGPL/Dynamics/balance.cpp

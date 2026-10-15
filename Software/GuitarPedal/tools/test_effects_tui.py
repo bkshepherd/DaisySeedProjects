@@ -136,6 +136,12 @@ class SelectorTest(unittest.TestCase):
         self.assertIn("Uranus/README.md", info)
         self.assertIn("from FunBox", self.sel.detail(self.sel.current()))
 
+    def test_info_finds_the_copyright_line_not_the_licence_text(self):
+        e = next(e for e in self.sel.effects if e["id"] == "duck_compressor")
+        info = "\n".join(t for _, t in fx.effect_info(e, self.sel.m))
+        self.assertIn("ChunkWare", info)
+        self.assertNotIn("above copyright notice", info)
+
     def test_info_without_origin_falls_back_to_the_committers(self):
         e = next(e for e in self.sel.effects if e["id"] == "delay")
         self.assertIn("committed by", self.sel.detail(e))

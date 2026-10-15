@@ -159,6 +159,18 @@
    ]
   },
   {
+   "id": "duck_compressor",
+   "class": "DuckCompressorModule",
+   "header": "duck_compressor_module.h",
+   "sources": [
+    "Effect-Modules/duck_compressor_module.cpp",
+    "Effect-Modules/SimpleCompressor/SimpleComp.cpp",
+    "Effect-Modules/SimpleCompressor/SimpleEnvelope.cpp"
+   ],
+   "origin": "Simple Compressor by ChunkWare Music Software (2006, open source, MIT terms in its headers); module by spamatica",
+   "note": "Side-chain compressor: the left input is compressed by the level of the right input (turn off Split mono input to stereo); Key Input Left makes it an ordinary compressor"
+  },
+  {
    "id": "looper",
    "class": "LooperModule",
    "header": "looper_module.h",
