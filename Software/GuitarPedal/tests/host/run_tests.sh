@@ -126,6 +126,9 @@ if XFLAGS= build "$B/t_uranus" $T/test_uranus.cpp Effect-Modules/uranus_module.c
 step "Balnea: block vs per-sample, reverse line vs the original, delay time, tap tempo, MIDI"
 if XFLAGS="-I$T" build "$B/t_balnea" $T/test_balnea.cpp Effect-Modules/balnea_module.cpp $BASEMOD $DSP/Synthesis/oscillator.cpp $DSP/Control/adsr.cpp $DSP/Filters/svf.cpp; then check "$B/t_balnea"; else FAILS=$((FAILS + 1)); fi
 
+step "Duck Compressor: side chain, ratio/threshold/attack/release, clean audio, never boosts, block vs per-sample"
+if XFLAGS= build "$B/t_duck" $T/test_duck.cpp Effect-Modules/duck_compressor_module.cpp Effect-Modules/SimpleCompressor/SimpleComp.cpp Effect-Modules/SimpleCompressor/SimpleEnvelope.cpp $BASEMOD; then check "$B/t_duck"; else FAILS=$((FAILS + 1)); fi
+
 step "Pluto: block vs per-sample, loopers (speed, direction, modes, pause, clear), effects, LED"
 if XFLAGS="-I$T" build "$B/t_pluto" $T/test_pluto.cpp Effect-Modules/pluto_module.cpp $BASEMOD $REVSC $LGPL/Filters/tone.cpp $LGPL/Filters/atone.cpp $LGPL/Dynamics/balance.cpp; then check "$B/t_pluto"; else FAILS=$((FAILS + 1)); fi
 

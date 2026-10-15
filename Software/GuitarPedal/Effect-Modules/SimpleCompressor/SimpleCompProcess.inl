@@ -40,8 +40,8 @@ namespace chunkware_simple
 	{
 		// create sidechain
 
-		float rect1 = fabs( in1 );	// rectify input
-		float rect2 = fabs( in2 );
+		float rect1 = std::fabs( in1 );	// rectify input
+		float rect2 = std::fabs( in2 );
 
 		/* if desired, one could use another EnvelopeDetector to smooth
 		 * the rectified signal.
@@ -55,7 +55,7 @@ namespace chunkware_simple
 	//-------------------------------------------------------------
 	INLINE void SimpleComp::process( float &in1, float &in2, float keyLinked )
 	{
-		keyLinked = fabs( keyLinked );		// rectify (just in case)
+		keyLinked = std::fabs( keyLinked );		// rectify (just in case)
 
 		// convert key to dB
 		keyLinked += DC_OFFSET;				// add DC offset to avoid log( 0 )
@@ -63,8 +63,8 @@ namespace chunkware_simple
 
 		// threshold
 		float overdB = keydB - threshdB_;	// delta over threshold
-		if ( overdB < 0.0 )
-			overdB = 0.0;
+		if ( overdB < 0.0f )
+			overdB = 0.0f;
 
 		// attack/release
 
@@ -79,8 +79,9 @@ namespace chunkware_simple
 		 * a minimum value of 0dB.
 		 */
 
-		// transfer function
-		float gr = overdB * ( ratio_ - 1.0 );	// gain reduction (dB)
+		// transfer function. NOTE: ratio_ is the slope, not the n of an n:1 compression: below 1 it compresses
+		// (1/4 for 4:1), above 1 it expands, and at 1 nothing happens. Passing 4 for 4:1 boosts instead of compressing.
+		float gr = overdB * ( ratio_ - 1.0f );	// gain reduction (dB)
 		gr = dB2lin( gr );						// convert dB -> linear
 
 		// output gain

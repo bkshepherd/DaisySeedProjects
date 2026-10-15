@@ -48,10 +48,13 @@ namespace chunkware_simple
 
 		// parameters
 		virtual void setThresh( float dB );
-		virtual void setRatio( float dB );
+		virtual void setRatio( float ratio );	// the slope: 1 / n for a compression of n:1 (see the note in SimpleCompProcess.inl)
 
 		virtual float getThresh( void ) const { return threshdB_; }
 		virtual float getRatio( void )  const { return ratio_; }
+
+		// the gain reduction of the last sample (dB, <= 0); not in the original
+		float getGainReductiondB( void ) const { return ( envdB_ - DC_OFFSET ) * ( ratio_ - 1.0f ); }
 
 		// runtime
 		virtual void initRuntime( void );			// call before runtime (in resume())

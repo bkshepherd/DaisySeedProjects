@@ -1,139 +1,180 @@
 #include "duck_compressor_module.h"
+#include <algorithm>
+#include <array>
+#include <cmath>
 
 using namespace bkshepherd;
 
-static const int s_paramCount = 5;
-static const ParameterMetaData s_metaData[s_paramCount] = {
-    {
+// Parameters are in real units, as in the Compressor module: Level (make-up gain) in dB, Ratio as n:1, Threshold in dB, Attack and Release in milliseconds.
+static const auto s_metaData = [] {
+    std::array<ParameterMetaData, DuckCompressorModule::PARAM_COUNT> params{};
+
+    params[DuckCompressorModule::LEVEL] = {
         name : "Level",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : {.float_value = 0.5f},
+        defaultValue : {.float_value = 3.0f},
         knobMapping : 0,
-        midiCCMapping : -1
-    },
-    {
+        midiCCMapping : -1,
+        minValue : -12,
+        maxValue : 12,
+        fineStepSize : 0.01f,
+        unit : " dB",
+        decimals : 1,
+        showSign : true
+    };
+    params[DuckCompressorModule::RATIO] = {
         name : "Ratio",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : {.float_value = 0.5f},
+        defaultValue : {.float_value = 8.0f},
         knobMapping : 1,
-        midiCCMapping : -1
-    },
-    {
-        name : "Thres",
+        midiCCMapping : -1,
+        minValue : 1,
+        maxValue : 40,
+        fineStepSize : 0.01f,
+        unit : ":1",
+        decimals : 1
+    };
+    params[DuckCompressorModule::THRESHOLD] = {
+        name : "Thresh",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : {.float_value = 0.5f},
+        defaultValue : {.float_value = -30.0f}, // of the key
         knobMapping : 2,
-        midiCCMapping : -1
-    },
-    {
+        midiCCMapping : -1,
+        minValue : -80,
+        maxValue : 0,
+        fineStepSize : 0.01f,
+        unit : " dB",
+        decimals : 1
+    };
+    params[DuckCompressorModule::ATTACK] = {
         name : "Attack",
         valueType : ParameterValueType::Float,
+        valueCurve : ParameterValueCurve::Log,
         valueBinCount : 0,
-        defaultValue : {.float_value = 0.5f},
+        defaultValue : {.float_value = 5.0f},
         knobMapping : 3,
-        midiCCMapping : -1
-    },
-    {
+        midiCCMapping : -1,
+        minValue : 1,
+        maxValue : 100,
+        fineStepSize : 0.01f,
+        unit : " ms",
+        decimals : 1
+    };
+    params[DuckCompressorModule::RELEASE] = {
         name : "Release",
         valueType : ParameterValueType::Float,
+        valueCurve : ParameterValueCurve::Log,
         valueBinCount : 0,
-        defaultValue : {.float_value = 0.5f},
+        defaultValue : {.float_value = 150.0f},
         knobMapping : 4,
+        midiCCMapping : -1,
+        minValue : 10,
+        maxValue : 2000,
+        fineStepSize : 0.01f,
+        unit : " ms",
+        decimals : 0
+    };
+    params[DuckCompressorModule::SIDECHAIN] = {
+        name : "Sidechain",
+        valueType : ParameterValueType::Bool,
+        valueBinCount : 0,
+        defaultValue : {.uint_value = 1}, // on: the right input is the key (not heard). Off: the audio is its own key.
+        knobMapping : -1,
         midiCCMapping : -1
-    },
-};
+    };
+    return params;
+}();
 
 // Default Constructor
-DuckCompressorModule::DuckCompressorModule() : BaseEffectModule() 
-{
-    // Set the name of the effect
+DuckCompressorModule::DuckCompressorModule() : BaseEffectModule() {
     m_name = "DuckComp";
-
-    // Setup the meta data reference for this Effect
-    m_paramMetaData = s_metaData;
-
-    // Initialize Parameters for this Effect
-    this->InitParams(s_paramCount);
+    m_paramMetaData = s_metaData.data();
+    this->InitParams(static_cast<int>(s_metaData.size()));
 }
 
 // Destructor
-DuckCompressorModule::~DuckCompressorModule() {
-    // No Code Needed
-}
+DuckCompressorModule::~DuckCompressorModule() {}
 
-void DuckCompressorModule::Init(float sample_rate)
-{
+void DuckCompressorModule::Init(float sample_rate) {
     BaseEffectModule::Init(sample_rate);
 
     m_simpleComp.initRuntime();
     m_simpleComp.setSampleRate(sample_rate);
+    m_gainReductiondB = 0.0f;
+
+    // ParameterChanged() only fires when a value changes, so apply every parameter (the stored value or the default) here
+    for (int p = 0; p < PARAM_COUNT; p++) {
+        ParameterChanged(p);
+    }
 }
 
-void DuckCompressorModule::ParameterChanged(int parameter_id)
-{
+void DuckCompressorModule::ParameterChanged(int parameter_id) {
     switch (parameter_id) {
-    case 1: {
-        const float ratioMin = 1.0f;
-        const float ratioMax = 40.0f;
-        float ratio = ratioMin + (GetParameterAsFloat(1) * (ratioMax - ratioMin));
-        m_simpleComp.setRatio(ratio);
+    case LEVEL:
+        m_levelGain = std::pow(10.0f, std::max(-24.0f, std::min(24.0f, GetParameterAsFloat(LEVEL))) / 20.0f);
         break;
-    }
-    case 2: {
-        const float thresholdMin = 0.0f;
-        const float thresholdMax = 80.0f;
-        float threshold = thresholdMin + (GetParameterAsFloat(2) * (thresholdMax - thresholdMin));
-        // This is in dB so it is supposed to be 0dB to -80dB
-        m_simpleComp.setThresh(-threshold);
+    case RATIO:
+        // The Simple Compressor takes the slope, not the n of n:1: 1/4 compresses 4:1 (a ratio above 1 would expand and make the audio louder)
+        m_simpleComp.setRatio(1.0f / std::max(1.0f, GetParameterAsFloat(RATIO)));
         break;
-    }
-    case 3: {
-        const float attackMin = 0.001f;
-        const float attackMax = 10.0f;
-        float attack = attackMin + (GetParameterAsFloat(3) * (attackMax - attackMin));
-        m_simpleComp.setAttack(attack);
+    case THRESHOLD:
+        m_simpleComp.setThresh(std::max(-80.0f, std::min(0.0f, GetParameterAsFloat(THRESHOLD))));
         break;
-    }
-    case 4: {
-        const float releaseMin = 0.001f;
-        const float releaseMax = 10.0f;
-        float release = releaseMin + (GetParameterAsFloat(4) * (releaseMax - releaseMin));
-        m_simpleComp.setRelease(release);
+    case ATTACK:
+        m_simpleComp.setAttack(std::max(0.5f, GetParameterAsFloat(ATTACK)));
         break;
-    }
+    case RELEASE:
+        m_simpleComp.setRelease(std::max(5.0f, GetParameterAsFloat(RELEASE)));
+        break;
+    default:
+        break;
     }
 }
 
-void DuckCompressorModule::ProcessMono(float in)
-{
-    float dummy = 0.0f;
-    m_simpleComp.process(in, dummy);
-//    const float compressor_out = m_compressor.Process(in);
-
-    const float level = m_levelMin + (GetParameterAsFloat(0) * (m_levelMax - m_levelMin));
-
-    m_audioLeft = in * level;
-    m_audioRight = m_audioLeft;
+// The audio is compressed by the level of the key; with a key that is the audio itself it is a normal compressor
+void DuckCompressorModule::ProcessSamples(const float *audio, const float *key, float *outL, float *outR, size_t n) {
+    const float level = m_levelGain;
+    for (size_t i = 0; i < n; i++) {
+        float a = audio[i];
+        float unused = 0.0f;
+        m_simpleComp.process(a, unused, std::fabs(key[i])); // the gain reduction goes on a only; the key is not in the output
+        outL[i] = outR[i] = a * level;
+    }
+    m_gainReductiondB = m_simpleComp.getGainReductiondB();
 }
 
-void DuckCompressorModule::ProcessStereo(float inL, float inR)
-{
-    // Calculate the mono effect
-    this->ProcessMono(inL);
+void DuckCompressorModule::ProcessMono(float in) {
+    BaseEffectModule::ProcessMono(in);
+    float out;
+    ProcessSamples(&m_audioLeft, &m_audioLeft, &out, &m_audioRight, 1);
+    m_audioLeft = m_audioRight;
 }
 
-float DuckCompressorModule::GetBrightnessForLED(int led_id) const 
-{
+void DuckCompressorModule::ProcessStereo(float inL, float inR) {
+    BaseEffectModule::ProcessStereo(inL, inR);
+    float out;
+    ProcessSamples(&m_audioLeft, GetParameterAsBool(SIDECHAIN) ? &m_audioRight : &m_audioLeft, &out, &m_audioRight, 1);
+    m_audioLeft = m_audioRight;
+}
+
+void DuckCompressorModule::ProcessMonoBlock(const float *in, float *outL, float *outR, size_t n) {
+    ProcessSamples(in, in, outL, outR, n);
+    m_audioLeft = outL[n - 1];
+    m_audioRight = outR[n - 1];
+}
+
+void DuckCompressorModule::ProcessStereoBlock(const float *inL, const float *inR, float *outL, float *outR, size_t n) {
+    ProcessSamples(inL, GetParameterAsBool(SIDECHAIN) ? inR : inL, outL, outR, n);
+    m_audioLeft = outL[n - 1];
+    m_audioRight = outR[n - 1];
+}
+
+float DuckCompressorModule::GetBrightnessForLED(int led_id) const {
     float value = BaseEffectModule::GetBrightnessForLED(led_id);
-
-    // TODO: Use gain for the LED
-    // if (led_id == 1)
-    // {
-    //     return value * m_compressor.GetGain();
-    // }
-
+    // The second LED shows the gain reduction: dark when the audio is untouched, full at 12 dB or more
+    if (led_id == 1) return value * std::min(1.0f, -m_gainReductiondB / 12.0f);
     return value;
 }
