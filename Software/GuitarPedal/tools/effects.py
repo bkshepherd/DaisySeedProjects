@@ -8,7 +8,7 @@ Selects which effects are built into the firmware, generates the parts of the bu
   effects-memory.json   what each effect costs in memory (measured from the object files, plus heap figures that are estimates)
   generated/            what `generate` writes: effects.mk (included by the Makefile), effects_includes.inc and effects_instances.inc (included by loaded_effects.h)
 
-Commands:  list | preset NAME | enable ID... | disable ID... | generate | report | measure | calibrate | matrix [ID...]
+Commands:  tui (the default in a terminal) | list | preset NAME | enable ID... | disable ID... | generate | report | measure | calibrate | matrix [ID...]
 See PERFORMANCE_AND_MEMORY.md for what the figures mean and where they come from.
 """
 import argparse
@@ -42,8 +42,9 @@ def manifest():
     return m
 
 
-def read_config(path=CONFIG):
+def read_config(path=None):
     """Returns (set of enabled effect ids, options dict)."""
+    path = path or CONFIG
     enabled, options = set(), {}
     if not os.path.exists(path):
         return enabled, options
@@ -59,7 +60,8 @@ def read_config(path=CONFIG):
     return enabled, options
 
 
-def write_config(enabled, options, m, path=CONFIG, header=None):
+def write_config(enabled, options, m, path=None, header=None):
+    path = path or CONFIG
     lines = ["# Effect selection, edited with tools/effects.py (or by hand: ID=y enables an effect). Order and comments do not matter."]
     if header:
         lines += ["# " + h for h in header.split("\n")]
@@ -70,26 +72,41 @@ def write_config(enabled, options, m, path=CONFIG, header=None):
         f.write("\n".join(lines) + "\n")
 
 
-def resolve(enabled, options, m):
-    """The enabled effects in firmware order, and the components they need."""
+def selection_problems(enabled, options, m):
+    """What stops a selection from being built: unknown effects, conflicts, GPL effects without ALLOW_GPL (a list of messages; empty if it can be built)."""
+    problems = []
     unknown = [i for i in enabled if i not in m["by_id"]]
     if unknown:
-        sys.exit("effects.config: unknown effect(s): %s" % ", ".join(sorted(unknown)))
+        return ["unknown effect(s): %s" % ", ".join(sorted(unknown))]
     effects = [e for e in m["effects"] if e["id"] in enabled]
     comps = []
     for e in effects:
         for c in e.get("requires", []):
             if c not in m["components"]:
-                sys.exit("manifest: %s requires unknown component %s" % (e["id"], c))
+                return ["manifest: %s requires unknown component %s" % (e["id"], c)]
             if c not in comps:
                 comps.append(c)
     for e in effects:
         for c in e.get("conflicts", []):
             if c in enabled:
-                sys.exit("effects.config: %s and %s cannot be built together (%s)" % (e["id"], c, e.get("note", "conflicting definitions")))
+                problems.append("%s and %s cannot be built together (%s)" % (e["id"], c, e.get("note", "conflicting definitions")))
     gpl = [e["id"] for e in effects if e.get("license") == "gpl"] + [c for c in comps if m["components"][c].get("license") == "gpl"]
     if gpl and not options.get("ALLOW_GPL"):
-        sys.exit("effects.config: %s are GPL-3.0-or-later: a firmware binary that contains them must be distributed under GPLv3 (or not at all). Set ALLOW_GPL=y to accept that." % ", ".join(sorted(set(gpl))))
+        problems.append("%s are GPL-3.0-or-later: a firmware binary that contains them must be distributed under GPLv3 (or not at all); ALLOW_GPL=y accepts that" % ", ".join(sorted(set(gpl))))
+    return problems
+
+
+def resolve(enabled, options, m):
+    """The enabled effects in firmware order, and the components they need."""
+    problems = selection_problems(enabled, options, m)
+    if problems:
+        sys.exit("effects.config: " + "; ".join(problems))
+    effects = [e for e in m["effects"] if e["id"] in enabled]
+    comps = []
+    for e in effects:
+        for c in e.get("requires", []):
+            if c not in comps:
+                comps.append(c)
     return effects, comps
 
 
@@ -388,9 +405,16 @@ def cmd_preset(args):
     generate()
 
 
+def cmd_tui(args):
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import effects_tui
+    effects_tui.run(sys.modules[__name__])
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    sub = p.add_subparsers(dest="cmd", required=True)
+    sub = p.add_subparsers(dest="cmd")
+    sub.add_parser("tui", help="the interactive full-screen selection (the default when run in a terminal)")
     sub.add_parser("list")
     s = sub.add_parser("preset"); s.add_argument("name")
     s = sub.add_parser("enable"); s.add_argument("ids", nargs="+")
@@ -401,7 +425,13 @@ def main():
     s = sub.add_parser("calibrate"); s.add_argument("--build-dir", default=os.path.join(ROOT, "build"))
     s = sub.add_parser("matrix"); s.add_argument("ids", nargs="*")
     a = p.parse_args()
-    {"list": cmd_list, "preset": cmd_preset, "enable": lambda x: cmd_change(x, True), "disable": lambda x: cmd_change(x, False), "generate": lambda x: generate(),
+    if a.cmd is None:
+        if sys.stdin.isatty() and sys.stdout.isatty():
+            a.cmd = "tui"
+        else:
+            p.print_help()
+            return
+    {"tui": cmd_tui, "list": cmd_list, "preset": cmd_preset, "enable": lambda x: cmd_change(x, True), "disable": lambda x: cmd_change(x, False), "generate": lambda x: generate(),
      "report": cmd_report, "measure": lambda x: measure(x.build_dir), "calibrate": lambda x: calibrate(x.build_dir), "matrix": cmd_matrix}[a.cmd](a)
 
 

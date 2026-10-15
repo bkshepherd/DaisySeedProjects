@@ -146,6 +146,7 @@ Which effects go into the firmware is chosen in **`effects.config`**, with the t
 `make` regenerates them by itself when `effects.config` changes, so after editing the file (or running one of these) just build:
 
 ```text
+python3 tools/effects.py                           # the interactive full-screen selection (curses): arrows to move, space to select, s to save, h for help
 python3 tools/effects.py list                      # all effects, what is enabled, and what each costs in memory
 python3 tools/effects.py preset uranus-only        # start from a preset (configs/*.config; "everything" enables all effects)
 python3 tools/effects.py enable venus saturn       # enable effects (disable does the opposite)
