@@ -585,7 +585,8 @@ void TapeDelayModule::SetEnabled(bool isEnabled) {
     BaseEffectModule::SetEnabled(isEnabled);
 
     // Re-entering the effect should always start from silence to avoid stale, loud tails.
-    if (isEnabled && !wasEnabled) {
+    // (but not while the tail is still ringing: Trails)
+    if (isEnabled && !wasEnabled && !IsTrailing()) {
         ResetInternalState();
     }
 }

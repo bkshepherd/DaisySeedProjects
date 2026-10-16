@@ -454,7 +454,8 @@ void DualEchoModule::SetEnabled(bool isEnabled) {
     bool wasEnabled = IsEnabled();
     BaseEffectModule::SetEnabled(isEnabled);
 
-    if (isEnabled && !wasEnabled) {
+    // Keep the repeats if the tail is still ringing (Trails)
+    if (isEnabled && !wasEnabled && !IsTrailing()) {
         ResetState();
     } else if (!isEnabled) {
         m_holdActive = false;

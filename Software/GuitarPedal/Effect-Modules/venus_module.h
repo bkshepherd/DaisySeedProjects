@@ -22,6 +22,8 @@ namespace bkshepherd {
 // licence, see Venus/README.md). Mono in, the same signal on both outputs.
 class VenusModule : public BaseEffectModule {
   public:
+    float GetMaxTrailSeconds() const override { return 8.0f; }
+
     enum Param {
         DECAY = 0,
         MIX,

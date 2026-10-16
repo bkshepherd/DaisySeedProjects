@@ -406,12 +406,16 @@ void GuitarPedalUI::InitGlobalSettingsUIPages() {
     m_globalSettingsMenuItems[7].text = "Show Debug"; // exactly the 10 characters that fit in the 11x18 menu font
     m_globalSettingsMenuItems[7].asCheckboxItem.valueToModify = &settings.globalShowDebug;
 
-    m_globalSettingsMenuItems[8].type = AbstractMenu::ItemType::callbackFunctionItem;
-    m_globalSettingsMenuItems[8].text = "Reboot";
-    m_globalSettingsMenuItems[8].asCallbackFunctionItem.callbackFunction = &RebootToBootloader;
-    m_globalSettingsMenuItems[8].asCallbackFunctionItem.context = this;
+    m_globalSettingsMenuItems[8].type = AbstractMenu::ItemType::checkboxItem;
+    m_globalSettingsMenuItems[8].text = "Trails";
+    m_globalSettingsMenuItems[8].asCheckboxItem.valueToModify = &settings.globalTrails;
 
-    m_globalSettingsMenuItems[9].type = AbstractMenu::ItemType::closeMenuItem;
+    m_globalSettingsMenuItems[9].type = AbstractMenu::ItemType::callbackFunctionItem;
+    m_globalSettingsMenuItems[9].text = "Reboot";
+    m_globalSettingsMenuItems[9].asCallbackFunctionItem.callbackFunction = &RebootToBootloader;
+    m_globalSettingsMenuItems[9].asCallbackFunctionItem.context = this;
+
+    m_globalSettingsMenuItems[10].type = AbstractMenu::ItemType::closeMenuItem;
     m_globalSettingsMenuItems[9].text = "Back";
 
     m_globalSettingsMenu.Init(m_globalSettingsMenuItems, kNumGlobalSettingsMenuItems);

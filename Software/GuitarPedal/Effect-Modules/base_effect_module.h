@@ -277,6 +277,17 @@ class BaseEffectModule {
     */
     bool IsEnabled() const;
 
+    /** The longest time (seconds) this effect keeps ringing after its input stops: a reverb or delay tail. 0 (the default) means it has
+     * no tail worth keeping. When the global "Trails" setting is on, the pedal keeps processing an effect that returns more than 0 for up to
+     * this long after it is turned off, with silence as input, and adds the result to the dry signal (it stops earlier if the tail dies out).
+     * An effect that overrides this should also not clear its buffers in SetEnabled(true) while IsTrailing().
+     */
+    virtual float GetMaxTrailSeconds() const { return 0.0f; }
+
+    /** Set by the pedal: true while the effect is bypassed but still being processed to let its tail ring out. */
+    void SetTrailing(bool trailing) { m_trailing = trailing; }
+    bool IsTrailing() const { return m_trailing; }
+
     /** Sets the Tempo of this Effect
      * @param bpm the Tempo in Beats Per Minute (BPM) as a uint32_t
      */
@@ -386,6 +397,7 @@ class BaseEffectModule {
     volatile uint32_t m_parameterChangeCount;
   private:
     bool m_isEnabled;
+    volatile bool m_trailing = false;
     float m_sampleRate; // Current Sample Rate this Effect was initialized for.
     float m_inputLevelDb = -100.0f;  // averaged input peak in dB, can be used for rendering to display
     float m_outputLevelDb = -100.0f; // averaged output peak in dB

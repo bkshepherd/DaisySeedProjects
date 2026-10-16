@@ -24,6 +24,8 @@ namespace bkshepherd {
 // three-way menu items. Uses its own CloudSeed reverb instance (about 4.9 MB of the pool in cloudseed_pool.cpp, shared with the CloudSeed module).
 class JupiterModule : public BaseEffectModule {
   public:
+    float GetMaxTrailSeconds() const override { return 8.0f; }
+
     enum Param {
         DECAY = 0,
         MIX,

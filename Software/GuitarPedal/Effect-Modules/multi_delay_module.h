@@ -15,6 +15,8 @@ namespace bkshepherd {
 
 class MultiDelayModule : public BaseEffectModule {
   public:
+    float GetMaxTrailSeconds() const override { return 10.0f; }
+
     enum Param {
         WET = 0,
         DELAY_L_MS,

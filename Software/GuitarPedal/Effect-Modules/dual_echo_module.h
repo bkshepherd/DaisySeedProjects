@@ -23,6 +23,8 @@ namespace bkshepherd {
 // saturation/compression in the loop, and a momentary infinite hold.
 class DualEchoModule : public BaseEffectModule {
   public:
+    float GetMaxTrailSeconds() const override { return 10.0f; }
+
     enum Param {
         TIME = 0,
         FEEDBACK,

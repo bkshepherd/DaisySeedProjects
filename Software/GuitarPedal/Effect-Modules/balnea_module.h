@@ -18,6 +18,8 @@ namespace bkshepherd {
 // two intervals) once per delay time, so the repeats climb or fall in pitch as they recirculate. Tap tempo, reverse, wow and flutter, and a MIDI synth to play along with.
 class BalneaModule : public BaseEffectModule {
   public:
+    float GetMaxTrailSeconds() const override { return 10.0f; }
+
     enum Param {
         MIX = 0,
         TONE,

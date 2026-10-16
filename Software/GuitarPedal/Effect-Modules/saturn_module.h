@@ -30,6 +30,8 @@ constexpr int kReferenceBins = 175;        // the original's number of bins per 
 // of the FunBox project by GuitarML (MIT licence, see Saturn/README.md).
 class SaturnModule : public BaseEffectModule {
   public:
+    float GetMaxTrailSeconds() const override { return 10.0f; }
+
     enum Param {
         PREDELAY = 0,
         MIX,

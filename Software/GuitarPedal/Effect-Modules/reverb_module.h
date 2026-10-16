@@ -15,6 +15,8 @@ namespace bkshepherd {
 
 class ReverbModule : public BaseEffectModule {
   public:
+    float GetMaxTrailSeconds() const override { return 8.0f; }
+
     enum Param {
         TIME = 0,
         DAMP,

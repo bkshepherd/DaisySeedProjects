@@ -116,6 +116,8 @@ namespace bkshepherd {
 
 class DelayModule : public BaseEffectModule {
   public:
+    float GetMaxTrailSeconds() const override { return 10.0f; }
+
     enum Param {
         DELAY_TIME = 0,
         D_FEEDBACK,

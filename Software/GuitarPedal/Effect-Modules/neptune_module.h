@@ -25,6 +25,8 @@ namespace bkshepherd {
 // for the delay lines. Needs a sample rate of 48 kHz (the delay times are in samples).
 class NeptuneModule : public BaseEffectModule {
   public:
+    float GetMaxTrailSeconds() const override { return 10.0f; }
+
     enum Param {
         DECAY = 0,
         MIX,

@@ -23,6 +23,8 @@ namespace bkshepherd {
 
 class CloudSeedModule : public BaseEffectModule {
   public:
+    float GetMaxTrailSeconds() const override { return 8.0f; }
+
     enum Param {
         PRE_DELAY = 0,
         MIX,

@@ -149,6 +149,15 @@ CrossFade crossFaderLeft, crossFaderRight;
 float crossFaderTransitionTimeInSeconds = 0.1f;
 int crossFaderTransitionTimeInSamples;
 int samplesTilCrossFadingComplete;
+
+// Trails (settings.globalTrails): an effect with a tail (GetMaxTrailSeconds() > 0) keeps being processed after it is turned off, with its
+// input faded to silence, and its output is added to the dry signal. It stops when the tail has died out or the maximum time has passed.
+float trailInputGain = 0.0f;    // 0..1: level of the signal going into the effect, ramped over the crossfade time
+bool trailRunning = false;      // the effect is on, or off but still ringing
+int trailSilentSamples = 0;     // how long the effect's output has been (nearly) silent while off
+int trailSamplesSinceOff = 0;   // how long the effect has been off
+constexpr float kTrailSilenceLevel = 1.0e-4f; // about -80 dB
+constexpr float kTrailSilenceSeconds = 0.25f; // this long below the level means the tail is over
 CpuLoadMeter cpuLoadMeter;
 
 // Slowest audio callback since the main loop last read it, in system ticks (for the peak CPU readout: the meter above only gives a smoothed average, which hides
@@ -463,9 +472,26 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
     // per-sample loop only has to mix the dry and effect signals.
     // Whether the effect is needed is decided once per block; if a crossfade ends mid-block the effect simply runs a few extra samples.
     static constexpr size_t kMaxBlock = 256; // the largest audio block size supported (see kAudioBlockSize)
-    static float dryLeft[kMaxBlock], dryRight[kMaxBlock], fxLeft[kMaxBlock], fxRight[kMaxBlock];
+    static float dryLeft[kMaxBlock], dryRight[kMaxBlock], fxLeft[kMaxBlock], fxRight[kMaxBlock], fxInLeft[kMaxBlock], fxInRight[kMaxBlock];
     const bool splitMono = settings.globalSplitMonoInputToStereo && !settings.globalRelayBypassEnabled;
-    const bool runEffect = activeEffect != nullptr && (effectOn || isCrossFading);
+
+    // Trails need the audio to pass through the pedal (the True Bypass relay would route the dry signal around it and cut the tail).
+    const float maxTrailSeconds = (activeEffect != nullptr) ? activeEffect->GetMaxTrailSeconds() : 0.0f;
+    const bool trails = settings.globalTrails && !settings.globalRelayBypassEnabled && maxTrailSeconds > 0.0f;
+    const float sampleRate = hardware.AudioSampleRate();
+    if (trails) {
+        if (effectOn || trailInputGain > 0.0f) {
+            trailRunning = true;
+            trailSilentSamples = 0;
+            trailSamplesSinceOff = 0;
+        }
+    } else {
+        trailRunning = false;
+        trailInputGain = effectOn ? 1.0f : 0.0f;
+    }
+    const bool runEffect = activeEffect != nullptr && (trails ? trailRunning : (effectOn || isCrossFading));
+    const float trailGainStep = 1.0f / (float)crossFaderTransitionTimeInSamples;
+    float trailBlockPeak = 0.0f;
 
     for (size_t start = 0; start < size; start += kMaxBlock) {
         const size_t n = (size - start < kMaxBlock) ? (size - start) : kMaxBlock;
@@ -475,7 +501,33 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
             dryRight[i] = splitMono ? dryLeft[i] : in[1][start + i];
         }
 
-        if (runEffect) {
+        if (runEffect && trails) {
+            // Input to the effect is the dry signal times the ramped gain, the dry signal around it times the rest: with the effect on this is
+            // the plain effect output, with it off it is the dry signal plus whatever the effect still rings.
+            const float gainTarget = effectOn ? 1.0f : 0.0f;
+            for (size_t i = 0; i < n; i++) {
+                if (trailInputGain < gainTarget) {
+                    trailInputGain = fminf(gainTarget, trailInputGain + trailGainStep);
+                } else if (trailInputGain > gainTarget) {
+                    trailInputGain = fmaxf(gainTarget, trailInputGain - trailGainStep);
+                }
+                fxInLeft[i] = dryLeft[i] * trailInputGain;
+                fxInRight[i] = dryRight[i] * trailInputGain;
+                fxLeft[i] = dryLeft[i] * (1.0f - trailInputGain); // the dry part, the effect's output is added below
+                fxRight[i] = dryRight[i] * (1.0f - trailInputGain);
+            }
+            static float wetLeft[kMaxBlock], wetRight[kMaxBlock];
+            if (hardware.SupportsStereo()) {
+                activeEffect->ProcessStereoBlock(fxInLeft, fxInRight, wetLeft, wetRight, n);
+            } else {
+                activeEffect->ProcessMonoBlock(fxInLeft, wetLeft, wetRight, n);
+            }
+            for (size_t i = 0; i < n; i++) {
+                fxLeft[i] += wetLeft[i];
+                fxRight[i] += wetRight[i];
+                trailBlockPeak = fmaxf(trailBlockPeak, fmaxf(fabsf(wetLeft[i]), fabsf(wetRight[i])));
+            }
+        } else if (runEffect) {
             if (hardware.SupportsStereo()) {
                 activeEffect->ProcessStereoBlock(dryLeft, dryRight, fxLeft, fxRight, n);
             } else {
@@ -490,6 +542,19 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
             out[0][start + i] = fxLeft[i];
             out[1][start + i] = fxRight[i];
         }
+    }
+
+    if (trails && trailRunning && !effectOn && trailInputGain <= 0.0f) {
+        // The effect is off and only ringing: stop it when the tail is over, or at the latest after its maximum trail time.
+        trailSilentSamples = (trailBlockPeak < kTrailSilenceLevel) ? trailSilentSamples + (int)size : 0;
+        trailSamplesSinceOff += (int)size;
+        if (trailSilentSamples > (int)(kTrailSilenceSeconds * sampleRate) || trailSamplesSinceOff > (int)(maxTrailSeconds * sampleRate)) {
+            trailRunning = false;
+        }
+    }
+    if (activeEffect != nullptr) {
+        // So that an effect that clears its buffers when it is turned on keeps the tail that is still ringing
+        activeEffect->SetTrailing(trails && trailRunning && !effectOn);
     }
 
     if (runEffect) {
@@ -543,8 +608,10 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
         float crossFadeTargetLeft = out[0][i];
         float crossFadeTargetRight = out[1][i];
 
-        out[0][i] = crossFaderLeft.Process(crossFadeSourceLeft, crossFadeTargetLeft);
-        out[1][i] = crossFaderRight.Process(crossFadeSourceRight, crossFadeTargetRight);
+        if (!trails) {
+            out[0][i] = crossFaderLeft.Process(crossFadeSourceLeft, crossFadeTargetLeft);
+            out[1][i] = crossFaderRight.Process(crossFadeSourceRight, crossFadeTargetRight);
+        }
     }
 
     updateLeds(led1Brightness, led2Brightness);
@@ -573,6 +640,13 @@ void SetActiveEffect(int effectID) {
 
         // Update the ID cache
         activeEffectID = effectID;
+
+        // An effect that is only ringing out is cut when another one is selected
+        if (activeEffect != nullptr) {
+            activeEffect->SetTrailing(false);
+        }
+        trailRunning = false;
+        trailInputGain = effectOn ? 1.0f : 0.0f;
 
         // Update the Active Effect directly.
         activeEffect = availableEffects[effectID];
@@ -803,6 +877,7 @@ int main(void) {
     activeEffect = availableEffects[settings.globalActiveEffectID];
     activeEffectID = settings.globalActiveEffectID;
     effectOn = settings.globalEffectOn;
+    trailInputGain = effectOn ? 1.0f : 0.0f;
     activeEffect->SetEnabled(effectOn);
 
     // LoadEffectSettingsFromPersistantStorage() above loads every effect's own

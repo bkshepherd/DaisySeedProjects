@@ -9,7 +9,7 @@
 using namespace daisy;
 
 const int kNumMainMenuItems = 4;
-const int kNumGlobalSettingsMenuItems = 10;
+const int kNumGlobalSettingsMenuItems = 11;
 const int kNumPresetSettingsItems = 3;
 
 namespace bkshepherd {

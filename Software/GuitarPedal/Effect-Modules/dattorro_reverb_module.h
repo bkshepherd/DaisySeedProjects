@@ -30,6 +30,8 @@ namespace bkshepherd {
 // Time Scale) is menu-only since the 125B only has six knobs.
 class DattorroReverbModule : public BaseEffectModule {
   public:
+    float GetMaxTrailSeconds() const override { return 8.0f; }
+
     enum Param {
         MIX = 0,
         PRE_DELAY,

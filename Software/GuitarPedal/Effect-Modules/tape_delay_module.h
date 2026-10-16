@@ -20,6 +20,8 @@ namespace bkshepherd {
 
 class TapeDelayModule : public BaseEffectModule {
   public:
+    float GetMaxTrailSeconds() const override { return 10.0f; }
+
     enum Param {
         TIME = 0,
         MIX,
