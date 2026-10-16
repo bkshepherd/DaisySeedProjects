@@ -25,7 +25,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 0,
-        midiCCMapping : -1
+        midiCCMapping : -1,
+        unit : " dB",
+        decimals : 1,
+        displayFn : [](float v) { return ParamDisplay::Db(v); }
     };
 
     params[DistortionModule::GAIN] = {
@@ -35,6 +38,9 @@ static const auto s_metaData = [] {
         defaultValue : {.float_value = 0.5f},
         knobMapping : 1,
         midiCCMapping : -1,
+        unit : " dB",
+        decimals : 1,
+        displayFn : [](float v) { return ParamDisplay::Db(ParamDisplay::Lin(v, 1.0f, 20.0f)); }
     };
 
     params[DistortionModule::TONE] = {

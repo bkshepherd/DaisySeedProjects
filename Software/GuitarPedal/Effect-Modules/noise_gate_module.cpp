@@ -21,51 +21,62 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 0,
-        midiCCMapping : -1
+        midiCCMapping : -1,
+        unit : " dB",
+        decimals : 1,
+        displayFn : [](float v) { return ParamDisplay::Db(v * maxThreshold); }
     };
 
     params[NoiseGateModule::ATTACK_MS] = {
-        name : "Atk [ms]",
+        name : "Attack",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 1.0f},
         knobMapping : 1,
         midiCCMapping : -1,
         minValue : static_cast<int>(1),
-        maxValue : static_cast<int>(20)
+        maxValue : static_cast<int>(20),
+        unit : " ms",
+        decimals : 0
     };
 
     params[NoiseGateModule::RELEASE_MS] = {
-        name : "Rel [ms]",
+        name : "Release",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 50.0f},
         knobMapping : 2,
         midiCCMapping : -1,
         minValue : static_cast<int>(1),
-        maxValue : static_cast<int>(500)
+        maxValue : static_cast<int>(500),
+        unit : " ms",
+        decimals : 0
     };
 
     params[NoiseGateModule::HOLD_MS] = {
-        name : "Hold [ms]",
+        name : "Hold",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 50.0f},
         knobMapping : 3,
         midiCCMapping : -1,
         minValue : static_cast<int>(0),
-        maxValue : static_cast<int>(1000)
+        maxValue : static_cast<int>(1000),
+        unit : " ms",
+        decimals : 0
     };
 
     params[NoiseGateModule::FADE_MS] = {
-        name : "Fade [ms]",
+        name : "Fade",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 200.0f},
         knobMapping : 4,
         midiCCMapping : -1,
         minValue : static_cast<int>(0),
-        maxValue : static_cast<int>(500)
+        maxValue : static_cast<int>(500),
+        unit : " ms",
+        decimals : 0
     };
 
     return params;

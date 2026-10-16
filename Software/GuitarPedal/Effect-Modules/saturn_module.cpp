@@ -105,7 +105,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.0f}, // 50 ms .. 1 s of delay before the spectral delay
         knobMapping : 0,
-        midiCCMapping : 14
+        midiCCMapping : 14,
+        unit : " ms",
+        decimals : 0,
+        displayFn : [](float v) { return 1000.0f * (0.05f + (1.0f - 0.05f) * v); }
     };
     params[SaturnModule::MIX] = {
         name : "Mix",
@@ -113,7 +116,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.4f},
         knobMapping : 1,
-        midiCCMapping : 15
+        midiCCMapping : 15,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
     params[SaturnModule::FILTER] = {
         name : "Filter",
@@ -129,7 +135,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f}, // 0 .. 4 seconds of delay spread over the bins; what it does depends on Time Mode
         knobMapping : 3,
-        midiCCMapping : 17
+        midiCCMapping : 17,
+        unit : " s",
+        decimals : 1,
+        displayFn : [](float v) { return ParamDisplay::Lin(v, 0.0f, 4.0f); }
     };
     params[SaturnModule::FEEDBACK] = {
         name : "Feedback",
@@ -137,7 +146,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.3f},
         knobMapping : 4,
-        midiCCMapping : 18
+        midiCCMapping : 18,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
     params[SaturnModule::DRIFT_RATE] = {
         name : "DriftRate",
@@ -145,7 +157,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.1f}, // 0 .. 1 Hz; only matters when Drift is on
         knobMapping : 5,
-        midiCCMapping : 19
+        midiCCMapping : 19,
+        unit : " Hz",
+        decimals : 2,
+        displayFn : [](float v) { return ParamDisplay::Lin(v, 0.0f, 1.0f); }
     };
     params[SaturnModule::TIME_MODE] = {
         name : "Time Mode",

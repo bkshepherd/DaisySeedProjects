@@ -21,7 +21,11 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.3f},
         knobMapping : 1,
-        midiCCMapping : 21
+        midiCCMapping : 21,
+        unit : " Hz",
+        decimals : 0,
+        // lowpass cutoff as in ProcessMono: 600 + (1-v)^2 * (16000-600) (m_lpFreqMin/Max)
+        displayFn : [](float v) { return 600.0f + (1.0f - v) * (1.0f - v) * (16000.0f - 600.0f); }
     };
 
     params[ReverbModule::MIX] = {
@@ -30,7 +34,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.45f},
         knobMapping : 2,
-        midiCCMapping : 22
+        midiCCMapping : 22,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     return params;

@@ -323,6 +323,7 @@ void GuitarPedalUI::InitEffectUiPages() {
                 minValue, maxValue, activeEffect->GetParameterDefaultValueAsFloat(i), MyMappedFloatValue::Mapping::lin,
                 activeEffect->GetParameterUnit(i), activeEffect->GetParameterDecimals(i), activeEffect->GetParameterShowSign(i));
             m_activeEffectSettingFloatValues[i]->SetFineStepSize(fineStep);
+            m_activeEffectSettingFloatValues[i]->SetDisplayFunction(activeEffect->GetParameterDisplayFunction(i));
             m_activeEffectSettingFloatValues[i]->Set(activeEffect->GetParameterAsFloat(i));
             m_activeEffectSettingsMenuItems[i].asMappedValueItem.valueToModify = m_activeEffectSettingFloatValues[i];
         } else if (parameterType == ParameterValueType::Bool) {

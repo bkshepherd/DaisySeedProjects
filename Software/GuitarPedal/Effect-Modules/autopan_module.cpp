@@ -14,7 +14,10 @@ static const auto s_metaData = [] {
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 1.0f},
         knobMapping : 0,
-        midiCCMapping : 20
+        midiCCMapping : 20,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[AutoPanModule::OSC_WAVE] = {
@@ -32,7 +35,10 @@ static const auto s_metaData = [] {
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.1f},
         knobMapping : 1,
-        midiCCMapping : 1
+        midiCCMapping : 1,
+        unit : " Hz",
+        decimals : 2,
+        displayFn : [](float v) { return 0.01f + v * 4.0f; }
     };
 
     params[AutoPanModule::STEREO] = {

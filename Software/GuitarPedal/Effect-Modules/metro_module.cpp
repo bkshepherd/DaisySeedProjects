@@ -62,7 +62,9 @@ static const auto s_metaData = [] {
         knobMapping : 0,
         midiCCMapping : 23,
         minValue : minTempo,
-        maxValue : maxTempo
+        maxValue : maxTempo,
+        unit : " BPM",
+        decimals : 0
     };
 
     params[MetroModule::MIX] = {
@@ -71,7 +73,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.08f},
         knobMapping : 1,
-        midiCCMapping : 21
+        midiCCMapping : 21,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[MetroModule::METER] = {

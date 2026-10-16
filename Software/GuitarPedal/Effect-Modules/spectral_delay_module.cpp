@@ -110,7 +110,10 @@ static const auto s_metaData = [] {
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 0,
-        midiCCMapping : 14
+        midiCCMapping : 14,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[SpectralDelayModule::TIME] = {
@@ -118,7 +121,10 @@ static const auto s_metaData = [] {
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 1,
-        midiCCMapping : 15
+        midiCCMapping : 15,
+        unit : " s",
+        decimals : 1,
+        displayFn : [](float v) { return ParamDisplay::Lin(v, 0.0f, 4.0f); }
     };
 
     params[SpectralDelayModule::FDBK] = {
@@ -126,7 +132,10 @@ static const auto s_metaData = [] {
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 2,
-        midiCCMapping : 16
+        midiCCMapping : 16,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[SpectralDelayModule::TIME_MODE] = {
@@ -154,7 +163,10 @@ static const auto s_metaData = [] {
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.0f},
         knobMapping : 5,
-        midiCCMapping : 19
+        midiCCMapping : 19,
+        unit : " Hz",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Lin(v, 0.0f, 3750.0f); }
     };
 
     return params;

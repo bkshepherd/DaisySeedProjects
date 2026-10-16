@@ -22,7 +22,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.25f},
         knobMapping : 0,
-        midiCCMapping : 60
+        midiCCMapping : 60,
+        unit : " ms",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Lin(v, 50.0f, 4000.0f); }
     };
 
     params[TapeDelayModule::MIX] = {
@@ -31,7 +34,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.4f},
         knobMapping : 1,
-        midiCCMapping : 61
+        midiCCMapping : 61,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[TapeDelayModule::REPEATS] = {
@@ -40,7 +46,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.15f},
         knobMapping : 2,
-        midiCCMapping : 62
+        midiCCMapping : 62,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v * 0.98f); }
     };
 
     params[TapeDelayModule::MODE] = {
@@ -68,7 +77,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.35f},
         knobMapping : 5,
-        midiCCMapping : 65
+        midiCCMapping : 65,
+        unit : " Hz",
+        decimals : 0,
+        displayFn : [](float v) { return 18000.0f - (18000.0f - 1200.0f) * v * v; }
     };
 
     params[TapeDelayModule::TAP_DIV] = {
@@ -96,7 +108,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.2f},
         knobMapping : -1,
-        midiCCMapping : 68
+        midiCCMapping : 68,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[TapeDelayModule::LOW_END_CONTOUR] = {
@@ -105,7 +120,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.4f},
         knobMapping : -1,
-        midiCCMapping : 72
+        midiCCMapping : 72,
+        unit : " Hz",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Lin(v, 20.0f, 350.0f); }
     };
 
     params[TapeDelayModule::REVERB_MIX] = {
@@ -114,7 +132,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.0f},
         knobMapping : -1,
-        midiCCMapping : 73
+        midiCCMapping : 73,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[TapeDelayModule::HEAD_CONFIG] = {

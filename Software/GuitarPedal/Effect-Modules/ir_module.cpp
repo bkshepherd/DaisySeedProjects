@@ -25,7 +25,10 @@ static const auto s_metaData = [] {
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 1,
-        midiCCMapping : 15
+        midiCCMapping : 15,
+        unit : " dB",
+        decimals : 1,
+        displayFn : [](float v) { return ParamDisplay::Db(2.0f * v); }
     };
 
     return params;

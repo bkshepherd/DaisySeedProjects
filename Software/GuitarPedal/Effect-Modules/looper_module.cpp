@@ -24,7 +24,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 0,
-        midiCCMapping : 14
+        midiCCMapping : 14,
+        unit : " dB",
+        decimals : 1,
+        displayFn : [](float v) { return ParamDisplay::Db(v); }
     };
 
     params[LooperModule::LOOP_LEVEL] = {
@@ -33,7 +36,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 1,
-        midiCCMapping : 15
+        midiCCMapping : 15,
+        unit : " dB",
+        decimals : 1,
+        displayFn : [](float v) { return ParamDisplay::Db(v); }
     };
 
     params[LooperModule::MODE] = {
@@ -67,13 +73,16 @@ static const auto s_metaData = [] {
         maxValue : 3
     };
 
-    params[LooperModule::LP_FILTER] = {
+    params[LooperModule::LP_FILTER] = { // shown: the cutoff, 120 Hz + v*v*(20000-120) Hz (m_toneFreqMin/Max, set in the constructor)
         name : "LP Filter",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
         defaultValue : {.float_value = 1.0f},
         knobMapping : 5,
-        midiCCMapping : 19
+        midiCCMapping : 19,
+        unit : " Hz",
+        decimals : 0,
+        displayFn : [](float v) { return 120.0f + v * v * (20000.0f - 120.0f); }
     };
 
     params[LooperModule::MISO] = {

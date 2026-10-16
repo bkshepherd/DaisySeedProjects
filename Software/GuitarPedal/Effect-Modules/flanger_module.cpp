@@ -12,7 +12,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.65f},
         knobMapping : 0,
-        midiCCMapping : 20
+        midiCCMapping : 20,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[FlangerModule::MANUAL] = {
@@ -21,7 +24,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 1,
-        midiCCMapping : 21
+        midiCCMapping : 21,
+        unit : " ms",
+        decimals : 1,
+        displayFn : [](float v) { return ParamDisplay::Lin(v, 0.1f, 7.0f); }
     };
 
     params[FlangerModule::RATE] = {
@@ -30,7 +36,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.25f},
         knobMapping : 2,
-        midiCCMapping : 22
+        midiCCMapping : 22,
+        unit : " Hz",
+        decimals : 2,
+        displayFn : [](float v) { return ParamDisplay::Lin(v * v, 0.05f, 5.0f); }
     };
 
     params[FlangerModule::DEPTH] = {
@@ -39,7 +48,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.3f},
         knobMapping : 3,
-        midiCCMapping : 23
+        midiCCMapping : 23,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(fminf(v, 0.93f)); }
     };
 
     params[FlangerModule::FEEDBACK] = {
@@ -48,7 +60,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.25f},
         knobMapping : 4,
-        midiCCMapping : 24
+        midiCCMapping : 24,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v * 0.97f); }
     };
 
     return params;

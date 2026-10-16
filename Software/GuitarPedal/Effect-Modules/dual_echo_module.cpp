@@ -23,7 +23,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.54f},
         knobMapping : 0,
-        midiCCMapping : 75
+        midiCCMapping : 75,
+        unit : " ms",
+        decimals : 0,
+        displayFn : [](float v) { return 5.0f + (1500.0f - 5.0f) * v * v; }
     };
 
     // Knobs 0-4 follow the Halo panel order: Time, Level, Feedback, Rate, Depth.
@@ -33,7 +36,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.35f},
         knobMapping : 2,
-        midiCCMapping : 76
+        midiCCMapping : 76,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[DualEchoModule::LEVEL] = {
@@ -42,7 +48,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 1,
-        midiCCMapping : 77
+        midiCCMapping : 77,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[DualEchoModule::DEPTH] = {
@@ -51,7 +60,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.3f},
         knobMapping : 4,
-        midiCCMapping : 78
+        midiCCMapping : 78,
+        unit : " ct",
+        decimals : 0,
+        displayFn : [](float v) { return 40.0f * v * sqrtf(v); }
     };
 
     params[DualEchoModule::RATE] = {
@@ -60,7 +72,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.3f},
         knobMapping : 3,
-        midiCCMapping : 79
+        midiCCMapping : 79,
+        unit : " Hz",
+        decimals : 1,
+        displayFn : [](float v) { return ParamDisplay::Exp(v, 0.1f, 10.0f); }
     };
 
     params[DualEchoModule::TONE] = {
@@ -69,7 +84,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.7f},
         knobMapping : 5,
-        midiCCMapping : 80
+        midiCCMapping : 80,
+        unit : " Hz",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Exp(v, 1000.0f, 8750.0f); }
     };
 
     params[DualEchoModule::RHYTHM] = {
@@ -88,7 +106,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.3f},
         knobMapping : -1,
-        midiCCMapping : 82
+        midiCCMapping : 82,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[DualEchoModule::LOW_CUT] = {
@@ -97,7 +118,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : -1,
-        midiCCMapping : 83
+        midiCCMapping : 83,
+        unit : " Hz",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Exp(v, 10.0f, 300.0f); }
     };
 
     params[DualEchoModule::SPREAD] = {
@@ -106,7 +130,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : -1,
-        midiCCMapping : 84
+        midiCCMapping : 84,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     // Halo rhythm only: how much of the quarter-note echo feeds the dotted-8th (two delays in series).
@@ -116,7 +143,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : -1,
-        midiCCMapping : 85
+        midiCCMapping : 85,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     return params;

@@ -93,7 +93,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.25f},
         knobMapping : 0,
-        midiCCMapping : 14
+        midiCCMapping : 14,
+        unit : " Hz",
+        decimals : 1,
+        displayFn : [](float v) { return ParamDisplay::Lin(v, kSpeedMin, kSpeedMax); }
     };
 
     params[HarmonicTremoloModule::DEPTH] = {
@@ -102,7 +105,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 1,
-        midiCCMapping : 15
+        midiCCMapping : 15,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v * kDepthScale); }
     };
 
     return params;

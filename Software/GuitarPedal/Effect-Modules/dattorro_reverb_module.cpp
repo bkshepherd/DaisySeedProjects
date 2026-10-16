@@ -25,7 +25,11 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.3f},
         knobMapping : 0,
-        midiCCMapping : 1
+        midiCCMapping : 1,
+        unit : " %",
+        decimals : 0,
+        // wet fraction, the crossfade uses mix^2
+        displayFn : [](float v) { return ParamDisplay::Percent(v * v); }
     };
 
     params[DattorroReverbModule::PRE_DELAY] = {
@@ -34,7 +38,11 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.0f},
         knobMapping : 1,
-        midiCCMapping : 21
+        midiCCMapping : 21,
+        unit : " ms",
+        decimals : 0,
+        // setPreDelay(v * 0.25 s)
+        displayFn : [](float v) { return v * 250.0f; }
     };
 
     params[DattorroReverbModule::DECAY] = {
@@ -43,7 +51,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.8f},
         knobMapping : 2,
-        midiCCMapping : 22
+        midiCCMapping : 22,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[DattorroReverbModule::TONE] = {
@@ -52,7 +63,11 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.725f},
         knobMapping : 3,
-        midiCCMapping : 23
+        midiCCMapping : 23,
+        unit : " Hz",
+        decimals : 0,
+        // tank high cut: 440 * 2^(v*10 - 5)
+        displayFn : [](float v) { return 440.0f * powf(2.0f, v * 10.0f - 5.0f); }
     };
 
     params[DattorroReverbModule::MOD] = {
@@ -61,7 +76,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.3f},
         knobMapping : 4,
-        midiCCMapping : 24
+        midiCCMapping : 24,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[DattorroReverbModule::DIFFUSE] = {
@@ -70,7 +88,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.85f},
         knobMapping : 5,
-        midiCCMapping : 25
+        midiCCMapping : 25,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[DattorroReverbModule::SIZE] = {
@@ -81,7 +102,11 @@ static const auto s_metaData = [] {
         // Time Scale Flick/MuleBox/AmpSim all use.
         defaultValue : {.float_value = 0.145f},
         knobMapping : -1, // Menu only - all six knobs are already mapped above.
-        midiCCMapping : 26
+        midiCCMapping : 26,
+        unit : " x",
+        decimals : 2,
+        // Dattorro time scale
+        displayFn : [](float v) { return 0.5f + v * 3.5f; }
     };
 
     return params;

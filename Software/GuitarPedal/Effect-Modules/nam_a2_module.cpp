@@ -53,6 +53,9 @@ static const auto s_metaData = [] {
         defaultValue : {.float_value = 0.5f},
         knobMapping : 0,
         midiCCMapping : 22,
+        unit : " dB",
+        decimals : 1,
+        displayFn : [](float v) { return ParamDisplay::Db(2.0f * v); }
     };
 
     params[NamA2Module::LEVEL] = {
@@ -61,6 +64,9 @@ static const auto s_metaData = [] {
         defaultValue : {.float_value = 0.3f},
         knobMapping : 1,
         midiCCMapping : 23,
+        unit : " dB",
+        decimals : 1,
+        displayFn : [](float v) { return ParamDisplay::Db(2.0f * v); }
     };
 
     params[NamA2Module::MODEL] = {
@@ -81,6 +87,9 @@ static const auto s_metaData = [] {
         midiCCMapping : 24,
         minValue : -10,
         maxValue : 10,
+        unit : " dB",
+        decimals : 1,
+        showSign : true
     };
 
     params[NamA2Module::MID] = {
@@ -91,6 +100,9 @@ static const auto s_metaData = [] {
         midiCCMapping : 25,
         minValue : -10,
         maxValue : 10,
+        unit : " dB",
+        decimals : 1,
+        showSign : true
     };
 
     params[NamA2Module::TREBLE] = {
@@ -101,6 +113,9 @@ static const auto s_metaData = [] {
         midiCCMapping : 26,
         minValue : -10,
         maxValue : 10,
+        unit : " dB",
+        decimals : 1,
+        showSign : true
     };
 
     params[NamA2Module::EQ] = {

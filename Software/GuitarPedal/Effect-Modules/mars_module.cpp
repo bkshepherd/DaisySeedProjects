@@ -49,7 +49,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.375f}, // the input gain of the neural model: how hard it is driven, 0.1x to 2.5x (1x at the default)
         knobMapping : 0,
-        midiCCMapping : 14
+        midiCCMapping : 14,
+        unit : " dB",
+        decimals : 1,
+        displayFn : [](float v) { return ParamDisplay::Db(ParamDisplay::Lin(v, 0.1f, 2.5f)); }
     };
     params[MarsModule::MIX] = {
         name : "Mix",
@@ -57,7 +60,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.3f}, // between the amp and the delay
         knobMapping : 1,
-        midiCCMapping : 15
+        midiCCMapping : 15,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
     params[MarsModule::LEVEL] = {
         name : "Level",
@@ -65,7 +71,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f}, // the overall volume
         knobMapping : 2,
-        midiCCMapping : 16
+        midiCCMapping : 16,
+        unit : " dB",
+        decimals : 1,
+        displayFn : [](float v) { return ParamDisplay::Db(v); }
     };
     params[MarsModule::FILTER] = {
         name : "Filter",
@@ -81,7 +90,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.35f}, // 0 is off, then 50 ms to 1 second over the first three quarters of the control and up to 2 seconds beyond
         knobMapping : 4,
-        midiCCMapping : 18
+        midiCCMapping : 18,
+        unit : " ms",
+        decimals : 0,
+        displayFn : [](float v) { return v < 0.01f ? 0.0f : (v <= 0.75f ? 2400.0f + v * 60800.0f : 48000.0f + (v - 0.75f) * 192000.0f) / 48.0f; }
     };
     params[MarsModule::DELAY_FEEDBACK] = {
         name : "Delay Feedback",
@@ -89,7 +101,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.3f},
         knobMapping : 5,
-        midiCCMapping : 19
+        midiCCMapping : 19,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
     params[MarsModule::MODEL] = { // the original's switch 1
         name : "Amp Model",

@@ -44,7 +44,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 1.0f},
         knobMapping : 1,
-        midiCCMapping : -1
+        midiCCMapping : -1,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[PitchShifterModule::DIRECTION] = {
@@ -73,7 +76,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.0f},
         knobMapping : 4,
-        midiCCMapping : -1
+        midiCCMapping : -1,
+        unit : " s",
+        decimals : 2,
+        displayFn : [](float v) { return v * k_maxTransitionTimeSeconds; }
     };
 
     params[PitchShifterModule::RETURN] = {
@@ -82,7 +88,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.0f},
         knobMapping : 5,
-        midiCCMapping : -1
+        midiCCMapping : -1,
+        unit : " s",
+        decimals : 2,
+        displayFn : [](float v) { return v * k_maxTransitionTimeSeconds; }
     };
 
     return params;

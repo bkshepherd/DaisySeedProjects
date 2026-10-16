@@ -24,7 +24,10 @@ static const auto s_metaData = [] {
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 1,
-        midiCCMapping : 21
+        midiCCMapping : 21,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[ModulatedTremoloModule::FREQ] = {
@@ -32,7 +35,10 @@ static const auto s_metaData = [] {
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 0,
-        midiCCMapping : 1
+        midiCCMapping : 1,
+        unit : " Hz",
+        decimals : 1,
+        displayFn : [](float v) { return 1.0f + v * 20.0f; }
     };
 
     params[ModulatedTremoloModule::OSC_WAVE] = {
@@ -50,7 +56,10 @@ static const auto s_metaData = [] {
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.1f},
         knobMapping : 2,
-        midiCCMapping : 24
+        midiCCMapping : 24,
+        unit : " Hz",
+        decimals : 2,
+        displayFn : [](float v) { return 0.01f + v * 1.0f; }
     };
 
     return params;

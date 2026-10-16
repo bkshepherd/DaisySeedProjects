@@ -23,7 +23,9 @@ static const auto s_metaData = [] {
         knobMapping : 0,
         midiCCMapping : 14,
         minValue : 1,
-        maxValue : 300
+        maxValue : 300,
+        unit : " ms",
+        decimals : 0
     };
 
     params[GranularDelayModule::MIX] = {
@@ -32,7 +34,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 1,
-        midiCCMapping : 15
+        midiCCMapping : 15,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[GranularDelayModule::PITCH] = {
@@ -43,7 +48,11 @@ static const auto s_metaData = [] {
         knobMapping : 2,
         midiCCMapping : 16,
         minValue : -12,
-        maxValue : 12
+        maxValue : 12,
+        unit : " st",
+        decimals : 0,
+        showSign : true,
+        displayFn : [](float v) { return truncf(v); }
     };
 
     params[GranularDelayModule::SPREAD] = {
@@ -52,7 +61,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.4f},
         knobMapping : 3,
-        midiCCMapping : 17
+        midiCCMapping : 17,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[GranularDelayModule::GRAIN_ENV] = {
@@ -73,7 +85,9 @@ static const auto s_metaData = [] {
         knobMapping : 5,
         midiCCMapping : 19,
         minValue : -2,
-        maxValue : 2
+        maxValue : 2,
+        unit : " x",
+        decimals : 2
     };
 
     params[GranularDelayModule::WIDTH] = {
@@ -84,7 +98,9 @@ static const auto s_metaData = [] {
         knobMapping : -1,
         midiCCMapping : 20,
         minValue : 0,
-        maxValue : 50
+        maxValue : 50,
+        unit : " ms",
+        decimals : 0
     };
 
     return params;

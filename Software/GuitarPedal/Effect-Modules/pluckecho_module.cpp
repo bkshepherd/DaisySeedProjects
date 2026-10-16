@@ -22,7 +22,10 @@ static const auto s_metaData = [] {
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 1,
-        midiCCMapping : 15
+        midiCCMapping : 15,
+        unit : " ms",
+        decimals : 0,
+        displayFn : [](float v) { return (0.001f + v * v * 5.0f) * 1000.0f; }
     };
 
     params[PluckEchoModule::DELAY_FDBK] = {
@@ -30,7 +33,10 @@ static const auto s_metaData = [] {
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 2,
-        midiCCMapping : 16
+        midiCCMapping : 16,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[PluckEchoModule::LEVEL] = {
@@ -38,7 +44,10 @@ static const auto s_metaData = [] {
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 3,
-        midiCCMapping : 17
+        midiCCMapping : 17,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     return params;

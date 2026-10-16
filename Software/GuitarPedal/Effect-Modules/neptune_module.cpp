@@ -87,7 +87,11 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 0,
-        midiCCMapping : 14
+        midiCCMapping : 14,
+        unit : " s",
+        decimals : 2,
+        // CloudSeed LineDecay (T60 of the delay lines): 0.05 + Response3Dec(v) * 59.95 s
+        displayFn : [](float v) { return 0.05f + (powf(1000.0f, v) - 1.0f) / 999.0f * 59.95f; }
     };
     params[NeptuneModule::MIX] = {
         name : "Mix",
@@ -95,7 +99,11 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.4f}, // dry / effect
         knobMapping : 1,
-        midiCCMapping : 15
+        midiCCMapping : 15,
+        unit : " %",
+        decimals : 0,
+        // crossfade position
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
     params[NeptuneModule::DELAY_TIME] = {
         name : "Dly Time",
@@ -103,7 +111,11 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.3f}, // 50 ms .. 4 s; the delay is off at the bottom of the range
         knobMapping : 2,
-        midiCCMapping : 16
+        midiCCMapping : 16,
+        unit : " s",
+        decimals : 2,
+        // as in UpdateDelays (the delay is off at the bottom of the range)
+        displayFn : [](float v) { return kDelayMinSeconds + kDelaySpanSeconds * v; }
     };
     params[NeptuneModule::MOD_AMT] = {
         name : "Mod",
@@ -111,7 +123,11 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.3f}, // amount of modulation of the reverb
         knobMapping : 3,
-        midiCCMapping : 17
+        midiCCMapping : 17,
+        unit : " ms",
+        decimals : 2,
+        // CloudSeed LineModAmount: v * 2.5 ms
+        displayFn : [](float v) { return v * 2.5f; }
     };
     params[NeptuneModule::LOWPASS] = {
         name : "LowPass",
@@ -119,7 +135,11 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.8f}, // low-pass on the reverb, cubed (as the original's knob taper)
         knobMapping : 4,
-        midiCCMapping : 18
+        midiCCMapping : 18,
+        unit : " Hz",
+        decimals : 0,
+        // CloudSeed PostCutoffFrequency of v^3: 400 + Response4Oct(v^3) * 19600 Hz
+        displayFn : [](float v) { return 400.0f + (powf(16.0f, v * v * v) - 1.0f) / 15.0f * 19600.0f; }
     };
     params[NeptuneModule::DELAY_FDBK] = {
         name : "Dly Fdbk",
@@ -127,7 +147,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.3f},
         knobMapping : 5,
-        midiCCMapping : 19
+        midiCCMapping : 19,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
     params[NeptuneModule::REVERB_MODE] = {
         name : "Rev Mode",
@@ -170,7 +193,11 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.0f},
         knobMapping : -1,
-        midiCCMapping : 24
+        midiCCMapping : 24,
+        unit : " ms",
+        decimals : 0,
+        // engine: (int)(0.95 * v * 1000) ms
+        displayFn : [](float v) { return floorf(v * 0.95f * 1000.0f); }
     };
     params[NeptuneModule::MOD_RATE] = { // the original's "alternate" control for the Mod knob
         name : "Mod Rate",
@@ -178,7 +205,11 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.2f},
         knobMapping : -1,
-        midiCCMapping : 25
+        midiCCMapping : 25,
+        unit : " Hz",
+        decimals : 2,
+        // CloudSeed LineModRate: Response2Dec(v) * 5 Hz (per line scaled 0.7..1.0)
+        displayFn : [](float v) { return (powf(100.0f, v) - 1.0f) / 99.0f * 5.0f; }
     };
     params[NeptuneModule::REV_DELAY_MIX] = { // the original's "alternate" control for the Mix knob: the balance between the reverb and the delay
         name : "Rev/Delay",

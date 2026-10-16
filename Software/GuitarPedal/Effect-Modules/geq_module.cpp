@@ -34,7 +34,10 @@ static const auto s_metaData = [] {
         knobMapping : 0,
         midiCCMapping : -1,
         minValue : static_cast<int>(minGain),
-        maxValue : static_cast<int>(maxGain)
+        maxValue : static_cast<int>(maxGain),
+        unit : " dB",
+        decimals : 1,
+        showSign : true
     };
 
     params[GraphicEQModule::BAND_200] = {
@@ -45,7 +48,10 @@ static const auto s_metaData = [] {
         knobMapping : 1,
         midiCCMapping : -1,
         minValue : static_cast<int>(minGain),
-        maxValue : static_cast<int>(maxGain)
+        maxValue : static_cast<int>(maxGain),
+        unit : " dB",
+        decimals : 1,
+        showSign : true
     };
 
     params[GraphicEQModule::BAND_400] = {
@@ -56,7 +62,10 @@ static const auto s_metaData = [] {
         knobMapping : 2,
         midiCCMapping : -1,
         minValue : static_cast<int>(minGain),
-        maxValue : static_cast<int>(maxGain)
+        maxValue : static_cast<int>(maxGain),
+        unit : " dB",
+        decimals : 1,
+        showSign : true
     };
 
     params[GraphicEQModule::BAND_800] = {
@@ -67,7 +76,10 @@ static const auto s_metaData = [] {
         knobMapping : 3,
         midiCCMapping : -1,
         minValue : static_cast<int>(minGain),
-        maxValue : static_cast<int>(maxGain)
+        maxValue : static_cast<int>(maxGain),
+        unit : " dB",
+        decimals : 1,
+        showSign : true
     };
 
     params[GraphicEQModule::BAND_1600] = {
@@ -78,7 +90,10 @@ static const auto s_metaData = [] {
         knobMapping : 4,
         midiCCMapping : -1,
         minValue : static_cast<int>(minGain),
-        maxValue : static_cast<int>(maxGain)
+        maxValue : static_cast<int>(maxGain),
+        unit : " dB",
+        decimals : 1,
+        showSign : true
     };
 
     params[GraphicEQModule::BAND_3200] = {
@@ -89,7 +104,10 @@ static const auto s_metaData = [] {
         knobMapping : 5,
         midiCCMapping : -1,
         minValue : static_cast<int>(minGain),
-        maxValue : static_cast<int>(maxGain)
+        maxValue : static_cast<int>(maxGain),
+        unit : " dB",
+        decimals : 1,
+        showSign : true
     };
 
     return params;

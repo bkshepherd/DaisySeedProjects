@@ -52,7 +52,23 @@ struct ParameterMetaData {
     const char *unit = "";  // Text appended to the value, including any leading space (e.g. " ms", " dB", ":1"). Empty for none.
     uint8_t decimals = 2;   // Digits after the decimal point
     bool showSign = false;  // Always show the sign, even for positive values (e.g. "+3.0 dB")
+    // Display only: turns the stored value into the number shown in the menu (e.g. a 0..1 value into Hz), which is then followed by `unit`.
+    // The stored value, the knob and MIDI CC mapping, the presets and the effect's own use of the value stay as they are. nullptr shows the
+    // stored value itself.
+    float (*displayFn)(float stored) = nullptr;
 };
+
+/** Helpers for ParameterMetaData::displayFn. They map a stored value in 0..1 (the usual range of a Float parameter) to a shown value. */
+namespace ParamDisplay {
+/** lo at 0, hi at 1, linear */
+inline float Lin(float v, float lo, float hi) { return lo + v * (hi - lo); }
+/** lo at 0, hi at 1, exponential (equal steps are equal ratios, like frequency); lo and hi must be above 0 */
+inline float Exp(float v, float lo, float hi) { return lo * powf(hi / lo, v); }
+/** 0..1 shown as 0..100 (with unit " %") */
+inline float Percent(float v) { return v * 100.0f; }
+/** a linear gain shown in dB (with unit " dB"), floored at -100 dB */
+inline float Db(float gain) { return gain > 1.0e-5f ? 20.0f * log10f(gain) : -100.0f; }
+} // namespace ParamDisplay
 
 class BaseEffectModule {
   public:
@@ -329,6 +345,7 @@ class BaseEffectModule {
     const char *GetParameterUnit(int parameter_id) const;
     uint8_t GetParameterDecimals(int parameter_id) const;
     bool GetParameterShowSign(int parameter_id) const;
+    float (*GetParameterDisplayFunction(int parameter_id) const)(float);
 
     /** This function gets called when a MIDI CC message is received by the pedal when this effect is active.  The default
      * implementation checks to see if any Midi Parameters on this Effect map to the midi CC number and then it maps the Midi Values

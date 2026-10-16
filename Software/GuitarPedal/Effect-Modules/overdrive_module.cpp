@@ -21,7 +21,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 0,
-        midiCCMapping : 21
+        midiCCMapping : 21,
+        unit : " dB",
+        decimals : 1,
+        displayFn : [](float v) { return ParamDisplay::Db(ParamDisplay::Lin(v, 0.001794f, 0.0644f)); }
     };
 
     return params;

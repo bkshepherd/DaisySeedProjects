@@ -28,7 +28,10 @@ static const auto s_metaData = [] {
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 2,
-        midiCCMapping : 16
+        midiCCMapping : 16,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[StringKeysModule::DAMPING] = {

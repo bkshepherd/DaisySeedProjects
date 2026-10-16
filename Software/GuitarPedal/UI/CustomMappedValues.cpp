@@ -16,7 +16,7 @@ MyMappedFloatValue::MyMappedFloatValue(float min, float max, float defaultValue,
 void MyMappedFloatValue::Set(float newValue) { value_ = std::max(min_, std::min(max_, newValue)); }
 
 void MyMappedFloatValue::AppentToString(FixedCapStrBase<char> &string) const {
-    string.AppendFloat(value_, numDecimals_, false, forceSign_);
+    string.AppendFloat(displayFn_ != nullptr ? displayFn_(value_) : value_, numDecimals_, false, forceSign_);
     string.Append(unitStr_);
 }
 

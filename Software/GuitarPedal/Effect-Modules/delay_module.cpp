@@ -27,7 +27,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 0,
-        midiCCMapping : 14
+        midiCCMapping : 14,
+        unit : " ms",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Lin(v, 50.0f, 4000.0f); }
     };
 
     params[DelayModule::D_FEEDBACK] = {
@@ -36,7 +39,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 1,
-        midiCCMapping : 15
+        midiCCMapping : 15,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[DelayModule::DELAY_MIX] = {
@@ -45,7 +51,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 2,
-        midiCCMapping : 16
+        midiCCMapping : 16,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[DelayModule::DELAY_MODE] = {
@@ -74,7 +83,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 5,
-        midiCCMapping : 19
+        midiCCMapping : 19,
+        unit : " Hz",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Lin(v, 300.0f, 20000.0f); }
     };
 
     params[DelayModule::D_SPREAD] = {
@@ -92,7 +104,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : -1,
-        midiCCMapping : 21
+        midiCCMapping : 21,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[DelayModule::MOD_RATE] = {
@@ -101,7 +116,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : -1,
-        midiCCMapping : 22
+        midiCCMapping : 22,
+        unit : " Hz",
+        decimals : 1,
+        displayFn : [](float v) { return ParamDisplay::Lin(v, 0.0f, 3.0f); }
     };
 
     params[DelayModule::MOD_PARAM] = {

@@ -27,7 +27,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 0,
-        midiCCMapping : 14
+        midiCCMapping : 14,
+        unit : " dB",
+        decimals : 1,
+        displayFn : [](float v) { return ParamDisplay::Db(v); }
     }; // Output level (linear gain from silent to unity).
 
     params[CrusherModule::BITS] = {
@@ -45,7 +48,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 1.0f},
         knobMapping : 2,
-        midiCCMapping : 16
+        midiCCMapping : 16,
+        unit : " Hz",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Exp(v, 100.0f, 48000.0f); }
     }; // Sample-rate reduction frequency. In pitch-tracking mode this selects the harmonic bin multiplier.
 
     params[CrusherModule::PITCH_TRACKING] = {
@@ -63,7 +69,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.0f},
         knobMapping : 3,
-        midiCCMapping : 17
+        midiCCMapping : 17,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     }; // Random variation of the SRR hold interval (adds instability/grit to the alias texture).
 
     params[CrusherModule::CUTOFF] = {
@@ -72,7 +81,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 1.0f},
         knobMapping : 4,
-        midiCCMapping : 18
+        midiCCMapping : 18,
+        unit : " Hz",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Lin(v, 500.0f, 20000.0f); }
     }; // Post-crusher low-pass cutoff to tame high-frequency aliasing.
 
     params[CrusherModule::MIX] = {
@@ -81,7 +93,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 1.0f},
         knobMapping : 5,
-        midiCCMapping : 19
+        midiCCMapping : 19,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     }; // Dry/wet blend between input and crushed signal.
 
     return params;

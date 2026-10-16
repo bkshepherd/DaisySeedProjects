@@ -50,7 +50,12 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f}, // the loop's volume; 0.5 is unity
         knobMapping : 0,
-        midiCCMapping : 14
+        midiCCMapping : 14,
+        unit : " dB",
+        decimals : 1,
+        showSign : true,
+        // the loop's gain is v * 2 (linear)
+        displayFn : [](float v) { return ParamDisplay::Db(v * 2.0f); }
     };
     params[PlutoModule::MOD_A] = {
         name : "Mod A",
@@ -66,7 +71,12 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 2,
-        midiCCMapping : 16
+        midiCCMapping : 16,
+        unit : " dB",
+        decimals : 1,
+        showSign : true,
+        // the loop's gain is v * 2 (linear)
+        displayFn : [](float v) { return ParamDisplay::Db(v * 2.0f); }
     };
     params[PlutoModule::SPEED_A] = {
         name : "Speed A",

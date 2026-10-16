@@ -13,7 +13,10 @@ static const auto s_metaData = [] {
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 0,
-        midiCCMapping : -1
+        midiCCMapping : -1,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[PhaserModule::RATE] = {
@@ -22,7 +25,10 @@ static const auto s_metaData = [] {
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.25f},
         knobMapping : 1,
-        midiCCMapping : -1
+        midiCCMapping : -1,
+        unit : " Hz",
+        decimals : 2,
+        displayFn : [](float v) { return ParamDisplay::Lin(powf(v, 3.0f), 0.10f, 8.0f); }
     };
 
     params[PhaserModule::DEPTH] = {
@@ -31,7 +37,10 @@ static const auto s_metaData = [] {
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 1.0f},
         knobMapping : 2,
-        midiCCMapping : -1
+        midiCCMapping : -1,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(fminf(v, 0.98f)); }
     };
 
     params[PhaserModule::FEEDBACK] = {
@@ -40,7 +49,10 @@ static const auto s_metaData = [] {
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.25f},
         knobMapping : 3,
-        midiCCMapping : -1
+        midiCCMapping : -1,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v * 0.45f); }
     };
 
     return params;

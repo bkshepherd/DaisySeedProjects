@@ -172,6 +172,7 @@ EffectChain::EffectChain(const char *name, std::initializer_list<ChainSlot> slot
             md.unit = child->GetParameterUnit(p);
             md.decimals = child->GetParameterDecimals(p);
             md.showSign = child->GetParameterShowSign(p);
+            md.displayFn = child->GetParameterDisplayFunction(p);
 
             m_paramSlot[childArrayIdx] = static_cast<uint8_t>(s);
             m_paramChildId[childArrayIdx] = static_cast<uint16_t>(p);

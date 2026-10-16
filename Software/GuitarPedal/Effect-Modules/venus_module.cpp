@@ -60,7 +60,11 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.4f},
         knobMapping : 1,
-        midiCCMapping : 15
+        midiCCMapping : 15,
+        unit : " %",
+        decimals : 0,
+        // crossfade position
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[VenusModule::DAMP] = {
@@ -78,7 +82,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.0f},
         knobMapping : 3,
-        midiCCMapping : 17
+        midiCCMapping : 17,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[VenusModule::SHIMMER_TONE] = {
@@ -87,7 +94,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.0f},
         knobMapping : 4,
-        midiCCMapping : 18
+        midiCCMapping : 18,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[VenusModule::DETUNE] = { // 0.5 = no detune, below detunes down, above detunes up

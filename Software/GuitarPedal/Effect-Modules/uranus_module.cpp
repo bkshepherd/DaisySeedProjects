@@ -50,7 +50,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.3f}, // grain size 1 .. 300 ms
         knobMapping : 0,
-        midiCCMapping : 14
+        midiCCMapping : 14,
+        unit : " ms",
+        decimals : 0,
+        displayFn : [](float v) { return v * 300.0f + 1.0f; }
     };
     params[UranusModule::MIX] = {
         name : "Mix",
@@ -58,7 +61,11 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 1,
-        midiCCMapping : 15
+        midiCCMapping : 15,
+        unit : " %",
+        decimals : 0,
+        // crossfade position
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
     params[UranusModule::PITCH] = {
         name : "Pitch",
@@ -66,7 +73,12 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f}, // transposition of the grains, -13 .. +13 semitones in steps of one; no transposition in the middle
         knobMapping : 2,
-        midiCCMapping : 16
+        midiCCMapping : 16,
+        unit : " st",
+        decimals : 0,
+        showSign : true,
+        // whole semitones, as in ProcessSamples
+        displayFn : [](float v) { return static_cast<float>(static_cast<int>(v * 26.0f - 13.0f)); }
     };
     params[UranusModule::FEEDBACK] = {
         name : "Feedback",
@@ -74,7 +86,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.4f}, // of the audio the grains are cut from
         knobMapping : 3,
-        midiCCMapping : 17
+        midiCCMapping : 17,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return fmaxf(v, 0.01f) * 100.0f; }
     };
     params[UranusModule::WIDTH] = {
         name : "Width",
@@ -82,7 +97,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f}, // how far back in time grains can start, 0 .. 50 ms
         knobMapping : 4,
-        midiCCMapping : 18
+        midiCCMapping : 18,
+        unit : " ms",
+        decimals : 0,
+        displayFn : [](float v) { return v * 50.0f; }
     };
     params[UranusModule::SPEED] = {
         name : "Speed",
@@ -90,7 +108,12 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.75f}, // playback speed of the grains, -2 .. +2 (normal at 0.75, stopped in the middle, backwards below)
         knobMapping : 5,
-        midiCCMapping : 19
+        midiCCMapping : 19,
+        unit : " x",
+        decimals : 2,
+        showSign : true,
+        // grain playback speed
+        displayFn : [](float v) { return v * 4.0f - 2.0f; }
     };
     params[UranusModule::GRAIN_MODE] = {
         name : "Grain Mode",
@@ -133,7 +156,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.4f}, // stereo spread of every grain
         knobMapping : -1,
-        midiCCMapping : -1
+        midiCCMapping : -1,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
     params[UranusModule::LFO_DEPTH] = { // the alternate function of the Pitch knob
         name : "LFO Depth",
@@ -141,7 +167,11 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.0f}, // pitch modulation, 0 .. 1 semitone
         knobMapping : -1,
-        midiCCMapping : -1
+        midiCCMapping : -1,
+        unit : " ct",
+        decimals : 0,
+        // pitch modulation, +- cents
+        displayFn : [](float v) { return v * 100.0f; }
     };
     params[UranusModule::LFO_RATE] = { // the alternate function of the Speed knob
         name : "LFO Rate",
@@ -149,7 +179,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.2f}, // 0 .. 6 Hz, exponential
         knobMapping : -1,
-        midiCCMapping : -1
+        midiCCMapping : -1,
+        unit : " Hz",
+        decimals : 2,
+        displayFn : [](float v) { return v * v * 6.0f; }
     };
     // FM synth and envelope controls, MIDI CC 20 .. 31 as on the pedal. The envelope controls (CC 28 .. 31) are the granular synth's ADSR and the FM carrier's.
     params[UranusModule::FM_CAR_LEVEL] = {
@@ -158,7 +191,12 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.25f}, // the carrier's level is 4 x this: 0.5 by default
         knobMapping : -1,
-        midiCCMapping : 20
+        midiCCMapping : 20,
+        unit : " dB",
+        decimals : 1,
+        showSign : true,
+        // carrier level as in ApplyParameter (linear)
+        displayFn : [](float v) { return ParamDisplay::Db(v / 0.25f * 0.5f); }
     };
     params[UranusModule::FM_CAR_RATIO] = {
         name : "Car Ratio",
@@ -166,7 +204,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.04f}, // ratio 0.5 .. 16.5 in steps of 0.5: 1.0
         knobMapping : -1,
-        midiCCMapping : 21
+        midiCCMapping : 21,
+        unit : " x",
+        decimals : 1,
+        displayFn : [](float v) { return ratioFromMagnitude(v); }
     };
     params[UranusModule::FM_MOD_LEVEL] = {
         name : "Mod Level",
@@ -182,7 +223,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.98f}, // 16.0
         knobMapping : -1,
-        midiCCMapping : 23
+        midiCCMapping : 23,
+        unit : " x",
+        decimals : 1,
+        displayFn : [](float v) { return ratioFromMagnitude(v); }
     };
     params[UranusModule::MOD_ATTACK] = {
         name : "Mod Attack",
@@ -190,7 +234,11 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.07f}, // exponential: 5 ms
         knobMapping : -1,
-        midiCCMapping : 24
+        midiCCMapping : 24,
+        unit : " ms",
+        decimals : 0,
+        // seconds in the engine
+        displayFn : [](float v) { return (v * v + 0.0001f) * 1000.0f; }
     };
     params[UranusModule::MOD_DECAY] = {
         name : "Mod Decay",
@@ -198,7 +246,11 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.07f},
         knobMapping : -1,
-        midiCCMapping : 25
+        midiCCMapping : 25,
+        unit : " ms",
+        decimals : 0,
+        // seconds in the engine
+        displayFn : [](float v) { return (v * v + 0.0001f) * 1000.0f; }
     };
     params[UranusModule::MOD_SUSTAIN] = {
         name : "Mod Sustain",
@@ -206,7 +258,11 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : -1,
-        midiCCMapping : 26
+        midiCCMapping : 26,
+        unit : " %",
+        decimals : 0,
+        // level
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
     params[UranusModule::MOD_RELEASE] = {
         name : "Mod Release",
@@ -214,7 +270,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.2f}, // seconds
         knobMapping : -1,
-        midiCCMapping : 27
+        midiCCMapping : 27,
+        unit : " s",
+        decimals : 2,
+        displayFn : [](float v) { return v + 0.001f; }
     };
     params[UranusModule::ENV_ATTACK] = {
         name : "Env Attack",
@@ -222,7 +281,11 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.07f},
         knobMapping : -1,
-        midiCCMapping : 28
+        midiCCMapping : 28,
+        unit : " ms",
+        decimals : 0,
+        // seconds in the engine
+        displayFn : [](float v) { return (v * v + 0.0001f) * 1000.0f; }
     };
     params[UranusModule::ENV_DECAY] = {
         name : "Env Decay",
@@ -230,7 +293,11 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.07f},
         knobMapping : -1,
-        midiCCMapping : 29
+        midiCCMapping : 29,
+        unit : " ms",
+        decimals : 0,
+        // seconds in the engine
+        displayFn : [](float v) { return (v * v + 0.0001f) * 1000.0f; }
     };
     params[UranusModule::ENV_SUSTAIN] = {
         name : "Env Sustain",
@@ -238,7 +305,11 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : -1,
-        midiCCMapping : 30
+        midiCCMapping : 30,
+        unit : " %",
+        decimals : 0,
+        // level
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
     params[UranusModule::ENV_RELEASE] = {
         name : "Env Release",
@@ -246,7 +317,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.2f},
         knobMapping : -1,
-        midiCCMapping : 31
+        midiCCMapping : 31,
+        unit : " s",
+        decimals : 2,
+        displayFn : [](float v) { return v + 0.001f; }
     };
     return params;
 }();

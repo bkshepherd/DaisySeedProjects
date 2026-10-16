@@ -49,7 +49,11 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.0f},
         knobMapping : 0,
-        midiCCMapping : 14
+        midiCCMapping : 14,
+        unit : " ms",
+        decimals : 0,
+        // setPreDelay(v * 0.7 s)
+        displayFn : [](float v) { return v * 700.0f; }
     };
 
     params[EarthModule::MIX] = {
@@ -58,7 +62,11 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.4f},
         knobMapping : 1,
-        midiCCMapping : 15
+        midiCCMapping : 15,
+        unit : " %",
+        decimals : 0,
+        // crossfade position
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[EarthModule::DECAY] = {
@@ -67,7 +75,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.8f},
         knobMapping : 2,
-        midiCCMapping : 16
+        midiCCMapping : 16,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[EarthModule::MOD_DEPTH] = {
@@ -76,7 +87,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.3f},
         knobMapping : 3,
-        midiCCMapping : 17
+        midiCCMapping : 17,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[EarthModule::MOD_SPEED] = {
@@ -85,7 +99,11 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.3f},
         knobMapping : 4,
-        midiCCMapping : 18
+        midiCCMapping : 18,
+        unit : " x",
+        decimals : 1,
+        // setTankModSpeed: multiplies the tank's LFO rates
+        displayFn : [](float v) { return 0.3f + v * 15.0f; }
     };
 
     params[EarthModule::FILTER] = { // a low-pass on the reverb input: 0 is open, 1 is dark
@@ -94,7 +112,11 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.2f},
         knobMapping : 5,
-        midiCCMapping : 19
+        midiCCMapping : 19,
+        unit : " Hz",
+        decimals : 0,
+        // input low-pass: 440 * 2^((10 - 7v) - 5)
+        displayFn : [](float v) { return 440.0f * powf(2.0f, 5.0f - 7.0f * v); }
     };
 
     params[EarthModule::SIZE] = {

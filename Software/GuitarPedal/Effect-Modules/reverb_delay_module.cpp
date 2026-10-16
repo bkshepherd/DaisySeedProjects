@@ -25,7 +25,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.45f},
         knobMapping : 0,
-        midiCCMapping : 1
+        midiCCMapping : 1,
+        unit : " ms",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Lin(v, 50.0f, 4000.0f); }
     };
 
     params[ReverbDelayModule::D_FEEDBACK] = {
@@ -34,7 +37,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.45f},
         knobMapping : 1,
-        midiCCMapping : 22
+        midiCCMapping : 22,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[ReverbDelayModule::DELAY_MIX] = {
@@ -43,7 +49,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.45f},
         knobMapping : 2,
-        midiCCMapping : 23
+        midiCCMapping : 23,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[ReverbDelayModule::REVERB_TIME] = {
@@ -61,7 +70,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.4f},
         knobMapping : 4,
-        midiCCMapping : 25
+        midiCCMapping : 25,
+        unit : " Hz",
+        decimals : 0,
+        displayFn : [](float v) { return 600.0f + (1.0f - v) * (1.0f - v) * (16000.0f - 600.0f); }
     };
 
     params[ReverbDelayModule::REVERB_MIX] = {
@@ -70,7 +82,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.45f},
         knobMapping : 5,
-        midiCCMapping : 26
+        midiCCMapping : 26,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[ReverbDelayModule::DELAY_MODE] = {
@@ -116,7 +131,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.95f},
         knobMapping : -1,
-        midiCCMapping : 31
+        midiCCMapping : 31,
+        unit : " Hz",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Lin(v, 300.0f, 20000.0f); }
     };
 
     params[ReverbDelayModule::D_SPREAD] = {
@@ -143,7 +161,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.15f},
         knobMapping : -1,
-        midiCCMapping : 34
+        midiCCMapping : 34,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[ReverbDelayModule::MOD_RATE] = {
@@ -152,7 +173,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.25f},
         knobMapping : -1,
-        midiCCMapping : 35
+        midiCCMapping : 35,
+        unit : " Hz",
+        decimals : 1,
+        displayFn : [](float v) { return ParamDisplay::Lin(v, 0.0f, 3.0f); }
     };
 
     params[ReverbDelayModule::MOD_PARAM] = {

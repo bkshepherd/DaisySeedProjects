@@ -30,7 +30,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.375f}, // the input gain of the model: how hard it is driven, 0.1x to 2.5x (1x at the default)
         knobMapping : 0,
-        midiCCMapping : 14
+        midiCCMapping : 14,
+        unit : " dB",
+        decimals : 1,
+        displayFn : [](float v) { return ParamDisplay::Db(ParamDisplay::Lin(v, 0.1f, 2.5f)); }
     };
     params[MercuryModule::LEVEL] = {
         name : "Level",
@@ -38,7 +41,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 1,
-        midiCCMapping : 15
+        midiCCMapping : 15,
+        unit : " dB",
+        decimals : 1,
+        displayFn : [](float v) { return ParamDisplay::Db(v); }
     };
     params[MercuryModule::PRESENCE] = {
         name : "Presence",

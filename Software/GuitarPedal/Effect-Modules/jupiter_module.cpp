@@ -26,7 +26,11 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f}, // about 2 seconds, as at noon on the pedal
         knobMapping : 0,
-        midiCCMapping : 14
+        midiCCMapping : 14,
+        unit : " s",
+        decimals : 2,
+        // CloudSeed LineDecay (T60) for d = 0.35 + 0.65 * v: 0.05 + Response3Dec(d) * 59.95 s
+        displayFn : [](float v) { const float d = v * 0.65f + 0.35f; return 0.05f + (powf(1000.0f, d) - 1.0f) / 999.0f * 59.95f; }
     };
     params[JupiterModule::MIX] = {
         name : "Mix",
@@ -34,7 +38,11 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.4f},
         knobMapping : 1,
-        midiCCMapping : 15
+        midiCCMapping : 15,
+        unit : " %",
+        decimals : 0,
+        // crossfade position
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
     params[JupiterModule::LOW_GAIN] = {
         name : "Low Gain",
@@ -42,7 +50,11 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.7f}, // low shelf cut: fully cut at 0, no cut at 1; a mild cut by default so Low Freq is audible
         knobMapping : 2,
-        midiCCMapping : 16
+        midiCCMapping : 16,
+        unit : " dB",
+        decimals : 1,
+        // low shelf gain = Response2Dec(v) (linear); the engine clamps 0 to -60 dB
+        displayFn : [](float v) { return ParamDisplay::Db(v > 0.0f ? (powf(100.0f, v) - 1.0f) / 99.0f : 0.001f); }
     };
     params[JupiterModule::LOW_FREQ] = {
         name : "Low Freq",
@@ -50,7 +62,11 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f}, // 20 Hz .. 1 kHz, about 200 Hz in the middle
         knobMapping : 3,
-        midiCCMapping : 17
+        midiCCMapping : 17,
+        unit : " Hz",
+        decimals : 0,
+        // CloudSeed PostLowShelfFrequency: 20 + Response4Oct(v) * 980 Hz
+        displayFn : [](float v) { return 20.0f + (powf(16.0f, v) - 1.0f) / 15.0f * 980.0f; }
     };
     params[JupiterModule::HIGH_GAIN] = {
         name : "High Gain",
@@ -58,7 +74,11 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f}, // high shelf cut: strongly cut at 0, no cut at 1; a mild cut by default so High Freq is audible
         knobMapping : 4,
-        midiCCMapping : 18
+        midiCCMapping : 18,
+        unit : " dB",
+        decimals : 1,
+        // high shelf gain = Response2Dec(0.3 + 0.7 * v) (linear)
+        displayFn : [](float v) { return ParamDisplay::Db((powf(100.0f, v * 0.7f + 0.3f) - 1.0f) / 99.0f); }
     };
     params[JupiterModule::HIGH_FREQ] = {
         name : "High Freq",
@@ -66,7 +86,11 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f}, // 400 Hz .. 20 kHz, about 4.3 kHz in the middle
         knobMapping : 5,
-        midiCCMapping : 19
+        midiCCMapping : 19,
+        unit : " Hz",
+        decimals : 0,
+        // CloudSeed PostHighShelfFrequency: 400 + Response4Oct(v) * 19600 Hz
+        displayFn : [](float v) { return 400.0f + (powf(16.0f, v) - 1.0f) / 15.0f * 19600.0f; }
     };
     params[JupiterModule::LUSH] = {
         name : "Lush",

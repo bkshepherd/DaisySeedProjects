@@ -34,7 +34,10 @@ static const auto s_metaData = [] {
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 0,
-        midiCCMapping : 14
+        midiCCMapping : 14,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[DrumModule::VOICE] = {
@@ -65,7 +68,9 @@ static const auto s_metaData = [] {
         knobMapping : 3,
         midiCCMapping : 17,
         minValue : minTempoDrum,
-        maxValue : maxTempoDrum
+        maxValue : maxTempoDrum,
+        unit : " BPM",
+        decimals : 0
     };
 
     params[DrumModule::MIDI_VOICE] = {
@@ -83,7 +88,10 @@ static const auto s_metaData = [] {
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 5,
-        midiCCMapping : 19
+        midiCCMapping : 19,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[DrumModule::TONE] = {
@@ -91,7 +99,10 @@ static const auto s_metaData = [] {
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : -1,
-        midiCCMapping : 20
+        midiCCMapping : 20,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[DrumModule::DECAY] = {
@@ -99,7 +110,10 @@ static const auto s_metaData = [] {
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : -1,
-        midiCCMapping : 21
+        midiCCMapping : 21,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[DrumModule::MODE] = {

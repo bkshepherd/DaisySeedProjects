@@ -36,7 +36,9 @@ static const auto s_metaData = [] {
         knobMapping : 0,
         midiCCMapping : -1,
         minValue : 35,
-        maxValue : 500
+        maxValue : 500,
+        unit : " Hz",
+        decimals : 0
     };
 
     params[ParametricEQModule::MID_FREQ] = {
@@ -48,7 +50,9 @@ static const auto s_metaData = [] {
         knobMapping : 1,
         midiCCMapping : -1,
         minValue : 250,
-        maxValue : 5000
+        maxValue : 5000,
+        unit : " Hz",
+        decimals : 0
     };
 
     params[ParametricEQModule::HIGH_FREQ] = {
@@ -60,7 +64,9 @@ static const auto s_metaData = [] {
         knobMapping : 2,
         midiCCMapping : -1,
         minValue : 1000,
-        maxValue : 20000
+        maxValue : 20000,
+        unit : " Hz",
+        decimals : 0
     };
 
     params[ParametricEQModule::LOW_GAIN] = {
@@ -71,7 +77,10 @@ static const auto s_metaData = [] {
         knobMapping : 3,
         midiCCMapping : -1,
         minValue : static_cast<int>(minGain),
-        maxValue : static_cast<int>(maxGain)
+        maxValue : static_cast<int>(maxGain),
+        unit : " dB",
+        decimals : 1,
+        showSign : true
     };
 
     params[ParametricEQModule::MID_GAIN] = {
@@ -82,7 +91,10 @@ static const auto s_metaData = [] {
         knobMapping : 4,
         midiCCMapping : -1,
         minValue : static_cast<int>(minGain),
-        maxValue : static_cast<int>(maxGain)
+        maxValue : static_cast<int>(maxGain),
+        unit : " dB",
+        decimals : 1,
+        showSign : true
     };
 
     params[ParametricEQModule::HIGH_GAIN] = {
@@ -93,7 +105,10 @@ static const auto s_metaData = [] {
         knobMapping : 5,
         midiCCMapping : -1,
         minValue : static_cast<int>(minGain),
-        maxValue : static_cast<int>(maxGain)
+        maxValue : static_cast<int>(maxGain),
+        unit : " dB",
+        decimals : 1,
+        showSign : true
     };
 
     params[ParametricEQModule::LOW_Q] = {

@@ -47,7 +47,10 @@ static const auto s_metaData = [] {
         knobMapping : 0,
         midiCCMapping : 20,
         minValue : 0,
-        maxValue : 1
+        maxValue : 1,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[MultiDelayModule::DELAY_L_MS] = {
@@ -59,7 +62,9 @@ static const auto s_metaData = [] {
         midiCCMapping : 21,
         minValue : 0,
         maxValue : 4000,
-        fineStepSize : 0.000025f
+        fineStepSize : 0.000025f,
+        unit : " ms",
+        decimals : 0
     };
 
     params[MultiDelayModule::DELAY_R_MS] = {
@@ -71,7 +76,9 @@ static const auto s_metaData = [] {
         midiCCMapping : 22,
         minValue : 0,
         maxValue : 4000,
-        fineStepSize : 0.000025f
+        fineStepSize : 0.000025f,
+        unit : " ms",
+        decimals : 0
     };
 
     params[MultiDelayModule::FEEDBACK] = {
@@ -83,6 +90,9 @@ static const auto s_metaData = [] {
         midiCCMapping : 31,
         minValue : 0,
         maxValue : 1,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[MultiDelayModule::TAP_MODE] = {
@@ -104,7 +114,10 @@ static const auto s_metaData = [] {
         midiCCMapping : 27,
         minValue : -12,
         maxValue : 12,
-        fineStepSize : 0.004166f
+        fineStepSize : 0.004166f,
+        unit : " st",
+        decimals : 1,
+        showSign : true
     };
 
     params[MultiDelayModule::SHIFT_TAP_2] = {
@@ -116,7 +129,10 @@ static const auto s_metaData = [] {
         midiCCMapping : 28,
         minValue : -12,
         maxValue : 12,
-        fineStepSize : 0.004166f
+        fineStepSize : 0.004166f,
+        unit : " st",
+        decimals : 1,
+        showSign : true
     };
 
     params[MultiDelayModule::SHIFT_TAP_3] = {
@@ -128,7 +144,10 @@ static const auto s_metaData = [] {
         midiCCMapping : 29,
         minValue : -12,
         maxValue : 12,
-        fineStepSize : 0.004166f
+        fineStepSize : 0.004166f,
+        unit : " st",
+        decimals : 1,
+        showSign : true
     };
 
     params[MultiDelayModule::SHIFT_TAP_4] = {
@@ -140,7 +159,10 @@ static const auto s_metaData = [] {
         midiCCMapping : 30,
         minValue : -12,
         maxValue : 12,
-        fineStepSize : 0.004166f
+        fineStepSize : 0.004166f,
+        unit : " st",
+        decimals : 1,
+        showSign : true
     };
 
     params[MultiDelayModule::DELAY_TAP_1] = {
@@ -152,7 +174,9 @@ static const auto s_metaData = [] {
         midiCCMapping : 23,
         minValue : 0,
         maxValue : 4000,
-        fineStepSize : 0.00025f
+        fineStepSize : 0.00025f,
+        unit : " ms",
+        decimals : 0
     };
 
     params[MultiDelayModule::DELAY_TAP_2] = {
@@ -164,7 +188,9 @@ static const auto s_metaData = [] {
         midiCCMapping : 24,
         minValue : 0,
         maxValue : 4000,
-        fineStepSize : 0.00025f
+        fineStepSize : 0.00025f,
+        unit : " ms",
+        decimals : 0
     };
 
     params[MultiDelayModule::DELAY_TAP_3] = {
@@ -176,7 +202,9 @@ static const auto s_metaData = [] {
         midiCCMapping : 25,
         minValue : 0,
         maxValue : 4000,
-        fineStepSize : 0.00025f
+        fineStepSize : 0.00025f,
+        unit : " ms",
+        decimals : 0
     };
 
     params[MultiDelayModule::DELAY_TAP_4] = {
@@ -188,7 +216,9 @@ static const auto s_metaData = [] {
         midiCCMapping : 26,
         minValue : 0,
         maxValue : 4000,
-        fineStepSize : 0.00025f
+        fineStepSize : 0.00025f,
+        unit : " ms",
+        decimals : 0
     };
 
     return params;

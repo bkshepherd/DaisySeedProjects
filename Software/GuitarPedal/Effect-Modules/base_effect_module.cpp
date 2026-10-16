@@ -275,6 +275,14 @@ bool BaseEffectModule::GetParameterShowSign(int parameter_id) const {
     return false;
 }
 
+float (*BaseEffectModule::GetParameterDisplayFunction(int parameter_id) const)(float) {
+    if (m_paramMetaData != nullptr && parameter_id >= 0 && parameter_id < m_paramCount) {
+        return m_paramMetaData[parameter_id].displayFn;
+    }
+
+    return nullptr;
+}
+
 void BaseEffectModule::SetParameterRaw(int parameter_id, uint32_t value) {
     // Make sure parameter_id is valid.
     if (m_params == nullptr || parameter_id < 0 || parameter_id >= m_paramCount) {

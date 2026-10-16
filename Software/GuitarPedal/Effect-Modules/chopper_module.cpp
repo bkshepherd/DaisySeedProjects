@@ -13,7 +13,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 0,
-        midiCCMapping : 20
+        midiCCMapping : 20,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[ChopperModule::TEMPO] = {
@@ -22,7 +25,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 1,
-        midiCCMapping : 23
+        midiCCMapping : 23,
+        unit : " BPM",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Lin(v, 0.5f, 4.0f) * 240.0f / 4.0f; } // the pattern cycle rate in Hz is BPM / 240 (SetTempo); /4 as chosen
     };
 
     params[ChopperModule::DUTY] = {
@@ -31,7 +37,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.25f},
         knobMapping : 2,
-        midiCCMapping : 24
+        midiCCMapping : 24,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Lin(v, 10.0f, 90.0f); }
     };
 
     params[ChopperModule::PATTERN] = {

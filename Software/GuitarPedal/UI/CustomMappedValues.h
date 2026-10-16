@@ -81,6 +81,9 @@ class MyMappedFloatValue : public MappedValue {
 
     void SetFineStepSize(float f) { fineStepSize0to1_ = f; }
 
+    /** The number shown is displayFn(value) instead of the value itself (the value, its range and the steps are not changed). */
+    void SetDisplayFunction(float (*displayFn)(float)) { displayFn_ = displayFn; }
+
   private:
     float value_;
     const float min_;
@@ -92,6 +95,7 @@ class MyMappedFloatValue : public MappedValue {
     const bool forceSign_;
     float coarseStepSize0to1_ = 0.05f;
     float fineStepSize0to1_ = 0.01f;
+    float (*displayFn_)(float) = nullptr;
 };
 
 } // namespace daisy

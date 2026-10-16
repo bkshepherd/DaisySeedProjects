@@ -55,7 +55,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 0,
-        midiCCMapping : 14
+        midiCCMapping : 14,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
     params[BalneaModule::TONE] = {
         name : "Tone",
@@ -63,7 +66,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.8f}, // the low pass filter of the repeats, 100 Hz .. 14 kHz
         knobMapping : 1,
-        midiCCMapping : 15
+        midiCCMapping : 15,
+        unit : " Hz",
+        decimals : 0,
+        displayFn : [](float v) { return 100.0f + v * v * 14000.0f; }
     };
     params[BalneaModule::REGEN] = {
         name : "Regen",
@@ -71,7 +77,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f}, // feedback
         knobMapping : 2,
-        midiCCMapping : 16
+        midiCCMapping : 16,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
     params[BalneaModule::GLIDE] = {
         name : "Glide",
@@ -124,7 +133,10 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.0f}, // 0: no wow and flutter
         knobMapping : -1,
-        midiCCMapping : 21
+        midiCCMapping : 21,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
     params[BalneaModule::BASE_STAGE] = { // the original's switches: how long the sequencer stays at each speed, as a part of the delay time
         name : "Base Stage",

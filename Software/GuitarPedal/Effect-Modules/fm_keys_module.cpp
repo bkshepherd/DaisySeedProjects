@@ -16,7 +16,10 @@ static const auto s_metaData = [] {
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 0,
-        midiCCMapping : 14
+        midiCCMapping : 14,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
 
     params[FmKeysModule::RATIO] = {
@@ -26,7 +29,10 @@ static const auto s_metaData = [] {
         knobMapping : 1,
         midiCCMapping : 15,
         minValue : 0,
-        maxValue : 16
+        maxValue : 16,
+        unit : "x",
+        decimals : 1,
+        displayFn : [](float v) { return floorf(v * 2.0f) / 2.0f; }
     };
 
     params[FmKeysModule::MOD_LEVEL] = {
@@ -34,7 +40,10 @@ static const auto s_metaData = [] {
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.2f},
         knobMapping : 2,
-        midiCCMapping : 16
+        midiCCMapping : 16,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return ParamDisplay::Percent(v * v); }
     };
 
     params[FmKeysModule::MOD_RATIO] = {
@@ -44,7 +53,10 @@ static const auto s_metaData = [] {
         knobMapping : 3,
         midiCCMapping : 17,
         minValue : 0,
-        maxValue : 16
+        maxValue : 16,
+        unit : "x",
+        decimals : 1,
+        displayFn : [](float v) { return floorf(v * 2.0f) / 2.0f; }
     };
 
     // TODO: Try fine/coarse step sizes of 0.5 (not in lighthouse yet?)
@@ -53,7 +65,10 @@ static const auto s_metaData = [] {
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 4,
-        midiCCMapping : 18
+        midiCCMapping : 18,
+        unit : " ms",
+        decimals : 0,
+        displayFn : [](float v) { return (v * v * 0.9999f + 0.0001f) * 1000.0f; }
     };
 
     params[FmKeysModule::CAR_DECAY] = {
@@ -61,7 +76,10 @@ static const auto s_metaData = [] {
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : 5,
-        midiCCMapping : 19
+        midiCCMapping : 19,
+        unit : " ms",
+        decimals : 0,
+        displayFn : [](float v) { return (v * v * 0.9999f + 0.0001f) * 1000.0f; }
     };
 
     params[FmKeysModule::CAR_SUSTAIN] = {
@@ -69,7 +87,10 @@ static const auto s_metaData = [] {
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : -1,
-        midiCCMapping : 20
+        midiCCMapping : 20,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return (v * 0.999f + 0.001f) * 100.0f; }
     };
 
     params[FmKeysModule::CAR_RELEASE] = {
@@ -77,7 +98,10 @@ static const auto s_metaData = [] {
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : -1,
-        midiCCMapping : 21
+        midiCCMapping : 21,
+        unit : " ms",
+        decimals : 0,
+        displayFn : [](float v) { return (v * 0.999f + 0.001f) * 1000.0f; }
     };
 
     params[FmKeysModule::MOD_ATTACK] = {
@@ -85,7 +109,10 @@ static const auto s_metaData = [] {
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : -1,
-        midiCCMapping : 22
+        midiCCMapping : 22,
+        unit : " ms",
+        decimals : 0,
+        displayFn : [](float v) { return (v * v * 0.9999f + 0.0001f) * 1000.0f; }
     };
 
     params[FmKeysModule::MOD_DECAY] = {
@@ -93,7 +120,10 @@ static const auto s_metaData = [] {
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : -1,
-        midiCCMapping : 23
+        midiCCMapping : 23,
+        unit : " ms",
+        decimals : 0,
+        displayFn : [](float v) { return (v * v * 0.9999f + 0.0001f) * 1000.0f; }
     };
 
     params[FmKeysModule::MOD_SUSTAIN] = {
@@ -101,7 +131,10 @@ static const auto s_metaData = [] {
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : -1,
-        midiCCMapping : 24
+        midiCCMapping : 24,
+        unit : " %",
+        decimals : 0,
+        displayFn : [](float v) { return (v * 0.999f + 0.001f) * 100.0f; }
     };
 
     params[FmKeysModule::MOD_RELEASE] = {
@@ -109,7 +142,10 @@ static const auto s_metaData = [] {
         valueType : ParameterValueType::Float,
         defaultValue : {.float_value = 0.5f},
         knobMapping : -1,
-        midiCCMapping : 25
+        midiCCMapping : 25,
+        unit : " ms",
+        decimals : 0,
+        displayFn : [](float v) { return (v * 0.999f + 0.001f) * 1000.0f; }
     };
 
     return params;

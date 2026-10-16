@@ -50,7 +50,11 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.0f}, // where the sample starts, as a fraction of its length
         knobMapping : 0,
-        midiCCMapping : 14
+        midiCCMapping : 14,
+        unit : " %",
+        decimals : 0,
+        // fraction of the sample length
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
     params[CassiniModule::TRIM_END] = {
         name : "Trim End",
@@ -58,7 +62,11 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 1.0f}, // where it ends; before the start it plays backwards
         knobMapping : 1,
-        midiCCMapping : 15
+        midiCCMapping : 15,
+        unit : " %",
+        decimals : 0,
+        // fraction of the sample length
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
     params[CassiniModule::LEVEL] = {
         name : "Level",
@@ -66,7 +74,12 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.5f}, // the keys' volume
         knobMapping : 2,
-        midiCCMapping : 16
+        midiCCMapping : 16,
+        unit : " dB",
+        decimals : 1,
+        showSign : true,
+        // the voices' gain is v * 2.5 (linear)
+        displayFn : [](float v) { return ParamDisplay::Db(v * 2.5f); }
     };
     params[CassiniModule::LOOP_SPEED] = {
         name : "Loop Speed",
@@ -90,7 +103,11 @@ static const auto s_metaData = [] {
         valueBinCount : 0,
         defaultValue : {.float_value = 0.3f}, // decay time
         knobMapping : 5,
-        midiCCMapping : 19
+        midiCCMapping : 19,
+        unit : " %",
+        decimals : 0,
+        // reverb feedback
+        displayFn : [](float v) { return ParamDisplay::Percent(v); }
     };
     params[CassiniModule::SPEED_MODE] = { // the original's switch 1
         name : "Speed Mode",
