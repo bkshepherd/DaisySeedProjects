@@ -416,7 +416,7 @@ void GuitarPedalUI::InitGlobalSettingsUIPages() {
     m_globalSettingsMenuItems[9].asCallbackFunctionItem.context = this;
 
     m_globalSettingsMenuItems[10].type = AbstractMenu::ItemType::closeMenuItem;
-    m_globalSettingsMenuItems[9].text = "Back";
+    m_globalSettingsMenuItems[10].text = "Back";
 
     m_globalSettingsMenu.Init(m_globalSettingsMenuItems, kNumGlobalSettingsMenuItems);
 
