@@ -120,6 +120,12 @@ class SelectorTest(unittest.TestCase):
         self.assertIn("-DCLOUDSEED_ENGINES=2", defines())
         self.assertNotIn("CLOUDSEED", open(os.path.join(fx.GEN, "effects.mk")).read().replace("cloudseed_pool", ""))  # not in effects.mk any more
 
+    def test_a_preset_does_not_forbid_gpl_again(self):
+        self.sel.toggle_gpl()
+        self.assertTrue(self.sel.options.get("ALLOW_GPL"))
+        self.sel.load_preset("uranus-only")  # its file says ALLOW_GPL=n
+        self.assertTrue(self.sel.options.get("ALLOW_GPL"))
+
     def test_presets(self):
         self.assertIn("everything", self.sel.presets())
         self.assertIn("uranus-only", self.sel.presets())
@@ -386,6 +392,17 @@ class ScreenTest(unittest.TestCase):
         self.assertIn("Unsaved changes", text)  # the selection was changed, so quitting asked
         self.assertIn("* ", text)
         self.assertEqual(open(os.path.join(self.root.name, "effects.config")).read(), "ALLOW_GPL=n\nuranus=y\n")  # n: nothing saved
+
+    def test_selecting_a_gpl_effect_asks_to_allow_it(self):
+        gpl_cancel, code = self.run_keys([*[b"j"] * 60, b" ", b"n", b"q", b"n"])  # to the last effect (Earth)
+        self.assertEqual(code, 0)
+        self.assertIn("GPL effect", gpl_cancel)
+        self.assertNotIn("GPL allowed", gpl_cancel)
+        text, code = self.run_keys([*[b"j"] * 60, b" ", b"y", b"s", b"q"])
+        self.assertEqual(code, 0)
+        config = open(os.path.join(self.root.name, "effects.config")).read()
+        self.assertIn("ALLOW_GPL=y", config)
+        self.assertIn("earth=y", config)
 
     def test_the_info_popup(self):
         text, code = self.run_keys([b"i", b"x", b"q"])

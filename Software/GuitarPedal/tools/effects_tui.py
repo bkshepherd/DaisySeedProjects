@@ -23,7 +23,7 @@ HELP = [
     "Choose the effects that are built into the firmware.",
     "",
     "  Up / Down, k / j     move          PgUp / PgDn, Home / End   jump",
-    "  Space                select or deselect the effect",
+    "  Space                select or deselect the effect (a GPL effect asks first to allow the GPL effects)",
     "  s                    save: writes effects.config and the generated build files",
     "  p                    start from a preset (configs/*.config, everything)",
     "  a                    allow / forbid the GPL-3.0 effects (ALLOW_GPL)",
@@ -78,6 +78,11 @@ class Selector:
         self.dirty = True
         self.message = ""
 
+    def needs_gpl(self, effect_id):
+        """Whether the effect (or a component it needs) is GPL-3.0-or-later."""
+        e = self.m["by_id"][effect_id]
+        return e.get("license") == "gpl" or any(self.m["components"][c].get("license") == "gpl" for c in e.get("requires", []))
+
     def toggle_gpl(self):
         self.options["ALLOW_GPL"] = not self.options.get("ALLOW_GPL")
         self.dirty = True
@@ -94,7 +99,10 @@ class Selector:
             self.options["ALLOW_GPL"] = True
         else:
             self.enabled, options = self.fx.read_config(os.path.join(self.fx.PRESETS, name + ".config"))
-            self.options.update(options)  # (the chains stay)
+            # (the chains stay.) A preset can allow the GPL effects but does not forbid them again: "ALLOW_GPL=n" in it means only that it has none,
+            # and it used to switch off what was allowed with "a" a moment before.
+            if options.get("ALLOW_GPL"):
+                self.options["ALLOW_GPL"] = True
         self.dirty = True
         self.message = "preset %s loaded (not saved)" % name
 
@@ -131,6 +139,8 @@ class Selector:
         if self.problems():
             text += "  | cannot be built"
             sev = 2
+        if self.options.get("ALLOW_GPL"):
+            text += "  | GPL allowed"
         count = "%d effects" % len(self.ids()) + (", %d chains" % len(self.chains) if self.chains else "")
         text = ("* " if self.dirty else "") + count + "  " + text
         return text, sev
@@ -186,7 +196,7 @@ class Selector:
     def save(self):
         problems = self.problems()
         if problems:
-            self.message = "cannot save: " + "; ".join(problems)
+            self.message = "cannot save: " + "; ".join(problems) + ("  (a: allow the GPL effects)" if any("ALLOW_GPL" in x for x in problems) else "")
             return False
         self.fx.write_config(self.enabled, self.options, self.m)
         self.fx.write_chains(self.chains)
@@ -747,7 +757,16 @@ def loop(stdscr, fx):
         elif key == curses.KEY_END:
             sel.cursor = len(sel.effects) - 1
         elif key == ord(" "):
-            sel.toggle()
+            cur = sel.current()["id"]
+            if cur not in sel.enabled and sel.needs_gpl(cur) and not sel.options.get("ALLOW_GPL"):
+                answer = _popup(stdscr, ["%s is GPL-3.0-or-later: a firmware binary that contains it must be" % cur,
+                                         "distributed under GPLv3 (or not at all).", "",
+                                         "  y  allow the GPL effects and select it     any other key  cancel"], "GPL effect")
+                if answer in (ord("y"), ord("Y")):
+                    sel.toggle_gpl()
+                    sel.toggle()
+            else:
+                sel.toggle()
         elif key == ord("s"):
             sel.save()
         elif key == ord("a"):
