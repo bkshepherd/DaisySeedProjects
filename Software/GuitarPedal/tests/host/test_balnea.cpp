@@ -122,7 +122,7 @@ int main() {
         m.SetParameterRaw(BalneaModule::INT1_STAGE, 1);
         m.SetParameterRaw(BalneaModule::REVERSE, 1);
     };
-    const std::vector<Event> taps = {{4608, 4, 0, 0}, {5376, 5, 0, 0}, {19968, 4, 0, 0}, {20736, 5, 0, 0}, {39936, 0, 60, 100}, {59904, 1, 60, 0}, {90624, 4, 0, 0}, {110592, 5, 0, 0}}; // multiples of 768: the same time at 48 and 256 samples per block
+    const std::vector<Event> taps = {{4608, 4, 0, 0}, {5376, 5, 0, 0}, {19968, 4, 0, 0}, {20736, 5, 0, 0}, {33792, 4, 0, 0}, {34560, 5, 0, 0}, {39936, 0, 60, 100}, {59904, 1, 60, 0}, {90624, 4, 0, 0}, {110592, 5, 0, 0}}; // multiples of 768: the same time at 48 and 256 samples per block
 
     printf("block path vs per-sample path:\n");
     {
@@ -177,17 +177,25 @@ int main() {
 
     printf("\ntap tempo, self-oscillation, MIDI:\n");
     {
-        // two taps 24000 samples apart set 500 ms
+        // three taps set the time from the last two: the first interval (300 ms here) is dropped, the second (501 ms) is used
         BalneaModule *m = new BalneaModule();
         m->Init(48000.0f);
         float o1[48], o2[48];
         const float zero48[48] = {0};
-        m->AlternateFootswitchPressed(); for (int i = 0; i < 100; i++) m->ProcessMonoBlock(zero48, o1, o2, 48); m->AlternateFootswitchReleased(); // first tap, 4800 samples in
-        for (int i = 0; i < 500; i++) m->ProcessMonoBlock(zero48, o1, o2, 48);
-        m->AlternateFootswitchPressed(); m->ProcessMonoBlock(zero48, o1, o2, 48); m->AlternateFootswitchReleased();
-        // the first tap was at the release (after 100 blocks); the second after 501 more blocks: 24048 samples = 501 ms
-        printf("  Time after two taps 24048 samples apart: %.1f ms\n", m->GetParameterAsFloat(BalneaModule::TIME));
-        check(std::fabs(m->GetParameterAsFloat(BalneaModule::TIME) - 501.0f) < 2.0f, "two taps set the delay time");
+        auto tap = [&](int blocksBefore) { for (int i = 0; i < blocksBefore; i++) m->ProcessMonoBlock(zero48, o1, o2, 48); m->AlternateFootswitchPressed(); m->ProcessMonoBlock(zero48, o1, o2, 48); m->AlternateFootswitchReleased(); };
+        const float defaultTime = m->GetParameterAsFloat(BalneaModule::TIME);
+        tap(100);
+        tap(299);
+        check(m->GetParameterAsFloat(BalneaModule::TIME) == defaultTime, "the first two taps do not change the delay time");
+        tap(500);
+        // the second and third tap were 501 blocks apart: 24048 samples = 501 ms
+        printf("  Time after three taps, the last two 24048 samples apart: %.1f ms\n", m->GetParameterAsFloat(BalneaModule::TIME));
+        check(std::fabs(m->GetParameterAsFloat(BalneaModule::TIME) - 501.0f) < 2.0f, "three taps set the delay time from the last two");
+        // a tap after a pause starts a new series: it does not change the time
+        const float setTime = m->GetParameterAsFloat(BalneaModule::TIME);
+        tap(6 * 1000);
+        tap(200);
+        check(m->GetParameterAsFloat(BalneaModule::TIME) == setTime, "after a pause two taps do not change the delay time");
         // a hold of 300+ ms is not a tap
         const float before = m->GetParameterAsFloat(BalneaModule::TIME);
         m->AlternateFootswitchPressed(); for (int i = 0; i < 400; i++) m->ProcessMonoBlock(zero48, o1, o2, 48); m->AlternateFootswitchReleased();

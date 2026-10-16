@@ -27,7 +27,7 @@ Adam Fulford, Copyright 2021, MIT (the licence text is in the header of `tests/h
 | Knob 4 | Glide | How slowly the pitch slides from one interval to the next (none below 5%) |
 | Knob 5 | Interval 1 | The first interval, 11 steps (the middle is no change) |
 | Knob 6 | Interval 2 | The second interval, 11 steps; in the middle the third stage is skipped |
-| Menu | Time | The delay time, 100 ms to 4 s. Tap tempo sets it |
+| Menu | Time | The delay time, 100 ms to 4 s. Tap tempo sets it: three taps, from the interval between the last two |
 | Menu | Mod Rate, Mod Depth | The original's alternate functions of the interval knobs: the speed and the depth of the tape wow and flutter (depth 0 is off) |
 | Menu | Base Stage, Int 1 Stage, Int 2 Stage | The original's three switches: how long the sequencer stays at each speed, as 1, 3/4 or 1/2 of the delay time |
 | Menu | Scale | The intervals of the interval knobs: **Octaves** (octaves, fifths and fourths), **Dissonant** (sevenths, sixths, seconds) or **Chromatic** (semitones, -5 to +5) (the original's dip switches 3 and 4) |

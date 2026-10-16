@@ -17,7 +17,7 @@ constexpr size_t kRevSize = kLineSize * 2;
 float DSY_SDRAM_BSS s_lineData[2][kLineSize];
 float DSY_SDRAM_BSS s_revData[2][kRevSize];
 
-constexpr int kMaxTapSamples = 48000 * 4; // a first tap that is not followed by a second one within 4 s is forgotten
+constexpr int kMaxTapSamples = 48000 * 4; // a tap that is not followed by another within 4 s ends the series
 constexpr int kSelfOscSamples = 14400;    // 300 ms
 constexpr int kModInterval = 8;           // the wow and flutter noise is slow: it is advanced once per this many samples
 // Output makeup gain. Calibrated with tests/host/run_level_tests.sh so that the default settings give about +3 dB, like the other delays.
@@ -106,7 +106,7 @@ static const auto s_metaData = [] {
         midiCCMapping : -1,
         minValue : 100,
         maxValue : 4000,
-        fineStepSize : 5.0f,
+        fineStepSize : 5.0f / 3900.0f, // a fraction of the range (100..4000 ms), so 5 ms; a value in ms would jump straight to the min or max
         unit : " ms",
         decimals : 0
     };
@@ -183,7 +183,7 @@ static const auto s_metaData = [] {
 
 BalneaModule::BalneaModule()
     : BaseEffectModule(), m_sampleRate(48000.0f), m_delayTarget(4096.0f), m_baseSpeed(1.0f), m_baseDelaySamples(24000), m_toneFreq(-1.0f), m_modLeft(0.0f), m_modRight(0.0f),
-      m_modCounter(0), m_stage(0), m_stageTimer(0), m_advanceStage(false), m_tapOn(false), m_tapTimer(0), m_footDown(false), m_footHeldSamples(0), m_selfOsc(false),
+      m_modCounter(0), m_stage(0), m_stageTimer(0), m_advanceStage(false), m_tapCount(0), m_tapTimer(0), m_tapTimeout(kMaxTapSamples), m_footDown(false), m_footHeldSamples(0), m_selfOsc(false),
       m_resetSequence(false), m_ledTimer(0), m_ledOn(false) {
     m_name = "Balnea";
     m_paramMetaData = s_metaData.data();
@@ -218,8 +218,9 @@ void BalneaModule::Init(float sample_rate) {
     m_stage = 0;
     m_stageTimer = 0;
     m_advanceStage = false;
-    m_tapOn = false;
+    m_tapCount = 0;
     m_tapTimer = 0;
+    m_tapTimeout = kMaxTapSamples;
     m_footDown = false;
     m_footHeldSamples = 0;
     m_selfOsc = false;
@@ -266,16 +267,26 @@ void BalneaModule::AlternateFootswitchReleased() {
         m_selfOsc = false;
         return;
     }
-    if (m_tapOn) {
-        const float ms = std::min(std::max(m_tapTimer * 1000.0f / m_sampleRate, 100.0f), 4000.0f);
-        m_tapTimer = 0; // the timer keeps running: another tap changes the time again
+    if (GetParameterAsBool(TAP_SEQ)) {
+        m_tapCount = 0;
+        m_advanceStage = true;
+        return;
+    }
+    // Three taps set the time, from the interval between the last two (the first tap only starts, and the first interval is dropped, as it
+    // is usually off). Further taps in the same series, each within twice the time of the one before, keep adjusting it.
+    const int interval = m_tapTimer;
+    m_tapTimer = 0;
+    if (m_tapCount == 0) {
+        m_tapCount = 1;
+        m_tapTimeout = kMaxTapSamples;
+    } else if (m_tapCount == 1) {
+        m_tapCount = 2;
+        m_tapTimeout = kMaxTapSamples;
+    } else {
+        const float ms = std::min(std::max(interval * 1000.0f / m_sampleRate, 100.0f), 4000.0f);
         SetParameterAsFloat(TIME, ms);
         ApplyTime(ms);
-    } else if (GetParameterAsBool(TAP_SEQ)) {
-        m_advanceStage = true;
-    } else {
-        m_tapOn = true;
-        m_tapTimer = 0;
+        m_tapTimeout = std::min(kMaxTapSamples, 2 * interval);
     }
 }
 
@@ -348,9 +359,9 @@ void BalneaModule::ProcessSamples(const float *inL, const float *inR, float *out
         }
 
         // Tap tempo
-        if (m_tapOn && !tapSeq) {
-            if (++m_tapTimer >= kMaxTapSamples) { // a first tap that is not followed by another
-                m_tapOn = false;
+        if (m_tapCount > 0 && !tapSeq) {
+            if (++m_tapTimer >= m_tapTimeout) { // no further tap: the series is over
+                m_tapCount = 0;
                 m_tapTimer = 0;
             }
         }

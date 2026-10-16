@@ -93,8 +93,9 @@ class BalneaModule : public BaseEffectModule {
     bool m_advanceStage; // requested by a tap in tap-sequencer mode
 
     // Tap tempo
-    bool m_tapOn;          // waiting for the second tap
-    int m_tapTimer;        // samples since the first tap
+    int m_tapCount;        // taps so far in the current series (0, 1, or 2 = the time is set by every further tap)
+    int m_tapTimer;        // samples since the last tap
+    int m_tapTimeout;      // a series is forgotten when the next tap takes longer than this many samples
     bool m_footDown;       // the footswitch is down
     int m_footHeldSamples;
     bool m_selfOsc;        // held for 300 ms: the feedback goes above 1
