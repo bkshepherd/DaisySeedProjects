@@ -90,7 +90,7 @@ sits next to this repository as `../FunBox`, `software/<Effect>/`). All eleven p
 * **Level.** A fixed output gain of 1.9 (+5.6 dB) in `venus_module.cpp` gives about +2 dB at the default settings (without it Venus is 3.6 dB quieter than bypass). A full-scale input
   could clip at the output.
 * **Latency.** About 107 ms from input to the start of the reverb output (the 4096-sample window plus one hop for the sliced processing). The dry signal is not delayed.
-* "Oct Up+Dn" only goes up (a quirk kept from the original; see `Effect-Modules/Venus/README.md`).
+* "Oct Up+Dn" now goes both ways (the original only went up; see `Effect-Modules/Venus/README.md`).
 * Mono in (left input), the same signal on both outputs, as in the original.
 
 ## Earth: things to know
@@ -137,5 +137,5 @@ Venus gave sound but dropped blocks constantly at 48 kHz / 48 samples: each 4096
 1. Flash and check that the firmware boots with this set (see "Current build"). If it does, try each new effect on the pedal: the CPU readout in Show Debug (average **and** peak) for Mars and Mercury in particular; the sound against the originals; the footswitch handling of Balnea (tap tempo, hold), Pluto and Cassini (record, pause, clear).
 2. Test the MIDI notes of Balnea (synth) and Cassini (sampler) and of Uranus with a keyboard.
 3. If Mars or Mercury overrun the 48-sample blocks: the GRU's `FastMath` is already used; the next steps would be a block-wise matrix product, or the original's 96-sample or larger blocks for these two. If Pluto's or Cassini's 23 MB of SDRAM clears at startup are noticeable: they are not cleared at all (only what is recorded is played).
-4. Decide whether to fix the "Oct Up+Dn" behaviour and whether to add a Level parameter to Venus.
+4. Decide whether to add a Level parameter to Venus.
 5. The Experiments directory of FunBox (ChorusVerb, DenoiseFFT, FmSynth, Granular, MidiKeys, NoiseFilterFFT, SamplerTest, SpectralReverb) was not converted: they are experiments, not pedals, and several overlap what is here (FM Keys, Granular Delay, MIDI Keys).

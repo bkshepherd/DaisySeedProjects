@@ -65,8 +65,8 @@ The original's acknowledgements apply here too:
 
 ## Notes
 
-* **"Oct Up+Dn" only goes up.** In the original code the up-octave branch is tested before the down-octave one with `else if`, so the third shimmer position
-  never goes down. This port keeps that behaviour (see the comment in `venus_spectral.h`); fixing it would mean letting both branches run.
+* **"Oct Up+Dn" goes both ways.** In the original code the up-octave branch is tested before the down-octave one with `else if`, so the third shimmer
+  position never goes down. This port runs both branches, so the third position adds the octave down as well as up (the spectrum differs from the original in that mode).
 * Frames of the original `Fourier` drift by one sample per cycle (a slot starts writing one sample early). `SlicedFourier` keeps a drift-free cycle instead,
   so from the ninth frame on its frames sit one sample later; this is inaudible.
 * Venus is the most memory-hungry effect (about 440 KB of SDRAM) and one of the more demanding on the CPU.

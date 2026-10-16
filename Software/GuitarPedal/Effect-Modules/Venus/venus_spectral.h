@@ -101,7 +101,9 @@ class SpectralReverb {
                         energy_[2 * i - 1] += 0.123f * p.shimmerDouble * current;
                         energy_[2 * i] += 0.25f * p.shimmerDouble * current;
                         energy_[2 * i + 1] += 0.123f * p.shimmerDouble * current;
-                    } else if ((p.shimmerMode == 0 || p.shimmerMode == 2) && i > 1 && !(i % 2)) { // down an octave (even bins only)
+                    }
+                    // (The original tests this with "else if", so "Oct Up+Dn" never went down; here both run.)
+                    if ((p.shimmerMode == 0 || p.shimmerMode == 2) && i > 1 && !(i % 2)) { // down an octave (even bins only)
                         energy_[i / 2 - 1] += 0.75f * p.shimmerDouble * current;
                         energy_[i / 2] += 1.5f * p.shimmerDouble * current;
                         energy_[i / 2 + 1] += 0.75f * p.shimmerDouble * current;
