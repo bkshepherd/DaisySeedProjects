@@ -9,7 +9,7 @@ Selects which effects are built into the firmware, generates the parts of the bu
   effects-memory.json   what each effect costs in memory (measured from the object files, plus heap figures that are estimates)
   generated/            what `generate` writes: effects.mk (included by the Makefile), effects_includes.inc and effects_instances.inc (included by loaded_effects.h)
 
-Commands:  tui (the default in a terminal) | list | info ID... | observe RESULT | preset NAME | enable ID... | disable ID... | generate | report | measure | calibrate | matrix [ID...]
+Commands:  tui (the default in a terminal) | list | info ID... | lint | observe RESULT | preset NAME | enable ID... | disable ID... | generate | report | measure | calibrate | matrix [ID...]
 See PERFORMANCE_AND_MEMORY.md for what the figures mean and where they come from.
 """
 import argparse
@@ -350,6 +350,59 @@ def chain_code(chain, m):
     lines.append("    /* footswitchTogglesSlots */ {%s}")
     lines[-1] = lines[-1] % ", ".join(str(t) for t in chain.get("toggle", []))
     return "\n".join(lines) + "),"
+
+
+
+# ---------------------------------------------------------------- display text
+
+NAME_BIG = 10   # characters that fit the biggest font (11 pixels wide) in the 110 pixels of a name row; longer names are drawn smaller (UI/fit_text.h)
+NAME_MAX = 22   # characters that fit the smallest font (5 pixels wide); longer names are cut with a "~"
+
+
+def scan_texts(source_text):
+    """(parameter names, choices) found in an effect's source: the `name : "..."` of its parameter metadata and the strings of its `const char *xxx[] = {...}` arrays."""
+    names = re.findall(r'name\s*:\s*"([^"]*)"', source_text)
+    choices = []
+    for arr in re.findall(r'const char \*\s*\w+\s*\[[^\]]*\]\s*=\s*\{([^}]*)\}', source_text):
+        choices += re.findall(r'"([^"]*)"', arr)
+    return names, choices
+
+
+def lint_texts(m, chains=None):
+    """The texts that do not fit the big font: [{effect, kind, text, length, result}], result 'smaller' (drawn in a smaller font) or 'cut' (longer than even the smallest font shows)."""
+    found = []
+    per_effect = {}
+    for e in m["effects"]:
+        names, choices = [], []
+        for src in e["sources"]:
+            path = os.path.join(ROOT, src)
+            if src.endswith("_module.cpp") and os.path.exists(path):
+                n, c = scan_texts(open(path, errors="replace").read())
+                names += n
+                choices += c
+        per_effect[e["id"]] = names
+        for kind, texts in (("parameter", names), ("choice", choices)):
+            for t in texts:
+                if len(t) > NAME_BIG:
+                    found.append({"effect": e["id"], "kind": kind, "text": t, "length": len(t), "result": "cut" if len(t) > NAME_MAX else "smaller"})
+    for c in chains or []:  # a chain's parameters are "<tag> <name>"
+        for sl in c.get("slots", []):
+            for t in per_effect.get(sl.get("effect"), []):
+                combined = "%s %s" % (sl.get("tag", ""), t)
+                if len(combined) > NAME_BIG:
+                    found.append({"effect": "chain " + c.get("name", "?"), "kind": "parameter", "text": combined, "length": len(combined), "result": "cut" if len(combined) > NAME_MAX else "smaller"})
+    return found
+
+
+def cmd_lint(args):
+    m = manifest()
+    found = lint_texts(m, read_chains())
+    cut = [f for f in found if f["result"] == "cut"]
+    print("%d texts are longer than %d characters (drawn in a smaller font), %d longer than %d (cut with a ~)\n" % (len(found) - len(cut), NAME_BIG, len(cut), NAME_MAX))
+    for f in sorted(found, key=lambda f: (f["result"] != "cut", f["effect"], f["text"])):
+        print("%-8s %-18s %-9s %2d  %s" % (f["result"], f["effect"], f["kind"], f["length"], f["text"]))
+    if cut:
+        sys.exit(1)
 
 
 # ---------------------------------------------------------------- memory
@@ -737,6 +790,7 @@ def main():
     sub = p.add_subparsers(dest="cmd")
     sub.add_parser("tui", help="the interactive full-screen selection (the default when run in a terminal)")
     sub.add_parser("list")
+    sub.add_parser("lint", help="parameter names and choices that are too long for the display (drawn smaller, or cut)")
     s = sub.add_parser("info", help="what is known about an effect: origin, copyright lines, who committed it, memory"); s.add_argument("ids", nargs="+")
     s = sub.add_parser("preset"); s.add_argument("name")
     s = sub.add_parser("enable"); s.add_argument("ids", nargs="+")
@@ -755,7 +809,7 @@ def main():
         else:
             p.print_help()
             return
-    {"tui": cmd_tui, "info": cmd_info, "list": cmd_list, "preset": cmd_preset, "enable": lambda x: cmd_change(x, True), "disable": lambda x: cmd_change(x, False), "generate": lambda x: generate(),
+    {"tui": cmd_tui, "lint": cmd_lint, "info": cmd_info, "list": cmd_list, "preset": cmd_preset, "enable": lambda x: cmd_change(x, True), "disable": lambda x: cmd_change(x, False), "generate": lambda x: generate(),
      "report": cmd_report, "measure": lambda x: measure(x.build_dir), "calibrate": lambda x: calibrate(x.build_dir), "matrix": cmd_matrix, "observe": cmd_observe}[a.cmd](a)
 
 

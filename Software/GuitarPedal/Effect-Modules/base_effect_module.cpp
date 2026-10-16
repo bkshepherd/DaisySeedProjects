@@ -1,5 +1,7 @@
 #include "base_effect_module.h"
 #include "../Util/audio_utilities.h"
+#include "../UI/fit_text.h"
+#include "../UI/font_8x13.h"
 #include "../Util/heap_guard.h"
 
 using namespace bkshepherd;
@@ -522,7 +524,13 @@ void BaseEffectModule::DrawUI(OneBitGraphicsDisplay &display, int currentIndex, 
         }
     }
 
-    display.WriteStringAligned(m_name, Font_11x18, topRowRect, Alignment::centered, true);
+    // The effect's name in the biggest font that fits (cut with a "~" if even the smallest is too wide: libDaisy draws nothing for a line wider than the display)
+    {
+        static const FontDef *const fonts[] = {&Font_11x18, &Font_8x13, &Font_7x10, &Font_6x8, &Font_5x8}; // the order of fittext::kFonts
+        char fitted[48];
+        const int font = fittext::Fit(m_name, topRowRect.GetWidth(), topRowRect.GetHeight(), fitted, sizeof(fitted));
+        display.WriteStringAligned(fitted, *fonts[font], topRowRect, Alignment::centered, true);
+    }
 
     // The CPU percentage and the averaged input/output peak level (dB) are debug readouts, shown only when "Show Debug" is on
     const bool showDebug = GetShowDebug();

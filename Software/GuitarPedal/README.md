@@ -148,6 +148,7 @@ Which effects go into the firmware is chosen in **`effects.config`**, with the t
 ```text
 python3 tools/effects.py                           # the interactive full-screen selection (curses): arrows to move, space to select, s to save, h for help
 python3 tools/effects.py observe "boots and runs" --heap-used 120 --heap-free 136   # record what the pedal showed (Show Debug) for the current selection
+python3 tools/effects.py lint                      # parameter names and choices that are too long for the big font (the display draws them smaller; over 22 characters they would be cut)
 python3 tools/effects.py info uranus               # what is known about an effect: origin, copyright lines in its source, who committed it, memory (key i in the interactive mode)
 python3 tools/effects.py list                      # all effects, what is enabled, and what each costs in memory
 python3 tools/effects.py preset uranus-only        # start from a preset (configs/*.config; "everything" enables all effects)

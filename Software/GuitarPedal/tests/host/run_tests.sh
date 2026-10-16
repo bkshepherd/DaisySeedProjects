@@ -126,6 +126,9 @@ if XFLAGS= build "$B/t_uranus" $T/test_uranus.cpp Effect-Modules/uranus_module.c
 step "Balnea: block vs per-sample, reverse line vs the original, delay time, tap tempo, MIDI"
 if XFLAGS="-I$T" build "$B/t_balnea" $T/test_balnea.cpp Effect-Modules/balnea_module.cpp $BASEMOD $DSP/Synthesis/oscillator.cpp $DSP/Control/adsr.cpp $DSP/Filters/svf.cpp; then check "$B/t_balnea"; else FAILS=$((FAILS + 1)); fi
 
+step "Fit text: the biggest font that is wide enough, a cut with ~ when even the smallest is too narrow (UI/fit_text.h)"
+if XFLAGS="-IUI" build "$B/t_fit_text" $T/test_fit_text.cpp; then check "$B/t_fit_text"; else FAILS=$((FAILS + 1)); fi
+
 step "Heap guard: the message reaches the handler (the _sbrk limit itself only exists on the Daisy)"
 if XFLAGS= build "$B/t_heap_guard" $T/test_heap_guard.cpp Util/heap_guard.cpp; then check "$B/t_heap_guard"; else FAILS=$((FAILS + 1)); fi
 

@@ -142,6 +142,28 @@ class SelectorTest(unittest.TestCase):
         self.assertIn("ChunkWare", info)
         self.assertNotIn("above copyright notice", info)
 
+    def test_the_texts_are_scanned_and_measured(self):
+        source = """
+            params[X::A] = { name : "Depth", valueType : 1 };
+            params[X::B] = { name : "Delay Feedback", valueType : 1 };
+            params[X::C] = { name : "A parameter name that is far too long to show", valueType : 1 };
+            static const char *s_modes[3] = {"Normal", "Dotted 8th Note", "Triplet"};
+        """
+        names, choices = fx.scan_texts(source)
+        self.assertEqual(names, ["Depth", "Delay Feedback", "A parameter name that is far too long to show"])
+        self.assertEqual(choices, ["Normal", "Dotted 8th Note", "Triplet"])
+        m = {"effects": [{"id": "x", "sources": ["Effect-Modules/__none__.cpp"]}]}
+        self.assertEqual(fx.lint_texts(m), [])  # no such file: nothing found, no crash
+
+    def test_no_parameter_name_or_choice_is_cut_on_the_display(self):
+        # The display fits 22 characters in the smallest font (UI/fit_text.h); a longer text would be cut with a "~". Longer than 10 is only drawn smaller: see `tools/effects.py lint`.
+        cut = [f for f in fx.lint_texts(self.sel.m, self.sel.chains) if f["result"] == "cut"]
+        self.assertEqual(cut, [], "texts the display cannot show in full: %s" % cut)
+
+    def test_a_chain_parameter_is_measured_with_its_tag(self):
+        found = fx.lint_texts(self.sel.m, [{"name": "C", "slots": [{"tag": "Ur", "effect": "uranus"}], "mappings": []}])
+        self.assertIn("Ur Env Sustain", [f["text"] for f in found if f["effect"] == "chain C"])  # 14 characters: drawn smaller
+
     def test_info_without_origin_falls_back_to_the_committers(self):
         e = next(e for e in self.sel.effects if e["id"] == "delay")
         self.assertIn("committed by", self.sel.detail(e))

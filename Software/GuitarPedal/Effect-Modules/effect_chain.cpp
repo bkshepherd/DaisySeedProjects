@@ -53,17 +53,10 @@ namespace {
 // Generous headroom for "<tag> <child parameter name>" and "<tag> On".
 constexpr int kMaxCombinedNameLength = 32;
 
-// The settings menu's title row (FullScreenItemMenu::DrawTopRow in libDaisy)
-// centers the parameter name in a ~128px-wide rect without wrapping or
-// clipping. If the rendered text is wider than that, the centered start
-// position goes negative, which wraps around (it's passed through an
-// unsigned uint16_t cursor) to a huge value that gets clamped to the far
-// right edge of the display - past which nothing fits, so the whole label
-// silently draws blank instead of just running off the edge. At the default
-// 11px-wide font that's a hard cap of 11 characters; 10 is used here to keep
-// a margin, and because it matches the longest names already shipping
-// un-prefixed (e.g. DelayModule's "Delay Time"/"D Feedback").
-constexpr int kMaxSafeDisplayNameLength = 10;
+// The most characters a tagged parameter name may have: the menu (UI/fit_text_menu.h) draws a name in the biggest font that fits and cuts it with a "~" beyond the 22 characters that
+// fit in the smallest (5 pixel wide) font, so a name up to this long is drawn in full, if small. (libDaisy's own menu draws nothing for a line wider than the display, which at the
+// default 11 pixel font was anything over 10 characters: the limit used to be 10 here, and a longer tagged name fell back to the child's own untagged name.)
+constexpr int kMaxSafeDisplayNameLength = 22;
 
 // How long a slot takes to crossfade in/out when toggled, matching the
 // pedal's own global bypass fade (see guitar_pedal.cpp).

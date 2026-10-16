@@ -6,6 +6,7 @@
 #include "daisy_seed.h"
 #include "effect_module_menu_item.h"
 #include "effect_selection_menu.h"
+#include "fit_text_menu.h"
 using namespace daisy;
 
 const int kNumMainMenuItems = 4;
@@ -65,10 +66,10 @@ class GuitarPedalUI {
     void InitGlobalSettingsUIPages();
 
     UI m_ui;
-    FullScreenItemMenu m_mainMenu;
-    FullScreenItemMenu m_activeEffectSettingsMenu;
-    FullScreenItemMenu m_globalSettingsMenu;
-    FullScreenItemMenu m_presetsMenu;
+    FitTextMenu m_mainMenu;
+    FitTextMenu m_activeEffectSettingsMenu;
+    FitTextMenu m_globalSettingsMenu;
+    FitTextMenu m_presetsMenu;
     EffectSelectionMenu m_effectSelectionMenu;
     UiEventQueue m_eventQueue;
 

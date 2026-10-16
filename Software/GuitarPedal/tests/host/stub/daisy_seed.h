@@ -18,7 +18,8 @@ struct Rectangle {
     Rectangle WithTrimmedTop(int) const { return *this; } Rectangle WithSizeKeepingCenter(int, int) const { return *this; } Rectangle Translated(int, int) const { return *this; }
 };
 struct FontDef {};
-static FontDef Font_11x18, Font_7x10, Font_6x8, Font_16x26;
+static FontDef Font_11x18, Font_8x13, Font_7x10, Font_6x8, Font_5x8, Font_16x26;
+#define FONT_8X13_PROVIDED_BY_THE_HOST_STUB
 enum class Alignment { centered, bottomCentered, topCentered, centeredLeft, centeredRight, topLeft, topRight, bottomLeft, bottomRight };
 struct OneBitGraphicsDisplay {
     template <class... A> void DrawLine(A...) {}
