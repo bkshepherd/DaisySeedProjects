@@ -10,7 +10,7 @@
 using namespace daisy;
 
 const int kNumMainMenuItems = 4;
-const int kNumGlobalSettingsMenuItems = 11;
+const int kNumGlobalSettingsMenuItems = 13;
 const int kNumPresetSettingsItems = 3;
 
 namespace bkshepherd {
@@ -96,6 +96,8 @@ class GuitarPedalUI {
     MyMappedFloatValue **m_activeEffectSettingFloatValues = nullptr;
     bool *m_activeEffectSettingBoolValues = nullptr;
     MappedIntValue m_midiChannelSettingValue;
+    MyMappedFloatValue m_inputGainSettingValue;  // dB, -24 .. +24 in steps of 0.5 (3 coarse)
+    MyMappedFloatValue m_outputGainSettingValue;
 
     bool m_displayingSaveSettingsNotification;
     float m_secondsSinceLastActiveEffectSettingsSave;

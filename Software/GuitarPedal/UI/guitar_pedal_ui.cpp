@@ -42,6 +42,8 @@ void HandleBackFromEffectSelectionMenu(void *context) { ((GuitarPedalUI *)contex
 GuitarPedalUI::GuitarPedalUI()
     : m_needToCloseActiveEffectSettingsMenu(false), m_paramIdToReturnTo(-1), m_numActiveEffectSettingsItems(0),
       m_activePresetSelected(0), m_activePresetSettingIntValue(0, 255, 0, 1, 1), m_midiChannelSettingValue(1, 16, 1, 1, 5),
+      m_inputGainSettingValue(-24.0f, 24.0f, 0.0f, MyMappedFloatValue::Mapping::lin, " dB", 1, true, 3.0f / 48.0f, 0.5f / 48.0f),
+      m_outputGainSettingValue(-24.0f, 24.0f, 0.0f, MyMappedFloatValue::Mapping::lin, " dB", 1, true, 3.0f / 48.0f, 0.5f / 48.0f),
       m_displayingSaveSettingsNotification(false), m_secondsSinceLastActiveEffectSettingsSave(0.0f)
 
 {}
@@ -411,13 +413,23 @@ void GuitarPedalUI::InitGlobalSettingsUIPages() {
     m_globalSettingsMenuItems[8].text = "Trails";
     m_globalSettingsMenuItems[8].asCheckboxItem.valueToModify = &settings.globalTrails;
 
-    m_globalSettingsMenuItems[9].type = AbstractMenu::ItemType::callbackFunctionItem;
-    m_globalSettingsMenuItems[9].text = "Reboot";
-    m_globalSettingsMenuItems[9].asCallbackFunctionItem.callbackFunction = &RebootToBootloader;
-    m_globalSettingsMenuItems[9].asCallbackFunctionItem.context = this;
+    m_globalSettingsMenuItems[9].type = AbstractMenu::ItemType::valueItem;
+    m_globalSettingsMenuItems[9].text = "In Gain";
+    m_inputGainSettingValue.Set(settings.globalInputGainDb);
+    m_globalSettingsMenuItems[9].asMappedValueItem.valueToModify = &m_inputGainSettingValue;
 
-    m_globalSettingsMenuItems[10].type = AbstractMenu::ItemType::closeMenuItem;
-    m_globalSettingsMenuItems[10].text = "Back";
+    m_globalSettingsMenuItems[10].type = AbstractMenu::ItemType::valueItem;
+    m_globalSettingsMenuItems[10].text = "Out Gain";
+    m_outputGainSettingValue.Set(settings.globalOutputGainDb);
+    m_globalSettingsMenuItems[10].asMappedValueItem.valueToModify = &m_outputGainSettingValue;
+
+    m_globalSettingsMenuItems[11].type = AbstractMenu::ItemType::callbackFunctionItem;
+    m_globalSettingsMenuItems[11].text = "Reboot";
+    m_globalSettingsMenuItems[11].asCallbackFunctionItem.callbackFunction = &RebootToBootloader;
+    m_globalSettingsMenuItems[11].asCallbackFunctionItem.context = this;
+
+    m_globalSettingsMenuItems[12].type = AbstractMenu::ItemType::closeMenuItem;
+    m_globalSettingsMenuItems[12].text = "Back";
 
     m_globalSettingsMenu.Init(m_globalSettingsMenuItems, kNumGlobalSettingsMenuItems);
 
@@ -586,6 +598,10 @@ void GuitarPedalUI::UpdateUI(float elapsedTime) {
 
     // Update the Midi Channel if the value was changed in the Menu
     settings.globalMidiChannel = m_midiChannelSettingValue.Get();
+
+    // Likewise the input and output gains (dB)
+    settings.globalInputGainDb = m_inputGainSettingValue.Get();
+    settings.globalOutputGainDb = m_outputGainSettingValue.Get();
 
     // Process the UI
     m_ui.Process();

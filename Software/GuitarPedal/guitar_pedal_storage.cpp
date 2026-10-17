@@ -68,6 +68,8 @@ void InitPersistantStorage() {
     defaultSettings.globalShowDebug = false;
     defaultSettings.globalLockKnobs = true;
     defaultSettings.globalTrails = true;
+    defaultSettings.globalInputGainDb = 0.0f;
+    defaultSettings.globalOutputGainDb = 0.0f;
 
     // All Effect Params in the settings should be zero'd
     for (int i = 0; i < SETTINGS_ABSOLUTE_MAX_PARAM_COUNT; i++) {

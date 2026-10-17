@@ -439,11 +439,25 @@ void updateLeds(float led1Brightness, float led2Brightness)
     hardware.UpdateLeds();
 }
 
+// The input and output gain settings (dB): the input is scaled before it reaches the effect (and the dry path), the output before it goes to the output jack, to calibrate the levels
+// of the pedal to the rest of the rig. The gain follows the setting with a short one-pole smoothing per block and is ramped across the block, so turning it in the menu does not click.
+static constexpr size_t kMaxBlock = 256; // the largest audio block size supported (see kAudioBlockSize)
+static_assert(kAudioBlockSize <= kMaxBlock, "the audio block must fit the buffers of the audio callback");
+static constexpr float kGainSmoothingPerBlock = 0.3f;
+static float inputGainCurrent = 1.0f;
+static float outputGainCurrent = 1.0f;
+
+static float gainFromDb(float db) {
+    if (!(db == db)) db = 0.0f; // not a number (corrupt settings)
+    db = fminf(24.0f, fmaxf(-24.0f, db));
+    return powf(10.0f, db / 20.0f);
+}
+
 static float linearToDb(float linear) {
     return (linear > 1.0e-5f) ? 20.0f * log10f(linear) : -100.0f;
 }
 
-static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, size_t size) {
+static void AudioCallback(AudioHandle::InputBuffer inRaw, AudioHandle::OutputBuffer out, size_t size) {
     cpuLoadMeter.OnBlockStart();
     const uint32_t blockStartTick = System::GetTick();
 
@@ -468,10 +482,20 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
 
     processFootswitches(size, settings);
 
+    // The input gain: everything below works on the scaled input (the effect, the dry signal and the input level readout)
+    static float gainedInput[2][kMaxBlock];
+    const float inputGainStart = inputGainCurrent;
+    inputGainCurrent += (gainFromDb(settings.globalInputGainDb) - inputGainCurrent) * kGainSmoothingPerBlock;
+    for (size_t i = 0; i < size; i++) {
+        const float g = inputGainStart + (inputGainCurrent - inputGainStart) * (float)(i + 1) / (float)size;
+        gainedInput[0][i] = inRaw[0][i] * g;
+        gainedInput[1][i] = inRaw[1][i] * g;
+    }
+    const float *const in[2] = {gainedInput[0], gainedInput[1]};
+
     // Run the active effect over the whole block up front. The effect doesn't depend on the crossfade/mute state below, so the
     // per-sample loop only has to mix the dry and effect signals.
     // Whether the effect is needed is decided once per block; if a crossfade ends mid-block the effect simply runs a few extra samples.
-    static constexpr size_t kMaxBlock = 256; // the largest audio block size supported (see kAudioBlockSize)
     static float dryLeft[kMaxBlock], dryRight[kMaxBlock], fxLeft[kMaxBlock], fxRight[kMaxBlock], fxInLeft[kMaxBlock], fxInRight[kMaxBlock];
     const bool splitMono = settings.globalSplitMonoInputToStereo && !settings.globalRelayBypassEnabled;
 
@@ -615,6 +639,15 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
     }
 
     updateLeds(led1Brightness, led2Brightness);
+
+    // The output gain, before the output jack (and before the output level readout, so that it shows what leaves the pedal)
+    const float outputGainStart = outputGainCurrent;
+    outputGainCurrent += (gainFromDb(settings.globalOutputGainDb) - outputGainCurrent) * kGainSmoothingPerBlock;
+    for (size_t i = 0; i < size; i++) {
+        const float g = outputGainStart + (outputGainCurrent - outputGainStart) * (float)(i + 1) / (float)size;
+        out[0][i] *= g;
+        out[1][i] *= g;
+    }
 
     // Track the peak of this block's input and output (both channels) and average it over time
     float inPeak = 0.0f;
