@@ -95,3 +95,7 @@ responses; see `Effect-Modules/Earth/README.md` for what it found.
 `tests/host/mars/gru_reference.bin` and `tests/host/mercury/wavenet_reference.bin` are the outputs of the original networks (RTNeural and RTNeural-NAM with Eigen, from a clone of
 <https://github.com/GuitarML/Funbox>) for a fixed input; the tests compare the modules' own plain C++ networks to them. They only need regenerating if the model data changes: the generators
 (`gru_reference_gen.cpp`, `wavenet_reference_gen.cpp` in the same directories) have the command line in their header comments.
+
+## NAM against the reference implementation
+
+`nam_reference/run_nam_reference.sh` compares the NAM effect with NeuralAmpModelerCore (needs a recent checkout, see `NAM_CORE` in the script; not part of `run_tests.sh`). For every file in `Effect-Modules/Nam/models/` it builds a reference `.nam` (the A2 Lite network in `nam_reference/a2_lite_template.json` with that model's weights), renders a guitar-like signal (plucked notes, noise, a loud burst; 4 s) through the reference, through `A2Player` alone and through `NamA2Module` (Gain and Level at unity, EQ and cab IR off, the model's `kOutputGain` divided out) and reports the signal/error ratio after the first 0.1 s. Last run: all five models 106 .. 133 dB (maximum difference below 2e-5) for both paths.
