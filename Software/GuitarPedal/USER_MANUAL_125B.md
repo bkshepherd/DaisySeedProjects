@@ -6,9 +6,9 @@ This is a DIY pedal project, not a finished product. You build the PCB-based har
 
 - Follow the [125B hardware build guide](../../Hardware/GuitarPedal125b/docs/README.md) for PCB manufacture, parts, assembly, and enclosure details. The guide includes ready-to-order board files and describes the additional parts and soldering required.
 - Install the toolchain and dependencies, then follow the [software build and deployment instructions](README.md#4-build-and-deploy-the-code). The 125B is the default hardware target; check `guitar_pedal.cpp` if you have changed variants.
-- Choose the installed effects and their order by editing `loaded_effects.h`, then build and flash, per the instruction in the README. Since only one effect is active at a time, there is little penalty for enabling a lot of different effects, but if there are ones you won't use, it's better to leave them out so they don't clutter the menu system.
+- There is no ready-made firmware: choose the installed effects and their order with `./effects_config.sh`, as described in [GENERATE_FIRMWARE.md](GENERATE_FIRMWARE.md), then build and flash, per the instruction in the README. Since only one effect is active at a time, there is little penalty for enabling a lot of different effects, but if there are ones you won't use, it's better to leave them out so they don't clutter the menu system.
 
-If you want to have two or three active effects at the same time, it is possible (with some limitations) to make a combined effect, by defining an `EffectChain` in `loaded_effects.h`; it appears as one selectable effect and processes its child effects in sequence. Keep an eye on CPU headroom: a large chain can exceed the processor's capacity, and some modules have restrictions on chaining. See the [EffectChain notes](README.md#combining-effects-effectchain) before building a chain.
+If you want to have two or three active effects at the same time, it is possible (with some limitations) to make a combined effect, by defining an `EffectChain` (in `./effects_config.sh`, press `c`); it appears as one selectable effect and processes its child effects in sequence. Keep an eye on CPU headroom: a large chain can exceed the processor's capacity, and some modules have restrictions on chaining. See the [EffectChain notes](GENERATE_FIRMWARE.md#combining-effects-effectchain) before building a chain.
 
 ## Connections
 
@@ -37,7 +37,7 @@ The right LED (above the primary footswitch) generally indicates if the pedal is
 
 Press the encoder from the main screen to open the current effect's parameter list. Turn to a parameter and press the encoder to edit it; choose **Defaults** to reset that effect's parameters to their "factory" defaults. The main menu also contains:
 
-- **Preset:** Select a preset for the current effect. Presets are stored separately for each effect, and there is always a "Preset 0" that is the "power-on" state. After changing settings via knobs or the effect parameter menu, hold both footswitches down to save to the selected preset.
+- **Preset:** Opens the preset menu: **Preset #** selects a preset for the current effect, and **Erase All** erases all saved settings and presets (a factory reset). Presets are stored separately for each effect, and there is always a "Preset 0" that is the "power-on" state. After changing settings via knobs or the effect parameter menu, hold both footswitches down to save to the selected preset.
 - **Effect:** Select which effect is active.
 - **Settings:** Configure global pedal behavior, described below.
 
@@ -53,13 +53,16 @@ The selected effect and pedal on/bypass state are retained across power cycles. 
 - **MIDI effect and preset recall:** A plain Program Change still selects an effect by its zero-based position in the firmware's effect list. To select both an effect and one of its saved presets, send Bank Select MSB (CC0), Bank Select LSB (CC32), then Program Change. The pedal uses the combined bank number to select the effect and the Program Change value to select that effect's saved preset. Bank 0 is reserved for legacy behavior, so the effect's bank number is its zero-based effect index plus one. For example, effect 4, preset 2 uses `CC0=0`, `CC32=5`, `PC=2`. A bank number of 5 is encoded as MSB 0 and LSB 5. Some controller editors display values as 1-128; the transmitted MIDI values are 0-127. The bank is consumed by the next Program Change, so configure the switcher to send the bank and Program Change with each recall. If the bank/effect or preset does not exist, the selection is ignored or the effect is selected without loading a preset, respectively.
 - **Reserved MIDI CCs:** CC0 and CC32 are used for Bank Select and are not available for effect parameters. Multi Delay Tap Mode now uses CC33 instead of CC32.
 - **Auto-save:** After parameter changes stop for five seconds, saves that effect's settings to Preset 0. This overwrites Preset 0; turn it off if you use that preset for a manual patch, or want the pedal to always return to a saved state on startup.
+- **Lock Knobs:** Ignores the knobs, so that parameters are only changed from the display and a bumped knob changes nothing. On by default.
+- **Show Debug:** Draws the CPU load (average/peak %) and the input and output levels on the effect screen, along with the heap use, to help calibrate levels and check the load of an effect. Off by default.
+- **Trails:** Lets delay and reverb tails ring out after the effect is turned off instead of cutting them. It does not apply with True Bypass, and the length of the tail depends on the effect. On by default.
 - **In Gain:** Gain in dB (-24 to +24, in steps of 0.5; the encoder's coarse step is 3 dB) applied to the input before it reaches the effect and the dry signal, to calibrate the pedal to your instrument or to the level of the rest of the rig. The input level readout of Show Debug shows the level after this gain.
 - **Out Gain:** Gain in dB (-24 to +24) applied to the output before it goes to the output jack, to calibrate the level that leaves the pedal. The output level readout of Show Debug shows the level after this gain. (With True Bypass the relay routes the signal around the pedal, so neither gain applies to the bypassed sound.)
 - **Reboot:** Restarts the Daisy Seed in bootloader mode – useful for firmware updates.
 
 ## Effects
 
-The default firmware currently includes the effects below. Their exact controls and knob assignments can change with the build; the effect parameter menu lists the controls available in your version.
+These are the effects that can be included in a firmware; which of them your pedal has depends on how you generated it. Their exact controls and knob assignments can change with the build; the effect parameter menu lists the controls available in your version.
 
 - **Tremolo, Harm Trem, AutoPan, Chopper:** Amplitude or stereo-pan modulation; rate/tempo, depth, waveform, and related modulation controls.
 - **Chorus, Phaser, Flanger:** Sweeping modulation effects; rate, depth, mix, feedback, and tone controls.
@@ -73,5 +76,7 @@ The default firmware currently includes the effects below. Their exact controls 
 - **Graphic EQ, Parametric EQ:** Tone shaping; band gain and, for parametric bands, frequency and bandwidth.
 - **NAM, IR:** Amp and cabinet impulse-response processing; model or IR selection, gain, level, and EQ.
 - **Looper, Drum, Metronome, Tuner:** Performance and utility tools; loop levels/actions, rhythm or tempo controls, and tuning options.
+- **Other FunBox effects (funbox-jupiter, -saturn, -neptune, -uranus, -balnea, -pluto, -cassini, -mars, -mercury):** Further effects adapted from the FunBox project, available when selected in the firmware; they show up in the effect list with the `funbox-` prefix, like Earth and Venus above.
+- **Duck Compressor, Reverb Delay, Scope, MIDI Keys, String Keys, Modal Keys, FM Keys, Pluck Echo:** Further effects (a ducking compressor, a combined reverb and delay, an oscilloscope display, and synths and a plucked-echo effect played from a MIDI keyboard).
 - **Test Tone:** A signal generator for calibrating levels together with In Gain, Out Gain and the level readout of Show Debug: a sine, square or triangle wave of a chosen frequency (20 Hz to 20 kHz), or white noise, at a chosen level (-60 to 0 dB; the tone's peak level, and for noise the same RMS as a sine of that level). It replaces the input while the effect is on.
 

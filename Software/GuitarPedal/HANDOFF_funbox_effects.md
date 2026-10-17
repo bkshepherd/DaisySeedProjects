@@ -79,7 +79,7 @@ sits next to this repository as `../FunBox`, `software/<Effect>/`). All eleven p
 7. **Tests** (all on the PC, see `tests/host/README.md`): a test that compares the new pipeline with the original where possible (`test_venus.cpp`), the default-level test
    (`levels/test_level_<name>.cpp`, rule: 0 to +6 dB at default settings, never attenuating), and `tests/host/run_defaults_audit.sh <stem>` (finds defaults that are not applied at startup
    and uninitialised reads; picks up new effects automatically). Add the new test steps to `run_tests.sh` / `run_level_tests.sh`.
-8. **Register it**: an entry in `effects.json` (class, header, sources, `requires` for shared components such as `impulse_response`) and a figure for its memory in `effects-memory.json` (`python3 tools/effects.py measure` after a build; heap from `tests/host/run_heap_report.sh`); then select it with `tools/effects.py` and check the memory report. If it does not fit, deselect effects, starting with the biggest ones. Adding or reordering effects changes the settings layout, which resets
+8. **Register it**: an entry in `effects.json` (class, header, sources, `requires` for shared components such as `impulse_response`) and a figure for its memory in `effects-memory.json` (`./effects_config.sh measure` after a build; heap from `tests/host/run_heap_report.sh`); then select it with `effects_config.sh` and check the memory report. If it does not fit, deselect effects, starting with the biggest ones. Adding or reordering effects changes the settings layout, which resets
    saved settings on the next boot.
 
 ## Venus: things to know
@@ -103,13 +103,13 @@ sits next to this repository as `../FunBox`, `software/<Effect>/`). All eleven p
 * **Defaults** are mine (the pedal's switches have none): Octave None, FS Action Freeze, Size Medium, Mix 0.4, Decay 0.8.
 * Not yet heard or run on the pedal, including the CPU load and the footswitch actions.
 
-## Choosing the build: `tools/effects.py`
+## Choosing the build: `effects_config.sh`
 
-Which effects are built is chosen with `tools/effects.py` (interactive: run it without arguments; see the README) and `effects.config`, not by editing the `Makefile` or `loaded_effects.h`. Every converted effect has an entry in `effects.json` (what to compile, what it needs: `impulse_response` for Mars, the CloudSeed pool for Jupiter and Neptune, the CMSIS FFT tables for Venus and Saturn) and its memory figures in `effects-memory.json`; **a new effect needs an entry in both.**
+See [GENERATE_FIRMWARE.md](GENERATE_FIRMWARE.md) for how the build is chosen.
 
 Having all five of the first converted effects (Venus, Jupiter, Saturn, Neptune, Uranus) enabled together did **not boot** on the pedal (some memory ran out: with everything, DTCM was 82% and RAM_D2 84% static; my guess is the heap in RAM_D2, where the effects' `new` allocations go, but that was not confirmed). The build known to boot is `configs/uranus-only.config`.
 
-The five effects converted after that (Balnea, Pluto, Cassini, Mars, Mercury) are light where the lockup is suspected to come from, so `configs/funbox-newest.config` (them plus Uranus) is the next one to try: SRAM (code) 57%, DTCM 52% (Mercury's 33 KB is the new part), RAM_D2 37% static and an estimated 26 KB of heap, SDRAM 71% (47.9 MB, of which Pluto 23 MB, Cassini 23 MB, Mars 0.7 MB, Balnea 0.4 MB); `python3 tools/effects.py report` prints the budget of the current selection. That is an expectation from the numbers, **not tested on the pedal: flash it and check that it boots.** If it does not, disable effects one at a time starting with the two 23 MB ones.
+The five effects converted after that (Balnea, Pluto, Cassini, Mars, Mercury) are light where the lockup is suspected to come from, so `configs/funbox-newest.config` (them plus Uranus) is the next one to try: SRAM (code) 57%, DTCM 52% (Mercury's 33 KB is the new part), RAM_D2 37% static and an estimated 26 KB of heap, SDRAM 71% (47.9 MB, of which Pluto 23 MB, Cassini 23 MB, Mars 0.7 MB, Balnea 0.4 MB); `./effects_config.sh report` prints the budget of the current selection. That is an expectation from the numbers, **not tested on the pedal: flash it and check that it boots.** If it does not, disable effects one at a time starting with the two 23 MB ones.
 The effects that need a lot of SDRAM do not fit with everything else: Pluto + Cassini take 47 MB of the 64 MB, which leaves room for Venus, Saturn, Balnea and Mars, and for Jupiter (the CloudSeed pool is only as big as the number of engines in the build); the tool says when a selection does not fit.
 
 See also `PERFORMANCE_AND_MEMORY.md`: the optimisations and what they gave, per-effect memory needs, the heap explanation of the lockup, the GCC 15 experience and a first draft of a matrix of effects that can be enabled together.
