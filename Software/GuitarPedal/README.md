@@ -149,12 +149,12 @@ Which effects go into the firmware is chosen in **`effects.config`**, with the t
 python3 tools/effects.py                           # the interactive full-screen selection (curses): arrows to move, space to select, s to save, h for help
 python3 tools/effects.py observe "boots and runs" --heap-used 120 --heap-free 136   # record what the pedal showed (Show Debug) for the current selection
 python3 tools/effects.py lint                      # parameter names and choices that are too long for the big font (the display draws them smaller; over 22 characters they would be cut)
-python3 tools/effects.py info uranus               # what is known about an effect: origin, copyright lines in its source, who committed it, memory (key i in the interactive mode)
+python3 tools/effects.py info funbox-uranus               # what is known about an effect: origin, copyright lines in its source, who committed it, memory (key i in the interactive mode)
 python3 tools/effects.py list                      # all effects, what is enabled, and what each costs in memory
 python3 tools/effects.py preset uranus-only        # start from a preset (configs/*.config; "everything" enables all effects)
-python3 tools/effects.py enable venus saturn       # enable effects (disable does the opposite)
+python3 tools/effects.py enable funbox-venus funbox-saturn       # enable effects (disable does the opposite)
 python3 tools/effects.py report                    # how much of DTCM, RAM_D2 (static data + heap), code space and SDRAM the current selection needs
-python3 tools/effects.py matrix venus jupiter ...  # the same for every combination of the named effects
+python3 tools/effects.py matrix funbox-venus funbox-jupiter ...  # the same for every combination of the named effects
 ```
 
 Only the chosen effects are compiled and linked, which matters for memory: global buffers in an object file can stay in the firmware even if nothing uses them. **Not every selection boots**: the pedal's
@@ -171,7 +171,7 @@ for the full provenance chain and license text. Enabling it means the firmware b
 must be distributed under GPLv3 (or not distributed at all); leaving it commented out keeps your
 build entirely MIT.
 
-To opt in: set `ALLOW_GPL=y` in `effects.config` (the tool refuses to build them otherwise), enable `dattorro` (and `earth`, which is built on it) with `python3 tools/effects.py enable dattorro earth`, then rebuild and flash.
+To opt in: set `ALLOW_GPL=y` in `effects.config` (the tool refuses to build them otherwise), enable `dattorro` (and `funbox-earth`, which is built on it) with `python3 tools/effects.py enable dattorro earth`, then rebuild and flash.
 
 ## MIDI Effect and Preset Recall
 

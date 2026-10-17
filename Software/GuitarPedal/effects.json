@@ -66,35 +66,11 @@
  },
  "effects": [
   {
-   "id": "modulated_tremolo",
-   "class": "ModulatedTremoloModule",
-   "header": "modulated_tremolo_module.h",
-   "sources": [
-    "Effect-Modules/modulated_tremolo_module.cpp"
-   ]
-  },
-  {
-   "id": "overdrive",
-   "class": "OverdriveModule",
-   "header": "overdrive_module.h",
-   "sources": [
-    "Effect-Modules/overdrive_module.cpp"
-   ]
-  },
-  {
    "id": "autopan",
    "class": "AutoPanModule",
    "header": "autopan_module.h",
    "sources": [
     "Effect-Modules/autopan_module.cpp"
-   ]
-  },
-  {
-   "id": "chorus",
-   "class": "ChorusModule",
-   "header": "chorus_module.h",
-   "sources": [
-    "Effect-Modules/chorus_module.cpp"
    ]
   },
   {
@@ -107,100 +83,11 @@
    ]
   },
   {
-   "id": "reverb",
-   "class": "ReverbModule",
-   "header": "reverb_module.h",
+   "id": "chorus",
+   "class": "ChorusModule",
+   "header": "chorus_module.h",
    "sources": [
-    "Effect-Modules/reverb_module.cpp"
-   ],
-   "note": "single-instance only"
-  },
-  {
-   "id": "multi_delay",
-   "class": "MultiDelayModule",
-   "header": "multi_delay_module.h",
-   "sources": [
-    "Effect-Modules/multi_delay_module.cpp"
-   ],
-   "note": "single-instance only"
-  },
-  {
-   "id": "metro",
-   "class": "MetroModule",
-   "header": "metro_module.h",
-   "sources": [
-    "Effect-Modules/metro_module.cpp"
-   ]
-  },
-  {
-   "id": "tuner",
-   "class": "TunerModule",
-   "header": "tuner_module.h",
-   "sources": [
-    "Effect-Modules/tuner_module.cpp"
-   ],
-   "note": "single-instance only"
-  },
-  {
-   "id": "pitch_shifter",
-   "class": "PitchShifterModule",
-   "header": "pitch_shifter_module.h",
-   "sources": [
-    "Effect-Modules/pitch_shifter_module.cpp"
-   ],
-   "note": "single-instance only"
-  },
-  {
-   "id": "compressor",
-   "class": "CompressorModule",
-   "header": "compressor_module.h",
-   "sources": [
-    "Effect-Modules/compressor_module.cpp"
-   ]
-  },
-  {
-   "id": "duck_compressor",
-   "class": "DuckCompressorModule",
-   "header": "duck_compressor_module.h",
-   "sources": [
-    "Effect-Modules/duck_compressor_module.cpp",
-    "Effect-Modules/SimpleCompressor/SimpleComp.cpp",
-    "Effect-Modules/SimpleCompressor/SimpleEnvelope.cpp"
-   ],
-   "origin": "Simple Compressor by ChunkWare Music Software (2006, open source, MIT terms in its headers); module by spamatica",
-   "note": "Side-chain compressor: the left input is compressed by the level of the right input (turn off Split mono input to stereo); Key Input Left makes it an ordinary compressor"
-  },
-  {
-   "id": "looper",
-   "class": "LooperModule",
-   "header": "looper_module.h",
-   "sources": [
-    "Effect-Modules/looper_module.cpp"
-   ],
-   "note": "single-instance only"
-  },
-  {
-   "id": "geq",
-   "class": "GraphicEQModule",
-   "header": "geq_module.h",
-   "sources": [
-    "Effect-Modules/geq_module.cpp"
-   ]
-  },
-  {
-   "id": "peq",
-   "class": "ParametricEQModule",
-   "header": "peq_module.h",
-   "sources": [
-    "Effect-Modules/peq_module.cpp"
-   ]
-  },
-  {
-   "id": "noise_gate",
-   "class": "NoiseGateModule",
-   "header": "noise_gate_module.h",
-   "sources": [
-    "Effect-Modules/noise_gate_module.cpp"
+    "Effect-Modules/chorus_module.cpp"
    ]
   },
   {
@@ -216,21 +103,134 @@
    ]
   },
   {
-   "id": "venus",
-   "origin": "FunBox (GuitarML, Keith Bloemer), MIT",
-   "class": "VenusModule",
-   "header": "venus_module.h",
+   "id": "compressor",
+   "class": "CompressorModule",
+   "header": "compressor_module.h",
    "sources": [
-    "Effect-Modules/venus_module.cpp"
-   ],
-   "note": "Spectral reverb from the FunBox project (MIT); single-instance only",
-   "requires": [
-    "cmsis_fft",
-    "cmsis_tables_4096"
+    "Effect-Modules/compressor_module.cpp"
    ]
   },
   {
-   "id": "jupiter",
+   "id": "crusher",
+   "class": "CrusherModule",
+   "header": "crusher_module.h",
+   "sources": [
+    "Effect-Modules/crusher_module.cpp"
+   ]
+  },
+  {
+   "id": "dattorro",
+   "class": "DattorroReverbModule",
+   "header": "dattorro_reverb_module.h",
+   "sources": [
+    "Effect-Modules/dattorro_reverb_module.cpp"
+   ],
+   "note": "Dattorro plate reverb; GPL-3.0-or-later: see Effect-Modules/Dattorro/README.md",
+   "requires": [
+    "dattorro_engine"
+   ],
+   "license": "gpl"
+  },
+  {
+   "id": "delay",
+   "class": "DelayModule",
+   "header": "delay_module.h",
+   "sources": [
+    "Effect-Modules/delay_module.cpp"
+   ],
+   "note": "single-instance only"
+  },
+  {
+   "id": "distortion",
+   "class": "DistortionModule",
+   "header": "distortion_module.h",
+   "sources": [
+    "Effect-Modules/distortion_module.cpp"
+   ]
+  },
+  {
+   "id": "drum",
+   "class": "DrumModule",
+   "header": "drum_module.h",
+   "sources": [
+    "Effect-Modules/drum_module.cpp"
+   ],
+   "note": "can be used with a MIDI keyboard as a drum machine"
+  },
+  {
+   "id": "dual_echo",
+   "class": "DualEchoModule",
+   "header": "dual_echo_module.h",
+   "sources": [
+    "Effect-Modules/dual_echo_module.cpp"
+   ],
+   "note": "single-instance only"
+  },
+  {
+   "id": "duck_compressor",
+   "class": "DuckCompressorModule",
+   "header": "duck_compressor_module.h",
+   "sources": [
+    "Effect-Modules/duck_compressor_module.cpp",
+    "Effect-Modules/SimpleCompressor/SimpleComp.cpp",
+    "Effect-Modules/SimpleCompressor/SimpleEnvelope.cpp"
+   ],
+   "origin": "Simple Compressor by ChunkWare Music Software (2006, open source, MIT terms in its headers); module by spamatica",
+   "note": "Side-chain compressor: the left input is compressed by the level of the right input (turn off Split mono input to stereo); Key Input Left makes it an ordinary compressor"
+  },
+  {
+   "id": "flanger",
+   "class": "FlangerModule",
+   "header": "flanger_module.h",
+   "sources": [
+    "Effect-Modules/flanger_module.cpp"
+   ]
+  },
+  {
+   "id": "fm_keys",
+   "class": "FmKeysModule",
+   "header": "fm_keys_module.h",
+   "sources": [
+    "Effect-Modules/fm_keys_module.cpp"
+   ],
+   "note": "needs a MIDI keyboard"
+  },
+  {
+   "id": "funbox-balnea",
+   "class": "BalneaModule",
+   "header": "balnea_module.h",
+   "sources": [
+    "Effect-Modules/balnea_module.cpp"
+   ],
+   "origin": "FunBox (GuitarML, Keith Bloemer), MIT; reverse delay line by Adam Fulford, MIT",
+   "note": "Delay and pitch shifter from the FunBox project (MIT); tap tempo on the secondary footswitch; MIDI notes play a synth; 0.4 MB of SDRAM; single-instance only"
+  },
+  {
+   "id": "funbox-cassini",
+   "class": "CassiniModule",
+   "header": "cassini_module.h",
+   "sources": [
+    "Effect-Modules/cassini_module.cpp"
+   ],
+   "origin": "FunBox (GuitarML, Keith Bloemer), MIT; looper from DaisySP (Electrosmith), MIT",
+   "note": "Chromatic sampler for a MIDI keyboard from the FunBox project (MIT); 23 MB of SDRAM; single-instance only"
+  },
+  {
+   "id": "funbox-earth",
+   "origin": "FunBox (GuitarML, Keith Bloemer), GPL-3.0-or-later; Dattorro engine",
+   "class": "EarthModule",
+   "header": "earth_module.h",
+   "sources": [
+    "Effect-Modules/earth_module.cpp"
+   ],
+   "note": "Plate reverb and octave from the FunBox project, built on the Dattorro engine; GPL-3.0-or-later; single-instance only",
+   "requires": [
+    "dattorro_engine"
+   ],
+   "license": "gpl"
+  },
+  {
+   "id": "funbox-jupiter",
    "origin": "FunBox (GuitarML, Keith Bloemer), MIT; CloudSeed engine by Ghost Note Audio, MIT",
    "class": "JupiterModule",
    "header": "jupiter_module.h",
@@ -243,7 +243,53 @@
    ]
   },
   {
-   "id": "saturn",
+   "id": "funbox-mars",
+   "class": "MarsModule",
+   "header": "mars_module.h",
+   "sources": [
+    "Effect-Modules/mars_module.cpp"
+   ],
+   "origin": "FunBox (GuitarML, Keith Bloemer), MIT; network after RTNeural (BSD-3-Clause)",
+   "note": "Amp sim (three GRU models, three cabinets) and delay from the FunBox project (MIT); mono; single-instance only",
+   "requires": [
+    "impulse_response"
+   ]
+  },
+  {
+   "id": "funbox-mercury",
+   "class": "MercuryModule",
+   "header": "mercury_module.h",
+   "sources": [
+    "Effect-Modules/mercury_module.cpp"
+   ],
+   "origin": "FunBox (GuitarML, Keith Bloemer), MIT; WaveNet after RTNeural-NAM (BSD-3-Clause, jatinchowdhury18)",
+   "note": "Amp sim with nine NAM pico models and a four band EQ from the FunBox project (MIT); mono; 33 KB of DTCM; single-instance only"
+  },
+  {
+   "id": "funbox-neptune",
+   "origin": "FunBox (GuitarML, Keith Bloemer), MIT; CloudSeed engine by Ghost Note Audio, MIT; Veno-Echo delay lines, MIT",
+   "class": "NeptuneModule",
+   "header": "neptune_module.h",
+   "sources": [
+    "Effect-Modules/neptune_module.cpp"
+   ],
+   "note": "Reverb and delay from the FunBox project (MIT), on the CloudSeed engine; single-instance only",
+   "requires": [
+    "cloudseed_pool"
+   ]
+  },
+  {
+   "id": "funbox-pluto",
+   "class": "PlutoModule",
+   "header": "pluto_module.h",
+   "sources": [
+    "Effect-Modules/pluto_module.cpp"
+   ],
+   "origin": "FunBox (GuitarML, Keith Bloemer), MIT; looper from DaisySP (Electrosmith), MIT",
+   "note": "Dual looper with variable speed from the FunBox project (MIT); 23 MB of SDRAM; single-instance only"
+  },
+  {
+   "id": "funbox-saturn",
    "origin": "FunBox (GuitarML, Keith Bloemer), MIT",
    "class": "SaturnModule",
    "header": "saturn_module.h",
@@ -257,20 +303,7 @@
    ]
   },
   {
-   "id": "neptune",
-   "origin": "FunBox (GuitarML, Keith Bloemer), MIT; CloudSeed engine by Ghost Note Audio, MIT; Veno-Echo delay lines, MIT",
-   "class": "NeptuneModule",
-   "header": "neptune_module.h",
-   "sources": [
-    "Effect-Modules/neptune_module.cpp"
-   ],
-   "note": "Reverb and delay from the FunBox project (MIT), on the CloudSeed engine; single-instance only",
-   "requires": [
-    "cloudseed_pool"
-   ]
-  },
-  {
-   "id": "uranus",
+   "id": "funbox-uranus",
    "origin": "FunBox (GuitarML, Keith Bloemer), MIT",
    "class": "UranusModule",
    "header": "uranus_module.h",
@@ -280,82 +313,104 @@
    "note": "Granular delay and synth from the FunBox project (MIT); uses MIDI notes for its synth modes; single-instance only"
   },
   {
-   "id": "balnea",
-   "class": "BalneaModule",
-   "header": "balnea_module.h",
+   "id": "funbox-venus",
+   "origin": "FunBox (GuitarML, Keith Bloemer), MIT",
+   "class": "VenusModule",
+   "header": "venus_module.h",
    "sources": [
-    "Effect-Modules/balnea_module.cpp"
+    "Effect-Modules/venus_module.cpp"
    ],
-   "origin": "FunBox (GuitarML, Keith Bloemer), MIT; reverse delay line by Adam Fulford, MIT",
-   "note": "Delay and pitch shifter from the FunBox project (MIT); tap tempo on the secondary footswitch; MIDI notes play a synth; 0.4 MB of SDRAM; single-instance only"
+   "note": "Spectral reverb from the FunBox project (MIT); single-instance only",
+   "requires": [
+    "cmsis_fft",
+    "cmsis_tables_4096"
+   ]
   },
   {
-   "id": "pluto",
-   "class": "PlutoModule",
-   "header": "pluto_module.h",
+   "id": "geq",
+   "class": "GraphicEQModule",
+   "header": "geq_module.h",
    "sources": [
-    "Effect-Modules/pluto_module.cpp"
-   ],
-   "origin": "FunBox (GuitarML, Keith Bloemer), MIT; looper from DaisySP (Electrosmith), MIT",
-   "note": "Dual looper with variable speed from the FunBox project (MIT); 23 MB of SDRAM; single-instance only"
+    "Effect-Modules/geq_module.cpp"
+   ]
   },
   {
-   "id": "cassini",
-   "class": "CassiniModule",
-   "header": "cassini_module.h",
+   "id": "granular_delay",
+   "class": "GranularDelayModule",
+   "header": "granulardelay_module.h",
    "sources": [
-    "Effect-Modules/cassini_module.cpp"
+    "Effect-Modules/granulardelay_module.cpp"
    ],
-   "origin": "FunBox (GuitarML, Keith Bloemer), MIT; looper from DaisySP (Electrosmith), MIT",
-   "note": "Chromatic sampler for a MIDI keyboard from the FunBox project (MIT); 23 MB of SDRAM; single-instance only"
+   "note": "single-instance only"
   },
   {
-   "id": "mars",
-   "class": "MarsModule",
-   "header": "mars_module.h",
+   "id": "harmonic_tremolo",
+   "class": "HarmonicTremoloModule",
+   "header": "harmonic_tremolo_module.h",
    "sources": [
-    "Effect-Modules/mars_module.cpp"
+    "Effect-Modules/harmonic_tremolo_module.cpp"
+   ]
+  },
+  {
+   "id": "ir",
+   "class": "IrModule",
+   "header": "ir_module.h",
+   "sources": [
+    "Effect-Modules/ir_module.cpp"
    ],
-   "origin": "FunBox (GuitarML, Keith Bloemer), MIT; network after RTNeural (BSD-3-Clause)",
-   "note": "Amp sim (three GRU models, three cabinets) and delay from the FunBox project (MIT); mono; single-instance only",
    "requires": [
     "impulse_response"
    ]
   },
   {
-   "id": "mercury",
-   "class": "MercuryModule",
-   "header": "mercury_module.h",
+   "id": "looper",
+   "class": "LooperModule",
+   "header": "looper_module.h",
    "sources": [
-    "Effect-Modules/mercury_module.cpp"
-   ],
-   "origin": "FunBox (GuitarML, Keith Bloemer), MIT; WaveNet after RTNeural-NAM (BSD-3-Clause, jatinchowdhury18)",
-   "note": "Amp sim with nine NAM pico models and a four band EQ from the FunBox project (MIT); mono; 33 KB of DTCM; single-instance only"
-  },
-  {
-   "id": "delay",
-   "class": "DelayModule",
-   "header": "delay_module.h",
-   "sources": [
-    "Effect-Modules/delay_module.cpp"
+    "Effect-Modules/looper_module.cpp"
    ],
    "note": "single-instance only"
   },
   {
-   "id": "tape_delay",
-   "class": "TapeDelayModule",
-   "header": "tape_delay_module.h",
+   "id": "metro",
+   "class": "MetroModule",
+   "header": "metro_module.h",
    "sources": [
-    "Effect-Modules/tape_delay_module.cpp"
-   ],
-   "note": "single-instance only"
+    "Effect-Modules/metro_module.cpp"
+   ]
   },
   {
-   "id": "dual_echo",
-   "class": "DualEchoModule",
-   "header": "dual_echo_module.h",
+   "id": "midi_keys",
+   "class": "MidiKeysModule",
+   "header": "midi_keys_module.h",
    "sources": [
-    "Effect-Modules/dual_echo_module.cpp"
+    "Effect-Modules/midi_keys_module.cpp"
+   ],
+   "note": "needs a MIDI keyboard"
+  },
+  {
+   "id": "modal_keys",
+   "class": "ModalKeysModule",
+   "header": "modal_keys_module.h",
+   "sources": [
+    "Effect-Modules/modal_keys_module.cpp"
+   ],
+   "note": "needs a MIDI keyboard"
+  },
+  {
+   "id": "modulated_tremolo",
+   "class": "ModulatedTremoloModule",
+   "header": "modulated_tremolo_module.h",
+   "sources": [
+    "Effect-Modules/modulated_tremolo_module.cpp"
+   ]
+  },
+  {
+   "id": "multi_delay",
+   "class": "MultiDelayModule",
+   "header": "multi_delay_module.h",
+   "sources": [
+    "Effect-Modules/multi_delay_module.cpp"
    ],
    "note": "single-instance only"
   },
@@ -372,67 +427,28 @@
    ]
   },
   {
-   "id": "scifi",
-   "class": "SciFiModule",
-   "header": "scifi_module.h",
+   "id": "noise_gate",
+   "class": "NoiseGateModule",
+   "header": "noise_gate_module.h",
    "sources": [
-    "Effect-Modules/scifi_module.cpp"
-   ],
-   "note": "single-instance only"
-  },
-  {
-   "id": "polyoctave",
-   "class": "PolyOctaveModule",
-   "header": "polyoctave_module.h",
-   "sources": [
-    "Effect-Modules/polyoctave_module.cpp"
+    "Effect-Modules/noise_gate_module.cpp"
    ]
   },
   {
-   "id": "spectral_delay",
-   "class": "SpectralDelayModule",
-   "header": "spectral_delay_module.h",
+   "id": "overdrive",
+   "class": "OverdriveModule",
+   "header": "overdrive_module.h",
    "sources": [
-    "Effect-Modules/spectral_delay_module.cpp"
-   ],
-   "note": "single-instance only"
-  },
-  {
-   "id": "distortion",
-   "class": "DistortionModule",
-   "header": "distortion_module.h",
-   "sources": [
-    "Effect-Modules/distortion_module.cpp"
+    "Effect-Modules/overdrive_module.cpp"
    ]
   },
   {
-   "id": "granular_delay",
-   "class": "GranularDelayModule",
-   "header": "granulardelay_module.h",
+   "id": "peq",
+   "class": "ParametricEQModule",
+   "header": "peq_module.h",
    "sources": [
-    "Effect-Modules/granulardelay_module.cpp"
-   ],
-   "note": "single-instance only"
-  },
-  {
-   "id": "ir",
-   "class": "IrModule",
-   "header": "ir_module.h",
-   "sources": [
-    "Effect-Modules/ir_module.cpp"
-   ],
-   "requires": [
-    "impulse_response"
+    "Effect-Modules/peq_module.cpp"
    ]
-  },
-  {
-   "id": "drum",
-   "class": "DrumModule",
-   "header": "drum_module.h",
-   "sources": [
-    "Effect-Modules/drum_module.cpp"
-   ],
-   "note": "can be used with a MIDI keyboard as a drum machine"
   },
   {
    "id": "phaser",
@@ -443,37 +459,39 @@
    ]
   },
   {
-   "id": "flanger",
-   "class": "FlangerModule",
-   "header": "flanger_module.h",
+   "id": "pitch_shifter",
+   "class": "PitchShifterModule",
+   "header": "pitch_shifter_module.h",
    "sources": [
-    "Effect-Modules/flanger_module.cpp"
-   ]
-  },
-  {
-   "id": "crusher",
-   "class": "CrusherModule",
-   "header": "crusher_module.h",
-   "sources": [
-    "Effect-Modules/crusher_module.cpp"
-   ]
-  },
-  {
-   "id": "harmonic_tremolo",
-   "class": "HarmonicTremoloModule",
-   "header": "harmonic_tremolo_module.h",
-   "sources": [
-    "Effect-Modules/harmonic_tremolo_module.cpp"
-   ]
-  },
-  {
-   "id": "scope",
-   "class": "ScopeModule",
-   "header": "scope_module.h",
-   "sources": [
-    "Effect-Modules/scope_module.cpp"
+    "Effect-Modules/pitch_shifter_module.cpp"
    ],
-   "note": "was compiled but never instantiated before the effect list was generated"
+   "note": "single-instance only"
+  },
+  {
+   "id": "pluckecho",
+   "class": "PluckEchoModule",
+   "header": "pluckecho_module.h",
+   "sources": [
+    "Effect-Modules/pluckecho_module.cpp"
+   ],
+   "note": "needs a MIDI keyboard; single-instance only"
+  },
+  {
+   "id": "polyoctave",
+   "class": "PolyOctaveModule",
+   "header": "polyoctave_module.h",
+   "sources": [
+    "Effect-Modules/polyoctave_module.cpp"
+   ]
+  },
+  {
+   "id": "reverb",
+   "class": "ReverbModule",
+   "header": "reverb_module.h",
+   "sources": [
+    "Effect-Modules/reverb_module.cpp"
+   ],
+   "note": "single-instance only"
   },
   {
    "id": "reverb_delay",
@@ -488,22 +506,31 @@
    ]
   },
   {
-   "id": "midi_keys",
-   "class": "MidiKeysModule",
-   "header": "midi_keys_module.h",
+   "id": "scifi",
+   "class": "SciFiModule",
+   "header": "scifi_module.h",
    "sources": [
-    "Effect-Modules/midi_keys_module.cpp"
+    "Effect-Modules/scifi_module.cpp"
    ],
-   "note": "needs a MIDI keyboard"
+   "note": "single-instance only"
   },
   {
-   "id": "pluckecho",
-   "class": "PluckEchoModule",
-   "header": "pluckecho_module.h",
+   "id": "scope",
+   "class": "ScopeModule",
+   "header": "scope_module.h",
    "sources": [
-    "Effect-Modules/pluckecho_module.cpp"
+    "Effect-Modules/scope_module.cpp"
    ],
-   "note": "needs a MIDI keyboard; single-instance only"
+   "note": "was compiled but never instantiated before the effect list was generated"
+  },
+  {
+   "id": "spectral_delay",
+   "class": "SpectralDelayModule",
+   "header": "spectral_delay_module.h",
+   "sources": [
+    "Effect-Modules/spectral_delay_module.cpp"
+   ],
+   "note": "single-instance only"
   },
   {
    "id": "string_keys",
@@ -515,22 +542,13 @@
    "note": "needs a MIDI keyboard"
   },
   {
-   "id": "modal_keys",
-   "class": "ModalKeysModule",
-   "header": "modal_keys_module.h",
+   "id": "tape_delay",
+   "class": "TapeDelayModule",
+   "header": "tape_delay_module.h",
    "sources": [
-    "Effect-Modules/modal_keys_module.cpp"
+    "Effect-Modules/tape_delay_module.cpp"
    ],
-   "note": "needs a MIDI keyboard"
-  },
-  {
-   "id": "fm_keys",
-   "class": "FmKeysModule",
-   "header": "fm_keys_module.h",
-   "sources": [
-    "Effect-Modules/fm_keys_module.cpp"
-   ],
-   "note": "needs a MIDI keyboard"
+   "note": "single-instance only"
   },
   {
    "id": "test_tone",
@@ -543,31 +561,13 @@
    "note": "Signal generator (sine, square, triangle, noise) for calibrating levels together with the input and output gain settings; replaces the input while it is on"
   },
   {
-   "id": "dattorro",
-   "class": "DattorroReverbModule",
-   "header": "dattorro_reverb_module.h",
+   "id": "tuner",
+   "class": "TunerModule",
+   "header": "tuner_module.h",
    "sources": [
-    "Effect-Modules/dattorro_reverb_module.cpp"
+    "Effect-Modules/tuner_module.cpp"
    ],
-   "note": "Dattorro plate reverb; GPL-3.0-or-later: see Effect-Modules/Dattorro/README.md",
-   "requires": [
-    "dattorro_engine"
-   ],
-   "license": "gpl"
-  },
-  {
-   "id": "earth",
-   "origin": "FunBox (GuitarML, Keith Bloemer), GPL-3.0-or-later; Dattorro engine",
-   "class": "EarthModule",
-   "header": "earth_module.h",
-   "sources": [
-    "Effect-Modules/earth_module.cpp"
-   ],
-   "note": "Plate reverb and octave from the FunBox project, built on the Dattorro engine; GPL-3.0-or-later; single-instance only",
-   "requires": [
-    "dattorro_engine"
-   ],
-   "license": "gpl"
+   "note": "single-instance only"
   }
  ]
 }

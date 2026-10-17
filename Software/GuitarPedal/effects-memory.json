@@ -51,7 +51,7 @@
   }
  },
  "effects": {
-  "venus": {
+  "funbox-venus": {
    "heap": 17281,
    "dtcm": 73820,
    "ram_d2": 0,
@@ -59,7 +59,7 @@
    "sdram": 147456,
    "static_source": "object files (arm-none-eabi-size -A)"
   },
-  "jupiter": {
+  "funbox-jupiter": {
    "heap": 9216,
    "dtcm": 68,
    "ram_d2": 0,
@@ -68,7 +68,7 @@
    "static_source": "object files (arm-none-eabi-size -A)",
    "heap_source": "measured on the pedal: Show Debug heap used 45 K without Jupiter, 54 K with it"
   },
-  "saturn": {
+  "funbox-saturn": {
    "heap": 1782,
    "dtcm": 36,
    "ram_d2": 124688,
@@ -76,7 +76,7 @@
    "sdram": 2873600,
    "static_source": "object files (arm-none-eabi-size -A)"
   },
-  "neptune": {
+  "funbox-neptune": {
    "heap": 7373,
    "dtcm": 244,
    "ram_d2": 0,
@@ -85,7 +85,7 @@
    "static_source": "object files (arm-none-eabi-size -A)",
    "heap_source": "measured on the pedal by difference: Show Debug heap used 54 K (with Cassini, without Neptune), 60 K (without Cassini, with Neptune)"
   },
-  "uranus": {
+  "funbox-uranus": {
    "heap": 13028,
    "dtcm": 3348,
    "ram_d2": 96000,
@@ -368,14 +368,14 @@
    "sdram": 1048576,
    "static_source": "object files (arm-none-eabi-size -A)"
   },
-  "earth": {
+  "funbox-earth": {
    "dtcm": 49,
    "ram_d2": 0,
    "sram": 13670,
    "sdram": 2097152,
    "static_source": "object files (arm-none-eabi-size -A)"
   },
-  "balnea": {
+  "funbox-balnea": {
    "dtcm": 24,
    "ram_d2": 0,
    "sram": 13777,
@@ -383,7 +383,7 @@
    "static_source": "object files (arm-none-eabi-size -A)",
    "heap": 3520
   },
-  "pluto": {
+  "funbox-pluto": {
    "dtcm": 44,
    "ram_d2": 0,
    "sram": 9028,
@@ -391,7 +391,7 @@
    "static_source": "object files (arm-none-eabi-size -A)",
    "heap": 520
   },
-  "cassini": {
+  "funbox-cassini": {
    "dtcm": 36,
    "ram_d2": 0,
    "sram": 10358,
@@ -399,7 +399,7 @@
    "static_source": "object files (arm-none-eabi-size -A)",
    "heap": 1184
   },
-  "mars": {
+  "funbox-mars": {
    "dtcm": 72,
    "ram_d2": 0,
    "sram": 13342,
@@ -407,7 +407,7 @@
    "static_source": "object files (arm-none-eabi-size -A)",
    "heap": 9040
   },
-  "mercury": {
+  "funbox-mercury": {
    "dtcm": 35096,
    "ram_d2": 0,
    "sram": 23365,
@@ -436,50 +436,50 @@
  "observed": [
   {
    "effects": [
-    "uranus"
+    "funbox-uranus"
    ],
    "result": "boots and runs",
    "note": "audio only; MIDI untested"
   },
   {
    "effects": [
-    "venus"
+    "funbox-venus"
    ],
    "result": "boots and runs"
   },
   {
    "effects": [
-    "venus",
-    "jupiter"
+    "funbox-venus",
+    "funbox-jupiter"
    ],
    "result": "boots and runs"
   },
   {
    "effects": [
-    "venus",
-    "jupiter",
-    "saturn"
+    "funbox-venus",
+    "funbox-jupiter",
+    "funbox-saturn"
    ],
    "result": "boots and runs"
   },
   {
    "effects": [
-    "venus",
-    "jupiter",
-    "saturn",
-    "neptune",
-    "uranus"
+    "funbox-venus",
+    "funbox-jupiter",
+    "funbox-saturn",
+    "funbox-neptune",
+    "funbox-uranus"
    ],
    "result": "does not boot"
   },
   {
    "effects": [
-    "balnea",
-    "cassini",
-    "mars",
-    "mercury",
-    "pluto",
-    "uranus"
+    "funbox-balnea",
+    "funbox-cassini",
+    "funbox-mars",
+    "funbox-mercury",
+    "funbox-pluto",
+    "funbox-uranus"
    ],
    "result": "boots and runs",
    "heap_used_kb": 45,
@@ -489,13 +489,13 @@
   },
   {
    "effects": [
-    "balnea",
-    "cassini",
-    "jupiter",
-    "mars",
-    "mercury",
-    "pluto",
-    "uranus"
+    "funbox-balnea",
+    "funbox-cassini",
+    "funbox-jupiter",
+    "funbox-mars",
+    "funbox-mercury",
+    "funbox-pluto",
+    "funbox-uranus"
    ],
    "result": "boots and runs",
    "heap_used_kb": 54,
@@ -505,13 +505,13 @@
   },
   {
    "effects": [
-    "balnea",
-    "jupiter",
-    "mars",
-    "mercury",
-    "neptune",
-    "pluto",
-    "uranus"
+    "funbox-balnea",
+    "funbox-jupiter",
+    "funbox-mars",
+    "funbox-mercury",
+    "funbox-neptune",
+    "funbox-pluto",
+    "funbox-uranus"
    ],
    "result": "boots and runs",
    "heap_used_kb": 60,

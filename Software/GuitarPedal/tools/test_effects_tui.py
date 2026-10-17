@@ -28,7 +28,7 @@ def make_root(path):
     for name in ("Effect-Modules", "configs"):
         os.symlink(os.path.join(fx.ROOT, name), os.path.join(path, name))
     with open(os.path.join(path, "effects.config"), "w") as f:
-        f.write("ALLOW_GPL=n\nuranus=y\n")
+        f.write("ALLOW_GPL=n\nfunbox-uranus=y\n")
     with open(os.path.join(path, "chains.json"), "w") as f:
         f.write('{"chains": []}\n')
 
@@ -51,23 +51,23 @@ class SelectorTest(unittest.TestCase):
         return [e["id"] for e in self.sel.effects].index(effect_id)
 
     def test_starts_from_the_config(self):
-        self.assertEqual(self.sel.enabled, {"uranus"})
+        self.assertEqual(self.sel.enabled, {"funbox-uranus"})
         self.assertFalse(self.sel.dirty)
         text, sev = self.sel.status()
         self.assertIn("1 effects", text)
         self.assertEqual(sev, 0)
 
     def test_space_selects_and_deselects(self):
-        self.sel.cursor = self.index("venus")
+        self.sel.cursor = self.index("funbox-venus")
         self.sel.toggle()
-        self.assertIn("venus", self.sel.enabled)
+        self.assertIn("funbox-venus", self.sel.enabled)
         self.assertTrue(self.sel.dirty)
         self.assertTrue(self.sel.status()[0].startswith("* "))
         self.sel.toggle()
-        self.assertNotIn("venus", self.sel.enabled)
+        self.assertNotIn("funbox-venus", self.sel.enabled)
 
     def test_cursor_stays_in_the_list(self):
-        self.assertEqual(self.sel.cursor, self.index("uranus"))  # starts on the first selected effect
+        self.assertEqual(self.sel.cursor, self.index("funbox-uranus"))  # starts on the first selected effect
         self.sel.move(-1, 10000)
         self.assertEqual(self.sel.cursor, 0)
         self.sel.move(1, 10000)
@@ -86,21 +86,21 @@ class SelectorTest(unittest.TestCase):
         self.assertTrue("does NOT fit" in text or "cannot be built" in text)
 
     def test_gpl_needs_allow_gpl_and_cannot_be_saved_without(self):
-        self.sel.toggle("earth")
+        self.sel.toggle("funbox-earth")
         self.assertTrue(self.sel.problems())
         self.assertEqual(self.sel.status()[1], 2)
         self.assertFalse(self.sel.save())
         self.assertIn("cannot save", self.sel.message)
-        self.assertEqual(open(fx.CONFIG).read(), "ALLOW_GPL=n\nuranus=y\n")  # untouched
+        self.assertEqual(open(fx.CONFIG).read(), "ALLOW_GPL=n\nfunbox-uranus=y\n")  # untouched
         self.sel.toggle_gpl()
         self.assertFalse([p for p in self.sel.problems() if "GPL" in p])
 
     def test_save_writes_the_config_and_the_build_files(self):
-        self.sel.toggle("venus")
+        self.sel.toggle("funbox-venus")
         self.assertTrue(self.sel.save())
         self.assertFalse(self.sel.dirty)
         enabled, _ = fx.read_config()
-        self.assertEqual(enabled, {"uranus", "venus"})
+        self.assertEqual(enabled, {"funbox-uranus", "funbox-venus"})
         mk = open(os.path.join(fx.GEN, "effects.mk")).read()
         self.assertIn("venus_module.cpp", mk)
         self.assertIn("new VenusModule()", open(os.path.join(fx.GEN, "effects_instances.inc")).read())
@@ -108,14 +108,14 @@ class SelectorTest(unittest.TestCase):
     def test_the_defines_are_in_a_file_of_their_own_and_change_with_the_engines(self):
         # CLOUDSEED_ENGINES sizes the SDRAM pool; the Makefile rebuilds every object when generated/defines.mk changes (a stale pool froze the pedal with two engines)
         defines = lambda: open(os.path.join(fx.GEN, "defines.mk")).read()
-        self.sel.toggle("jupiter")
+        self.sel.toggle("funbox-jupiter")
         self.assertTrue(self.sel.save(), self.sel.message)
         self.assertIn("-DCLOUDSEED_ENGINES=1", defines())
         stamp = os.stat(os.path.join(fx.GEN, "defines.mk")).st_mtime_ns
         self.sel.toggle("modulated_tremolo")          # no new defines: the file is not touched, so nothing is rebuilt
         self.assertTrue(self.sel.save(), self.sel.message)
         self.assertEqual(os.stat(os.path.join(fx.GEN, "defines.mk")).st_mtime_ns, stamp)
-        self.sel.toggle("neptune")
+        self.sel.toggle("funbox-neptune")
         self.assertTrue(self.sel.save(), self.sel.message)
         self.assertIn("-DCLOUDSEED_ENGINES=2", defines())
         self.assertNotIn("CLOUDSEED", open(os.path.join(fx.GEN, "effects.mk")).read().replace("cloudseed_pool", ""))  # not in effects.mk any more
@@ -130,11 +130,11 @@ class SelectorTest(unittest.TestCase):
         self.assertIn("everything", self.sel.presets())
         self.assertIn("uranus-only", self.sel.presets())
         self.sel.load_preset("uranus-only")
-        self.assertEqual(self.sel.enabled, {"uranus"})
+        self.assertEqual(self.sel.enabled, {"funbox-uranus"})
         self.assertTrue(self.sel.dirty)
 
     def test_info_about_an_effect(self):
-        self.sel.cursor = self.index("uranus")
+        self.sel.cursor = self.index("funbox-uranus")
         info = "\n".join(self.sel.info_lines())
         self.assertIn("FunBox", info)          # the origin from the manifest
         self.assertIn("committed by", info)    # the people from git
@@ -167,7 +167,7 @@ class SelectorTest(unittest.TestCase):
         self.assertEqual(cut, [], "texts the display cannot show in full: %s" % cut)
 
     def test_a_chain_parameter_is_measured_with_its_tag(self):
-        found = fx.lint_texts(self.sel.m, [{"name": "C", "slots": [{"tag": "Ur", "effect": "uranus"}], "mappings": []}])
+        found = fx.lint_texts(self.sel.m, [{"name": "C", "slots": [{"tag": "Ur", "effect": "funbox-uranus"}], "mappings": []}])
         self.assertIn("Ur Env Sustain", [f["text"] for f in found if f["effect"] == "chain C"])  # 14 characters: drawn smaller
 
     def test_info_without_origin_falls_back_to_the_committers(self):
@@ -261,14 +261,14 @@ class ChainTest(unittest.TestCase):
 
     def test_cloudseed_effects_cannot_be_slots_and_big_ones_only_once(self):
         self.assertTrue(fx.chain_blocked(self.sel.m["by_id"]["cloudseed"], self.sel.m))
-        self.assertTrue(fx.chain_blocked(self.sel.m["by_id"]["jupiter"], self.sel.m))
+        self.assertTrue(fx.chain_blocked(self.sel.m["by_id"]["funbox-jupiter"], self.sel.m))
         self.two()
         self.sel.enabled.add("reverb")                # the reverb on its own as well as in the chain
         self.assertTrue(any("also enabled on its own" in p for p in self.ed.problems()))
 
     def test_the_chain_builds_its_effects_and_the_status_counts_them(self):
         self.two()
-        self.assertEqual({"uranus", "modulated_tremolo", "reverb"}, self.sel.built())
+        self.assertEqual({"funbox-uranus", "modulated_tremolo", "reverb"}, self.sel.built())
         self.assertIn("1 chains", self.sel.status()[0])
         self.assertTrue(self.sel.in_chain("reverb"))
 
@@ -317,18 +317,18 @@ class ChainTest(unittest.TestCase):
             fx.cmd_observe(argparse.Namespace(result="boots and runs", heap_used=100, heap_free=150, note="test", set_base_heap=False))
             fx.cmd_observe(argparse.Namespace(result="does not boot", heap_used=None, heap_free=None, note=None, set_base_heap=False))  # the same selection again replaces it
             mem = fx.load_json(fx.MEMORY)
-            mine = [o for o in mem["observed"] if o["effects"] == ["uranus"]]
+            mine = [o for o in mem["observed"] if o["effects"] == ["funbox-uranus"]]
             self.assertEqual(len(mine), 1)
             self.assertEqual(mine[0]["result"], "does not boot")
             fx.cmd_observe(argparse.Namespace(result="boots and runs", heap_used=100, heap_free=150, note=None, set_base_heap=False))
             out = io.StringIO()
             with contextlib.redirect_stdout(out):
-                fx.cmd_matrix(argparse.Namespace(ids=["uranus"]))
+                fx.cmd_matrix(argparse.Namespace(ids=["funbox-uranus"]))
             self.assertIn("heap used 100 K, free 150 K", out.getvalue())
             # --set-base-heap: the framework's own heap is what was used minus what the effects are estimated to need
             fx.cmd_observe(argparse.Namespace(result="boots and runs", heap_used=45, heap_free=116, note=None, set_base_heap=True))
             mem = fx.load_json(fx.MEMORY)
-            effects_heap = mem["effects"]["uranus"]["heap"]
+            effects_heap = mem["effects"]["funbox-uranus"]["heap"]
             self.assertEqual(mem["base"]["heap"], 45 * 1024 - effects_heap)
         finally:
             fx.MEMORY = saved
@@ -379,8 +379,8 @@ class ScreenTest(unittest.TestCase):
     def test_screen_shows_the_list_the_status_bar_and_the_help_hint(self):
         text, code = self.run_keys([b"q"])
         self.assertEqual(code, 0)
-        self.assertIn("uranus", text)  # the cursor starts on the first selected effect, so the list is scrolled to show it
-        self.assertIn("venus", text)
+        self.assertIn("funbox-uranus", text)  # the cursor starts on the first selected effect, so the list is scrolled to show it
+        self.assertIn("funbox-neptune", text)
         self.assertIn("DTCM", text)
         self.assertIn("SDRAM", text)
         self.assertIn("h: help", text)
@@ -391,18 +391,18 @@ class ScreenTest(unittest.TestCase):
         self.assertIn("Help", text)
         self.assertIn("Unsaved changes", text)  # the selection was changed, so quitting asked
         self.assertIn("* ", text)
-        self.assertEqual(open(os.path.join(self.root.name, "effects.config")).read(), "ALLOW_GPL=n\nuranus=y\n")  # n: nothing saved
+        self.assertEqual(open(os.path.join(self.root.name, "effects.config")).read(), "ALLOW_GPL=n\nfunbox-uranus=y\n")  # n: nothing saved
 
     def test_selecting_a_gpl_effect_asks_to_allow_it(self):
-        gpl_cancel, code = self.run_keys([*[b"j"] * 60, b" ", b"n", b"q", b"n"])  # to the last effect (Earth)
+        gpl_cancel, code = self.run_keys([*[b"k"] * 7, b" ", b"n", b"q", b"n"])  # up from uranus to funbox-earth
         self.assertEqual(code, 0)
         self.assertIn("GPL effect", gpl_cancel)
         self.assertNotIn("GPL allowed", gpl_cancel)
-        text, code = self.run_keys([*[b"j"] * 60, b" ", b"y", b"s", b"q"])
+        text, code = self.run_keys([*[b"k"] * 7, b" ", b"y", b"s", b"q"])
         self.assertEqual(code, 0)
         config = open(os.path.join(self.root.name, "effects.config")).read()
         self.assertIn("ALLOW_GPL=y", config)
-        self.assertIn("earth=y", config)
+        self.assertIn("funbox-earth=y", config)
 
     def test_the_info_popup(self):
         text, code = self.run_keys([b"i", b"x", b"q"])
