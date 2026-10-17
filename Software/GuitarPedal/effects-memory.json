@@ -423,6 +423,14 @@
    "static_source": "object files (arm-none-eabi-size -A)",
    "heap": 0,
    "heap_source": "no new in the module (host count)"
+  },
+  "test_tone": {
+   "dtcm": 16,
+   "ram_d2": 0,
+   "sram": 2237,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 0
   }
  },
  "observed": [

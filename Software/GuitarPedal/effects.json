@@ -533,6 +533,16 @@
    "note": "needs a MIDI keyboard"
   },
   {
+   "id": "test_tone",
+   "class": "TestToneModule",
+   "header": "test_tone_module.h",
+   "sources": [
+    "Effect-Modules/test_tone_module.cpp"
+   ],
+   "origin": "this project (spamatica)",
+   "note": "Signal generator (sine, square, triangle, noise) for calibrating levels together with the input and output gain settings; replaces the input while it is on"
+  },
+  {
    "id": "dattorro",
    "class": "DattorroReverbModule",
    "header": "dattorro_reverb_module.h",

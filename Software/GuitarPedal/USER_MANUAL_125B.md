@@ -71,4 +71,5 @@ The default firmware currently includes the effects below. Their exact controls 
 - **Graphic EQ, Parametric EQ:** Tone shaping; band gain and, for parametric bands, frequency and bandwidth.
 - **NAM, IR:** Amp and cabinet impulse-response processing; model or IR selection, gain, level, and EQ.
 - **Looper, Drum, Metronome, Tuner:** Performance and utility tools; loop levels/actions, rhythm or tempo controls, and tuning options.
+- **Test Tone:** A signal generator for calibrating levels together with In Gain, Out Gain and the level readout of Show Debug: a sine, square or triangle wave of a chosen frequency (20 Hz to 20 kHz), or white noise, at a chosen level (-60 to 0 dB; the tone's peak level, and for noise the same RMS as a sine of that level). It replaces the input while the effect is on.
 
