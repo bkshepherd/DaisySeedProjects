@@ -40,6 +40,6 @@ already in this repository (`dependencies/CloudSeed`, used by the CloudSeed modu
 * **Parameter updates are spread over audio blocks.** Some of the engine's parameters recompute filters and delay lengths. The original called them from the audio callback
   whenever a knob moved; here a changed control is only flagged and one flagged control is pushed to the engine per block (every 48 samples at most), so a quick knob
   movement cannot land as one heavy block. (The CloudSeed module throttles in a different way, by ignoring most calls.)
-* **The engine** is this repository's CloudSeed code (engine block size 4, see `HANDOFF_block_processing.md`), not the copy in the FunBox project (block size 1).
+* **The engine** is this repository's CloudSeed code (engine block size 4), not the copy in the FunBox project (block size 1).
 * **Level.** An output gain of 1.33 makes the effect about +2 dB louder than bypass at its defaults, as for the other effects.
 * **Memory.** One reverb instance takes about 4.9 MB of the pool in `cloudseed_pool.cpp` (12.6 MB, enough for Jupiter and the CloudSeed module together).

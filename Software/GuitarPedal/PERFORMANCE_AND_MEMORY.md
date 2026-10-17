@@ -2,7 +2,7 @@
 
 Written for anyone who picks this up later: what was learned while converting the FunBox effects (Venus, Jupiter, Saturn, Neptune, Uranus, and later Balnea, Pluto, Cassini, Mars, Mercury) about the CPU and memory limits of the pedal, which
 optimisations made a difference and by how much, what each effect needs in memory, how the compiler change affected things, and a first draft of a matrix of which effects can be enabled together.
-It complements `HANDOFF_funbox_effects.md` (what was converted and how), `HANDOFF_block_processing.md` (the earlier block-processing work) and `HANDOFF_level_calibration.md`.
+The history of the work it describes is in `CHANGELOG.md`.
 
 **How reliable is it?** Each figure below says where it comes from. *Measured on the pedal* means the author read it off the pedal's Show Debug screen (CPU average/peak, the timing lines)
 or saw it boot. *Build report* means the linker's memory table. *Host* means measured on the PC with the host tools in `tests/host/`. *Estimate* or *inferred* means exactly that. Nothing was
@@ -147,7 +147,7 @@ buffers are in RAM_D2, not SDRAM.
 ## 5. The compiler
 
 * The Makefile used to refuse any compiler but **GCC 10.x** (a version guard, "issues have been experienced with the latest version"). **That guard has been removed**: it was no longer justified (GCC 13 and then 15 build
-  and link fine; GCC 13 needed a libDaisy LED initialisation workaround, see `HANDOFF_block_processing.md`). All the performance work above was done with GCC 10.2.1.
+  and link fine; GCC 13 needed a libDaisy LED initialisation workaround in `BaseHardwareModule::InitLeds`). All the performance work above was done with GCC 10.2.1.
 * In October 2026 the author's toolchain became **Arm GNU Toolchain 15.3.1**. Findings (the first two are traps worth knowing; the first one is gone with the guard, the lesson is that **a compiler change never triggers a rebuild**):
   * **With the guard in place it also stopped `make clean`**, which then failed silently if its output was redirected. A `make clean && make` with a new compiler therefore did *not* clean, and only the changed sources were
     recompiled: the result was a firmware with a mix of GCC 15 and GCC 10 objects. After changing compiler always run a real `make clean` (the Makefile does not notice a compiler change by itself) and rebuild the libraries below.
