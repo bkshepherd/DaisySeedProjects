@@ -43,7 +43,7 @@ Needs `g++` (C++20) and `python3`.
 | Effect | Before | After | What was changed |
 |---|---|---|---|
 | Distortion (Hard Clip, the default type) | +0.5 dB | +3.0 dB | Per-type `normalizeVolume` factors in `distortion_module.cpp`: 2.38, 1.11, 1.10, 0.87, 0.79, 2.38 for Hard / Soft / Fuzz / Tube / Multi / Diode. All six types now give +2.9..+3.1 dB (before: -1.0 .. +3.3 dB) |
-| NAM amp models (IR cab Off) | -6.1 .. +4.4 dB across models | +3.0 dB each | `outputGain` per model in `Effect-Modules/Nam/model_data_nam_a2.h`: BE-100 0.60->1.70, JCM800 1.10->1.08, Ampeg 1.00->0.85, Mesa 0.50->1.06, 1959BJA 1.00->1.50. With the IR cab on, every model is +2.7..+5.4 dB |
+| NAM amp models (IR cab Off) | -6.1 .. +4.4 dB across models | +3.0 dB each | `outputGain` per model (now `kOutputGain` in each file of `Effect-Modules/Nam/models/`): BE-100 0.60->1.70, JCM800 1.10->1.08, Ampeg 1.00->0.85, Mesa 0.50->1.06, 1959BJA 1.00->1.50. With the IR cab on, every model is +2.7..+5.4 dB |
 | Overdrive | -1.9 dB (guitar-like) | +3.0 dB (+0.2 dB on sines) | Level range maximum 0.20 -> 0.36 so the default 0.5 maps to 0.185 |
 | Compressor | -3.0 dB (as actually shipped) | +3.6 dB guitar-like, +2.1 dB sines | New real-unit parameters and defaults (below) |
 | Crusher | not measured | not measured | Level default 1.0 -> 0.5 only (halves its default gain) |

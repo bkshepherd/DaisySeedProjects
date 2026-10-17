@@ -32,7 +32,7 @@ cycfi::q::peaking filter_a2[NUM_FILTERS_A2] = {
 // Parameter metadata
 // ---------------------------------------------------------------------------
 // Display names for the MODEL parameter, sourced directly from the model table
-// so the two can't drift out of sync. Add models in model_data_nam_a2.h only.
+// so the two can't drift out of sync. Add models as files in Nam/models/ (see model_data_nam_a2.h).
 static auto s_modelBinNames = [] {
     std::array<const char *, nam_a2_models::kNamA2ModelCount> names{};
     for (int i = 0; i < nam_a2_models::kNamA2ModelCount; ++i) {

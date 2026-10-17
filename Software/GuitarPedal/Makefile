@@ -43,6 +43,10 @@ C_SOURCES += $(CMSIS_DSP_SRC)
 # that matters for memory, since global buffers in an object file can stay in the firmware even if nothing uses them (see PERFORMANCE_AND_MEMORY.md).
 CPP_SOURCES += Effect-Modules/effect_chain.cpp
 include generated/effects.mk
+
+# The NAM models are one file each in Effect-Modules/Nam/models/; this regenerates the list of them (Nam/models_list.inc) when a model has been added or removed
+# (it rewrites the file only when its content changes). Nothing to do for other effects, but it is cheap.
+$(shell sh Effect-Modules/Nam/update_models.sh)
 include generated/defines.mk
 
 # Compiler options

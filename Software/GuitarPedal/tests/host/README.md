@@ -67,8 +67,8 @@ module code. Rule of thumb for the project: between **0 dB and +6 dB** at defaul
   effects have a fixed output ceiling, so their gain falls as the input gets louder.
 * To add an effect: write `levels/test_level_<name>.cpp` (see `test_level_distortion.cpp`), then add a `run <name> <sources...>` line to the script.
 
-Calibrated so far: Distortion (`normalizeVolume` factors in `distortion_module.cpp`), the NAM amp models (`outputGain` in
-`Effect-Modules/Nam/model_data_nam_a2.h`), the Overdrive (Level range in `overdrive_module.cpp`) and the Compressor (default Ratio, Threshold,
+Calibrated so far: Distortion (`normalizeVolume` factors in `distortion_module.cpp`), the NAM amp models (`kOutputGain` in
+`Effect-Modules/Nam/models/*.h`), the Overdrive (Level range in `overdrive_module.cpp`) and the Compressor (default Ratio, Threshold,
 Attack, Release and Level; its parameters are stored in real units and `Init()` applies them, which the test checks).
 
 ## Startup-state audit

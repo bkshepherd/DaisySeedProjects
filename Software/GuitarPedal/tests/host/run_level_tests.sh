@@ -6,6 +6,7 @@ cd "$(dirname "$0")/../.."          # Software/GuitarPedal
 T=tests/host
 B=${BUILD_DIR:-/tmp/gp_host_tests}
 mkdir -p "$B"
+sh Effect-Modules/Nam/update_models.sh   # the NAM models are one file each in Effect-Modules/Nam/models/
 COMMON="-std=c++20 -O1 -I$T/stub -I$T/levels -I. -IEffect-Modules -IUtil -Idependencies/DaisySP/Source -Idependencies/DaisySP/Source/Utility \
  -Idependencies/DaisySP/DaisySP-LGPL/Source -include daisysp-lgpl.h -Idependencies/q/q/q_lib/include -Idependencies/q/infra/include -Idependencies/gcem/include"
 LGPL=dependencies/DaisySP/DaisySP-LGPL/Source
