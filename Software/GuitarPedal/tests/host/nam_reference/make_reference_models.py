@@ -19,6 +19,7 @@ for f in sorted(glob.glob(os.path.join(ROOT, "Effect-Modules", "Nam", "models", 
     d["metadata"] = {"name": stem}
     json.dump(d, open(os.path.join(out, stem + ".nam"), "w"))
     order.append(stem)
-    gains.append(re.search(r"kOutputGain = ([0-9.e+-]+)f", t).group(1))
+    m = re.search(r"kOutputGain = ([0-9.e+-]+)f", t)
+    gains.append(m.group(1) if m else "1.0")
     print(f"{stem}: {len(w)} weights")
 open(os.path.join(out, "order.txt"), "w").write("\n".join(f"{n} {g}" for n, g in zip(order, gains)) + "\n")

@@ -69,8 +69,7 @@ module code. Rule of thumb for the project: between **0 dB and +6 dB** at defaul
   effects have a fixed output ceiling, so their gain falls as the input gets louder.
 * To add an effect: write `levels/test_level_<name>.cpp` (see `test_level_distortion.cpp`), then add a `run <name> <sources...>` line to the script.
 
-Calibrated so far: Distortion (`normalizeVolume` factors in `distortion_module.cpp`), the NAM amp models (`kOutputGain` in
-`Effect-Modules/Nam/models/*.h`), the Overdrive (Level range in `overdrive_module.cpp`) and the Compressor (default Ratio, Threshold,
+Calibrated so far (the NAM models to +12 dB, the others as the rule says): Distortion (`normalizeVolume` factors in `distortion_module.cpp`), the NAM amp models (`kOutputGain` in `Effect-Modules/Nam/models/*.h`, set by `Effect-Modules/Nam/update_models.sh` when you answer y to its calibration question, which builds and runs `levels/calibrate_nam.cpp` through `calibrate_nam.sh`), the Overdrive (Level range in `overdrive_module.cpp`) and the Compressor (default Ratio, Threshold,
 Attack, Release and Level; its parameters are stored in real units and `Init()` applies them, which the test checks).
 
 ## Startup-state audit
@@ -100,4 +99,4 @@ responses; see `Effect-Modules/Earth/README.md` for what it found.
 
 ## NAM against the reference implementation
 
-`nam_reference/run_nam_reference.sh` compares the NAM effect with NeuralAmpModelerCore (needs a recent checkout, see `NAM_CORE` in the script; not part of `run_tests.sh`). For every file in `Effect-Modules/Nam/models/` it builds a reference `.nam` (the A2 Lite network in `nam_reference/a2_lite_template.json` with that model's weights), renders a guitar-like signal (plucked notes, noise, a loud burst; 4 s) through the reference, through `A2Player` alone and through `NamA2Module` (Gain and Level at unity, EQ and cab IR off, the model's `kOutputGain` divided out) and reports the signal/error ratio after the first 0.1 s. Last run: all five models 106 .. 133 dB (maximum difference below 2e-5) for both paths.
+`nam_reference/run_nam_reference.sh` compares the NAM effect with NeuralAmpModelerCore (needs a recent checkout, see `NAM_CORE` in the script; not part of `run_tests.sh`). For every file in `Effect-Modules/Nam/models/` it builds a reference `.nam` (the A2 Lite network in `nam_reference/a2_lite_template.json` with that model's weights), renders a guitar-like signal (plucked notes, noise, a loud burst; 4 s) through the reference, through `A2Player` alone and through `NamA2Module` (Gain and Level at unity, EQ and cab IR off, the model's output gain divided out) and reports the signal/error ratio after the first 0.1 s. Last run: all five models 106 .. 133 dB (maximum difference below 2e-5) for both paths.

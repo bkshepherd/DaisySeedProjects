@@ -15,7 +15,7 @@ NAM_CORE=${NAM_CORE:-$HOME/dev/NeuralAmpModelerCore}
 B=${BUILD_DIR:-/tmp/gp_nam_reference}
 CXX=${CXX:-g++}
 mkdir -p "$B"
-sh Effect-Modules/Nam/update_models.sh
+sh Effect-Modules/Nam/update_models.sh --no-calibrate
 [ -d "$NAM_CORE/NAM" ] || { echo "NeuralAmpModelerCore not found in $NAM_CORE (set NAM_CORE)"; exit 2; }
 
 echo "=== build"

@@ -12,7 +12,7 @@ namespace nam_model_ampeg_svt
 inline constexpr const char *kName = "Ampeg";
 
 // Linear output-gain multiplier for loudness matching (1.0 = unity; below 1.0 makes a hot model quieter).
-// Calibrated with tests/host/run_level_tests.sh so every model gives about +9 dB RMS at default settings.
+// Set by update_models.sh --calibrate so that every model gives the same level at default settings.
 inline constexpr float kOutputGain = 1.1737f;
 
 NAM_A2_MODEL_DATA NAM_A2_ALIGN32

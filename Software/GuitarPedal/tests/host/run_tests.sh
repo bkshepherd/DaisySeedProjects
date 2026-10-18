@@ -11,7 +11,7 @@ BASE=${BASE_REF:-main}
 B=${BUILD_DIR:-/tmp/gp_host_tests}
 PREFIX=$(git rev-parse --show-prefix)
 mkdir -p "$B"
-sh Effect-Modules/Nam/update_models.sh   # the NAM models are one file each in Effect-Modules/Nam/models/
+sh Effect-Modules/Nam/update_models.sh --no-calibrate   # the NAM models are one file each in Effect-Modules/Nam/models/
 
 CXX=${CXX:-g++}
 COMMON="-std=c++20 -O1 -I$T/stub -I. -IEffect-Modules -IUtil -Idependencies/DaisySP/Source -Idependencies/DaisySP/Source/Utility \

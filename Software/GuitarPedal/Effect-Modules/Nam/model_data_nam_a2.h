@@ -11,8 +11,8 @@
     To add a model:
       1. python3 nam_to_cpp_array.py "<model>.nam" "<name to show>" models/<name>.h
          (The models are listed in the MODEL choices in file-name order. Use letters, digits and _ in the name.)
-      2. Calibrate its output gain (kOutputGain in the new file) with tests/host/run_level_tests.sh.
-      3. Rebuild (the Makefile runs update_models.sh, which regenerates models_list.inc).
+      2. Rebuild (the Makefile runs update_models.sh, which regenerates models_list.inc; the new model starts at output gain 1.0).
+      3. Optional: run Effect-Modules/Nam/update_models.sh by hand and answer y to set kOutputGain in all the models so they give the same level.
     To remove a model, delete its file. Models are chosen by their position, so adding or removing one before the others
     changes which model a saved preset refers to.
 */
@@ -30,7 +30,7 @@ struct NamA2ModelEntry
     // Linear output-gain multiplier for loudness matching across models.
     // Exporting raw A2 weights drops NAM's loudness-normalization metadata, so
     // models can differ in perceived level. 1.0f = unity; gain < 1.0f makes a hot
-    // model quieter. Calibrated with tests/host/run_level_tests.sh (the .nam loudness metadata
+    // model quieter. Set by update_models.sh (the .nam loudness metadata
     // proved unreliable for level-matching across captures from different authors).
     float outputGain;
 };

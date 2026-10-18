@@ -46,7 +46,7 @@ include generated/effects.mk
 
 # The NAM models are one file each in Effect-Modules/Nam/models/; this regenerates the list of them (Nam/models_list.inc) when a model has been added or removed
 # (it rewrites the file only when its content changes). Nothing to do for other effects, but it is cheap.
-$(shell sh Effect-Modules/Nam/update_models.sh)
+$(shell sh Effect-Modules/Nam/update_models.sh --no-calibrate)
 include generated/defines.mk
 
 # Compiler options
