@@ -2,7 +2,15 @@
 
 ## 18 October 2026
 
+### Changed behaviour
+- **Tap tempo needs three taps.** The second footswitch's tap tempo (Delay, Tape Delay, Reverb Delay, Dual Echo, AutoPan, Chopper, Harmonic Tremolo, Modulated Tremolo, Drum and Metro) used to be a double-tap. It now takes three taps, each within 2 seconds of the one before, and sets the tempo from the interval between the last two; every further tap of the series adjusts it again. Balnea keeps its own tap tempo.
+- **Reverb Delay delay time:** the range is 50-1500 ms (it was 50-4000 ms) and the default is 400 ms (it was 1828 ms). Saved settings store the knob position, so a saved delay time now plays shorter.
+- **Balnea delay time:** the range is 100-2000 ms (it was 4000 ms at most), and its tap window is 2 seconds (it was 4).
+- **Harmonic Tremolo LED:** the left LED now blinks once per LFO cycle, which is once per beat after a tempo tap, and is on for about 27% of the cycle like the delay effects. It used to dim and brighten with the LFO, scaled by the depth, so it barely moved at low depth.
+
 ### Fixed
+- **Reverb Delay tempo LED blinked about 24 times too slowly.** The LED oscillator was advanced inside the LED function, which is called only twice per audio block, and its rate was only set after the Delay Time knob had been moved. It now advances with the audio and follows the delay time from start-up (one blink per two delay times, as in the Delay module).
+- **The menu could undo a parameter an effect had just changed itself.** The menu writes its cached values back into the effect on every main-loop pass; a footswitch press (handled in the audio callback), a MIDI message or a tempo tap in that window was overwritten with the menu's older value. This is why the Crusher's Pitch Tracking and the Uranus Hold toggles worked only sometimes. The menu now takes the effect's value when the effect has changed it.
 - **Reverb Delay out of memory:** it no longer stops at start-up with "OUT OF MEMORY". The module held its reverb engine inside the object (397 KB on a heap with about 147 KB free); the reverb is now a static in SDRAM, as in the Reverb, SciFi and Tape Delay modules. Reverb Delay can be used alone or in a chain, and `effects-memory.json` now has its heap figure, so the effect tool can warn about it.
 - **Delay and Reverb Delay can be built together:** the two headers defined the same names (`MAX_DELAY_REV`, `MAX_DELAY_SPREAD`, `delay_spread`) and both sources defined global delay lines with the same names. Reverb Delay's names are now its own and its buffers are file-local. The conflict is removed from `effects.json` and the "everything" preset includes Reverb Delay. A host test checks that each of the two gives the output it gives alone.
 
@@ -15,6 +23,7 @@
 - **`nam_to_cpp_array.py`:** fixed a syntax error from an earlier edit; new model files start at an output gain of 1.0.
 
 ### Documentation
+- **`SECOND_FOOTSWITCH_AND_LED.md`:** how every effect uses the second footswitch and the left LED, with a list of inconsistencies to look at later. The user manual describes the three-tap tempo.
 - **CPU load on the pedal:** measured figures for NAM, the distortion types and several other effects, and what they mean for chains, are in `PERFORMANCE_AND_MEMORY.md` (section 9).
 
 ## 12–17 October 2026
