@@ -1,6 +1,7 @@
 #include "reverb_delay_module.h"
 #include "../Util/audio_utilities.h"
 #include <array>
+#include <cmath>
 
 using namespace bkshepherd;
 
@@ -241,7 +242,14 @@ void ReverbDelayModule::UpdateLEDRate() {
     float timeParam = GetParameterAsFloat(DELAY_TIME);
     float delaySamples = m_delaySamplesMin + (m_delaySamplesMax - m_delaySamplesMin) * timeParam;
     float delayFreq = effect_samplerate / delaySamples;
-    led_osc.SetFreq(delayFreq / 2.0);
+    m_ledPhaseInc = (delayFreq / 2.0f) / effect_samplerate;
+}
+
+void ReverbDelayModule::AdvanceLed(size_t samples) {
+    m_ledPhase += samples * m_ledPhaseInc;
+    if (m_ledPhase >= 1.0f) {
+        m_ledPhase -= std::floor(m_ledPhase);
+    }
 }
 
 void ReverbDelayModule::CalculateDelayMix() {
@@ -312,9 +320,7 @@ void ReverbDelayModule::Init(float sample_rate) {
 
     effect_samplerate = sample_rate;
 
-    led_osc.Init(sample_rate);
-    led_osc.SetWaveform(1);
-    led_osc.SetFreq(2.0);
+    UpdateLEDRate(); // the tempo LED follows the delay time from the start, not only after the knob has been moved
 
     modOsc.Init(sample_rate);
     modOsc.SetAmp(1.0);
@@ -402,6 +408,7 @@ void ReverbDelayModule::ProcessModulation() {
 
 void ReverbDelayModule::ProcessMono(float in) {
     BaseEffectModule::ProcessMono(in);
+    AdvanceLed(1);
 
     // Calculate the effect
     float timeParam = GetParameterAsFloat(DELAY_TIME);
@@ -490,6 +497,7 @@ void ReverbDelayModule::ProcessStereo(float inL, float inR) {
 
     // Do the base stereo calculation (which resets the right signal to be the inputR instead of combined mono)
     BaseEffectModule::ProcessStereo(inL, inR);
+    AdvanceLed(1);
 
     // Calculate the effect
     float timeParam = GetParameterAsFloat(DELAY_TIME);
@@ -574,6 +582,8 @@ void ReverbDelayModule::ProcessStereo(float inL, float inR) {
 // delay targets and levels and reconfigure the reverb for every sample. What really varies per sample (the modulation, the smoothed delay
 // times, the delay lines, the reverb) stays in the loop. The modulation oscillator is not run when no parameter is modulated.
 void ReverbDelayModule::ProcessBlockInternal(const float *inL, const float *inR, float *outL, float *outR, size_t n) {
+    AdvanceLed(n);
+
     // Parameters, once per block
     const float timeParam = GetParameterAsFloat(DELAY_TIME);
     const float baseTarget = m_delaySamplesMin + (m_delaySamplesMax - m_delaySamplesMin) * timeParam;
@@ -727,14 +737,8 @@ void ReverbDelayModule::SetTempo(uint32_t bpm) {
 float ReverbDelayModule::GetBrightnessForLED(int led_id) const {
     float value = BaseEffectModule::GetBrightnessForLED(led_id);
 
-    float osc_val = led_osc.Process();
-
-    float ledValue = 0.0;
-    if (osc_val > 0.45) {
-        ledValue = 1.0;
-    } else {
-        ledValue = 0.0;
-    }
+    // On for the part of the triangle wave that is above 0.45: the first and the last 13.75% of the cycle
+    const float ledValue = (m_ledPhase < 0.1375f || m_ledPhase > 0.8625f) ? 1.0f : 0.0f;
 
     if (led_id == 1) {
         return value * ledValue;

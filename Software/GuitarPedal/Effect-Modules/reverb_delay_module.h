@@ -193,8 +193,11 @@ class ReverbDelayModule : public BaseEffectModule {
 
     float effect_samplerate;
 
-    // Oscillator for blinking tempo LED
-    mutable Oscillator led_osc;
+    // Tempo LED: blinks once every two delay times, as in the Delay and Tape Delay modules. The phase (0..1, a triangle wave like the
+    // oscillator they use) is advanced with the audio: GetBrightnessForLED is called once per audio block, so it cannot advance it.
+    void AdvanceLed(size_t samples);
+    float m_ledPhase = 0.0f;
+    float m_ledPhaseInc = 0.0f; // per sample
 };
 } // namespace bkshepherd
 #endif

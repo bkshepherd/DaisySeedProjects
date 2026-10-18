@@ -139,6 +139,14 @@ if build "$B/t_reverb_delay" $T/test_reverb_delay.cpp Effect-Modules/reverb_dela
     if [ "$RDFAIL" -eq 0 ]; then echo "Reverb Delay: block path equals the per-sample path in all 13 configurations   OK"; else FAILS=$((FAILS + 1)); fi
 else FAILS=$((FAILS + 1)); fi
 
+step "Reverb Delay: the tempo LED blinks with the delay time (read twice per block, as the firmware does)"
+if build "$B/t_reverb_delay_led" $T/test_reverb_delay_led.cpp Effect-Modules/reverb_delay_module.cpp $LGPL/Effects/reverbsc.cpp $LGPL/Filters/tone.cpp \
+    $DSP/Synthesis/oscillator.cpp $BASEMOD; then
+    for args in "default block" "default sample" "100 block" "1000 block" "1500 sample"; do # one process per run
+        check "$B/t_reverb_delay_led" $args
+    done
+else FAILS=$((FAILS + 1)); fi
+
 step "Delay and Reverb Delay in one firmware: no clashing names, no shared state"
 if build "$B/t_delay_coexist" $T/test_delay_coexist.cpp Effect-Modules/delay_module.cpp Effect-Modules/reverb_delay_module.cpp $LGPL/Effects/reverbsc.cpp \
     $LGPL/Filters/tone.cpp $DSP/Synthesis/oscillator.cpp Util/tape_modulator.cpp $BASEMOD; then
