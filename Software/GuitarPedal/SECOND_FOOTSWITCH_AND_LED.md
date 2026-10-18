@@ -11,13 +11,13 @@ The code is in `guitar_pedal.cpp` (the footswitch handling and the LEDs) and `Ef
 * **What an effect can override** for the second footswitch:
   * `AlternateFootswitchPressed()` and `AlternateFootswitchReleased()`: called on the press and on the release, **only while the effect is on**.
   * `AlternateFootswitchHeldFor1Second()`: called once when the switch has been held for one second, only while the effect is on.
-  * `AlternateFootswitchForTempo()`: the default is true. A double-tap then sets the global tempo (`globalTempoBPM`) and the main loop calls `SetTempo(bpm)` on the active effect. Effects that return false (loopers, momentary effects) get no tap tempo. An effect that returns true but does not override `SetTempo` simply ignores the double-tap.
+  * `AlternateFootswitchForTempo()`: the default is true. Three taps (each within 2 seconds of the one before; every further tap of the series adjusts it again) then set the global tempo (`globalTempoBPM`) from the interval between the last two taps (the series logic is in `Util/tap_tempo.h`) and the main loop calls `SetTempo(bpm)` on the active effect. Effects that return false (loopers, momentary effects) get no tap tempo. An effect that returns true but does not override `SetTempo` simply ignores the taps.
 * **Fixed behaviours** that an effect cannot change: both footswitches held for about 2 seconds saves the settings; the second footswitch held while turning the encoder changes effect.
 * **Chains** (`effect_chain.cpp`): the press and release go to the primary slot, or toggle slots in the "toggle" mode; a 1-second hold switches the second knob bank when the chain maps knobs 7-12 (the display shows SHIFT).
 
 ## Effects that use the second footswitch for tap tempo
 
-A double-tap sets the tempo. The first column says what the tempo sets.
+Three taps set the tempo (from the last two taps; see above). The first column says what the tempo sets.
 
 | Effect | Tap tempo sets | Left LED | Also |
 |---|---|---|---|
@@ -65,7 +65,7 @@ None of these use tap tempo: they all return false from `AlternateFootswitchForT
 
 ## Effects with nothing special
 
-The second footswitch does nothing and the left LED is simply on while the effect is on: Compressor, Distortion, Reverb, Graphic EQ, Parametric EQ, Tuner, Scope, Test Tone, Mars, Mercury. Jupiter, Neptune, Saturn and Dattorro are the same, and they also switch tap tempo off explicitly. (Mars and Mercury leave tap tempo on, but without a `SetTempo` the double-tap has no effect.)
+The second footswitch does nothing and the left LED is simply on while the effect is on: Compressor, Distortion, Reverb, Graphic EQ, Parametric EQ, Tuner, Scope, Test Tone, Mars, Mercury. Jupiter, Neptune, Saturn and Dattorro are the same, and they also switch tap tempo off explicitly. (Mars and Mercury leave tap tempo on, but without a `SetTempo` the taps have no effect.)
 
 Several more effects have a left-LED function that, in practice, returns the same as the default (see the next section): Modulated Tremolo, SciFi, Spectral Delay, PolyOctave, Pluck Echo, String Keys, MIDI Keys, Modal Keys, FM Keys, Multi Delay and CloudSeed outside wet-only mode.
 
@@ -73,7 +73,7 @@ Several more effects have a left-LED function that, in practice, returns the sam
 
 1. **A level meter that never moves.** Eleven modules multiply the left LED by `m_cachedEffectMagnitudeValue`, which only NAM, IR, Drum and Chopper ever update. In Modulated Tremolo, SciFi, Spectral Delay, PolyOctave, Pluck Echo, String Keys, MIDI Keys, Modal Keys, FM Keys, Multi Delay and CloudSeed the constructor sets it to 1.0 and nothing changes it, so the LED is just on. It looks like the intention was an output-level or activity LED. Either implement it (as NAM and IR do) or remove the dead variable.
 2. **The tempo LED blinks once every two delay times, and is on for about 27% of that.** Delay, Tape Delay and Reverb Delay all do this (the oscillator runs at half the delay frequency). It was kept when the Reverb Delay blink was fixed. Whether one blink per delay time would be more natural is open.
-3. **Taps that do nothing.** Tap tempo is on by default, so Multi Delay (empty `SetTempo`), Mars and Mercury accept a double-tap and ignore it. Tape Delay ignores it in lo-fi mode. Returning false from `AlternateFootswitchForTempo()` would make that explicit.
+3. **Taps that do nothing.** Tap tempo is on by default, so Multi Delay (empty `SetTempo`), Mars and Mercury accept the taps and ignore them. Tape Delay ignores it in lo-fi mode. Returning false from `AlternateFootswitchForTempo()` would make that explicit.
 4. **The LED does not follow the on/off state in two effects.** Noise Gate returns its gate state, and Metro returns its beat position, without multiplying by the base value, so the LED can light while the effect is off. Every other effect uses the base value.
 5. **The left LED of the Reverb function does nothing.** `ReverbModule::GetBrightnessForLED` returns the base value in both branches. Compressor and Distortion override the function and also just return the base value.
 6. **Shift only in two effects.** Delay and Tape Delay toggle a Shift mode with a 1-second hold; other effects with many parameters (Reverb Delay, Multi Delay, Spectral Delay) have nothing like it. Chains have a shift bank.

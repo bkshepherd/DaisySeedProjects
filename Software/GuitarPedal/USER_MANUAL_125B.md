@@ -27,7 +27,7 @@ The rotary encoder underneath the screen controls the menu system. Turn the enco
 ### Footswitches and LEDs
 
 - **Primary (right):** Press to turn the selected effect on or bypass it. Hold for about two seconds to jump to the tuner (assuming it's included in the build).
-- **Secondary (left):** Its action depends on the selected effect. Double-tap to set tap tempo when that effect supports tempo. Press and release actions can also control effect-specific features such as a looper. Holding for about one second triggers the effect's hold action; in a chain configured with a second knob bank, this switches banks and displays `SHIFT`.
+- **Secondary (left):** Its action depends on the selected effect. Tap it three times, each within two seconds of the one before, to set the tempo when that effect supports tempo; the tempo is taken from the last two taps, and every further tap in the series adjusts it again. Press and release actions can also control effect-specific features such as a looper. Holding for about one second triggers the effect's hold action; in a chain configured with a second knob bank, this switches banks and displays `SHIFT`.
 - **Effect selection shortcut:** Hold the secondary switch and turn the encoder to move through the effect list. Note that you can also select the effect from the menu system, by turning the encoder to the "Effect" menu item.
 - **Manual save:** Hold both footswitches for about two seconds to save the current effect's settings to its selected preset. The display shows a save confirmation. If auto-save is off (the default), effect parameters will return to their previous state if the pedal is rebooted, or when switching effects.
 

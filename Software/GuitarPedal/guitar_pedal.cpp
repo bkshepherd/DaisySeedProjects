@@ -6,6 +6,7 @@
 #include "UI/guitar_pedal_ui.h"
 #include "Util/audio_utilities.h"
 #include "Util/heap_guard.h"
+#include "Util/tap_tempo.h"
 
 using namespace daisy;
 using namespace daisysp;
@@ -128,6 +129,7 @@ float switchEnabledIdleTimeInSeconds = 2.0f;
 int switchEnabledIdleTimeInSamples;
 bool *switchEnabledCache = nullptr;
 bool *switchDoubleEnabledCache = nullptr;
+TapTempoSeries alternateTapSeries; // tap tempo of the second footswitch
 int *switchEnabledSamplesTilIdle = nullptr;
 bool alternateHeldFor1SecondTriggered = false;
 
@@ -368,16 +370,20 @@ void processFootswitches(size_t size, Settings &settings)
             // Note that switch is pressed and reset the IdleTimer for detecting double presses
             switchEnabledCache[i] = switchPressed;
 
-            if (switchEnabledSamplesTilIdle[i] > 0) {
+            const bool followsPrevious = switchEnabledSamplesTilIdle[i] > 0;
+            if (followsPrevious) {
                 switchDoubleEnabledCache[i] = true;
+            }
 
-                // Register as Tap Tempo if Switch ID matched preferred mapping for TapTempo
-                if (activeEffect->AlternateFootswitchForTempo() &&
-                    i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)) {
+            // Register as Tap Tempo if Switch ID matched preferred mapping for TapTempo: three taps set the tempo, from the interval
+            // between the last two (see Util/tap_tempo.h)
+            if (i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)) {
+                int tapInterval = 0;
+                if (!activeEffect->AlternateFootswitchForTempo()) {
+                    alternateTapSeries.Reset();
+                } else if (alternateTapSeries.Tap(followsPrevious, switchEnabledIdleTimeInSamples - switchEnabledSamplesTilIdle[i], tapInterval)) {
                     needToChangeTempo = true;
-                    float timeBetweenPresses =
-                        hardware.GetTimeForNumberOfSamples(switchEnabledIdleTimeInSamples - switchEnabledSamplesTilIdle[i]);
-                    globalTempoBPM = s_to_tempo(timeBetweenPresses);
+                    globalTempoBPM = s_to_tempo(hardware.GetTimeForNumberOfSamples(tapInterval));
                 }
             }
 
