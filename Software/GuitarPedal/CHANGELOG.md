@@ -1,5 +1,22 @@
 # Changelog
 
+## 18 October 2026
+
+### Fixed
+- **Reverb Delay out of memory:** it no longer stops at start-up with "OUT OF MEMORY". The module held its reverb engine inside the object (397 KB on a heap with about 147 KB free); the reverb is now a static in SDRAM, as in the Reverb, SciFi and Tape Delay modules. Reverb Delay can be used alone or in a chain, and `effects-memory.json` now has its heap figure, so the effect tool can warn about it.
+- **Delay and Reverb Delay can be built together:** the two headers defined the same names (`MAX_DELAY_REV`, `MAX_DELAY_SPREAD`, `delay_spread`) and both sources defined global delay lines with the same names. Reverb Delay's names are now its own and its buffers are file-local. The conflict is removed from `effects.json` and the "everything" preset includes Reverb Delay. A host test checks that each of the two gives the output it gives alone.
+
+### Performance
+- **Reverb Delay block path:** the parameters are read once per block instead of once per sample. The output is identical to the per-sample path (host test, 13 configurations). Measured on the pedal: 35% / 40% CPU down to 26% / 33%.
+
+### NAM
+- **Level calibration in `update_models.sh`:** run by hand in a terminal it asks whether to calibrate the output gains (`--calibrate` and `--no-calibrate` skip the question; the Makefile and the test scripts use `--no-calibrate`). It measures every model on the host, sets `kOutputGain` in each model file so all models give the same level, and measures again to check.
+- **Louder models:** the default target is +12 dB, and the five models are calibrated to it, so the NAM models are about 3 dB louder than with the old +9 dB calibration. The NAM level test expects +12 dB.
+- **`nam_to_cpp_array.py`:** fixed a syntax error from an earlier edit; new model files start at an output gain of 1.0.
+
+### Documentation
+- **CPU load on the pedal:** measured figures for NAM, the distortion types and several other effects, and what they mean for chains, are in `PERFORMANCE_AND_MEMORY.md` (section 9).
+
 ## 12–17 October 2026
 
 ### Breaking or reset-worthy

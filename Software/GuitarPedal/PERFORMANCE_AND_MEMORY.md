@@ -241,3 +241,28 @@ Ideas for making more combinations fit, from least to most work:
    objects are accessed per sample), so AXI SRAM is the better target; needs a linker fragment (compare `nam_a2_sections.lds`).
 3. (The engine's heap is only about 9 KB, so allocating less is no longer worth it.)
 4. **Shrink the static buffers:** Uranus's half second (96 KB) could be a quarter second; Saturn's frames could be shared between the two channels if their stages were run in lockstep (saves about 18 KB).
+
+## 9. CPU load measured on the pedal, and what it means for chains
+
+Read from Show Debug (average / peak CPU %) in October 2026, built with GCC 10.2.1 and `-Ofast`. Each figure is the effect on its own, with default settings.
+
+| Effect | CPU (average / peak) |
+|---|---|
+| NAM (IR cab Off) | 63% |
+| NAM with the IR cab on | 81% |
+| Distortion: Hard Clip / Soft Clip / Fuzz / Tube / Multi Stage / Diode Clip | 18% / 23% / 38% / 22% / 38% / 18% |
+| Reverb | 13% / 15% |
+| Reverb Delay (before / after its block path) | 35% / 40% and 26% / 33% |
+| SciFi | 48% / 51% |
+| Spectral Delay | 54% / 73% |
+| String Keys | 16% / 17% |
+| Tape Delay | 41% / 42% |
+
+A chain's load is roughly the sum of the loads of its effects. Above about 100% the audio callback overruns: audio keeps running but sounds wrong, and the main loop that drives the menu is starved, so the menu "locks up". What was seen:
+
+* NAM + Distortion works on Hard Clip, Soft Clip, Tube and Diode Clip (81% to 86%) and locks up on Fuzz and Multi Stage (about 101%), and when the IR cab is turned on with Hard Clip (about 99%).
+* NAM + Reverb Delay started but did not work at its original 35% (about 98%, with peaks over 100%). With the block path (26% / 33%) the chain averages about 89%.
+* NAM with the plain Reverb (13% / 15%) is the one comfortable combination: about 76%. The other effects above do not fit next to NAM.
+* The cheapest distortion type, Hard Clip, still costs 18%. That is almost entirely the 16x oversampling, not the clipping. Faster tanh, atan and sin approximations and a less frequent pre-filter update were tried and made no difference to the lockups; they were rolled back. Fewer oversampling steps (for example 4x) or Oversamp off would cut the cost much more, at some cost in aliasing.
+* The speed of the GCC 15 toolchain (section 5) has not been measured.
+
