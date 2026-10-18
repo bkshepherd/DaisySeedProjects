@@ -24,12 +24,12 @@ static const auto s_metaData = [] {
         name : "Delay Time",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : {.float_value = 0.45f},
+        defaultValue : {.float_value = 0.241379f}, // 400 ms: 50 + 0.241379 * (1500 - 50)
         knobMapping : 0,
         midiCCMapping : 1,
         unit : " ms",
         decimals : 0,
-        displayFn : [](float v) { return ParamDisplay::Lin(v, 50.0f, 4000.0f); }
+        displayFn : [](float v) { return ParamDisplay::Lin(v, 50.0f, 1500.0f); }
     };
 
     params[ReverbDelayModule::D_FEEDBACK] = {
@@ -215,7 +215,7 @@ static const auto s_metaData = [] {
 // Default Constructor
 ReverbDelayModule::ReverbDelayModule()
     : BaseEffectModule(), m_timeMin(0.6f), m_timeMax(1.0f), m_lpFreqMin(600.0f), m_lpFreqMax(16000.0f), m_delaylpFreqMin(300.0f),
-      m_delaylpFreqMax(20000.0f), m_delaySamplesMin(2400.0f), m_delaySamplesMax(192000.0f), m_delaySpreadMin(24.0f),
+      m_delaylpFreqMax(20000.0f), m_delaySamplesMin(2400.0f), m_delaySamplesMax(72000.0f), m_delaySpreadMin(24.0f),
       m_delaySpreadMax(2400.0f),
       // m_delayPPMin(1200.0f),
       // m_delayPPMax(96000.0f),
