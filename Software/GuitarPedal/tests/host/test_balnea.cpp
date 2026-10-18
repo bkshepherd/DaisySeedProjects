@@ -164,7 +164,7 @@ int main() {
     printf("\nthe delay time:\n");
     {
         // Mix 1: only the repeat. The first repeat starts after about the delay time, for several times (the delay line has a few lengths, the speed makes up the rest)
-        for (float ms : {250.0f, 500.0f, 1000.0f, 2000.0f, 3500.0f}) {
+        for (float ms : {250.0f, 500.0f, 1000.0f, 1500.0f, 2000.0f}) {
             auto cfg = [ms](BalneaModule &m) { m.SetParameterAsFloat(BalneaModule::MIX, 1.0f); m.SetParameterAsFloat(BalneaModule::REGEN, 0.0f); m.SetParameterAsFloat(BalneaModule::TIME, ms); };
             const Out o = run(cfg, in, inR, 1, false);
             double mx = 0; for (size_t i = 0; i < kTotal; i++) mx = std::fmax(mx, std::fabs(o.l[i]));

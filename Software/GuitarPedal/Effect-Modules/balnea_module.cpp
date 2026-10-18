@@ -10,14 +10,15 @@ using namespace bkshepherd;
 using namespace daisysp;
 
 namespace {
-// The delay lines hold up to 16384 samples, which are read at a speed of about 1/16 .. 1: the delay times up to 4 seconds come from reading slowly. A reverse line holds twice that,
+// The delay lines hold up to 16384 samples, which are read at a speed of about 1/16 .. 1: the delay times up to 2 seconds come from reading slowly. A reverse line holds twice that,
 // as its two heads move in opposite directions. Sequential access, so SDRAM is fine (and it is not zeroed at startup: Init() clears the lines).
 constexpr size_t kLineSize = 4096 * 4;
 constexpr size_t kRevSize = kLineSize * 2;
 float DSY_SDRAM_BSS s_lineData[2][kLineSize];
 float DSY_SDRAM_BSS s_revData[2][kRevSize];
 
-constexpr int kMaxTapSamples = 48000 * 4; // a tap that is not followed by another within 4 s ends the series
+constexpr float kMinTimeMs = 100.0f, kMaxTimeMs = 2000.0f; // the range of the Time parameter
+constexpr int kMaxTapSamples = 48000 * 2; // a tap that is not followed by another within 2 s ends the series (2 s is also the longest time)
 constexpr int kSelfOscSamples = 14400;    // 300 ms
 constexpr int kModInterval = 8;           // the wow and flutter noise is slow: it is advanced once per this many samples
 // Output makeup gain. Calibrated with tests/host/run_level_tests.sh so that the default settings give about +3 dB, like the other delays.
@@ -114,8 +115,8 @@ static const auto s_metaData = [] {
         knobMapping : -1,
         midiCCMapping : -1,
         minValue : 100,
-        maxValue : 4000,
-        fineStepSize : 5.0f / 3900.0f, // a fraction of the range (100..4000 ms), so 5 ms; a value in ms would jump straight to the min or max
+        maxValue : 2000,
+        fineStepSize : 5.0f / 1900.0f, // a fraction of the range (100..2000 ms), so 5 ms; a value in ms would jump straight to the min or max
         unit : " ms",
         decimals : 0
     };
@@ -251,6 +252,7 @@ void BalneaModule::ParameterChanged(int parameter_id) {
 
 // The delay lines have a few fixed lengths; the time is the speed they are read at: the tapped time chooses the longest length that is below it, and the speed makes up the rest
 void BalneaModule::ApplyTime(float ms) {
+    ms = std::min(ms, kMaxTimeMs); // a longer time saved with an older version
     const float samples = std::max(ms, 1.0f) * m_sampleRate / 1000.0f;
     if (samples >= 65536.0f) m_delayTarget = 16384.0f;
     else if (samples >= 32768.0f) m_delayTarget = 8192.0f;
@@ -295,7 +297,7 @@ void BalneaModule::AlternateFootswitchReleased() {
         m_tapCount = 2;
         m_tapTimeout = kMaxTapSamples;
     } else {
-        const float ms = std::min(std::max(interval * 1000.0f / m_sampleRate, 100.0f), 4000.0f);
+        const float ms = std::min(std::max(interval * 1000.0f / m_sampleRate, kMinTimeMs), kMaxTimeMs);
         SetParameterAsFloat(TIME, ms);
         ApplyTime(ms);
         m_tapTimeout = std::min(kMaxTapSamples, 2 * interval);
