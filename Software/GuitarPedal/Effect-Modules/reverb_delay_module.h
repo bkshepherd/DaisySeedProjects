@@ -150,10 +150,16 @@ class ReverbDelayModule : public BaseEffectModule {
     void ProcessModulation();
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;
+    void ProcessMonoBlock(const float *in, float *outL, float *outR, size_t n) override;
+    void ProcessStereoBlock(const float *inL, const float *inR, float *outL, float *outR, size_t n) override;
     void SetTempo(uint32_t bpm) override;
     float GetBrightnessForLED(int led_id) const override;
 
   private:
+    // The block path: the parameters are read and the derived values calculated once per block instead of once per sample; the signal
+    // flow and the arithmetic are those of ProcessStereo (the result is bit-identical, see tests/host/test_reverb_delay.cpp).
+    void ProcessBlockInternal(const float *inL, const float *inR, float *outL, float *outR, size_t n);
+
     ReverbSc *m_reverbStereo; // points to the static reverbStereo_verbDelay in SDRAM: ReverbSc holds a 388 KB buffer, far too much for the heap
     float m_timeMin;
     float m_timeMax;

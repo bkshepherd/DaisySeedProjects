@@ -121,6 +121,24 @@ sed -i 's/static const int bufferSize = [0-9]*;/static const int bufferSize = 1;
 if XFLAGS="-I$B/np_n1/Effect-Modules -I$B/np_n1/dependencies/CloudSeed" build "$B/t_neptune" $T/test_neptune.cpp "$B/np_n1/Effect-Modules/neptune_module.cpp" "$B/np_n1/Effect-Modules/cloudseed_pool.cpp" \
    $(for f in $JPSRC; do echo "$B/np_n1/$f"; done) $BASEMOD $LGPL/Filters/tone.cpp; then check "$B/t_neptune"; else FAILS=$((FAILS + 1)); fi
 
+step "Reverb Delay: block path vs per-sample path (bit-exact, every delay mode, modulation target and routing)"
+if build "$B/t_reverb_delay" $T/test_reverb_delay.cpp Effect-Modules/reverb_delay_module.cpp $LGPL/Effects/reverbsc.cpp $LGPL/Filters/tone.cpp \
+    $DSP/Synthesis/oscillator.cpp $BASEMOD; then
+    RDFAIL=0
+    for cfg in 0 1 2 3 4 5 6 7 8 9 10 11 12; do # the module is a process-wide static: one process per run
+        "$B/t_reverb_delay" sample $cfg 48 "$B/rd_sample_$cfg.bin" > /dev/null || RDFAIL=1
+        "$B/t_reverb_delay" mono $cfg 48 "$B/rd_mono_$cfg.bin" > /dev/null
+        "$B/t_reverb_delay" mono $cfg 37 "$B/rd_mono37_$cfg.bin" > /dev/null
+        "$B/t_reverb_delay" samplest $cfg 48 "$B/rd_samplest_$cfg.bin" > /dev/null
+        "$B/t_reverb_delay" stereo $cfg 48 "$B/rd_stereo_$cfg.bin" > /dev/null
+        for pair in "sample mono" "sample mono37" "samplest stereo"; do
+            set -- $pair
+            if cmp -s "$B/rd_$1_$cfg.bin" "$B/rd_$2_$cfg.bin"; then :; else echo "Reverb Delay config $cfg: $2 differs from $1"; RDFAIL=1; fi
+        done
+    done
+    if [ "$RDFAIL" -eq 0 ]; then echo "Reverb Delay: block path equals the per-sample path in all 13 configurations   OK"; else FAILS=$((FAILS + 1)); fi
+else FAILS=$((FAILS + 1)); fi
+
 step "Test Tone: waveforms, level, frequency, smooth changes, input ignored"
 if XFLAGS= build "$B/t_test_tone" $T/test_test_tone.cpp Effect-Modules/test_tone_module.cpp $BASEMOD; then check "$B/t_test_tone"; else FAILS=$((FAILS + 1)); fi
 

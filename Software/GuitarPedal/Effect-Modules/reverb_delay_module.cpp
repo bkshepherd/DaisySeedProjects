@@ -569,6 +569,144 @@ void ReverbDelayModule::ProcessStereo(float inL, float inR) {
     }
 }
 
+// Block versions. Same signal flow and the same arithmetic as ProcessStereo (so the output is bit-identical), but everything that only
+// depends on the parameters is read and calculated once per block: the per-sample versions read about twenty parameters, rebuild the
+// delay targets and levels and reconfigure the reverb for every sample. What really varies per sample (the modulation, the smoothed delay
+// times, the delay lines, the reverb) stays in the loop. The modulation oscillator is not run when no parameter is modulated.
+void ReverbDelayModule::ProcessBlockInternal(const float *inL, const float *inR, float *outL, float *outR, size_t n) {
+    // Parameters, once per block
+    const float timeParam = GetParameterAsFloat(DELAY_TIME);
+    const float baseTarget = m_delaySamplesMin + (m_delaySamplesMax - m_delaySamplesMin) * timeParam;
+    const float feedback = GetParameterAsFloat(D_FEEDBACK);
+    const bool reverseMode = GetParameterAsBool(REVERSE);
+    const bool octave = GetParameterAsBool(OCTAVE);
+    const bool dualDelay = GetParameterAsBool(DUAL_DELAY);
+    const float spread = GetParameterAsFloat(D_SPREAD);
+    const bool seriesDToR = GetParameterAsBool(SERIES_D_TO_R);
+    const int modParam = (GetParameterAsBinnedValue(MOD_PARAM) - 1);
+    const float mod_amount = GetParameterAsFloat(MOD_AMT);
+
+    delayLeft.feedback = feedback;
+    delayRight.feedback = feedback;
+    delayLeft.reverseMode = reverseMode;
+    delayRight.reverseMode = reverseMode;
+    delayLeft.del->setOctave(octave);
+    delayRight.del->setOctave(octave);
+    delayLeft.dual_delay = dualDelay;
+    delayRight.dual_delay = dualDelay;
+
+    // Levels and targets as ProcessStereo sets them before the modulation; only the modulated ones are written again in the loop
+    if (dualDelay) { // spread controls the L/R panning of the two delays
+        delayLeft.level = spread + 1.0;
+        delayRight.level = 1.0 - spread;
+        delayLeft.level_reverse = 1.0 - spread;
+        delayRight.level_reverse = spread + 1.0;
+    } else {
+        delayLeft.level = 1.0;
+        delayRight.level = 1.0;
+        delayLeft.level_reverse = 1.0;
+        delayRight.level_reverse = 1.0;
+    }
+    delayLeft.delayTarget = baseTarget;
+    delayRight.delayTarget = baseTarget;
+    reverb_level = 1.0;
+
+    // Reverb
+    m_reverbStereo->SetFeedback(m_timeMin + GetParameterAsFloat(REVERB_TIME) * (m_timeMax - m_timeMin));
+    float invertedFreq = 1.0 - GetParameterAsFloat(REVERB_DAMP);
+    invertedFreq = invertedFreq * invertedFreq;
+    m_reverbStereo->SetLpFreq(m_lpFreqMin + invertedFreq * (m_lpFreqMax - m_lpFreqMin));
+
+    // Modulation oscillator (the sync frequency uses the unmodulated delay time, as in ProcessModulation)
+    if (modParam != 0) {
+        modOsc.SetWaveform(GetParameterAsBinnedValue(MOD_WAVE) - 1);
+        if (GetParameterAsBool(SYNC_MOD_F)) {
+            const float dividor = (modParam == 2 || modParam == 3) ? 2.0f : 4.0f;
+            modOsc.SetFreq((effect_samplerate / baseTarget) / dividor);
+        } else {
+            modOsc.SetFreq(m_modOscFreqMin + (m_modOscFreqMax - m_modOscFreqMin) * GetParameterAsFloat(MOD_RATE));
+        }
+    }
+
+    const float spreadTarget = m_delaySpreadMin + (m_delaySpreadMax - m_delaySpreadMin) * spread;
+    const bool useSpread = spread > 0.0f && !dualDelay;
+
+    for (size_t i = 0; i < n; i++) {
+        // Read both inputs before writing so in-place processing is safe
+        const float l = inL[i];
+        const float r = inR[i];
+
+        if (modParam != 0) {
+            fonepole(m_currentMod, modOsc.Process(), .01f);
+            const float mod = m_currentMod;
+            if (modParam == 1) {
+                delayLeft.delayTarget = baseTarget + mod * mod_amount * 500;
+                delayRight.delayTarget = baseTarget + mod * mod_amount * 500;
+            } else if (modParam == 2) {
+                float mod_level = mod * mod_amount + (1.0 - mod_amount);
+                delayLeft.level = mod_level;
+                delayRight.level = mod_level;
+                delayLeft.level_reverse = mod_level;
+                delayRight.level_reverse = mod_level;
+            } else if (modParam == 3) {
+                reverb_level = mod * mod_amount + (1.0 - mod_amount);
+            } else if (modParam == 4) {
+                float mod_level = mod * mod_amount + (1.0 - mod_amount);
+                delayLeft.level = mod_level;
+                delayRight.level = 1.0 - mod_level;
+                delayLeft.level_reverse = mod_level;
+                delayRight.level_reverse = 1.0 - mod_level;
+            }
+        }
+
+        float delLeft_out = delayLeft.Process(l);
+        float delRight_out = delayRight.Process(r);
+
+        delaySpread.delayTarget = spreadTarget;
+        float delSpread_out = delaySpread.Process(delRight_out);
+        if (useSpread) {
+            delRight_out = delSpread_out;
+        }
+
+        float delay_out_left = delLeft_out * delayWetMix + l * delayDryMix;
+        float delay_out_right = delRight_out * delayWetMix + r * delayDryMix;
+
+        float sendl, sendr, wetl, wetr;
+        if (seriesDToR) {
+            sendl = delay_out_left;
+            sendr = delay_out_right;
+        } else {
+            sendl = l;
+            sendr = r;
+        }
+
+        m_reverbStereo->Process(sendl, sendr, &wetl, &wetr);
+
+        float left = wetl * reverbWetMix * reverb_level / 2.0 + l * reverbDryMix;
+        float right = wetr * reverbWetMix * reverb_level / 2.0 + r * reverbDryMix;
+
+        if (!seriesDToR) {
+            left = (left + delay_out_left) / 2.0;
+            right = (right + delay_out_right) / 2.0;
+        }
+
+        outL[i] = left;
+        outR[i] = right;
+    }
+}
+
+void ReverbDelayModule::ProcessMonoBlock(const float *in, float *outL, float *outR, size_t n) {
+    ProcessBlockInternal(in, in, outL, outR, n);
+    m_audioLeft = outL[n - 1];
+    m_audioRight = outR[n - 1];
+}
+
+void ReverbDelayModule::ProcessStereoBlock(const float *inL, const float *inR, float *outL, float *outR, size_t n) {
+    ProcessBlockInternal(inL, inR, outL, outR, n);
+    m_audioLeft = outL[n - 1];
+    m_audioRight = outR[n - 1];
+}
+
 // Set the delay time from the tap tempo  TODO: Currently the tap tempo led isn't set to delay time on pedal boot up, how to do this?
 void ReverbDelayModule::SetTempo(uint32_t bpm) {
     float freq = tempo_to_freq(bpm);

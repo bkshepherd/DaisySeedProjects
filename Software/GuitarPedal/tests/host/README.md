@@ -21,6 +21,7 @@ BASE_REF=053079b tests/host/run_tests.sh   # compare against another ref
 | Dattorro | block vs per-sample, mono / stereo / in-place | bit-exact. Includes a negative control (shifted parameter automation) proving the harness detects differences |
 | IR | direct block path vs per-sample path | block output equals per-sample output delayed by exactly 48 samples; odd chunk sizes; fallback for oversized chunks |
 | NAM | direct block path vs per-sample path | block output equals per-sample output delayed by 48 samples, for EQ and IR-cab on/off |
+| Reverb Delay | block path vs per-sample path | bit-identical output (mono and stereo, block sizes 48 and 37) in 13 configurations: every delay mode, reverse, octave, dual delay, spread, series routing and each modulation target |
 | SciFi | original (`BASE_REF`) vs new | bit-exact, 4 parameter sets with automation |
 | Tape Delay | original (`BASE_REF`) vs new | bit-exact, all modes (fixed / multi / single / lo-fi), head configs, tap divisions, mono and stereo input |
 | Tape Delay defaults | startup state (only `Init()` run) vs the state after touching Mix to its default | regression test for a past bug (see below); includes memory pre-filled with zero / garbage / NaN bytes and a one-step Mix change |
