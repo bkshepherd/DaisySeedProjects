@@ -15,6 +15,7 @@ DelayLineRevOct<float, MAX_DELAY> DSY_SDRAM_BSS delayLineRight;
 DelayLineReverse<float, MAX_DELAY_REV> DSY_SDRAM_BSS delayLineRevLeft;
 DelayLineReverse<float, MAX_DELAY_REV> DSY_SDRAM_BSS delayLineRevRight;
 DelayLine<float, MAX_DELAY_SPREAD> DSY_SDRAM_BSS delayLineSpread;
+ReverbSc DSY_SDRAM_BSS reverbStereo_verbDelay; // as in the Reverb, SciFi and Tape Delay modules: the object holds a 388 KB buffer (the heap is small)
 
 static const auto s_metaData = [] {
     std::array<ParameterMetaData, ReverbDelayModule::PARAM_COUNT> params{};
@@ -221,6 +222,7 @@ ReverbDelayModule::ReverbDelayModule()
       m_pdelRight_out(0.0), m_currentMod(1.0), m_modOscFreqMin(0.0), m_modOscFreqMax(3.0) {
     // Set the name of the effect
     m_name = "Verb Delay";
+    m_reverbStereo = &reverbStereo_verbDelay;
 
     // Setup the meta data reference for this Effect
     m_paramMetaData = s_metaData.data();
@@ -305,8 +307,8 @@ void ReverbDelayModule::Init(float sample_rate) {
     delaySpread.currentDelay = 1500;
     delaySpread.active = true;
 
-    m_reverbStereo.Init(sample_rate);
-    m_reverbStereo.SetFeedback(0.0);
+    m_reverbStereo->Init(sample_rate);
+    m_reverbStereo->SetFeedback(0.0);
 
     effect_samplerate = sample_rate;
 
@@ -436,11 +438,11 @@ void ReverbDelayModule::ProcessMono(float in) {
 
     // Calculate Reverb Params
     reverb_level = 1.0;
-    m_reverbStereo.SetFeedback(m_timeMin + GetParameterAsFloat(REVERB_TIME) * (m_timeMax - m_timeMin));
+    m_reverbStereo->SetFeedback(m_timeMin + GetParameterAsFloat(REVERB_TIME) * (m_timeMax - m_timeMin));
     float invertedFreq =
         1.0 - GetParameterAsFloat(REVERB_DAMP); // Invert the damping param so that knob left is less dampening, knob right is more dampening
     invertedFreq = invertedFreq * invertedFreq; // also square it for exponential taper (more control over lower frequencies)
-    m_reverbStereo.SetLpFreq(m_lpFreqMin + invertedFreq * (m_lpFreqMax - m_lpFreqMin));
+    m_reverbStereo->SetLpFreq(m_lpFreqMin + invertedFreq * (m_lpFreqMax - m_lpFreqMin));
 
     // Modulation, this overwrites any previous parameter settings for the modulated param - TODO Better way to do this for less
     // processing?
@@ -470,7 +472,7 @@ void ReverbDelayModule::ProcessMono(float in) {
         sendr = m_audioRight;
     }
 
-    m_reverbStereo.Process(sendl, sendr, &wetl, &wetr);
+    m_reverbStereo->Process(sendl, sendr, &wetl, &wetr);
 
     m_audioLeft = wetl * reverbWetMix * reverb_level / 2.0 + m_audioLeft * reverbDryMix; // divide by 2 for volume correction
     m_audioRight = wetr * reverbWetMix * reverb_level / 2.0 + m_audioRight * reverbDryMix;
@@ -524,11 +526,11 @@ void ReverbDelayModule::ProcessStereo(float inL, float inR) {
 
     // Calculate Reverb Params
     reverb_level = 1.0;
-    m_reverbStereo.SetFeedback(m_timeMin + GetParameterAsFloat(REVERB_TIME) * (m_timeMax - m_timeMin));
+    m_reverbStereo->SetFeedback(m_timeMin + GetParameterAsFloat(REVERB_TIME) * (m_timeMax - m_timeMin));
     float invertedFreq =
         1.0 - GetParameterAsFloat(REVERB_DAMP); // Invert the damping param so that knob left is less dampening, knob right is more dampening
     invertedFreq = invertedFreq * invertedFreq; // also square it for exponential taper (more control over lower frequencies)
-    m_reverbStereo.SetLpFreq(m_lpFreqMin + invertedFreq * (m_lpFreqMax - m_lpFreqMin));
+    m_reverbStereo->SetLpFreq(m_lpFreqMin + invertedFreq * (m_lpFreqMax - m_lpFreqMin));
 
     // Modulation, this overwrites any previous parameter settings for the modulated param
     ProcessModulation();
@@ -556,7 +558,7 @@ void ReverbDelayModule::ProcessStereo(float inL, float inR) {
         sendr = m_audioRight;
     }
 
-    m_reverbStereo.Process(sendl, sendr, &wetl, &wetr);
+    m_reverbStereo->Process(sendl, sendr, &wetl, &wetr);
 
     m_audioLeft = wetl * reverbWetMix * reverb_level / 2.0 + m_audioLeft * reverbDryMix;
     m_audioRight = wetr * reverbWetMix * reverb_level / 2.0 + m_audioRight * reverbDryMix;

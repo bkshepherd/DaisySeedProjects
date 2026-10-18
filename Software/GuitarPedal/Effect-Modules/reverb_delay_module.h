@@ -154,7 +154,7 @@ class ReverbDelayModule : public BaseEffectModule {
     float GetBrightnessForLED(int led_id) const override;
 
   private:
-    ReverbSc m_reverbStereo;
+    ReverbSc *m_reverbStereo; // points to the static reverbStereo_verbDelay in SDRAM: ReverbSc holds a 388 KB buffer, far too much for the heap
     float m_timeMin;
     float m_timeMax;
     float m_lpFreqMin;

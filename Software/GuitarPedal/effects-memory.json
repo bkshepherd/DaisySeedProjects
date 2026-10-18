@@ -323,8 +323,10 @@
    "dtcm": 52,
    "ram_d2": 0,
    "sram": 7244,
-   "sdram": 6163364,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "sdram": 6559464,
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 536,
+   "heap_source": "host count; the ReverbSc (388 KB) is a static in SDRAM, as in the Reverb module"
   },
   "midi_keys": {
    "dtcm": 1440,
