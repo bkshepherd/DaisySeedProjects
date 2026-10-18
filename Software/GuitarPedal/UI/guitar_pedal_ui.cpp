@@ -95,6 +95,10 @@ void GuitarPedalUI::UpdateActiveEffectParameterValue(int paramID, bool showChang
             }
         }
 
+        if (m_lastSyncedRaw != nullptr) {
+            m_lastSyncedRaw[paramID] = activeEffect->GetParameterRaw(paramID);
+        }
+
         if (showChangeOnDisplay) {
             m_secondsTilReturnFromParamChange = 0.5f;
 
@@ -278,6 +282,11 @@ void GuitarPedalUI::InitEffectUiPages() {
         m_activeEffectSettingBoolValues = nullptr;
     }
 
+    if (m_lastSyncedRaw != nullptr) {
+        delete[] m_lastSyncedRaw;
+        m_lastSyncedRaw = nullptr;
+    }
+
     if (m_activeEffectSettingsMenuItems != nullptr) {
         delete[] m_activeEffectSettingsMenuItems;
         m_activeEffectSettingsMenuItems = nullptr;
@@ -288,9 +297,11 @@ void GuitarPedalUI::InitEffectUiPages() {
     m_activeEffectSettingFloatValues = new MyMappedFloatValue *[m_numActiveEffectSettingsItems];
     m_activeEffectSettingStringValues = new MappedStringListValue *[m_numActiveEffectSettingsItems];
     m_activeEffectSettingBoolValues = new bool[m_numActiveEffectSettingsItems];
+    m_lastSyncedRaw = new uint32_t[m_numActiveEffectSettingsItems];
 
     // Initialize the param value stores to a known state.
     for (int i = 0; i < m_numActiveEffectSettingsItems; ++i) {
+        m_lastSyncedRaw[i] = activeEffect->GetParameterRaw(i); // the menu values below are read from the effect
         m_activeEffectSettingIntValues[i] = nullptr;
         m_activeEffectSettingFloatValues[i] = nullptr;
         m_activeEffectSettingStringValues[i] = nullptr;
@@ -568,11 +579,21 @@ void GuitarPedalUI::UpdateUI(float elapsedTime) {
                     m_activeEffectSettingStringValues[i]->SetIndex(activeEffect->GetParameterAsBinnedValue(i) - 1);
                 }
             }
+
+            m_lastSyncedRaw[i] = activeEffect->GetParameterRaw(i);
         }
     } else {
         // Update all Active Effect Parameter Settings to values from the menu system
         for (int i = 0; i < m_numActiveEffectSettingsItems; i++) {
             ParameterValueType parameterType = activeEffect->GetParameterType(i);
+
+            // If the effect has changed this parameter itself since the menu last agreed with it (a footswitch pressed in the audio
+            // callback, a MIDI message, a tempo tap), take the effect's value instead of overwriting it with the menu's older one.
+            // Without this a change made between the main loop's refresh and this write-back is silently undone.
+            if (activeEffect->GetParameterRaw(i) != m_lastSyncedRaw[i]) {
+                UpdateActiveEffectParameterValue(i, false);
+                continue;
+            }
 
             if (parameterType == ParameterValueType::Unknown || parameterType == ParameterValueType::Raw) {
                 // Unknown or Raw value Types
@@ -593,6 +614,8 @@ void GuitarPedalUI::UpdateUI(float elapsedTime) {
                     activeEffect->SetParameterAsBinnedValue(i, m_activeEffectSettingStringValues[i]->GetIndex() + 1);
                 }
             }
+
+            m_lastSyncedRaw[i] = activeEffect->GetParameterRaw(i);
         }
     }
 

@@ -95,6 +95,9 @@ class GuitarPedalUI {
     MappedStringListValue **m_activeEffectSettingStringValues = nullptr;
     MyMappedFloatValue **m_activeEffectSettingFloatValues = nullptr;
     bool *m_activeEffectSettingBoolValues = nullptr;
+    // The raw value of each parameter the last time the menu and the effect agreed on it (see the write-back in UpdateUI): if the effect's value
+    // differs from it, the effect changed the parameter itself (a footswitch, MIDI, a tempo tap) and the menu must follow instead of overwriting it.
+    uint32_t *m_lastSyncedRaw = nullptr;
     MappedIntValue m_midiChannelSettingValue;
     MyMappedFloatValue m_inputGainSettingValue;  // dB, -24 .. +24 in steps of 0.5 (3 coarse)
     MyMappedFloatValue m_outputGainSettingValue;
