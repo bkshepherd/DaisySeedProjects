@@ -122,7 +122,7 @@ HarmonicTremoloModule::HarmonicTremoloModule()
       m_eqPeakPresence{
           cycfi::q::peaking(kEqPeakPresenceGain, cycfi::q::frequency{kEqPeakPresenceFreq}, kDefaultSampleRate, kEqPeakPresenceQ),
           cycfi::q::peaking(kEqPeakPresenceGain, cycfi::q::frequency{kEqPeakPresenceFreq}, kDefaultSampleRate, kEqPeakPresenceQ)},
-      m_speedSmoothed(kSpeedMin), m_depthSmoothed(0.0f), m_makeupGain(kMakeupGainBase), m_lastLfoValue(0.0f) {
+      m_speedSmoothed(kSpeedMin), m_depthSmoothed(0.0f), m_makeupGain(kMakeupGainBase), m_lastLfoValue(0.0f), m_ledPhase(0.0f) {
     // Set the name of the effect
     m_name = "Harm Trem";
 
@@ -162,6 +162,7 @@ void HarmonicTremoloModule::Init(float sample_rate) {
     m_depthSmoothed = GetParameterAsFloat(DEPTH) * kDepthScale;
     m_makeupGain = MakeupGainForDepth(m_depthSmoothed);
     m_lastLfoValue = 0.0f;
+    m_ledPhase = 0.0f;
 }
 
 float HarmonicTremoloModule::ProcessChannel(int channel, float in, float lfo) {
@@ -197,6 +198,12 @@ void HarmonicTremoloModule::ProcessMono(float in) {
     m_lfo.SetFreq(m_speedSmoothed);
     m_lfo.SetAmp(m_depthSmoothed);
     m_lastLfoValue = m_lfo.Process();
+
+    // The tempo LED follows the LFO's phase, whatever the depth
+    m_ledPhase += m_speedSmoothed / GetSampleRate();
+    if (m_ledPhase >= 1.0f) {
+        m_ledPhase -= 1.0f;
+    }
 
     // Track the gain against the smoothed depth so it never steps.
     m_makeupGain = MakeupGainForDepth(m_depthSmoothed);
@@ -235,9 +242,10 @@ float HarmonicTremoloModule::GetBrightnessForLED(int led_id) const {
     float value = BaseEffectModule::GetBrightnessForLED(led_id);
 
     if (led_id == 1) {
-        // The LFO is bipolar and can exceed unity at high depth, so fold it
-        // into 0..1 for the LED.
-        return value * fclamp(0.5f + 0.5f * m_lastLfoValue, 0.0f, 1.0f);
+        // Blink once per LFO cycle, which is once per beat after the tempo has been tapped, around the LFO's positive peak (phase 0.25),
+        // on for about 27% of the cycle as in the delay effects. It does not depend on the depth, so it also shows the tempo at depth 0.
+        const bool on = m_ledPhase >= 0.1125f && m_ledPhase < 0.3875f;
+        return value * (on ? 1.0f : 0.0f);
     }
 
     return value;

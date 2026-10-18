@@ -27,7 +27,7 @@ Three taps set the tempo (from the last two taps; see above). The first column s
 | Dual Echo | time | blinks at the tempo | a hold of 1 second or more is a momentary **Hold**, which ends on release; the LED is steady while held |
 | AutoPan | pan rate | follows the pan | |
 | Chopper | chop rate | follows the chopping (the smoothed chopper output) | |
-| Harmonic Tremolo | speed | follows the tremolo LFO | |
+| Harmonic Tremolo | speed | blinks once per LFO cycle (once per beat after a tempo tap), around the LFO peak, whatever the depth | |
 | Modulated Tremolo | rate | on (see "inconsistencies") | |
 | Drum | BPM | the tap magnitude of the drum pattern (`tap_mag`) | |
 | Metro | BPM | shows the beat | |
@@ -72,7 +72,7 @@ Several more effects have a left-LED function that, in practice, returns the sam
 ## Things that look inconsistent or unfinished (for later examination)
 
 1. **A level meter that never moves.** Eleven modules multiply the left LED by `m_cachedEffectMagnitudeValue`, which only NAM, IR, Drum and Chopper ever update. In Modulated Tremolo, SciFi, Spectral Delay, PolyOctave, Pluck Echo, String Keys, MIDI Keys, Modal Keys, FM Keys, Multi Delay and CloudSeed the constructor sets it to 1.0 and nothing changes it, so the LED is just on. It looks like the intention was an output-level or activity LED. Either implement it (as NAM and IR do) or remove the dead variable.
-2. **The tempo LED blinks once every two delay times, and is on for about 27% of that.** Delay, Tape Delay and Reverb Delay all do this (the oscillator runs at half the delay frequency). It was kept when the Reverb Delay blink was fixed. Whether one blink per delay time would be more natural is open.
+2. **The tempo LED blinks once every two delay times, and is on for about 27% of that.** Delay, Tape Delay and Reverb Delay all do this (the oscillator runs at half the delay frequency). It was kept when the Reverb Delay blink was fixed. Whether one blink per delay time would be more natural is open. (Harmonic Tremolo, which used to dim and brighten with the LFO, now blinks once per LFO cycle, which is once per beat, and is on for the same 27%.)
 3. **Taps that do nothing.** Tap tempo is on by default, so Multi Delay (empty `SetTempo`), Mars and Mercury accept the taps and ignore them. Tape Delay ignores it in lo-fi mode. Returning false from `AlternateFootswitchForTempo()` would make that explicit.
 4. **The LED does not follow the on/off state in two effects.** Noise Gate returns its gate state, and Metro returns its beat position, without multiplying by the base value, so the LED can light while the effect is off. Every other effect uses the base value.
 5. **The left LED of the Reverb function does nothing.** `ReverbModule::GetBrightnessForLED` returns the base value in both branches. Compressor and Distortion override the function and also just return the base value.

@@ -104,6 +104,9 @@ class HarmonicTremoloModule : public BaseEffectModule {
     float m_depthSmoothed;
     float m_makeupGain;
     float m_lastLfoValue;
+
+    // Tempo LED: a phase (0..1) that advances exactly like the LFO (same frequency, same start), so the blink is locked to the tremolo
+    float m_ledPhase;
 };
 } // namespace bkshepherd
 #endif
