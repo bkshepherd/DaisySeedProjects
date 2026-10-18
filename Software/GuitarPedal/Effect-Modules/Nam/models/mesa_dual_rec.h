@@ -13,7 +13,7 @@ inline constexpr const char *kName = "Mesa";
 
 // Linear output-gain multiplier for loudness matching (1.0 = unity; below 1.0 makes a hot model quieter).
 // Set by update_models.sh --calibrate so that every model gives the same level at default settings.
-inline constexpr float kOutputGain = 0.2611f;
+inline constexpr float kOutputGain = 0.3682f;
 
 NAM_A2_MODEL_DATA NAM_A2_ALIGN32
 inline constexpr float kWeights[nam_a2_daisy::kA2WeightCount] = {
