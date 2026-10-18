@@ -139,6 +139,23 @@ if build "$B/t_reverb_delay" $T/test_reverb_delay.cpp Effect-Modules/reverb_dela
     if [ "$RDFAIL" -eq 0 ]; then echo "Reverb Delay: block path equals the per-sample path in all 13 configurations   OK"; else FAILS=$((FAILS + 1)); fi
 else FAILS=$((FAILS + 1)); fi
 
+step "Delay and Reverb Delay in one firmware: no clashing names, no shared state"
+if build "$B/t_delay_coexist" $T/test_delay_coexist.cpp Effect-Modules/delay_module.cpp Effect-Modules/reverb_delay_module.cpp $LGPL/Effects/reverbsc.cpp \
+    $LGPL/Filters/tone.cpp $DSP/Synthesis/oscillator.cpp Util/tape_modulator.cpp $BASEMOD; then
+    "$B/t_delay_coexist" both "$B/co_both.bin" && "$B/t_delay_coexist" delay "$B/co_delay.bin" > /dev/null && "$B/t_delay_coexist" reverbdelay "$B/co_rd.bin" > /dev/null
+    if python3 -I - "$B" <<'PY'
+import sys
+b = sys.argv[1]
+rd = lambda n: open(f"{b}/{n}.bin", "rb").read()
+both, d, r = rd("co_both"), rd("co_delay"), rd("co_rd")
+h = len(both) // 2  # first half: Delay, second half: Reverb Delay
+ok = both[:h] == d[:h] and both[h:] == r[h:] and any(both[:h]) and any(both[h:])
+print("Delay and Reverb Delay together equal each alone (bit-exact):", "OK" if ok else "MISMATCH")
+sys.exit(0 if ok else 1)
+PY
+    then :; else FAILS=$((FAILS + 1)); fi
+else FAILS=$((FAILS + 1)); fi
+
 step "Test Tone: waveforms, level, frequency, smooth changes, input ignored"
 if XFLAGS= build "$B/t_test_tone" $T/test_test_tone.cpp Effect-Modules/test_tone_module.cpp $BASEMOD; then check "$B/t_test_tone"; else FAILS=$((FAILS + 1)); fi
 

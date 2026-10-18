@@ -10,12 +10,12 @@ static const char *s_waveBinNames[5] = {"Sine", "Triangle", "Saw", "Ramp",
 static const char *s_modParamNames[5] = {"None", "DelayTime", "DelayLevel", "ReverbLevel", "DelayPan"};
 static const char *s_delayModes[3] = {"Normal", "Triplett", "Dotted 8th"};
 
-DelayLineRevOct<float, MAX_DELAY> DSY_SDRAM_BSS delayLineLeft;
-DelayLineRevOct<float, MAX_DELAY> DSY_SDRAM_BSS delayLineRight;
-DelayLineReverse<float, MAX_DELAY_REV> DSY_SDRAM_BSS delayLineRevLeft;
-DelayLineReverse<float, MAX_DELAY_REV> DSY_SDRAM_BSS delayLineRevRight;
-DelayLine<float, MAX_DELAY_SPREAD> DSY_SDRAM_BSS delayLineSpread;
-ReverbSc DSY_SDRAM_BSS reverbStereo_verbDelay; // as in the Reverb, SciFi and Tape Delay modules: the object holds a 388 KB buffer (the heap is small)
+static DelayLineRevOct<float, REVDELAY_MAX_DELAY> DSY_SDRAM_BSS s_revDelay_delayLineLeft;
+static DelayLineRevOct<float, REVDELAY_MAX_DELAY> DSY_SDRAM_BSS s_revDelay_delayLineRight;
+static DelayLineReverse<float, REVDELAY_MAX_DELAY_REV> DSY_SDRAM_BSS s_revDelay_delayLineRevLeft;
+static DelayLineReverse<float, REVDELAY_MAX_DELAY_REV> DSY_SDRAM_BSS s_revDelay_delayLineRevRight;
+static DelayLine<float, REVDELAY_MAX_DELAY_SPREAD> DSY_SDRAM_BSS s_revDelay_delayLineSpread;
+static ReverbSc DSY_SDRAM_BSS reverbStereo_verbDelay; // as in the Reverb, SciFi and Tape Delay modules: the object holds a 388 KB buffer (the heap is small)
 
 static const auto s_metaData = [] {
     std::array<ParameterMetaData, ReverbDelayModule::PARAM_COUNT> params{};
@@ -279,10 +279,10 @@ void ReverbDelayModule::CalculateReverbMix() {
 void ReverbDelayModule::Init(float sample_rate) {
     BaseEffectModule::Init(sample_rate);
 
-    delayLineLeft.Init();
-    delayLineRevLeft.Init();
-    delayLeft.del = &delayLineLeft;
-    delayLeft.delreverse = &delayLineRevLeft;
+    s_revDelay_delayLineLeft.Init();
+    s_revDelay_delayLineRevLeft.Init();
+    delayLeft.del = &s_revDelay_delayLineLeft;
+    delayLeft.delreverse = &s_revDelay_delayLineRevLeft;
     delayLeft.delayTarget = 24000; // in samples
     delayLeft.currentDelay = 24000;
     delayLeft.feedback = 0.0;
@@ -290,10 +290,10 @@ void ReverbDelayModule::Init(float sample_rate) {
     delayLeft.toneOctLP.Init(sample_rate);
     delayLeft.toneOctLP.SetFreq(20000.0);
 
-    delayLineRight.Init();
-    delayLineRevRight.Init();
-    delayRight.del = &delayLineRight;
-    delayRight.delreverse = &delayLineRevRight;
+    s_revDelay_delayLineRight.Init();
+    s_revDelay_delayLineRevRight.Init();
+    delayRight.del = &s_revDelay_delayLineRight;
+    delayRight.delreverse = &s_revDelay_delayLineRevRight;
     delayRight.delayTarget = 24000; // in samples
     delayRight.currentDelay = 24000;
     delayRight.feedback = 0.0;
@@ -301,8 +301,8 @@ void ReverbDelayModule::Init(float sample_rate) {
     delayRight.toneOctLP.Init(sample_rate);
     delayRight.toneOctLP.SetFreq(20000.0);
 
-    delayLineSpread.Init();
-    delaySpread.del = &delayLineSpread;
+    s_revDelay_delayLineSpread.Init();
+    delaySpread.del = &s_revDelay_delayLineSpread;
     delaySpread.delayTarget = 1500; // in samples
     delaySpread.currentDelay = 1500;
     delaySpread.active = true;

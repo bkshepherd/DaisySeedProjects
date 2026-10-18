@@ -14,13 +14,13 @@
 using namespace daisysp;
 
 // Delay Max Definitions (Assumes 48kHz samplerate)
-constexpr size_t MAX_DELAY =
+constexpr size_t REVDELAY_MAX_DELAY =
     static_cast<size_t>(48000.0f * 8.f); // 4 second max delay // Increased the max to 8 seconds, got horrible pop noise when set to 4
                                          // seconds, increasing buffer size fixes it for some reason. TODO figure out why?
-constexpr size_t MAX_DELAY_REV =
+constexpr size_t REVDELAY_MAX_DELAY_REV =
     static_cast<size_t>(48000.0f * 8.f); // 8 second max delay (needs to be double for reverse, since read/write pointers are going
                                          // opposite directions in the buffer)
-constexpr size_t MAX_DELAY_SPREAD = static_cast<size_t>(4800.0f); //  50 ms for Spread effect
+constexpr size_t REVDELAY_MAX_DELAY_SPREAD = static_cast<size_t>(4800.0f); //  50 ms for Spread effect
 
 // This is the core delay struct, which actually includes two delays,
 // one for forwared/octave, and one for reverse. This is required
@@ -32,9 +32,9 @@ constexpr size_t MAX_DELAY_SPREAD = static_cast<size_t>(4800.0f); //  50 ms for 
 // octave delay, or create a "fading into the distance" effect for the
 // forward and reverse delays. A "level" param is included for modulation
 // of the output volume, for stereo panning.
-struct dual_delay_reverb {
-    DelayLineRevOct<float, MAX_DELAY> *del;
-    DelayLineReverse<float, MAX_DELAY_REV> *delreverse;
+struct reverb_delay_dual_delay {
+    DelayLineRevOct<float, REVDELAY_MAX_DELAY> *del;
+    DelayLineReverse<float, REVDELAY_MAX_DELAY_REV> *delreverse;
     float currentDelay;
     float delayTarget;
     float feedback = 0.0;
@@ -91,8 +91,8 @@ struct dual_delay_reverb {
 // For stereo spread setting (delay the right channel signal from 0 to 50ms)
 //    A short, zero feedback (one repeat) delay for stereo spread
 
-struct delay_spread {
-    DelayLine<float, MAX_DELAY_SPREAD> *del;
+struct reverb_delay_spread {
+    DelayLine<float, REVDELAY_MAX_DELAY_SPREAD> *del;
     float currentDelay;
     float delayTarget;
     float active = false;
@@ -179,9 +179,9 @@ class ReverbDelayModule : public BaseEffectModule {
     float m_modOscFreqMax;
 
     // Delays
-    dual_delay_reverb delayLeft;
-    dual_delay_reverb delayRight;
-    delay_spread delaySpread;
+    reverb_delay_dual_delay delayLeft;
+    reverb_delay_dual_delay delayRight;
+    reverb_delay_spread delaySpread;
 
     // Mix params
     float delayWetMix = 0.5;

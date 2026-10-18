@@ -769,7 +769,7 @@ def cmd_preset(args):
     m = manifest()
     path = os.path.join(PRESETS, args.name + ".config")
     if args.name == "everything":
-        enabled = {e["id"] for e in m["effects"]} - {"reverb_delay"}  # reverb_delay cannot be built together with delay
+        enabled = {e["id"] for e in m["effects"]}
         options = {"ALLOW_GPL": True}
     elif os.path.exists(path):
         enabled, options = read_config(path)

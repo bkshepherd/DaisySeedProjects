@@ -500,10 +500,7 @@
    "sources": [
     "Effect-Modules/reverb_delay_module.cpp"
    ],
-   "note": "single-instance only; cannot be built together with delay (both headers define MAX_DELAY_REV and delay_spread); was not in the default build",
-   "conflicts": [
-    "delay"
-   ]
+   "note": "single-instance only; was not in the default build"
   },
   {
    "id": "scifi",
