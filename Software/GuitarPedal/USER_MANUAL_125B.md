@@ -67,6 +67,14 @@ These are the effects that can be included in a firmware; which of them your ped
 - **Tremolo, Harm Trem, AutoPan, Chopper:** Amplitude or stereo-pan modulation; rate/tempo, depth, waveform, and related modulation controls.
 - **Chorus, Phaser, Flanger:** Sweeping modulation effects; rate, depth, mix, feedback, and tone controls.
 - **Overdrive, Distortion, Crusher:** Saturation and digital reduction; drive/gain, tone, output level, bit depth, or sample-rate reduction.
+- **Preamp:** A light amp-like tone (a cheaper alternative to a NAM model): gain, bass, mid, treble, level, and three voicings (Clean, Crunch, Lead).
+- **Screamer:** Tube Screamer-style overdrive with the typical mid hump and a clean low end; drive, tone, level, and three clipping modes.
+- **Muff Fuzz:** Big Muff-style fuzz with a booster and two clipping stages; sustain, tone (dark to bright, scooped in the middle), volume, and three tone voicings.
+- **Wavefolder:** Metallic, synth-like harmonics from a sine fold instead of clipping; fold, symmetry, tone, mix, level.
+- **Exciter:** Adds the 2nd to 5th harmonic of the highs (a level for each) to a clean sound for sparkle and warmth; drive, focus, mix, level.
+- **Bass Dist:** Distortion that keeps the low end clean (only the band above the crossover is distorted); drive, crossover, clip type (soft, hard, fuzz), lows, tone, mix, level.
+- **Octa Fuzz:** Octave-up fuzz in the spirit of the Octavia; fuzz, octave blend, tone, level.
+- **Tape Sat:** Soft tape or transformer saturation that compresses loud notes and adds warmth, with unity gain for small signals; drive, warmth, tone, mix, level, and two modes (Tape, Trafo).
 - **Compressor, Noise Gate:** Dynamic range and noise control; level, ratio, threshold, attack, and release.
 - **Reverb, CloudSeed:** Short room-like to expansive reverberation; mix, decay, pre-delay, size, and tone/damping.
 - **Earth:** Plate reverb (Dattorro) with an optional octave up / up and down in front of it, and a momentary footswitch action (freeze the reverb, swell an overdrive on it, or switch the octave on); pre-delay, mix, decay, modulation depth and speed, input filter, size. Adapted from the FunBox project; GPLv3, so it is only in builds that opt in to the Dattorro reverb.

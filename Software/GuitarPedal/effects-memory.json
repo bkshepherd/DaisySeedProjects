@@ -433,6 +433,78 @@
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
    "heap": 0
+  },
+  "bass_dist": {
+   "dtcm": 12,
+   "ram_d2": 0,
+   "sram": 6841,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 0,
+   "heap_source": "no new in the module (host count)"
+  },
+  "exciter": {
+   "dtcm": 416,
+   "ram_d2": 0,
+   "sram": 3920,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 0,
+   "heap_source": "no new in the module (host count)"
+  },
+  "muff_fuzz": {
+   "dtcm": 12,
+   "ram_d2": 0,
+   "sram": 5511,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 0,
+   "heap_source": "no new in the module (host count)"
+  },
+  "octave_fuzz": {
+   "dtcm": 0,
+   "ram_d2": 0,
+   "sram": 3156,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 0,
+   "heap_source": "no new in the module (host count)"
+  },
+  "preamp": {
+   "dtcm": 12,
+   "ram_d2": 0,
+   "sram": 10290,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 0,
+   "heap_source": "no new in the module (host count)"
+  },
+  "screamer": {
+   "dtcm": 12,
+   "ram_d2": 0,
+   "sram": 5092,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 0,
+   "heap_source": "no new in the module (host count)"
+  },
+  "tape_sat": {
+   "dtcm": 8,
+   "ram_d2": 0,
+   "sram": 4643,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 0,
+   "heap_source": "no new in the module (host count)"
+  },
+  "wavefolder": {
+   "dtcm": 0,
+   "ram_d2": 0,
+   "sram": 3177,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 0,
+   "heap_source": "no new in the module (host count)"
   }
  },
  "observed": [

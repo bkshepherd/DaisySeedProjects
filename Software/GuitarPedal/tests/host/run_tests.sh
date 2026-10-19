@@ -169,6 +169,11 @@ if build "$B/t_ht_led" $T/test_harmonic_tremolo_led.cpp Effect-Modules/harmonic_
     for args in "60 0.5" "120 0.5" "120 0.0" "120 1.0" "180 0.3" "90 0.5 stereo"; do check "$B/t_ht_led" $args; done
 else FAILS=$((FAILS + 1)); fi
 
+step "Distortion family (Preamp, Screamer, Muff Fuzz, Wavefolder, Exciter, Bass Dist, Octa Fuzz, Tape Sat): block path, bounds, behaviour"
+FAMSRC="Effect-Modules/preamp_module.cpp Effect-Modules/screamer_module.cpp Effect-Modules/muff_fuzz_module.cpp Effect-Modules/wavefolder_module.cpp \
+ Effect-Modules/exciter_module.cpp Effect-Modules/bass_dist_module.cpp Effect-Modules/octave_fuzz_module.cpp Effect-Modules/tape_sat_module.cpp"
+if build "$B/t_dist_family" $T/test_distortion_family.cpp $FAMSRC $BASEMOD; then check "$B/t_dist_family"; else FAILS=$((FAILS + 1)); fi
+
 step "Tap tempo series (Util/tap_tempo.h): three taps, the tempo from the last two"
 if build "$B/t_tap_tempo" $T/test_tap_tempo.cpp; then check "$B/t_tap_tempo"; else FAILS=$((FAILS + 1)); fi
 

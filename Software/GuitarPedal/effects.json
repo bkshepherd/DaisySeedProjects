@@ -74,6 +74,16 @@
    ]
   },
   {
+   "id": "bass_dist",
+   "class": "BassDistModule",
+   "header": "bass_dist_module.h",
+   "sources": [
+    "Effect-Modules/bass_dist_module.cpp"
+   ],
+   "origin": "this project (spamatica)",
+   "note": "Distortion that keeps the lows clean: only the band above the crossover is distorted (soft, hard or fuzz)"
+  },
+  {
    "id": "chopper",
    "class": "ChopperModule",
    "header": "chopper_module.h",
@@ -177,6 +187,16 @@
    ],
    "origin": "Simple Compressor by ChunkWare Music Software (2006, open source, MIT terms in its headers); module by spamatica",
    "note": "Side-chain compressor: the left input is compressed by the level of the right input (turn off Split mono input to stereo); Key Input Left makes it an ordinary compressor"
+  },
+  {
+   "id": "exciter",
+   "class": "ExciterModule",
+   "header": "exciter_module.h",
+   "sources": [
+    "Effect-Modules/exciter_module.cpp"
+   ],
+   "origin": "this project (spamatica)",
+   "note": "Chebyshev harmonic exciter: adds the 2nd to 5th harmonic of the highs, with a level for each"
   },
   {
    "id": "flanger",
@@ -406,6 +426,16 @@
    ]
   },
   {
+   "id": "muff_fuzz",
+   "class": "MuffFuzzModule",
+   "header": "muff_fuzz_module.h",
+   "sources": [
+    "Effect-Modules/muff_fuzz_module.cpp"
+   ],
+   "origin": "this project (spamatica)",
+   "note": "Big Muff-style fuzz: a booster and two clipping stages, with a tone control that scoops the mids"
+  },
+  {
    "id": "multi_delay",
    "class": "MultiDelayModule",
    "header": "multi_delay_module.h",
@@ -433,6 +463,16 @@
    "sources": [
     "Effect-Modules/noise_gate_module.cpp"
    ]
+  },
+  {
+   "id": "octave_fuzz",
+   "class": "OctaveFuzzModule",
+   "header": "octave_fuzz_module.h",
+   "sources": [
+    "Effect-Modules/octave_fuzz_module.cpp"
+   ],
+   "origin": "this project (spamatica)",
+   "note": "Octave-up fuzz (Octavia-style): a full-wave rectified octave blended into a hard clip"
   },
   {
    "id": "overdrive",
@@ -485,6 +525,16 @@
    ]
   },
   {
+   "id": "preamp",
+   "class": "PreampModule",
+   "header": "preamp_module.h",
+   "sources": [
+    "Effect-Modules/preamp_module.cpp"
+   ],
+   "origin": "this project (spamatica)",
+   "note": "Light amp-like preamp (two tube-style gain stages, tone stack, three voicings): a cheaper alternative to a NAM model"
+  },
+  {
    "id": "reverb",
    "class": "ReverbModule",
    "header": "reverb_module.h",
@@ -521,6 +571,16 @@
    "note": "was compiled but never instantiated before the effect list was generated"
   },
   {
+   "id": "screamer",
+   "class": "ScreamerModule",
+   "header": "screamer_module.h",
+   "sources": [
+    "Effect-Modules/screamer_module.cpp"
+   ],
+   "origin": "this project (spamatica)",
+   "note": "Tube Screamer-style overdrive: mid hump, clean low end, tone control"
+  },
+  {
    "id": "spectral_delay",
    "class": "SpectralDelayModule",
    "header": "spectral_delay_module.h",
@@ -548,6 +608,16 @@
    "note": "single-instance only"
   },
   {
+   "id": "tape_sat",
+   "class": "TapeSatModule",
+   "header": "tape_sat_module.h",
+   "sources": [
+    "Effect-Modules/tape_sat_module.cpp"
+   ],
+   "origin": "this project (spamatica)",
+   "note": "Tape and transformer saturation: unity gain for small signals, warmth (low-end saturation) and high roll-off"
+  },
+  {
    "id": "test_tone",
    "class": "TestToneModule",
    "header": "test_tone_module.h",
@@ -565,6 +635,16 @@
     "Effect-Modules/tuner_module.cpp"
    ],
    "note": "single-instance only"
+  },
+  {
+   "id": "wavefolder",
+   "class": "WavefolderModule",
+   "header": "wavefolder_module.h",
+   "sources": [
+    "Effect-Modules/wavefolder_module.cpp"
+   ],
+   "origin": "this project (spamatica)",
+   "note": "Sine wavefolder with anti-aliasing: metallic, synth-like harmonics"
   }
  ]
 }

@@ -2,7 +2,18 @@
 
 ## 18 October 2026
 
+### New effects
+- **Preamp:** a light amp-like tone (two gain stages, tone stack, Clean/Crunch/Lead), a cheaper alternative to a NAM model.
+- **Screamer:** Tube Screamer-style overdrive (mid hump, clean low end) with Classic, Asymmetric and Hard modes.
+- **Muff Fuzz:** Big Muff-style fuzz (booster and two clipping stages, scooped-mid tone control).
+- **Wavefolder:** an anti-aliased sine wavefolder for metallic, synth-like harmonics.
+- **Exciter:** a Chebyshev harmonic exciter (2nd to 5th harmonic, a level for each).
+- **Bass Dist:** a distortion that keeps the lows clean (Linkwitz-Riley split, soft, hard or fuzz clip).
+- **Octa Fuzz:** an Octavia-style octave-up fuzz.
+- **Tape Sat:** tape and transformer saturation with warmth and high roll-off.
+
 ### Changed behaviour
+- **The effect list has eight more effects** (alphabetical, see above), so the MIDI Program Change numbers of the effects after them shift again and saved settings are reset once more.
 - **Tap tempo needs three taps.** The second footswitch's tap tempo (Delay, Tape Delay, Reverb Delay, Dual Echo, AutoPan, Chopper, Harmonic Tremolo, Modulated Tremolo, Drum and Metro) used to be a double-tap. It now takes three taps, each within 2 seconds of the one before, and sets the tempo from the interval between the last two; every further tap of the series adjusts it again. Balnea keeps its own tap tempo.
 - **Reverb Delay delay time:** the range is 50-1500 ms (it was 50-4000 ms) and the default is 400 ms (it was 1828 ms). Saved settings store the knob position, so a saved delay time now plays shorter.
 - **Balnea delay time:** the range is 100-2000 ms (it was 4000 ms at most), and its tap window is 2 seconds (it was 4).

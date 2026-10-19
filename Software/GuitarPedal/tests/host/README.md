@@ -23,6 +23,7 @@ BASE_REF=053079b tests/host/run_tests.sh   # compare against another ref
 | NAM | direct block path vs per-sample path | block output equals per-sample output delayed by 48 samples, for EQ and IR-cab on/off |
 | Reverb Delay | block path vs per-sample path | bit-identical output (mono and stereo, block sizes 48 and 37) in 13 configurations: every delay mode, reverse, octave, dual delay, spread, series routing and each modulation target |
 | Delay + Reverb Delay | both modules in one program | both headers compile together, both modules link together, and each gives exactly the output it gives alone |
+| Distortion family | the block path vs the per-sample path (bit-identical), bounds, silence, behaviour | Preamp, Screamer, Muff Fuzz, Wavefolder, Exciter, Bass Dist, Octa Fuzz and Tape Sat: finite and bounded output for random settings changed while playing, silence in gives silence out, and each effect does what it claims (tone stack, mid hump, tone sweep, harmonics, clean lows, octave, saturation) |
 | SciFi | original (`BASE_REF`) vs new | bit-exact, 4 parameter sets with automation |
 | Tape Delay | original (`BASE_REF`) vs new | bit-exact, all modes (fixed / multi / single / lo-fi), head configs, tap divisions, mono and stereo input |
 | Tape Delay defaults | startup state (only `Init()` run) vs the state after touching Mix to its default | regression test for a past bug (see below); includes memory pre-filled with zero / garbage / NaN bytes and a one-step Mix change |
@@ -69,7 +70,7 @@ module code. Rule of thumb for the project: between **0 dB and +6 dB** at defaul
   effects have a fixed output ceiling, so their gain falls as the input gets louder.
 * To add an effect: write `levels/test_level_<name>.cpp` (see `test_level_distortion.cpp`), then add a `run <name> <sources...>` line to the script.
 
-Calibrated so far (the NAM models to +12 dB, the others as the rule says): Distortion (`normalizeVolume` factors in `distortion_module.cpp`), the NAM amp models (`kOutputGain` in `Effect-Modules/Nam/models/*.h`, set by `Effect-Modules/Nam/update_models.sh` when you answer y to its calibration question, which builds and runs `levels/calibrate_nam.cpp` through `calibrate_nam.sh`), the Overdrive (Level range in `overdrive_module.cpp`) and the Compressor (default Ratio, Threshold,
+Calibrated so far (the NAM models to +12 dB, the others as the rule says): the distortion family (the `kMakeup` constants in the eight modules, +6 dB for the distortion types and +3 dB for the Exciter and Tape Sat, `levels/test_level_distortion_family.cpp`), Distortion (`normalizeVolume` factors in `distortion_module.cpp`), the NAM amp models (`kOutputGain` in `Effect-Modules/Nam/models/*.h`, set by `Effect-Modules/Nam/update_models.sh` when you answer y to its calibration question, which builds and runs `levels/calibrate_nam.cpp` through `calibrate_nam.sh`), the Overdrive (Level range in `overdrive_module.cpp`) and the Compressor (default Ratio, Threshold,
 Attack, Release and Level; its parameters are stored in real units and `Init()` applies them, which the test checks).
 
 ## Startup-state audit
