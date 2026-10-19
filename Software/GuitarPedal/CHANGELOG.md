@@ -9,6 +9,7 @@
 - **Tap tempo needs three taps** (it was a double-tap) and takes the tempo from the last two.
 - **Reverb Delay delay time** is 50-1500 ms (was 50-4000 ms) with a default of 400 ms; a saved delay time plays shorter.
 - **Balnea delay time** is 100-2000 ms (was up to 4000 ms) and its tap window is 2 s (was 4 s).
+- **Crusher defaults** are 8 bits, 8000 Hz and a 6000 Hz cutoff (were 32 bits, 48 kHz and 20 kHz, which left the sound unchanged), so the effect is audible when first selected. Its Level is now -24 to +6 dB (was a linear 0 to 1, default -6 dB), and the default is level-matched to +6 dB like the other distortions; a saved Level plays louder (about +2 dB at the old default, +11 dB at maximum).
 
 ## New effects
 - **FunBox ports:** Venus, Earth (GPLv3 opt-in), Jupiter, Saturn, Neptune, Uranus, Balnea, Pluto, Cassini, Mars and Mercury (the newest five need testing on hardware).

@@ -60,8 +60,9 @@ Notes for adding a test for another module:
 ## Default-level tests
 
 `tests/host/run_level_tests.sh` measures how loud each effect is at its **default parameters** relative to its input, using the real
-module code. Rule of thumb for the project: between **0 dB and +6 dB** at default settings (never attenuating), with distortion-like effects
-(distortion, compression, amp models) aiming for **+3 dB**.
+module code. Rule of thumb for the project: never attenuating at default settings. Distortion-like effects (the Distortion, the Overdrive, the Crusher
+and the distortion family) aim for **+6 dB** (window 0 to +8 dB); effects that hardly change the level (compression, the Exciter, Tape Sat) for
+**+3 dB** (window 0 to +6 dB); the NAM amp models for **+12 dB**.
 
 * Signal: peak-normalised test tones at -49, -37, -25 and -12 dBFS peak. **-37 dBFS peak is the reference level** the rule is applied to (what the
   pedal's on-screen input level readout shows for normal playing); change `kReferenceInput` in `levels/level_common.h` if your real input level differs.
@@ -72,7 +73,7 @@ module code. Rule of thumb for the project: between **0 dB and +6 dB** at defaul
   effects have a fixed output ceiling, so their gain falls as the input gets louder.
 * To add an effect: write `levels/test_level_<name>.cpp` (see `test_level_distortion.cpp`), then add a `run <name> <sources...>` line to the script.
 
-Calibrated so far (the NAM models to +12 dB, the others as the rule says): the distortion family (the `kMakeup` constants in the eight modules, +6 dB for the distortion types and +3 dB for the Exciter and Tape Sat, `levels/test_level_distortion_family.cpp`), Distortion (`normalizeVolume` factors in `distortion_module.cpp`), the NAM amp models (`kOutputGain` in `Effect-Modules/Nam/models/*.h`, set by `Effect-Modules/Nam/update_models.sh` when you answer y to its calibration question, which builds and runs `levels/calibrate_nam.cpp` through `calibrate_nam.sh`), the Overdrive (Level range in `overdrive_module.cpp`) and the Compressor (default Ratio, Threshold,
+Calibrated so far (the NAM models to +12 dB, the others as the rule says): the distortion family (the `kMakeup` constants in the eight modules, +6 dB for the distortion types and +3 dB for the Exciter and Tape Sat, `levels/test_level_distortion_family.cpp`), Distortion (`normalizeVolume` factors in `distortion_module.cpp`), the NAM amp models (`kOutputGain` in `Effect-Modules/Nam/models/*.h`, set by `Effect-Modules/Nam/update_models.sh` when you answer y to its calibration question, which builds and runs `levels/calibrate_nam.cpp` through `calibrate_nam.sh`), the Overdrive (Level range in `overdrive_module.cpp`), the Crusher (`s_makeup` in `crusher_module.cpp`, `levels/test_level_crusher.cpp`) and the Compressor (default Ratio, Threshold,
 Attack, Release and Level; its parameters are stored in real units and `Init()` applies them, which the test checks).
 
 ## Startup-state audit

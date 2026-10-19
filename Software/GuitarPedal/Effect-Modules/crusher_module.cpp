@@ -18,6 +18,12 @@ static constexpr float s_pitchTrackMultipliers[8] = {
 
 static constexpr float s_rateKnobUnlockThreshold = 1.0f / 256.0f;
 
+// Level match at default settings: +6 dB at the reference level, like the other distortion effects (see tests/host/levels/test_level_crusher.cpp)
+static constexpr float s_makeup = 1.8708f;
+
+static float LevelDb(float v) { return ParamDisplay::Lin(v, -24.0f, 6.0f); }
+static float LevelGain(float v) { return powf(10.0f, LevelDb(v) / 20.0f) * s_makeup; }
+
 static const auto s_metaData = [] {
     std::array<ParameterMetaData, CrusherModule::PARAM_COUNT> params{};
 
@@ -25,19 +31,20 @@ static const auto s_metaData = [] {
         name : "Level",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : {.float_value = 0.5f},
+        defaultValue : {.float_value = 0.8f},
         knobMapping : 0,
         midiCCMapping : 14,
         unit : " dB",
         decimals : 1,
-        displayFn : [](float v) { return ParamDisplay::Db(v); }
-    }; // Output level (linear gain from silent to unity).
+        showSign : true,
+        displayFn : [](float v) { return LevelDb(v); }
+    }; // Output level, -24 to +6 dB around the level-matched default (0 dB).
 
     params[CrusherModule::BITS] = {
         name : "Bits",
         valueType : ParameterValueType::Binned,
         valueBinCount : 32,
-        defaultValue : {.uint_value = 31}, // raw values are 0-based: 31 = bin 32 (full bit depth)
+        defaultValue : {.uint_value = 7}, // raw values are 0-based: 7 = bin 8 (8 bits)
         knobMapping : 1,
         midiCCMapping : 15
     }; // Bit depth for quantization (lower bits = more digital distortion).
@@ -46,7 +53,7 @@ static const auto s_metaData = [] {
         name : "Rate",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : {.float_value = 1.0f},
+        defaultValue : {.float_value = 0.70978f}, // 8000 Hz on the 100 Hz - 48 kHz exponential scale
         knobMapping : 2,
         midiCCMapping : 16,
         unit : " Hz",
@@ -79,7 +86,7 @@ static const auto s_metaData = [] {
         name : "Cutoff",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : {.float_value = 1.0f},
+        defaultValue : {.float_value = 0.28205f}, // 6000 Hz on the linear 500 Hz - 20 kHz scale
         knobMapping : 4,
         midiCCMapping : 18,
         unit : " Hz",
@@ -246,7 +253,7 @@ float CrusherModule::GetSrrRate(float detectorInput) {
 void CrusherModule::ProcessMono(float in) {
     BaseEffectModule::ProcessMono(in);
 
-    float level = GetParameterAsFloat(LEVEL);
+    float level = LevelGain(GetParameterAsFloat(LEVEL));
     float bits = (float)GetParameterAsBinnedValue(BITS);
     float rate = GetSrrRate(in);
     float jitter = GetParameterAsFloat(JITTER);
@@ -268,7 +275,7 @@ void CrusherModule::ProcessMono(float in) {
 void CrusherModule::ProcessStereo(float inL, float inR) {
     BaseEffectModule::ProcessStereo(inL, inR);
 
-    float level = GetParameterAsFloat(LEVEL);
+    float level = LevelGain(GetParameterAsFloat(LEVEL));
     float bits = (float)GetParameterAsBinnedValue(BITS);
     float rate = GetSrrRate(0.5f * (inL + inR));
     float jitter = GetParameterAsFloat(JITTER);
@@ -298,7 +305,7 @@ void CrusherModule::ProcessStereo(float inL, float inR) {
 // filter coefficients and the bitcrusher settings are worked out once per block instead of once per sample; so is the manual sample rate (a pow() per sample),
 // except while pitch tracking is on, where the rate follows the detected pitch and is set for every sample.
 void CrusherModule::ProcessMonoBlock(const float *in, float *outL, float *outR, size_t n) {
-    const float level = GetParameterAsFloat(LEVEL);
+    const float level = LevelGain(GetParameterAsFloat(LEVEL));
     const float bits = (float)GetParameterAsBinnedValue(BITS);
     const float jitter = GetParameterAsFloat(JITTER);
     const float cutoff = m_cutoffMin + GetParameterAsFloat(CUTOFF) * (m_cutoffMax - m_cutoffMin);
@@ -324,7 +331,7 @@ void CrusherModule::ProcessMonoBlock(const float *in, float *outL, float *outR, 
 }
 
 void CrusherModule::ProcessStereoBlock(const float *inL, const float *inR, float *outL, float *outR, size_t n) {
-    const float level = GetParameterAsFloat(LEVEL);
+    const float level = LevelGain(GetParameterAsFloat(LEVEL));
     const float bits = (float)GetParameterAsBinnedValue(BITS);
     const float jitter = GetParameterAsFloat(JITTER);
     const float cutoff = m_cutoffMin + GetParameterAsFloat(CUTOFF) * (m_cutoffMax - m_cutoffMin);
