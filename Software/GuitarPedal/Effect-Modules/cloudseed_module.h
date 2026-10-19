@@ -78,6 +78,12 @@ class CloudSeedModule : public BaseEffectModule {
 
     bool inputMuteForWet = false;
 
+    // The LED flash of the wet-only mode: a phase (0..1) that advances with the audio, one cycle per kWetOnlyFlashPeriod seconds. The LED function
+    // is called once per audio block, so it must not count its calls to keep time.
+    void AdvanceLed(size_t samples);
+    float m_ledPhase = 0.0f;
+    static constexpr float kWetOnlyFlashPeriod = 0.5f;
+
     // Gradual transition of dry mix
     static constexpr int linearChangeDryLevelSteps = 25000; // Number of steps for gradual change
     LinearChange linearChangeDryLevel;

@@ -1,4 +1,5 @@
 #include "cloudseed_module.h"
+#include <cmath>
 #include "../Util/audio_utilities.h"
 #include <array>
 
@@ -236,6 +237,7 @@ void CloudSeedModule::AlternateFootswitchPressed() {
     inputMuteForWet = !inputMuteForWet;
 
     if (inputMuteForWet) {
+        m_ledPhase = 0.0f; // the flash starts at full brightness, as feedback for the press
         // Don't set dryMix immediately, let it ramp in ProcessStereo/ProcessMono
         linearChangeDryLevel.activate(currentMix.dry, GetParameterAsFloat(DRY_VOLUME), linearChangeDryLevelSteps);
 
@@ -297,8 +299,19 @@ CloudSeedModule::Mix CloudSeedModule::CalculateMix(float mixValue) {
 
 static float inMuted[CloudSeed::ReverbController::MaxBlockSize] = {0};
 
+void CloudSeedModule::AdvanceLed(size_t samples) {
+    if (!inputMuteForWet) {
+        return;
+    }
+    m_ledPhase += samples / (kWetOnlyFlashPeriod * GetSampleRate());
+    if (m_ledPhase >= 1.0f) {
+        m_ledPhase -= std::floor(m_ledPhase);
+    }
+}
+
 void CloudSeedModule::ProcessMono(float in) {
     BaseEffectModule::ProcessMono(in);
+    AdvanceLed(1);
 
     float inL[1];
     float outL[1];
@@ -332,6 +345,7 @@ void CloudSeedModule::ProcessStereo(float inL, float inR) {
     // Calculate the mono effect
     // ProcessMono(inL);
     BaseEffectModule::ProcessStereo(inL, inR);
+    AdvanceLed(1);
 
     float inL2[1];
     float outL[1];
@@ -370,6 +384,8 @@ void CloudSeedModule::ProcessStereo(float inL, float inR) {
 void CloudSeedModule::ProcessBlockInternal(const float *inL, const float *inR, float *outL, float *outR, size_t n) {
     static float wetL[CloudSeed::ReverbController::MaxBlockSize];
     static float wetR[CloudSeed::ReverbController::MaxBlockSize];
+
+    AdvanceLed(n);
 
     if (inputMuteForWet) {
         reverb->Process(inMuted, inMuted, wetL, wetR, static_cast<int>(n));
@@ -424,16 +440,10 @@ void CloudSeedModule::ProcessStereoBlock(const float *inL, const float *inR, flo
 float CloudSeedModule::GetBrightnessForLED(int led_id) const {
     float value = BaseEffectModule::GetBrightnessForLED(led_id);
 
-    static long flashCounter = 0;
-
     if (led_id == 1) {
         if (inputMuteForWet) {
-            flashCounter++;
-            if ((flashCounter / 10000) % 2 == 0) {
-                return value * m_cachedEffectMagnitudeValue;
-            } else {
-                return 0;
-            }
+            // Wet-only: the LED pulses on a sine curve, one cycle per half second, starting bright
+            return value * m_cachedEffectMagnitudeValue * (0.5f + 0.5f * std::cos(6.2831853f * m_ledPhase));
         }
         return value * m_cachedEffectMagnitudeValue;
     }

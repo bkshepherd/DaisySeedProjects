@@ -258,6 +258,11 @@ if XFLAGS="-I$B/cs_old/Effect-Modules -I$B/cs_old/dependencies/CloudSeed" build 
     check python3 -I $T/compare_cloudseed.py "$B"
 else FAILS=$((FAILS + 1)); fi
 
+step "CloudSeed: the wet-only LED pulses on a sine curve, once per half second"
+if XFLAGS="-Idependencies/CloudSeed" build "$B/t_cs_led" $T/test_cloudseed_led.cpp Effect-Modules/cloudseed_module.cpp Effect-Modules/cloudseed_pool.cpp $CSSRC Util/audio_utilities.cpp Util/heap_guard.cpp; then
+    for mode in block sample; do check "$B/t_cs_led" $mode; done
+else FAILS=$((FAILS + 1)); fi
+
 echo
 if [ "$FAILS" -eq 0 ]; then echo "ALL HOST TESTS PASSED"; else echo "HOST TESTS FAILED: $FAILS step(s)"; fi
 exit $((FAILS > 0))
