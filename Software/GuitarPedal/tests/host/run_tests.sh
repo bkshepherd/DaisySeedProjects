@@ -169,6 +169,36 @@ if build "$B/t_ht_led" $T/test_harmonic_tremolo_led.cpp Effect-Modules/harmonic_
     for args in "60 0.5" "120 0.5" "120 0.0" "120 1.0" "180 0.3" "90 0.5 stereo"; do check "$B/t_ht_led" $args; done
 else FAILS=$((FAILS + 1)); fi
 
+step "Distortion and Overdrive: block paths vs per-sample paths (bit-exact; every distortion type, oversampling on and off)"
+if build "$B/t_dist_block" $T/test_distortion_block.cpp Effect-Modules/distortion_module.cpp Effect-Modules/overdrive_module.cpp $LGPL/Filters/tone.cpp \
+    $DSP/Effects/overdrive.cpp $BASEMOD; then
+    DBFAIL=0
+    for type in 0 1 2 3 4 5; do for os in 0 1; do # Distortion keeps its filters in file-level variables: one process per run
+        "$B/t_dist_block" sample $type $os 48 "$B/db_sample_${type}_$os.bin" > /dev/null || DBFAIL=1
+        "$B/t_dist_block" mono $type $os 48 "$B/db_mono_${type}_$os.bin" > /dev/null
+        "$B/t_dist_block" stereo $type $os 37 "$B/db_stereo_${type}_$os.bin" > /dev/null
+        for m in mono stereo; do
+            cmp -s "$B/db_sample_${type}_$os.bin" "$B/db_${m}_${type}_$os.bin" || { echo "Distortion type $type oversampling $os: $m block path differs from the per-sample path"; DBFAIL=1; }
+        done
+    done; done
+    [ "$DBFAIL" -eq 0 ] && echo "Distortion: block paths (mono 48, stereo 37) equal the per-sample path, 6 types, oversampling on and off   OK" || FAILS=$((FAILS + 1))
+    check "$B/t_dist_block" overdrive
+else FAILS=$((FAILS + 1)); fi
+
+step "Crusher, Chopper, Modulated Tremolo, Harmonic Tremolo: block paths vs per-sample paths (bit-exact)"
+if build "$B/t_block_conv" $T/test_block_conversions.cpp Effect-Modules/crusher_module.cpp Effect-Modules/chopper_module.cpp Effect-Modules/Chopper/*.cpp \
+    Effect-Modules/modulated_tremolo_module.cpp Effect-Modules/harmonic_tremolo_module.cpp Util/frequency_detector_q.cpp $DSP/Synthesis/oscillator.cpp \
+    $DSP/Effects/tremolo.cpp $DSP/Control/adsr.cpp $BASEMOD; then
+    check "$B/t_block_conv"
+    BCFAIL=0
+    for cfg in 0 1 2 3 4 5; do # the Crusher's pitch detector is shared by all instances: one process per run
+        for mode in sample samplemono mono stereo; do "$B/t_block_conv" tracking $mode $cfg "$B/bc_${mode}_$cfg.bin"; done
+        cmp -s "$B/bc_samplemono_$cfg.bin" "$B/bc_mono_$cfg.bin" || { echo "Crusher with pitch tracking, config $cfg: the mono block path differs"; BCFAIL=1; }
+        cmp -s "$B/bc_sample_$cfg.bin" "$B/bc_stereo_$cfg.bin" || { echo "Crusher with pitch tracking, config $cfg: the stereo block path differs"; BCFAIL=1; }
+    done
+    [ "$BCFAIL" -eq 0 ] && echo "  Crusher with pitch tracking on: block paths equal the per-sample paths, 6 configurations   OK" || FAILS=$((FAILS + 1))
+else FAILS=$((FAILS + 1)); fi
+
 step "Distortion family (Preamp, Screamer, Muff Fuzz, Wavefolder, Exciter, Bass Dist, Octa Fuzz, Tape Sat): block path, bounds, behaviour"
 FAMSRC="Effect-Modules/preamp_module.cpp Effect-Modules/screamer_module.cpp Effect-Modules/muff_fuzz_module.cpp Effect-Modules/wavefolder_module.cpp \
  Effect-Modules/exciter_module.cpp Effect-Modules/bass_dist_module.cpp Effect-Modules/octave_fuzz_module.cpp Effect-Modules/tape_sat_module.cpp"

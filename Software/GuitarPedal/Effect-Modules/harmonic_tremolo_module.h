@@ -75,6 +75,8 @@ class HarmonicTremoloModule : public BaseEffectModule {
     void Init(float sample_rate) override;
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;
+    void ProcessMonoBlock(const float *in, float *outL, float *outR, size_t n) override;
+    void ProcessStereoBlock(const float *inL, const float *inR, float *outL, float *outR, size_t n) override;
     void SetTempo(uint32_t bpm) override;
     float GetBrightnessForLED(int led_id) const override;
 
@@ -86,6 +88,9 @@ class HarmonicTremoloModule : public BaseEffectModule {
         \return The processed sample, before makeup gain.
     */
     float ProcessChannel(int channel, float in, float lfo);
+
+    /** The block path for both entry points; inR is null for the mono one (the right output is then a copy of the left). */
+    void ProcessBlockInternal(const float *inL, const float *inR, float *outL, float *outR, size_t n);
 
     Oscillator m_lfo;
 

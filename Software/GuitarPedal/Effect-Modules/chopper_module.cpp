@@ -117,6 +117,47 @@ void ChopperModule::ProcessStereo(float inL, float inR) {
     m_audioRight = audioRightWet * GetParameterAsFloat(WET) + m_audioRight * (1.0f - GetParameterAsFloat(WET));
 }
 
+// Block versions: the same arithmetic as ProcessMono/ProcessStereo (the output is identical, see tests/host/test_block_conversions.cpp), with the chopper's
+// settings and the wet/dry mix worked out once per block instead of once per sample.
+void ChopperModule::ProcessMonoBlock(const float *in, float *outL, float *outR, size_t n) {
+    m_chopper.SetFreq(m_tempoFreqMin + (GetParameterAsFloat(TEMPO) * (m_tempoFreqMax - m_tempoFreqMin)));
+    m_chopper.SetAmp(1.0f);
+    m_chopper.SetPw(m_pulseWidthMin + (GetParameterAsFloat(DUTY) * (m_pulseWidthMax - m_pulseWidthMin)));
+    m_chopper.SetPattern(GetParameterAsBinnedValue(PATTERN) - 1);
+    const float wet = GetParameterAsFloat(WET);
+    const float dry = 1.0f - wet;
+
+    for (size_t i = 0; i < n; i++) {
+        const float x = in[i];
+        fonepole(m_cachedEffectMagnitudeValue, m_chopper.Process(), .01f);
+        const float y = (m_cachedEffectMagnitudeValue * x) * wet + x * dry;
+        outL[i] = y;
+        outR[i] = y;
+    }
+    m_audioLeft = outL[n - 1];
+    m_audioRight = outR[n - 1];
+}
+
+void ChopperModule::ProcessStereoBlock(const float *inL, const float *inR, float *outL, float *outR, size_t n) {
+    m_chopper.SetFreq(m_tempoFreqMin + (GetParameterAsFloat(TEMPO) * (m_tempoFreqMax - m_tempoFreqMin)));
+    m_chopper.SetAmp(1.0f);
+    m_chopper.SetPw(m_pulseWidthMin + (GetParameterAsFloat(DUTY) * (m_pulseWidthMax - m_pulseWidthMin)));
+    m_chopper.SetPattern(GetParameterAsBinnedValue(PATTERN) - 1);
+    const float wet = GetParameterAsFloat(WET);
+    const float dry = 1.0f - wet;
+
+    for (size_t i = 0; i < n; i++) {
+        // Read both inputs before writing so in-place processing is safe
+        const float l = inL[i];
+        const float r = inR[i];
+        fonepole(m_cachedEffectMagnitudeValue, m_chopper.Process(), .01f);
+        outL[i] = (m_cachedEffectMagnitudeValue * l) * wet + l * dry;
+        outR[i] = (m_cachedEffectMagnitudeValue * r) * wet + r * dry; // the same magnitude as the left channel
+    }
+    m_audioLeft = outL[n - 1];
+    m_audioRight = outR[n - 1];
+}
+
 void ChopperModule::SetTempo(uint32_t bpm) {
     float freq = tempo_to_freq(bpm);
 

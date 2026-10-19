@@ -34,9 +34,12 @@ class DistortionModule : public BaseEffectModule {
     void ParameterChanged(int parameter_id) override;
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;
+    void ProcessMonoBlock(const float *in, float *outL, float *outR, size_t n) override;
+    void ProcessStereoBlock(const float *inL, const float *inR, float *outL, float *outR, size_t n) override;
     float GetBrightnessForLED(int led_id) const override;
 
   private:
+    void ProcessBlockInternal(const float *in, float *out, size_t n);
     float ProcessTiltToneControl(float in);
     void InitializeFilters();
 
@@ -49,6 +52,9 @@ class DistortionModule : public BaseEffectModule {
     Tone m_tone;
 
     bool m_oversampling;
+
+    // The pre-filter's cutoff follows the input level; its coefficients are recalculated every few samples, not for every sample (see ProcessMono)
+    uint8_t m_preFilterCountdown = 0;
 };
 } // namespace bkshepherd
 #endif

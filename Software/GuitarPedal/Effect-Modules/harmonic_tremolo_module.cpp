@@ -225,6 +225,49 @@ void HarmonicTremoloModule::ProcessStereo(float inL, float inR) {
     m_audioRight = ProcessChannel(1, m_audioRight, m_lastLfoValue) * m_makeupGain;
 }
 
+// Block versions: the same arithmetic as ProcessMono/ProcessStereo (the output is identical, see tests/host/test_block_conversions.cpp), with the knob
+// positions read once per block instead of once per sample. The smoothing, the LFO and the filters still run for every sample.
+void HarmonicTremoloModule::ProcessMonoBlock(const float *in, float *outL, float *outR, size_t n) { ProcessBlockInternal(in, nullptr, outL, outR, n); }
+
+void HarmonicTremoloModule::ProcessStereoBlock(const float *inL, const float *inR, float *outL, float *outR, size_t n) {
+    ProcessBlockInternal(inL, inR, outL, outR, n);
+}
+
+void HarmonicTremoloModule::ProcessBlockInternal(const float *inL, const float *inR, float *outL, float *outR, size_t n) {
+    const float speedTarget = kSpeedMin + GetParameterAsFloat(SPEED) * (kSpeedMax - kSpeedMin);
+    const float depthTarget = GetParameterAsFloat(DEPTH) * kDepthScale;
+    const float sampleRate = GetSampleRate();
+
+    for (size_t i = 0; i < n; i++) {
+        // Read both inputs before writing so in-place processing is safe
+        const float l = inL[i];
+        const float r = inR ? inR[i] : 0.0f;
+
+        // Ease both into their targets to avoid zipper noise on knob moves.
+        fonepole(m_speedSmoothed, speedTarget, .01f);
+        fonepole(m_depthSmoothed, depthTarget, .01f);
+
+        m_lfo.SetFreq(m_speedSmoothed);
+        m_lfo.SetAmp(m_depthSmoothed);
+        m_lastLfoValue = m_lfo.Process();
+
+        // The tempo LED follows the LFO's phase, whatever the depth
+        m_ledPhase += m_speedSmoothed / sampleRate;
+        if (m_ledPhase >= 1.0f) {
+            m_ledPhase -= 1.0f;
+        }
+
+        // Track the gain against the smoothed depth so it never steps.
+        m_makeupGain = MakeupGainForDepth(m_depthSmoothed);
+
+        outL[i] = ProcessChannel(0, l, m_lastLfoValue) * m_makeupGain;
+        // The right channel reuses the LFO value and gain of the left, so the two stay locked together
+        outR[i] = inR ? ProcessChannel(1, r, m_lastLfoValue) * m_makeupGain : outL[i];
+    }
+    m_audioLeft = outL[n - 1];
+    m_audioRight = outR[n - 1];
+}
+
 void HarmonicTremoloModule::SetTempo(uint32_t bpm) {
     float freq = tempo_to_freq(bpm);
 

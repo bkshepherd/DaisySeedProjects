@@ -127,6 +127,45 @@ void ModulatedTremoloModule::ProcessStereo(float inL, float inR) {
     m_audioRight = m_audioRight * m_cachedEffectMagnitudeValue;
 }
 
+// Block versions: the same arithmetic as ProcessMono/ProcessStereo (the output is identical, see tests/host/test_block_conversions.cpp). What does not change
+// within a block (the waveforms, the depth, the modulation oscillator's frequency) is set once per block; the tremolo's frequency follows the modulation
+// oscillator and is still set for every sample.
+void ModulatedTremoloModule::ProcessMonoBlock(const float *in, float *outL, float *outR, size_t n) {
+    ProcessBlockInternal(in, nullptr, outL, outR, n);
+}
+
+void ModulatedTremoloModule::ProcessStereoBlock(const float *inL, const float *inR, float *outL, float *outR, size_t n) {
+    ProcessBlockInternal(inL, inR, outL, outR, n);
+}
+
+void ModulatedTremoloModule::ProcessBlockInternal(const float *inL, const float *inR, float *outL, float *outR, size_t n) {
+    m_freqOsc.SetWaveform(GetParameterAsBinnedValue(OSC_WAVE) - 1);
+    m_freqOsc.SetAmp(0.5f);
+    m_freqOsc.SetFreq(m_freqOscFreqMin + (GetParameterAsFloat(OSC_FREQ) * m_freqOscFreqMax));
+    const bool noModulation = GetParameterAsFloat(OSC_FREQ) <= 0.01f;
+    m_tremolo.SetWaveform(GetParameterAsBinnedValue(WAVE) - 1);
+    m_tremolo.SetDepth(GetParameterAsFloat(DEPTH));
+    const float freq = GetParameterAsFloat(FREQ);
+
+    for (size_t i = 0; i < n; i++) {
+        // Read both inputs before writing so in-place processing is safe
+        const float l = inL[i];
+        const float r = inR ? inR[i] : 0.0f;
+
+        float mod = 0.5f + m_freqOsc.Process();
+        if (noModulation) {
+            mod = 1.0f;
+        }
+        m_tremolo.SetFreq(m_tremoloFreqMin + ((freq * m_tremoloFreqMax) * mod));
+        fonepole(m_cachedEffectMagnitudeValue, m_tremolo.Process(1.0f), .01f);
+
+        outL[i] = l * m_cachedEffectMagnitudeValue;
+        outR[i] = inR ? r * m_cachedEffectMagnitudeValue : outL[i];
+    }
+    m_audioLeft = outL[n - 1];
+    m_audioRight = outR[n - 1];
+}
+
 void ModulatedTremoloModule::SetTempo(uint32_t bpm) {
     float freq = tempo_to_freq(bpm);
 

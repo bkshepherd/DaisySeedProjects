@@ -293,3 +293,70 @@ void CrusherModule::ProcessStereo(float inL, float inR) {
     m_audioLeft = (((1.0f - mix) * inL) + (mix * wetL)) * level;
     m_audioRight = (((1.0f - mix) * inR) + (mix * wetR)) * level;
 }
+
+// Block versions: the same arithmetic as ProcessMono/ProcessStereo (the output is identical, see tests/host/test_block_conversions.cpp). The parameters, the
+// filter coefficients and the bitcrusher settings are worked out once per block instead of once per sample; so is the manual sample rate (a pow() per sample),
+// except while pitch tracking is on, where the rate follows the detected pitch and is set for every sample.
+void CrusherModule::ProcessMonoBlock(const float *in, float *outL, float *outR, size_t n) {
+    const float level = GetParameterAsFloat(LEVEL);
+    const float bits = (float)GetParameterAsBinnedValue(BITS);
+    const float jitter = GetParameterAsFloat(JITTER);
+    const float cutoff = m_cutoffMin + GetParameterAsFloat(CUTOFF) * (m_cutoffMax - m_cutoffMin);
+    const float mix = GetParameterAsFloat(MIX);
+    const bool tracking = GetParameterAsBool(PITCH_TRACKING);
+
+    m_lpFilter[0].config(cutoff, m_rateMax);
+    m_bitcrusherL.setNumberOfBits(bits);
+    m_bitcrusherL.setJitter(jitter);
+    if (!tracking) m_bitcrusherL.setTargetSampleRate(GetSrrRate(0.0f)); // the rate does not depend on the input
+
+    for (size_t i = 0; i < n; i++) {
+        const float x = in[i];
+        if (tracking) m_bitcrusherL.setTargetSampleRate(GetSrrRate(x));
+        const float crushed = m_bitcrusherL.Process(x);
+        const float wet = m_lpFilter[0](crushed);
+        const float out = (((1.0f - mix) * x) + (mix * wet)) * level;
+        outL[i] = out;
+        outR[i] = out;
+    }
+    m_audioLeft = outL[n - 1];
+    m_audioRight = outR[n - 1];
+}
+
+void CrusherModule::ProcessStereoBlock(const float *inL, const float *inR, float *outL, float *outR, size_t n) {
+    const float level = GetParameterAsFloat(LEVEL);
+    const float bits = (float)GetParameterAsBinnedValue(BITS);
+    const float jitter = GetParameterAsFloat(JITTER);
+    const float cutoff = m_cutoffMin + GetParameterAsFloat(CUTOFF) * (m_cutoffMax - m_cutoffMin);
+    const float mix = GetParameterAsFloat(MIX);
+    const bool tracking = GetParameterAsBool(PITCH_TRACKING);
+
+    m_lpFilter[0].config(cutoff, m_rateMax);
+    m_lpFilter[1].config(cutoff, m_rateMax);
+    m_bitcrusherL.setNumberOfBits(bits);
+    m_bitcrusherL.setJitter(jitter);
+    m_bitcrusherR.setNumberOfBits(bits);
+    m_bitcrusherR.setJitter(jitter);
+    if (!tracking) {
+        const float rate = GetSrrRate(0.0f);
+        m_bitcrusherL.setTargetSampleRate(rate);
+        m_bitcrusherR.setTargetSampleRate(rate);
+    }
+
+    for (size_t i = 0; i < n; i++) {
+        // Read both inputs before writing so in-place processing is safe
+        const float l = inL[i];
+        const float r = inR[i];
+        if (tracking) {
+            const float rate = GetSrrRate(0.5f * (l + r));
+            m_bitcrusherL.setTargetSampleRate(rate);
+            m_bitcrusherR.setTargetSampleRate(rate);
+        }
+        const float wetL = m_lpFilter[0](m_bitcrusherL.Process(l));
+        const float wetR = m_lpFilter[1](m_bitcrusherR.Process(r));
+        outL[i] = (((1.0f - mix) * l) + (mix * wetL)) * level;
+        outR[i] = (((1.0f - mix) * r) + (mix * wetR)) * level;
+    }
+    m_audioLeft = outL[n - 1];
+    m_audioRight = outR[n - 1];
+}

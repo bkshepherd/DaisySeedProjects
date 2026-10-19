@@ -84,6 +84,35 @@ void OverdriveModule::ProcessStereo(float inL, float inR) {
     m_audioRight = m_audioRight * (m_levelMin + (GetParameterAsFloat(LEVEL) * (m_levelMax - m_levelMin)));
 }
 
+// Block versions: the same arithmetic as ProcessMono/ProcessStereo (the output is identical), with the drive and the level worked out once per block
+// instead of once per sample (SetDrive recalculates the gain curve, which includes a division).
+void OverdriveModule::ProcessMonoBlock(const float *in, float *outL, float *outR, size_t n) {
+    m_overdriveLeft.SetDrive(m_driveMin + (GetParameterAsFloat(DRIVE) * (m_driveMax - m_driveMin)));
+    const float level = m_levelMin + (GetParameterAsFloat(LEVEL) * (m_levelMax - m_levelMin));
+    for (size_t i = 0; i < n; i++) {
+        const float y = m_overdriveLeft.Process(in[i]) * level;
+        outL[i] = y;
+        outR[i] = y;
+    }
+    m_audioLeft = outL[n - 1];
+    m_audioRight = outR[n - 1];
+}
+
+void OverdriveModule::ProcessStereoBlock(const float *inL, const float *inR, float *outL, float *outR, size_t n) {
+    m_overdriveLeft.SetDrive(m_driveMin + (GetParameterAsFloat(DRIVE) * (m_driveMax - m_driveMin)));
+    m_overdriveRight.SetDrive(m_driveMin + (GetParameterAsFloat(DRIVE) * (m_driveMax - m_driveMin)));
+    const float level = m_levelMin + (GetParameterAsFloat(LEVEL) * (m_levelMax - m_levelMin));
+    for (size_t i = 0; i < n; i++) {
+        // Read both inputs before writing so in-place processing is safe
+        const float l = inL[i];
+        const float r = inR[i];
+        outL[i] = m_overdriveLeft.Process(l) * level;
+        outR[i] = m_overdriveRight.Process(r) * level;
+    }
+    m_audioLeft = outL[n - 1];
+    m_audioRight = outR[n - 1];
+}
+
 float OverdriveModule::GetBrightnessForLED(int led_id) const {
     float value = BaseEffectModule::GetBrightnessForLED(led_id);
 
