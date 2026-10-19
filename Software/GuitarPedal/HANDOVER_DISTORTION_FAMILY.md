@@ -47,9 +47,9 @@ All parameters are stored as 0..1 and shown through `displayFn`. Level defaults 
 * **Possible additions:** a switch for oversampling on the Wavefolder, a stereo variant (the family is mono in, same out on both channels), more voicings in the Preamp, a gate in the Muff Fuzz.
 * **Level at other inputs:** the levels are matched only at the reference level (-37 dBFS peak). With a much hotter input the saturating effects no longer match each other or the dry level; that follows from the rule, not from a fault.
 
-## Related work that was not part of this commit
+## Related work done at the same time
 
-At the time of writing these are uncommitted in the working tree of `effect-polish` (see `git status`): the CloudSeed wet-only LED change, the block processing of Distortion, Overdrive, Crusher, Chopper, Modulated Tremolo and Harmonic Tremolo together with the Distortion pre-filter change (updated every 8 samples; not bit-exact against the old code, the level is unchanged), and the rewrite of `CHANGELOG.md`. `effects.config` and `generated/*` hold the user's current selection (the preset was applied for the build).
+Committed separately on `effect-polish`: block processing for Distortion, Overdrive, Crusher, Chopper, Modulated Tremolo and Harmonic Tremolo, with the Distortion pre-filter change (updated every 8 samples; not bit-exact against the old code, the level is unchanged; Distortion Hard Clip 18% to 12% CPU on the pedal, Overdrive about 4%), the CloudSeed wet-only LED change, and the release-note rewrite of `CHANGELOG.md`. `effects.config` and `generated/*` are not committed: they hold the user's current selection (the `distortions` preset was applied for the build).
 
 ## Known problems in other code (not fixed)
 
