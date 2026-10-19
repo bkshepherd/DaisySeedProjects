@@ -13,7 +13,8 @@ constexpr float kEmphasisHz = 720.0f; // the corner of the gain stage's high-pas
 constexpr float kOpAmpHz = 9000.0f;   // the op-amp's limited bandwidth at high gain
 constexpr float kClipLevel = 0.6f;    // the level of the clipping (the diodes' forward voltage, relative to full scale)
 constexpr float kAsymBias = 0.25f;
-constexpr float kMakeup[3] = {0.1816f, 0.1930f, 0.2618f}; // level match of the modes at default settings (see tests/host/levels/test_level_distortion_family.cpp)
+constexpr float kMakeup[3] = {0.0829f, 0.0885f, 0.1148f}; // level match of the modes at default settings (see tests/host/levels/test_level_distortion_family.cpp)
+constexpr float kTopBoost = 4.0f; // extra gain at the top of the Drive knob (see distdsp::topBoost)
 constexpr float kSmoothing = 0.002f;
 
 float ToneHz(float v) { return ParamDisplay::Exp(v, 500.0f, 8000.0f); }
@@ -26,7 +27,7 @@ static const auto s_metaData = [] {
         name : "Drive",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : {.float_value = 0.5f},
+        defaultValue : {.float_value = 0.66f},
         knobMapping : 0,
         midiCCMapping : -1,
         unit : "",
@@ -103,7 +104,7 @@ void ScreamerModule::ParameterChanged(int /*parameter_id*/) { m_dirty = true; }
 void ScreamerModule::Recompute() {
     m_mode = std::min(std::max(GetParameterAsBinnedValue(MODE) - 1, 0), 2);
     const float drive = GetParameterAsFloat(DRIVE);
-    m_driveTarget = 1.0f + 60.0f * drive * drive; // the gain of the clipped path
+    m_driveTarget = (1.0f + 60.0f * drive * drive) * topBoost(drive, 0.5f, kTopBoost); // the gain of the clipped path
     m_outTarget = dbToGain(ParamDisplay::Lin(GetParameterAsFloat(LEVEL), -24.0f, 6.0f)) * kMakeup[m_mode];
     m_tone.SetCutoff(ToneHz(GetParameterAsFloat(TONE)), m_sampleRate);
 }

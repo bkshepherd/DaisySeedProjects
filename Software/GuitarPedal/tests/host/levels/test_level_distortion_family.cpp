@@ -28,10 +28,35 @@ int main() {
     const Window gentle{0.0, 6.0, 3.0, 1.0};
     bool ok = true;
 
+    // Preamp: Clean and Crunch follow the rule at the reference level. Lead does not: it has so much gain that it is already saturated at the
+    // reference level, while Crunch is still nearly clean there, so matching the two at -37 dBFS made Lead about 10 dB quieter than Crunch
+    // when played with a guitar (above about -20 dBFS both are saturated and only their output ceilings count). Lead is therefore matched to
+    // Crunch at the loudest test level (-12 dBFS peak, both saturated), as a channel switch on an amp would be; its gain at the reference level
+    // (about +16 dB) is printed for information. Lead is louder than Crunch on soft playing and the tail of a note, as a high-gain voicing is.
     for (int v = 0; v < 3; v++) {
         char t[64];
-        std::snprintf(t, sizeof t, "Preamp, voicing %d", v);
-        ok &= report(t, [v] { return make<PreampModule>(PreampModule::VOICING, v); }, loud);
+        std::snprintf(t, sizeof t, "Preamp, voicing %d%s", v, v == 2 ? " (matched to Crunch at -12 dBFS, see below)" : "");
+        ok &= report(t, [v] { return make<PreampModule>(PreampModule::VOICING, v); }, loud, Signal::Sine, v != 2);
+    }
+    {
+        constexpr int kHot = 3; // -12 dBFS peak
+        double diff = 0, leadPeak = 0;
+        for (Signal s : {Signal::Sine, Signal::Guitar})
+            for (int fi = 0; fi < 2; fi++) {
+                const float f = frequencies(s)[fi];
+                auto crunch = make<PreampModule>(PreampModule::VOICING, 1);
+                auto lead = make<PreampModule>(PreampModule::VOICING, 2);
+                diff += measure(*lead, s, f, kInputs[kHot].peak).rmsGainDb - measure(*crunch, s, f, kInputs[kHot].peak).rmsGainDb;
+                for (const InputLevel &in : kInputs) { // the report above is informational, so the full-scale check is done here
+                    auto m = make<PreampModule>(PreampModule::VOICING, 2);
+                    leadPeak = std::fmax(leadPeak, measure(*m, s, f, in.peak).outPeak);
+                }
+            }
+        diff /= 4.0; // the mean over both signals and both test frequencies
+        const bool leadOk = std::fabs(diff) <= 1.0 && leadPeak < 1.0;
+        std::printf("Preamp Lead vs Crunch at %s (both saturated): mean %+.2f dB, target 0 +/- 1 dB; Lead output peak %.2f  =>  %s\n",
+                    kInputs[kHot].label, diff, leadPeak, leadOk ? "OK" : "OUT OF WINDOW");
+        ok &= leadOk;
     }
     for (int m = 0; m < 3; m++) {
         char t[64];

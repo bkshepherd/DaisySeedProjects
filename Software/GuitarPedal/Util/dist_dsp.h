@@ -11,6 +11,15 @@ constexpr float kPi = 3.14159265358979f;
 inline float clampf(float x, float lo, float hi) { return x < lo ? lo : (x > hi ? hi : x); }
 inline float dbToGain(float db) { return std::pow(10.0f, db / 20.0f); }
 
+/** Extra gain for the top of a Drive knob: 1 up to the knob position `from`, rising smoothly (zero slope at `from`) to 1 + extra at the end of
+ *  the knob. The gain at and below the default position, and with it the calibrated level, is unchanged; the top of the knob reaches full
+ *  saturation (about 35 dB of compression) with a hot input. */
+inline float topBoost(float v, float from, float extra) {
+    if (v <= from) return 1.0f;
+    const float t = (v - from) / (1.0f - from);
+    return 1.0f + extra * t * t;
+}
+
 /** A first-order low-pass; HP(x) = x - LP(x) (a first-order high-pass with the same corner). */
 struct OnePole {
     float a = 0.1f;

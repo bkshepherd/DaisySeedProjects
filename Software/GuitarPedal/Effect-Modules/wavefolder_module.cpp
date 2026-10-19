@@ -7,11 +7,14 @@ using namespace bkshepherd;
 using namespace distdsp;
 
 namespace {
-constexpr float kMakeup = 0.8166f; // level match at default settings (see tests/host/levels/test_level_distortion_family.cpp)
+constexpr float kMakeup = 0.0454f; // level match at default settings (see tests/host/levels/test_level_distortion_family.cpp)
 constexpr float kSmoothing = 0.002f;
 constexpr float kMaxBias = 0.3f; // the largest bias, relative to full scale
 
-float FoldAmount(float v) { return ParamDisplay::Exp(v, 0.25f, 10.0f); } // multiples of the input that reach the first fold peak at 1.0
+constexpr float kTopBoost = 12.0f; // extra fold at the top of the Fold knob (see distdsp::topBoost)
+
+// multiples of the input that reach the first fold peak at 1.0
+float FoldAmount(float v) { return ParamDisplay::Exp(v, 0.25f, 10.0f) * topBoost(v, 0.5f, kTopBoost); }
 float ToneHz(float v) { return ParamDisplay::Exp(v, 1000.0f, 16000.0f); }
 } // namespace
 
@@ -22,7 +25,7 @@ static const auto s_metaData = [] {
         name : "Fold",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : {.float_value = 0.5f},
+        defaultValue : {.float_value = 0.81832f}, // 30x
         knobMapping : 0,
         midiCCMapping : -1,
         unit : " x",

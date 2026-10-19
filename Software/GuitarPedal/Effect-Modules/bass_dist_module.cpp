@@ -10,6 +10,7 @@ namespace {
 const char *s_clipNames[3] = {"Soft", "Hard", "Fuzz"};
 constexpr float kFuzzBias = 0.3f;
 constexpr float kMakeup[3] = {0.1304f, 0.1941f, 0.1432f}; // level match of the clip types at default settings (see tests/host/levels/test_level_distortion_family.cpp)
+constexpr float kTopBoost = 9.0f; // extra gain at the top of the Drive knob (see distdsp::topBoost)
 constexpr float kSmoothing = 0.002f;
 
 float CrossoverHz(float v) { return ParamDisplay::Exp(v, 60.0f, 400.0f); }
@@ -142,7 +143,7 @@ void BassDistModule::ParameterChanged(int /*parameter_id*/) { m_dirty = true; }
 void BassDistModule::Recompute() {
     m_clipType = std::min(std::max(GetParameterAsBinnedValue(CLIP) - 1, 0), 2);
     const float drive = GetParameterAsFloat(DRIVE);
-    m_driveTarget = 1.0f + 40.0f * drive * drive;
+    m_driveTarget = (1.0f + 40.0f * drive * drive) * topBoost(drive, 0.5f, kTopBoost);
     m_lowsTarget = dbToGain(ParamDisplay::Lin(GetParameterAsFloat(LOWS), -24.0f, 6.0f));
     m_mixTarget = GetParameterAsFloat(MIX);
     m_outTarget = dbToGain(ParamDisplay::Lin(GetParameterAsFloat(LEVEL), -24.0f, 6.0f)) * kMakeup[m_clipType];

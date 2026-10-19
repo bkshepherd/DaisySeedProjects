@@ -15,11 +15,13 @@ struct Voicing {
     float midHz;    // the frequency of the Mid control
     float outLpHz;  // the high cut at the end (a stand-in for the speaker and the power amp)
     float bias;     // the asymmetry of the first stage
-    float makeup;   // a level match between the voicings and with the other effects at default settings
+    float makeup;   // the level: Clean and Crunch +6 dB at the reference input; Lead matched to Crunch at a hot input, where both saturate
+                    // (see tests/host/levels/test_level_distortion_family.cpp)
+    float topBoost; // extra first-stage gain at the top of the Gain knob (see distdsp::topBoost)
 };
-constexpr Voicing kVoicing[3] = {{6.0f, 0.0f, 500.0f, 8000.0f, 0.05f, 0.7736f},
-                                 {25.0f, 2.5f, 700.0f, 6500.0f, 0.10f, 0.0856f},
-                                 {60.0f, 6.0f, 900.0f, 5500.0f, 0.12f, 0.0242f}};
+constexpr Voicing kVoicing[3] = {{6.0f, 0.0f, 500.0f, 8000.0f, 0.05f, 0.7736f, 38.0f},
+                                 {25.0f, 2.5f, 700.0f, 6500.0f, 0.10f, 0.0856f, 0.0f},
+                                 {60.0f, 6.0f, 900.0f, 5500.0f, 0.12f, 0.0797f, 0.0f}};
 
 constexpr float kSmoothing = 0.002f; // per sample: about 10 ms at 48 kHz
 } // namespace
@@ -138,7 +140,7 @@ void PreampModule::Recompute() {
     m_voicing = std::min(std::max(GetParameterAsBinnedValue(VOICING) - 1, 0), 2);
     const Voicing &v = kVoicing[m_voicing];
     const float gain = GetParameterAsFloat(GAIN);
-    m_gain1Target = 1.0f + (v.gain1Max - 1.0f) * gain * gain;
+    m_gain1Target = (1.0f + (v.gain1Max - 1.0f) * gain * gain) * topBoost(gain, 0.4f, v.topBoost);
     m_outTarget = dbToGain(ParamDisplay::Lin(GetParameterAsFloat(LEVEL), -24.0f, 6.0f)) * v.makeup;
 
     m_bass.SetLowShelf(120.0f, ParamDisplay::Lin(GetParameterAsFloat(BASS), -12.0f, 12.0f), m_sampleRate);
