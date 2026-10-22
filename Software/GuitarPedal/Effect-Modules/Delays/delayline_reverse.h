@@ -76,6 +76,21 @@ template <typename T, size_t max_size> class DelayLineReverse {
 
     inline void SetSpeed(unsigned int speed) { indexMultiplier_ = speed; }
 
+    /** The slot the next Write() goes to (the line is written upwards). */
+    inline size_t WritePos() const { return write_ptr_; }
+
+    /** Zeroes n samples of stale content (see DelayLineRevOct::ClearStale): the sweep starts at the newest stale sample (start - 1) and moves
+     *  downwards, away from the new writes (start, start + 1, ...). */
+    inline void ClearStale(size_t start, size_t done, size_t n) {
+        size_t i = (start + max_size - 1 - (done % max_size)) % max_size; // the next slot to zero; the sweep goes down from here
+        while (n > 0) {
+            const size_t run = (i + 1) < n ? (i + 1) : n; // down to slot 0 at most, then wrap to the top
+            for (size_t k = 0; k < run; k++) line_[i - k] = T(0);
+            n -= run;
+            i = max_size - 1;
+        }
+    }
+
     /** writes the sample of type T to the delay line, and advances the write ptr
      */
     inline void Write(const T sample) {

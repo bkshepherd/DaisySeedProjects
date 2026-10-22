@@ -719,9 +719,14 @@ void SetActiveEffect(int effectID) {
         // Update the ID cache
         activeEffectID = effectID;
 
-        // An effect that is only ringing out is cut when another one is selected
+        // An effect that is only ringing out is cut when another one is selected. The old effect is also switched off: it is not processed any
+        // more, so when it is selected again it is switched on, and an effect that clears its buffers then (the delays) does not bring back
+        // what was played the last time.
         if (activeEffect != nullptr) {
             activeEffect->SetTrailing(false);
+            if (activeEffect != availableEffects[effectID]) { // not when a preset of the same effect is loaded
+                activeEffect->SetEnabled(false);
+            }
         }
         trailRunning = false;
         trailInputGain = effectOn ? 1.0f : 0.0f;

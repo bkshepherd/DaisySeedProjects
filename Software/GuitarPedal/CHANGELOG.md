@@ -8,6 +8,7 @@
 - **NAM models are about 3 dB louder** (output gains calibrated to +12 dB).
 - **Tap tempo needs three taps** (it was a double-tap) and takes the tempo from the last two.
 - **Reverb Delay delay time** is 50-1500 ms (was 50-4000 ms) with a default of 400 ms; a saved delay time plays shorter.
+- **Delay:** Delay Time is 50-2000 ms (was 50-4000 ms) with a default of 400 ms (was 2025 ms), and Delay Mix defaults to 35% (was 50%).
 - **Balnea delay time** is 100-2000 ms (was up to 4000 ms) and its tap window is 2 s (was 4 s).
 - **Crusher defaults** are 8 bits, 8000 Hz and a 6000 Hz cutoff (were 32 bits, 48 kHz and 20 kHz, which left the sound unchanged), so the effect is audible when first selected. Its Level is now -24 to +6 dB (was a linear 0 to 1, default -6 dB), and the default is level-matched to +6 dB like the other distortions; a saved Level plays louder (about +2 dB at the old default, +11 dB at maximum).
 
@@ -41,6 +42,7 @@
 - **The menu could undo a change an effect had just made itself** (Crusher Pitch Tracking and Uranus Hold toggled only sometimes).
 - **Global Settings:** Back no longer overwrites the Reboot text.
 - **Balnea:** the Time menu step is fixed.
+- **Delay:** switching it on (on its own, or its slot in a chain) brought back the repeats of what was played the last time it was on; it now starts from silence (not while the tail is still ringing with Trails). Selecting another effect now switches the old one off, so this also holds after switching effects (Tape Delay and Dual Echo too).
 - **Distortion:** two Distortions (in an effect chain or the Dist Bench) no longer share their filters; a single Distortion sounds exactly as before.
 - **Venus:** Oct Up+Dn now also shifts down.
 - **LEDs** work with GCC 13.

@@ -130,6 +130,22 @@ template <typename T, size_t max_size> class DelayLineRevOct {
         return (((a * f) - b_neg) * f + c) * f + x0;
     }
 
+    /** The slot the next Write() goes to (the line is written downwards). */
+    inline size_t WritePos() const { return write_ptr_; }
+
+    /** Zeroes n samples of stale content, for clearing the line a little at a time while it is in use (DelayModule): `start` is WritePos() when
+     *  the clearing began, `done` how many samples have been zeroed since. The sweep starts at the newest stale sample (start + 1) and moves
+     *  upwards, away from the new writes (start, start - 1, ...), so the caller stops it before the two meet (done + writes since >= max_size). */
+    inline void ClearStale(size_t start, size_t done, size_t n) {
+        size_t i = (start + 1 + done) % max_size;
+        while (n > 0) {
+            const size_t run = (max_size - i) < n ? (max_size - i) : n;
+            for (size_t k = 0; k < run; k++) line_[i + k] = T(0);
+            n -= run;
+            i = 0;
+        }
+    }
+
     inline const T Allpass(const T sample, size_t delay, const T coefficient) {
         T read = line_[(write_ptr_ + delay) % max_size];
         T write = sample + coefficient * read;

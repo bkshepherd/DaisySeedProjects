@@ -46,6 +46,7 @@ struct delayRevOct {
     float level_reverse = 1.0; // Level multiplier of output, added for stereo modulation
     bool dual_delay = false;
     bool secondTapOn = false;
+    bool muted = false; // while the lines are being cleared (DelayModule::SetEnabled): the stale content is neither heard nor fed back
 
     float Process(float in) {
         // set delay times
@@ -53,15 +54,15 @@ struct delayRevOct {
         del->SetDelay(currentDelay);
         delreverse->SetDelay1(currentDelay);
 
-        float del_read = del->Read();
+        float del_read = muted ? 0.0f : del->Read();
 
-        float read_reverse = delreverse->ReadRev(); // REVERSE
+        float read_reverse = muted ? 0.0f : delreverse->ReadRev(); // REVERSE
 
         float read =
             toneOctLP.Process(del_read); // LP filter, tames harsh high frequencies on octave, has fading effect for normal/reverse
 
         float secondTap = 0.0;
-        if (secondTapOn) {
+        if (secondTapOn && !muted) {
             secondTap = del->ReadSecondTap();
         }
         // float read2 = delreverse->ReadFwd();
@@ -144,6 +145,7 @@ class DelayModule : public BaseEffectModule {
     void ProcessModulation();
     void ProcessMono(float in) override;
     void ProcessStereo(float inL, float inR) override;
+    void SetEnabled(bool isEnabled) override;
     void SetTempo(uint32_t bpm) override;
     float GetBrightnessForLED(int led_id) const override;
     int GetMappedParameterIDForKnob(int knob_id) const override;
@@ -152,6 +154,16 @@ class DelayModule : public BaseEffectModule {
                 bool isEditing) override;
 
   private:
+    void StartClear();
+    void StepClear();
+
+    // Clearing the delay lines when the effect is switched on (see SetEnabled): a little per sample, so that the clearing (about 50 MB/s) is
+    // spread over about 0.12 s instead of stopping the audio for the tens of milliseconds a whole clear of the 4 x 8 s lines takes.
+    bool m_clearing = false;
+    size_t m_clearDone = 0;    // samples zeroed in each line so far
+    size_t m_clearWrites = 0;  // samples written to each line since the clearing began
+    size_t m_clearStart[4] = {0, 0, 0, 0}; // the write positions when it began: left, right, left reverse, right reverse
+
     float m_delaylpFreqMin;
     float m_delaylpFreqMax;
     float m_delaySamplesMin;

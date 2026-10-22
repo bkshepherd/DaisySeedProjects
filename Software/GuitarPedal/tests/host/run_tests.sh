@@ -213,6 +213,10 @@ else FAILS=$((FAILS + 1)); fi
 step "Tap tempo series (Util/tap_tempo.h): three taps, the tempo from the last two"
 if build "$B/t_tap_tempo" $T/test_tap_tempo.cpp; then check "$B/t_tap_tempo"; else FAILS=$((FAILS + 1)); fi
 
+step "Delay: switching it on starts from silence (on its own and in a chain), Trails keep the repeats, playing during the clearing is kept"
+if build "$B/t_delay_clear" $T/test_delay_clear.cpp Effect-Modules/delay_module.cpp Effect-Modules/effect_chain.cpp $DSP/Dynamics/crossfade.cpp \
+    $LGPL/Filters/tone.cpp $DSP/Synthesis/oscillator.cpp Util/tape_modulator.cpp $BASEMOD; then check "$B/t_delay_clear"; else FAILS=$((FAILS + 1)); fi
+
 step "Chain Switches (Util/chain_switches.h): which slots the footswitches get, the Switches parameter, the slot interface of EffectChain"
 if build "$B/t_chain_switches" $T/test_chain_switches.cpp Effect-Modules/effect_chain.cpp Effect-Modules/screamer_module.cpp Effect-Modules/wavefolder_module.cpp \
     Effect-Modules/tape_sat_module.cpp $DSP/Dynamics/crossfade.cpp $BASEMOD; then check "$B/t_chain_switches"; else FAILS=$((FAILS + 1)); fi

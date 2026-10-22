@@ -25,12 +25,12 @@ static const auto s_metaData = [] {
         name : "Delay Time",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : {.float_value = 0.5f},
+        defaultValue : {.float_value = 0.17949f}, // 400 ms
         knobMapping : 0,
         midiCCMapping : 14,
         unit : " ms",
         decimals : 0,
-        displayFn : [](float v) { return ParamDisplay::Lin(v, 50.0f, 4000.0f); }
+        displayFn : [](float v) { return ParamDisplay::Lin(v, 50.0f, 2000.0f); } // m_delaySamplesMin .. m_delaySamplesMax at 48 kHz
     };
 
     params[DelayModule::D_FEEDBACK] = {
@@ -49,7 +49,7 @@ static const auto s_metaData = [] {
         name : "Delay Mix",
         valueType : ParameterValueType::Float,
         valueBinCount : 0,
-        defaultValue : {.float_value = 0.5f},
+        defaultValue : {.float_value = 0.35f},
         knobMapping : 2,
         midiCCMapping : 16,
         unit : " %",
@@ -156,7 +156,7 @@ static const auto s_metaData = [] {
 // Default Constructor
 DelayModule::DelayModule()
     : BaseEffectModule(), m_delaylpFreqMin(300.0f), m_delaylpFreqMax(20000.0f), m_delaySamplesMin(2400.0f),
-      m_delaySamplesMax(192000.0f), m_delaySpreadMin(24.0f), m_delaySpreadMax(2400.0f), m_pdelRight_out(0.0), m_currentMod(1.0),
+      m_delaySamplesMax(96000.0f), // 2 s at 48 kHz (the menu shows 50 to 2000 ms) m_delaySpreadMin(24.0f), m_delaySpreadMax(2400.0f), m_pdelRight_out(0.0), m_currentMod(1.0),
       m_modOscFreqMin(0.0), m_modOscFreqMax(3.0), m_LEDValue(1.0f) {
     // Set the name of the effect
     m_name = "Delay";
@@ -352,8 +352,62 @@ void DelayModule::ProcessModulation() {
     }
 }
 
+// Switching the delay on starts from silence: the lines still hold what was played the last time it was on (in a chain, a switched-off slot is
+// not processed at all, so its lines are frozen, and on its own the same happens without Trails), which would otherwise come back as echoes.
+// Not while the tail is still ringing out (Trails): then the repeats are kept.
+void DelayModule::SetEnabled(bool isEnabled) {
+    const bool wasEnabled = IsEnabled();
+    BaseEffectModule::SetEnabled(isEnabled);
+    if (isEnabled && !wasEnabled && !IsTrailing()) {
+        StartClear();
+    }
+}
+
+void DelayModule::StartClear() {
+    m_clearStart[0] = delayLineLeft.WritePos();
+    m_clearStart[1] = delayLineRight.WritePos();
+    m_clearStart[2] = delayLineRevLeft.WritePos();
+    m_clearStart[3] = delayLineRevRight.WritePos();
+    m_clearDone = 0;
+    m_clearWrites = 0;
+    m_clearing = true;
+    delayLeft.muted = true;
+    delayRight.muted = true;
+    delayLineSpread.Init(); // 50 ms: cheap enough to clear at once
+    for (delayRevOct *d : {&delayLeft, &delayRight}) { // the feedback low-pass would let its last output ring on
+        const float freq = d->toneOctLP.GetFreq();
+        d->toneOctLP.Init(effect_samplerate);
+        d->toneOctLP.SetFreq(freq);
+    }
+}
+
+// One sample's share of the clearing (called once per sample, before the lines are written, so the result does not depend on the block size).
+// Each line is zeroed from its newest stale sample towards the new writes, and the sweep stops where the two meet: what is written while it
+// runs is kept. Both kinds of line have the same size, so one count serves all four.
+void DelayModule::StepClear() {
+    static_assert(MAX_DELAY_NORM == MAX_DELAY_REV, "the clearing uses one count for both kinds of line");
+    constexpr size_t kPerSample = 64; // about 0.12 s for the 8 s lines
+    const size_t remaining = MAX_DELAY_NORM - m_clearDone - m_clearWrites;
+    const size_t n = remaining < kPerSample ? remaining : kPerSample;
+    delayLineLeft.ClearStale(m_clearStart[0], m_clearDone, n);
+    delayLineRight.ClearStale(m_clearStart[1], m_clearDone, n);
+    delayLineRevLeft.ClearStale(m_clearStart[2], m_clearDone, n);
+    delayLineRevRight.ClearStale(m_clearStart[3], m_clearDone, n);
+    m_clearDone += n;
+    m_clearWrites += 1; // the sample about to be written
+    if (m_clearDone + m_clearWrites >= MAX_DELAY_NORM) {
+        m_clearing = false;
+        delayLeft.muted = false;
+        delayRight.muted = false;
+    }
+}
+
 void DelayModule::ProcessMono(float in) {
     BaseEffectModule::ProcessMono(in);
+
+    if (m_clearing) {
+        StepClear();
+    }
 
     m_LEDValue = led_osc.Process(); // update the tempo LED
 
@@ -429,6 +483,10 @@ void DelayModule::ProcessStereo(float inL, float inR) {
 
     // Do the base stereo calculation (which resets the right signal to be the inputR instead of combined mono)
     BaseEffectModule::ProcessStereo(inL, inR);
+
+    if (m_clearing) {
+        StepClear();
+    }
 
     m_LEDValue = led_osc.Process(); // update the tempo LED
 
