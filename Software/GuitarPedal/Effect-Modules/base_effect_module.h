@@ -3,6 +3,7 @@
 #define BASE_EFFECT_MODULE_H
 
 #include "daisy_seed.h"
+#include "../Util/chain_switches.h"
 #include <stdint.h>
 #ifdef __cplusplus
 
@@ -364,6 +365,18 @@ class BaseEffectModule {
     virtual void AlternateFootswitchReleased(){};
     /** Overridable callback when alternate footswitch is held for 1 second */
     virtual void AlternateFootswitchHeldFor1Second(){};
+
+    /** An effect made of slots (EffectChain) reports them here, so the footswitches can switch them (its "Switches" parameter, see
+     *  Util/chain_switches.h). A plain effect has none. */
+    virtual int GetSlotCount() const { return 0; }
+    /** The slots the two footswitches switch instead of working as usual (none for a plain effect, or a chain with Switches at Normal) */
+    virtual chainswitches::Assignment GetFootswitchSlots() const { return chainswitches::Assignment{}; }
+    /** \return true if the slot (0-based) is switched on */
+    virtual bool IsSlotOn(int /*slot*/) const { return false; }
+    /** Switches a slot on or off (with the effect's own crossfade) */
+    virtual void SetSlotOn(int /*slot*/, bool /*on*/) {}
+    /** \return how far a slot is faded in, 0..1 (for the LEDs) */
+    virtual float GetSlotLevel(int /*slot*/) const { return 0.0f; }
 
     void SetCPUUsage(float cpuUsage) { m_cpuUsage = cpuUsage; };
     float GetCPUUsage() const { return m_cpuUsage; }

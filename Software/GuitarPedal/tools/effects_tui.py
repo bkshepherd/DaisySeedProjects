@@ -572,6 +572,11 @@ CHAIN_HELP = [
     "the footswitch for a second (the shift bank). An effect that keeps big buffers can only",
     "exist once: in a chain it cannot also be enabled on its own.",
     "",
+    "On the pedal, a chain of two or more effects also has a Switches parameter in its menu:",
+    "1+2, 1+3 or 2+3 puts those two effects on the right and left footswitches (each switches",
+    "its effect on and off, and its LED shows it), overriding the footswitch settings above;",
+    "Normal (the default) keeps them. See the user manual (Footswitches and LEDs).",
+    "",
     "Press any key to close.",
 ]
 

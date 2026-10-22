@@ -5,6 +5,7 @@
 
 #include "UI/guitar_pedal_ui.h"
 #include "Util/audio_utilities.h"
+#include "Util/chain_switches.h"
 #include "Util/heap_guard.h"
 #include "Util/tap_tempo.h"
 
@@ -237,6 +238,19 @@ void processFootswitches(size_t size, Settings &settings)
     // we need to perform a toggle at the end of processing the switches
     bool oldEffectOn = effectOn;
 
+    // An effect chain's "Switches" parameter: the two footswitches switch two of its slots instead (Util/chain_switches.h). The effect itself
+    // then stays on (with both slots off, the slots without a footswitch still play, or the signal is dry); tap tempo and the effect's own
+    // alternate functions (the chain's shift bank, a Looper's record, ...) are given up. The hold gestures (tuner, effect cycling, saving) stay:
+    // the press of a hold has already switched a slot, so they switch it back.
+    const chainswitches::Assignment chainSlots = activeEffect != nullptr ? activeEffect->GetFootswitchSlots() : chainswitches::Assignment{};
+    auto toggleChainSlot = [](int slot) {
+        activeEffect->SetSlotOn(slot, !activeEffect->IsSlotOn(slot));
+        needToRefreshMenuParameterValues = true;
+    };
+    if (chainSlots.Active() && !effectOn) {
+        effectOn = true;
+    }
+
     // Process potential footswitch actions before the main switch processing loop
     if (has_alternate_footswitch) {
         // Handle the scenario where have 2 footswitches
@@ -249,6 +263,10 @@ void processFootswitches(size_t size, Settings &settings)
                 2000 &&
             !guitarPedalUI.IsShowingSavingSettingsScreen() && !ignoreBypassSwitchUntilNextActuation) {
 
+            if (chainSlots.Active()) { // the two presses switched the slots: save them as they were
+                toggleChainSlot(chainSlots.bypassSlot);
+                toggleChainSlot(chainSlots.alternateSlot);
+            }
             needToSaveSettingsForActiveEffect = true;
             ignoreBypassSwitchUntilNextActuation = true;
         }
@@ -258,6 +276,10 @@ void processFootswitches(size_t size, Settings &settings)
         if (hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Bypass)].TimeHeldMs() > 2000 &&
             !hardware.switches[hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)].Pressed() &&
             !ignoreBypassSwitchUntilNextActuation) {
+
+            if (chainSlots.Active()) { // the press switched a slot rather than the effect: switch it back
+                toggleChainSlot(chainSlots.bypassSlot);
+            }
 
             // If we have a screen and there is a tuner module, we quick switch
             // to it, otherwise we just cycle through the effects.
@@ -275,8 +297,9 @@ void processFootswitches(size_t size, Settings &settings)
                     // chnage due to the rising edge being detected
                     effectOn = !effectActiveBeforeQuickSwitch;
                 } else {
-                    // Store if effect is on or not when quick switching
-                    effectActiveBeforeQuickSwitch = effectOn;
+                    // Store if effect is on or not when quick switching (inverted when restored, see above; with chain slots on the
+                    // footswitches the press did not switch the effect, so it is stored inverted)
+                    effectActiveBeforeQuickSwitch = chainSlots.Active() ? !effectOn : effectOn;
 
                     // Switch to tuner and force it to be enabled
                     pendingEffectIDFromAudioCallback = tunerModuleIndex;
@@ -325,12 +348,21 @@ void processFootswitches(size_t size, Settings &settings)
         // If this is the bypass switch, check for a bypass transition already
         // in progress (isCrossFading), and toggle the effect if the switch is
         // pressed
-        if (!ignoreBypassSwitchUntilNextActuation && !isCrossFading &&
-            i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Bypass) && switchPressed) {
+        if (chainSlots.Active()) {
+            if (!ignoreBypassSwitchUntilNextActuation && switchPressed &&
+                i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Bypass)) {
+                toggleChainSlot(chainSlots.bypassSlot);
+            }
+            if (switchPressed && i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)) {
+                toggleChainSlot(chainSlots.alternateSlot);
+            }
+        } else if (!ignoreBypassSwitchUntilNextActuation && !isCrossFading &&
+                   i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Bypass) && switchPressed) {
             effectOn = !effectOn;
         }
 
-        if (effectOn && switchPressed && i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)) {
+        if (!chainSlots.Active() && effectOn && switchPressed &&
+            i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)) {
             activeEffect->AlternateFootswitchPressed();
             needToRefreshMenuParameterValues = true;
         }
@@ -339,13 +371,13 @@ void processFootswitches(size_t size, Settings &settings)
         if (switchReleased && i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)) {
             alternateHeldFor1SecondTriggered = false;
         }
-        if (effectOn && switchReleased && i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)) {
+        if (!chainSlots.Active() && effectOn && switchReleased && i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)) {
             activeEffect->AlternateFootswitchReleased();
             needToRefreshMenuParameterValues = true;
         }
 
         bool switchHeld = hardware.switches[i].TimeHeldMs() >= 1000.f;
-        if (effectOn && switchHeld && !alternateHeldFor1SecondTriggered &&
+        if (!chainSlots.Active() && effectOn && switchHeld && !alternateHeldFor1SecondTriggered &&
             i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)) {
             alternateHeldFor1SecondTriggered = true;
             activeEffect->AlternateFootswitchHeldFor1Second();
@@ -379,7 +411,7 @@ void processFootswitches(size_t size, Settings &settings)
             // between the last two (see Util/tap_tempo.h)
             if (i == hardware.GetPreferredSwitchIDForSpecialFunctionType(SpecialFunctionType::Alternate)) {
                 int tapInterval = 0;
-                if (!activeEffect->AlternateFootswitchForTempo()) {
+                if (chainSlots.Active() || !activeEffect->AlternateFootswitchForTempo()) {
                     alternateTapSeries.Reset();
                 } else if (alternateTapSeries.Tap(followsPrevious, switchEnabledIdleTimeInSamples - switchEnabledSamplesTilIdle[i], tapInterval)) {
                     needToChangeTempo = true;
@@ -591,6 +623,13 @@ static void AudioCallback(AudioHandle::InputBuffer inRaw, AudioHandle::OutputBuf
         // Update state of the LEDs
         led1Brightness = activeEffect->GetBrightnessForLED(0);
         led2Brightness = activeEffect->GetBrightnessForLED(1);
+
+        // With chain slots on the footswitches, each LED shows the slot of its footswitch (the right one LED 1)
+        const chainswitches::Assignment chainSlots = activeEffect->GetFootswitchSlots();
+        if (chainSlots.Active()) {
+            led1Brightness = activeEffect->GetSlotLevel(chainSlots.bypassSlot);
+            led2Brightness = activeEffect->GetSlotLevel(chainSlots.alternateSlot);
+        }
     }
 
     for (size_t i = 0; i < size; i++) {

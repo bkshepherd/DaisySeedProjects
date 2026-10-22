@@ -213,6 +213,10 @@ else FAILS=$((FAILS + 1)); fi
 step "Tap tempo series (Util/tap_tempo.h): three taps, the tempo from the last two"
 if build "$B/t_tap_tempo" $T/test_tap_tempo.cpp; then check "$B/t_tap_tempo"; else FAILS=$((FAILS + 1)); fi
 
+step "Chain Switches (Util/chain_switches.h): which slots the footswitches get, the Switches parameter, the slot interface of EffectChain"
+if build "$B/t_chain_switches" $T/test_chain_switches.cpp Effect-Modules/effect_chain.cpp Effect-Modules/screamer_module.cpp Effect-Modules/wavefolder_module.cpp \
+    Effect-Modules/tape_sat_module.cpp $DSP/Dynamics/crossfade.cpp $BASEMOD; then check "$B/t_chain_switches"; else FAILS=$((FAILS + 1)); fi
+
 step "Test Tone: waveforms, level, frequency, smooth changes, input ignored"
 if XFLAGS= build "$B/t_test_tone" $T/test_test_tone.cpp Effect-Modules/test_tone_module.cpp $BASEMOD; then check "$B/t_test_tone"; else FAILS=$((FAILS + 1)); fi
 

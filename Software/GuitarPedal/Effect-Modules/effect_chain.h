@@ -137,6 +137,11 @@ class EffectChain : public BaseEffectModule {
     void AlternateFootswitchPressed() override;
     void AlternateFootswitchReleased() override;
     void AlternateFootswitchHeldFor1Second() override;
+    int GetSlotCount() const override { return m_slotCount; }
+    bool IsSlotOn(int slot) const override;
+    void SetSlotOn(int slot, bool on) override;
+    float GetSlotLevel(int slot) const override;
+    chainswitches::Assignment GetFootswitchSlots() const override;
 
   protected:
     void ParameterChanged(int parameter_id) override;
@@ -166,6 +171,8 @@ class EffectChain : public BaseEffectModule {
 
     ChainSlot *m_slots;
     int m_slotCount;
+    int m_switchesParam;  // the id of the "Switches" parameter (which slots the footswitches switch), -1 for a chain of one
+    int m_childParamBase; // the id of the first child parameter: after the slots' On parameters and Switches
     int m_primarySlot;
 
     int *m_footswitchToggleSlots;

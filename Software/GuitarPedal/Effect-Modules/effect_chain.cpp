@@ -66,7 +66,8 @@ constexpr float kSlotFadeTimeInSeconds = 0.1f;
 
 EffectChain::EffectChain(const char *name, std::initializer_list<ChainSlot> slots, std::initializer_list<ChainMapping> mappings,
                           int primarySlot, std::initializer_list<int> footswitchTogglesSlots)
-    : BaseEffectModule(), m_slotCount(static_cast<int>(slots.size())), m_primarySlot(primarySlot), m_hasShiftBank(false),
+    : BaseEffectModule(), m_slotCount(static_cast<int>(slots.size())), m_switchesParam(m_slotCount >= 2 ? m_slotCount : -1),
+      m_childParamBase(m_slotCount + (m_slotCount >= 2 ? 1 : 0)), m_primarySlot(primarySlot), m_hasShiftBank(false),
       m_shiftModeActive(false), m_fadeTimeSamples(1), m_combinedMetaData(nullptr), m_combinedNames(nullptr),
       m_paramSlot(nullptr), m_paramChildId(nullptr) {
     m_slots = new ChainSlot[m_slotCount];
@@ -98,14 +99,14 @@ EffectChain::EffectChain(const char *name, std::initializer_list<ChainSlot> slot
     }
 
     // Work out where each child's parameters start in the combined list,
-    // after the m_slotCount enable parameters.
+    // after the m_slotCount enable parameters and Switches (m_childParamBase).
     int *slotParamOffset = new int[m_slotCount];
     int totalChildParamCount = 0;
     for (int s = 0; s < m_slotCount; s++) {
         slotParamOffset[s] = totalChildParamCount;
         totalChildParamCount += m_slots[s].effect->GetParameterCount();
     }
-    const int totalParamCount = m_slotCount + totalChildParamCount;
+    const int totalParamCount = m_childParamBase + totalChildParamCount;
 
     m_combinedMetaData = new ParameterMetaData[totalParamCount];
     m_combinedNames = new char *[totalParamCount];
@@ -132,6 +133,27 @@ EffectChain::EffectChain(const char *name, std::initializer_list<ChainSlot> slot
         md.fineStepSize = 0.01f;
     }
 
+    // "Switches": which two slots the footswitches switch on and off instead of working as usual (Util/chain_switches.h; the pedal reads it
+    // through GetFootswitchSlots). A chain of two only offers Normal and 1+2.
+    if (m_switchesParam >= 0) {
+        char *nameBuf = new char[kMaxCombinedNameLength];
+        snprintf(nameBuf, kMaxCombinedNameLength, "Switches");
+        m_combinedNames[m_switchesParam] = nameBuf;
+
+        ParameterMetaData &md = m_combinedMetaData[m_switchesParam];
+        md.name = nameBuf;
+        md.valueType = ParameterValueType::Binned;
+        md.valueCurve = ParameterValueCurve::Linear;
+        md.valueBinCount = m_slotCount >= 3 ? chainswitches::MODE_COUNT : chainswitches::SLOTS_1_2 + 1;
+        md.valueBinNames = chainswitches::kModeNames;
+        md.defaultValue.uint_value = chainswitches::NORMAL;
+        md.knobMapping = -1;
+        md.midiCCMapping = -1;
+        md.minValue = 0;
+        md.maxValue = 1;
+        md.fineStepSize = 0.01f;
+    }
+
     // Rebuild a ParameterMetaData entry for every child parameter from that
     // child's own public getters. This has to go through the public API:
     // m_paramMetaData is protected, so this chain can't reach into a sibling
@@ -142,7 +164,7 @@ EffectChain::EffectChain(const char *name, std::initializer_list<ChainSlot> slot
 
         for (int p = 0; p < childParamCount; p++) {
             const int childArrayIdx = slotParamOffset[s] + p;
-            const int id = m_slotCount + childArrayIdx;
+            const int id = m_childParamBase + childArrayIdx;
 
             char *nameBuf = new char[kMaxCombinedNameLength];
             snprintf(nameBuf, kMaxCombinedNameLength, "%s %s", m_slots[s].tag, child->GetParameterName(p));
@@ -195,7 +217,7 @@ EffectChain::EffectChain(const char *name, std::initializer_list<ChainSlot> slot
             if (mapping.childParamId < 0 || mapping.childParamId >= (int)child->GetParameterCount()) {
                 continue;
             }
-            id = m_slotCount + slotParamOffset[mapping.slot] + mapping.childParamId;
+            id = m_childParamBase + slotParamOffset[mapping.slot] + mapping.childParamId;
         }
 
         m_combinedMetaData[id].knobMapping = mapping.knobMapping;
@@ -267,10 +289,10 @@ void EffectChain::Init(float sample_rate) {
     // children's own defaults at construction, and the host always calls
     // Init() before restoring settings from persistent storage - but it
     // keeps "child params match the chain's" true unconditionally rather
-    // than relying on that ordering. Slot enable parameters (ids below
-    // m_slotCount) have no child to push to.
-    for (int i = m_slotCount; i < m_paramCount; i++) {
-        const int childArrayIdx = i - m_slotCount;
+    // than relying on that ordering. Slot enable parameters and Switches (ids
+    // below m_childParamBase) have no child to push to.
+    for (int i = m_childParamBase; i < m_paramCount; i++) {
+        const int childArrayIdx = i - m_childParamBase;
         m_slots[m_paramSlot[childArrayIdx]].effect->SetParameterRaw(m_paramChildId[childArrayIdx], m_params[i]);
     }
 }
@@ -487,6 +509,22 @@ void EffectChain::AlternateFootswitchHeldFor1Second() {
     PullParametersFromChildren();
 }
 
+// The slots for the footswitches (the "Switches" parameter): a slot is switched through its own "<tag> On" parameter, so a footswitch press is saved, shown in
+// the menu and crossfaded like any other change of it (as in the alternate footswitch's toggle mode above).
+bool EffectChain::IsSlotOn(int slot) const { return slot >= 0 && slot < m_slotCount && m_params[slot] != 0; }
+
+void EffectChain::SetSlotOn(int slot, bool on) {
+    if (slot >= 0 && slot < m_slotCount) {
+        SetParameterAsBool(slot, on);
+    }
+}
+
+float EffectChain::GetSlotLevel(int slot) const { return (slot >= 0 && slot < m_slotCount) ? m_slotFadePos[slot] : 0.0f; }
+
+chainswitches::Assignment EffectChain::GetFootswitchSlots() const {
+    return m_switchesParam >= 0 ? chainswitches::Resolve(static_cast<int>(m_params[m_switchesParam]), m_slotCount) : chainswitches::Assignment{};
+}
+
 void EffectChain::ParameterChanged(int parameter_id) {
     if (parameter_id < 0 || parameter_id >= m_paramCount) {
         return;
@@ -498,8 +536,11 @@ void EffectChain::ParameterChanged(int parameter_id) {
         StartSlotFade(parameter_id, m_params[parameter_id] != 0);
         return;
     }
+    if (parameter_id == m_switchesParam) {
+        return; // the chain's own setting: read by the pedal through GetFootswitchSlots
+    }
 
-    const int childArrayIdx = parameter_id - m_slotCount;
+    const int childArrayIdx = parameter_id - m_childParamBase;
     BaseEffectModule *child = m_slots[m_paramSlot[childArrayIdx]].effect;
     const int childParamId = m_paramChildId[childArrayIdx];
 
@@ -516,8 +557,8 @@ void EffectChain::ParameterChanged(int parameter_id) {
 }
 
 void EffectChain::PullParametersFromChildren() {
-    for (int i = m_slotCount; i < m_paramCount; i++) {
-        const int childArrayIdx = i - m_slotCount;
+    for (int i = m_childParamBase; i < m_paramCount; i++) {
+        const int childArrayIdx = i - m_childParamBase;
         SetParameterRaw(i, m_slots[m_paramSlot[childArrayIdx]].effect->GetParameterRaw(m_paramChildId[childArrayIdx]));
     }
 }

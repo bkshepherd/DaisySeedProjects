@@ -112,6 +112,8 @@ A `ChainMapping` can also target a slot's own "On" parameter instead of a child 
 `EffectChain::SLOT_ENABLE` sentinel (e.g. `{0, EffectChain::SLOT_ENABLE, -1, 30}`), which puts that
 bypass on a MIDI CC regardless of whether the footswitch is also toggling it.
 
+Every chain of two or more slots also gets a **Switches** parameter in its menu, after the On checkboxes: Normal, or 1+2, 1+3, 2+3 (a chain of two only offers Normal and 1+2), which puts those two slots on the right and left footswitches at runtime. While it is not Normal it overrides `footswitchTogglesSlots` and the alternate footswitch's other functions (see `Util/chain_switches.h` and the user manual). It is saved with the chain's presets.
+
 Turning a slot off crossfades it out over about a tenth of a second and then stops processing it
 entirely, both to avoid a click and to save CPU. Note the delay/reverb trails are not preserved.
 

@@ -27,6 +27,7 @@
 - **Dist Bench:** a test bench with up to four distortion stages in series, each Off or one of Preamp, Screamer, Muff Fuzz, Wavefolder, Exciter, Bass Dist, Octa Fuzz, Tape Sat, Chainsaw, Overdrive and Distortion, with the same Drive, Tone, Char and Level controls for every type (50% is the effect's own default).
 
 ## Settings and display
+- **Effect chains: Switches** (a parameter of every chain of two or more effects): the two footswitches switch two of its effects on and off (1+2, 1+3 or 2+3), each LED showing its effect; saved with the chain's presets.
 - **New global settings:** In Gain and Out Gain (-24 to +24 dB), Trails, Lock Knobs (on by default); Show Debug is now saved.
 - **Show Debug readouts:** CPU percentage, averaged input and output peak levels, heap use with an out-of-memory guard.
 - **Menus:** long texts fit the display (auto-fit font, `~` cut, 8x13 bold font); parameters show units and decimals.
