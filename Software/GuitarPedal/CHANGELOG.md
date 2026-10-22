@@ -57,6 +57,7 @@
 - **Reference test:** the NAM effect matches NeuralAmpModelerCore to 106-133 dB signal/error.
 
 ## Build tool (`effects_config.sh`)
+- **Clear everything** (key `x`): deselects every effect, removes the chains and forbids the GPL effects again, to start a selection from scratch (asks first; nothing is written until saved, and an empty selection cannot be saved).
 - **Effect selection** in an interactive full-screen tool (`effects.config`, presets in `configs/`); it asks before allowing a GPL effect.
 - **Chains** can be made in the tool and are generated into the build.
 - **Memory budget** report and a matrix of which effects fit together; boot results are recorded in `effects-memory.json`.

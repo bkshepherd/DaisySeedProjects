@@ -6,6 +6,7 @@
   p                                       start from a preset
   a                                       allow / forbid the GPL-3.0 effects (ALLOW_GPL)
   c                                       effect chains: several effects combined into one menu entry
+  x                                       clear everything: no effects, no chains, GPL forbidden (asks first; nothing is written until saved)
   i                                       about the effect under the cursor: origin, copyright lines, who committed it
   r                                       the memory budget in detail
   h                                       help
@@ -29,6 +30,7 @@ HELP = [
     "  a                    allow / forbid the GPL-3.0 effects (ALLOW_GPL)",
     "  c                    effect chains: several effects combined into one menu entry",
     "                       ([c] in the list is an effect that is only built for a chain)",
+    "  x                    clear everything (no effects, no chains, GPL forbidden), to start from scratch",
     "  i                    about the effect: origin, copyright lines, who committed it",
     "  r                    the memory budget in detail",
     "  h                    this help               q   quit",
@@ -106,12 +108,24 @@ class Selector:
         self.dirty = True
         self.message = "preset %s loaded (not saved)" % name
 
+    def clear(self):
+        """Everything off: no effects, no chains, the GPL effects forbidden again (not saved until save())."""
+        self.enabled = set()
+        self.chains = []
+        self.options["ALLOW_GPL"] = False
+        self.cursor = 0
+        self.top = 0
+        self.dirty = True
+        self.message = "cleared (not saved): select the effects, then s to save"
+
     # -- what the selection needs
     def built(self):
         """What is compiled: the standalone effects and every effect that is a slot of a chain."""
         return self.fx.effective_enabled(self.enabled, self.chains)
 
     def problems(self):
+        if not self.built():
+            return ["nothing is selected (the firmware needs at least one effect)"]
         return self.fx.selection_problems(self.built(), self.options, self.m) + self.fx.all_chain_problems(self.enabled, self.chains, self.m, self.mem)
 
     def ids(self):
@@ -777,6 +791,13 @@ def loop(stdscr, fx):
                 sel.load_preset(name)
         elif key == ord("c"):
             chains_screen(stdscr, sel, colors)
+        elif key == ord("x"):
+            what = "%d effects" % len(sel.enabled) + (" and %d chains" % len(sel.chains) if sel.chains else "")
+            answer = _popup(stdscr, ["Deselect all %s, and forbid the GPL effects again?" % what, "",
+                                     "Nothing is written until you save (s); quitting without saving undoes it.", "",
+                                     "  y  clear everything     any other key  cancel"], "Clear everything")
+            if answer in (ord("y"), ord("Y")):
+                sel.clear()
         elif key == ord("i"):
             _popup(stdscr, sel.info_lines(min(80, stdscr.getmaxyx()[1] - 6)), sel.current()["id"])
         elif key == ord("r"):

@@ -20,7 +20,7 @@ The selection is kept in **`effects.config`**. The tool also generates what depe
 `make` regenerates them by itself when `effects.config` changes, so after editing the file (or running one of these) just build:
 
 ```text
-./effects_config.sh                           # the interactive full-screen selection (curses): arrows to move, space to select, s to save, h for help
+./effects_config.sh                           # the interactive full-screen selection (curses): arrows to move, space to select, s to save, x to clear everything (no effects, no chains), h for help
 ./effects_config.sh observe "boots and runs" --heap-used 120 --heap-free 136   # record what the pedal showed (Show Debug) for the current selection
 ./effects_config.sh lint                      # parameter names and choices that are too long for the big font (the display draws them smaller; over 22 characters they would be cut)
 ./effects_config.sh info funbox-uranus               # what is known about an effect: origin, copyright lines in its source, who committed it, memory (key i in the interactive mode)

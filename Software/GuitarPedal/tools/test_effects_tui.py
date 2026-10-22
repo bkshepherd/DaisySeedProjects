@@ -126,6 +126,22 @@ class SelectorTest(unittest.TestCase):
         self.sel.load_preset("uranus-only")  # its file says ALLOW_GPL=n
         self.assertTrue(self.sel.options.get("ALLOW_GPL"))
 
+    def test_clear_everything(self):
+        self.sel.toggle_gpl()
+        self.sel.chains = [{"name": "Two", "slots": [{"tag": "Sc", "effect": "screamer"}, {"tag": "Ch", "effect": "chainsaw"}], "mappings": [], "primary": 0, "toggle": []}]
+        self.sel.clear()
+        self.assertEqual(self.sel.enabled, set())
+        self.assertEqual(self.sel.chains, [])
+        self.assertFalse(self.sel.options.get("ALLOW_GPL"))
+        self.assertTrue(self.sel.dirty)
+        self.assertEqual(self.sel.ids(), [])
+        self.assertIn("nothing is selected", " ".join(self.sel.problems()))
+        self.assertFalse(self.sel.save())  # an empty selection cannot be saved (the firmware needs an effect)
+        self.assertEqual(open(fx.CONFIG).read(), "ALLOW_GPL=n\nfunbox-uranus=y\n")  # nothing written
+        self.sel.toggle("screamer")
+        self.assertEqual(self.sel.problems(), [])
+        self.assertTrue(self.sel.save())
+
     def test_presets(self):
         self.assertIn("everything", self.sel.presets())
         self.assertIn("uranus-only", self.sel.presets())
@@ -391,6 +407,17 @@ class ScreenTest(unittest.TestCase):
         self.assertIn("Help", text)
         self.assertIn("Unsaved changes", text)  # the selection was changed, so quitting asked
         self.assertIn("* ", text)
+        self.assertEqual(open(os.path.join(self.root.name, "effects.config")).read(), "ALLOW_GPL=n\nfunbox-uranus=y\n")  # n: nothing saved
+
+    def test_clear_asks_first_and_is_not_saved_until_s(self):
+        cancelled, code = self.run_keys([b"x", b"n", b"q"])
+        self.assertEqual(code, 0)
+        self.assertIn("Clear everything", cancelled)
+        self.assertNotIn("Unsaved changes", cancelled)  # n: nothing changed, so quitting does not ask
+        cleared, code = self.run_keys([b"x", b"y", b"q", b"n"])
+        self.assertEqual(code, 0)
+        self.assertIn("0 effects", cleared)
+        self.assertIn("Unsaved changes", cleared)
         self.assertEqual(open(os.path.join(self.root.name, "effects.config")).read(), "ALLOW_GPL=n\nfunbox-uranus=y\n")  # n: nothing saved
 
     def test_selecting_a_gpl_effect_asks_to_allow_it(self):
