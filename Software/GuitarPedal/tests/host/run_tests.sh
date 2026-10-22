@@ -199,10 +199,16 @@ if build "$B/t_block_conv" $T/test_block_conversions.cpp Effect-Modules/crusher_
     [ "$BCFAIL" -eq 0 ] && echo "  Crusher with pitch tracking on: block paths equal the per-sample paths, 6 configurations   OK" || FAILS=$((FAILS + 1))
 else FAILS=$((FAILS + 1)); fi
 
-step "Distortion family (Preamp, Screamer, Muff Fuzz, Wavefolder, Exciter, Bass Dist, Octa Fuzz, Tape Sat): block path, bounds, behaviour"
+step "Distortion family (Preamp, Screamer, Muff Fuzz, Wavefolder, Exciter, Bass Dist, Octa Fuzz, Tape Sat, Chainsaw): block path, bounds, behaviour"
 FAMSRC="Effect-Modules/preamp_module.cpp Effect-Modules/screamer_module.cpp Effect-Modules/muff_fuzz_module.cpp Effect-Modules/wavefolder_module.cpp \
- Effect-Modules/exciter_module.cpp Effect-Modules/bass_dist_module.cpp Effect-Modules/octave_fuzz_module.cpp Effect-Modules/tape_sat_module.cpp"
+ Effect-Modules/exciter_module.cpp Effect-Modules/bass_dist_module.cpp Effect-Modules/octave_fuzz_module.cpp Effect-Modules/tape_sat_module.cpp Effect-Modules/chainsaw_module.cpp"
 if build "$B/t_dist_family" $T/test_distortion_family.cpp $FAMSRC $BASEMOD; then check "$B/t_dist_family"; else FAILS=$((FAILS + 1)); fi
+
+step "Dist Bench (four distortion stages in series): each type as on its own, the generic controls, block path, bounds, type change"
+if build "$B/t_dist_bench" $T/test_dist_bench.cpp Effect-Modules/dist_bench_module.cpp $FAMSRC Effect-Modules/overdrive_module.cpp $DSP/Effects/overdrive.cpp \
+    Effect-Modules/distortion_module.cpp $LGPL/Filters/tone.cpp $BASEMOD; then
+    check "$B/t_dist_bench"
+else FAILS=$((FAILS + 1)); fi
 
 step "Tap tempo series (Util/tap_tempo.h): three taps, the tempo from the last two"
 if build "$B/t_tap_tempo" $T/test_tap_tempo.cpp; then check "$B/t_tap_tempo"; else FAILS=$((FAILS + 1)); fi

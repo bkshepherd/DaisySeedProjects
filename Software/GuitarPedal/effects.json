@@ -84,6 +84,16 @@
    "note": "Distortion that keeps the lows clean: only the band above the crossover is distorted (soft, hard or fuzz)"
   },
   {
+   "id": "chainsaw",
+   "class": "ChainsawModule",
+   "header": "chainsaw_module.h",
+   "sources": [
+    "Effect-Modules/chainsaw_module.cpp"
+   ],
+   "origin": "this project (spamatica)",
+   "note": "Boss HM-2-style heavy metal distortion (the Swedish chainsaw sound): hard clipping into resonant Low (87 Hz) and High (960 Hz and 1.28 kHz) peaks"
+  },
+  {
    "id": "chopper",
    "class": "ChopperModule",
    "header": "chopper_module.h",
@@ -149,6 +159,27 @@
     "Effect-Modules/delay_module.cpp"
    ],
    "note": "single-instance only"
+  },
+  {
+   "id": "dist_bench",
+   "class": "DistBenchModule",
+   "header": "dist_bench_module.h",
+   "sources": [
+    "Effect-Modules/dist_bench_module.cpp",
+    "Effect-Modules/preamp_module.cpp",
+    "Effect-Modules/screamer_module.cpp",
+    "Effect-Modules/muff_fuzz_module.cpp",
+    "Effect-Modules/wavefolder_module.cpp",
+    "Effect-Modules/exciter_module.cpp",
+    "Effect-Modules/bass_dist_module.cpp",
+    "Effect-Modules/octave_fuzz_module.cpp",
+    "Effect-Modules/tape_sat_module.cpp",
+    "Effect-Modules/overdrive_module.cpp",
+    "Effect-Modules/distortion_module.cpp",
+    "Effect-Modules/chainsaw_module.cpp"
+   ],
+   "origin": "this project (spamatica)",
+   "note": "test bench: up to four distortion stages in series (the nine distortion family effects, the Overdrive and the Distortion), generic Drive/Tone/Char/Level per stage"
   },
   {
    "id": "distortion",

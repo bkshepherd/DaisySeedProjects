@@ -23,6 +23,8 @@
 - **Bass Dist:** a distortion that keeps the lows clean (Linkwitz-Riley split, soft, hard or fuzz clip).
 - **Octa Fuzz:** an Octavia-style octave-up fuzz.
 - **Tape Sat:** tape and transformer saturation with warmth and high roll-off.
+- **Chainsaw:** an HM-2-style heavy metal distortion, the "Swedish chainsaw": hard clipping into resonant Low (87 Hz) and High (960 Hz and 1.28 kHz) boosts.
+- **Dist Bench:** a test bench with up to four distortion stages in series, each Off or one of Preamp, Screamer, Muff Fuzz, Wavefolder, Exciter, Bass Dist, Octa Fuzz, Tape Sat, Chainsaw, Overdrive and Distortion, with the same Drive, Tone, Char and Level controls for every type (50% is the effect's own default).
 
 ## Settings and display
 - **New global settings:** In Gain and Out Gain (-24 to +24 dB), Trails, Lock Knobs (on by default); Show Debug is now saved.
@@ -38,6 +40,7 @@
 - **The menu could undo a change an effect had just made itself** (Crusher Pitch Tracking and Uranus Hold toggled only sometimes).
 - **Global Settings:** Back no longer overwrites the Reboot text.
 - **Balnea:** the Time menu step is fixed.
+- **Distortion:** two Distortions (in an effect chain or the Dist Bench) no longer share their filters; a single Distortion sounds exactly as before.
 - **Venus:** Oct Up+Dn now also shifts down.
 - **LEDs** work with GCC 13.
 - **Build:** Jupiter plus Neptune builds; a changed CloudSeed pool size rebuilds everything.

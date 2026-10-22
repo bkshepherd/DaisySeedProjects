@@ -145,7 +145,7 @@ def generate(quiet=False):
                 defines.append(d)
     for e in effects:
         sources += e["sources"]
-    for s in sources:
+    for s in dict.fromkeys(sources):  # once each: an effect can use another effect's sources (the Dist Bench those of the effects it runs)
         mk.append("CPP_SOURCES += %s" % s)
     for s in c_sources:
         mk.append("C_SOURCES += %s" % s)

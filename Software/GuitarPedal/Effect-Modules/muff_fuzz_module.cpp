@@ -9,7 +9,7 @@ using namespace distdsp;
 namespace {
 const char *s_modeNames[3] = {"Classic", "Fat", "Bright"};
 constexpr float kToneCornerHz[3] = {1500.0f, 800.0f, 3000.0f};
-constexpr float kMakeup[3] = {0.0420f, 0.0420f, 0.0420f}; // level match of the modes at default settings (see tests/host/levels/test_level_distortion_family.cpp)
+constexpr float kMakeup[3] = {0.1580f, 0.1580f, 0.1580f}; // the level: matched to the Preamp's Crunch when both are saturated (see tests/host/levels/test_level_distortion_family.cpp)
 constexpr float kSmoothing = 0.002f;
 } // namespace
 

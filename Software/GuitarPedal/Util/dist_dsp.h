@@ -113,4 +113,23 @@ struct HardClipAdaa {
     void Reset() { x1 = 0.0f; F1 = 0.0f; }
 };
 
+/** Dead band of +-d around zero (back-to-back diodes in the signal path: nothing passes until the signal exceeds their forward voltage, which
+ *  gives crossover distortion and gates the tail of a note), with first-order antiderivative anti-aliasing. */
+struct DeadZoneAdaa {
+    float d = 0.05f;
+    float x1 = 0.0f, F1 = 0.0f;
+    float f(float x) const { return x > d ? x - d : (x < -d ? x + d : 0.0f); }
+    float F(float x) const { // the antiderivative (even, F(0) = 0)
+        const float a = std::fabs(x) - d;
+        return a > 0.0f ? 0.5f * a * a : 0.0f;
+    }
+    float Process(float x) {
+        const float Fx = F(x), dx = x - x1;
+        const float y = std::fabs(dx) < 1.0e-4f ? f(0.5f * (x + x1)) : (Fx - F1) / dx;
+        x1 = x; F1 = Fx;
+        return y;
+    }
+    void Reset() { x1 = 0.0f; F1 = 0.0f; }
+};
+
 } // namespace distdsp

@@ -1,9 +1,10 @@
-// Tests of the distortion family (Preamp, Screamer, Muff Fuzz, Wavefolder, Exciter, Bass Dist, Octa Fuzz, Tape Sat):
+// Tests of the distortion family (Preamp, Screamer, Muff Fuzz, Wavefolder, Exciter, Bass Dist, Octa Fuzz, Tape Sat, Chainsaw):
 //  1. the block path and the per-sample path give identical output, for the defaults and for several settings
 //  2. the output stays finite and bounded for any parameter setting, also when the parameters are changed while playing
 //  3. silence in gives silence out
 //  4. each effect does what it claims (tone controls, clean lows, octave, harmonics, saturation)
 #include "bass_dist_module.h"
+#include "chainsaw_module.h"
 #include "exciter_module.h"
 #include "muff_fuzz_module.h"
 #include "octave_fuzz_module.h"
@@ -139,6 +140,7 @@ int main() {
     generic<BassDistModule>("Bass Dist");
     generic<OctaveFuzzModule>("Octa Fuzz");
     generic<TapeSatModule>("Tape Sat");
+    generic<ChainsawModule>("Chainsaw");
 
     std::printf("\nBehaviour:\n");
     const size_t N = 48000;
@@ -263,6 +265,37 @@ int main() {
             return amp(y, 180.0f) / amp(y, 60.0f);
         };
         check(h3(1.0f) > 1.5 * h3(0.0f), "Warmth makes the lows saturate more (more 3rd harmonic of a 60 Hz tone)");
+    }
+
+    { // Chainsaw: the EQ after the clipping (a fixed clipped level, so a band's boost shows directly in the output), the dead band, the saturation
+        auto fund = [&](float f, int param, float v) {
+            auto m = make<ChainsawModule>();
+            setFloat(*m, param, v);
+            return amp(run(*m, sine(f, 0.02f, N)), f);
+        };
+        const double high1k = db(fund(1100.0f, ChainsawModule::HIGH, 1.0f) / fund(1100.0f, ChainsawModule::HIGH, 0.0f));
+        const double high200 = db(fund(200.0f, ChainsawModule::HIGH, 1.0f) / fund(200.0f, ChainsawModule::HIGH, 0.0f));
+        const double low87 = db(fund(87.0f, ChainsawModule::LOW, 1.0f) / fund(87.0f, ChainsawModule::LOW, 0.0f));
+        const double low1k = db(fund(1000.0f, ChainsawModule::LOW, 1.0f) / fund(1000.0f, ChainsawModule::LOW, 0.0f));
+        std::printf("  High max vs min: %+.1f dB at 1.1 kHz, %+.1f dB at 200 Hz; Low max vs min: %+.1f dB at 87 Hz, %+.1f dB at 1 kHz\n", high1k, high200, low87, low1k);
+        check(high1k > 35.0 && std::fabs(high200) < 3.0, "High is a big peak in the upper mids (two stagger-tuned peaks, more than 35 dB from min to max) and leaves 200 Hz alone");
+        check(low87 > 25.0 && std::fabs(low1k) < 1.0, "Low is a peak at 87 Hz (more than 25 dB from min to max) and leaves 1 kHz alone");
+
+        auto rms = [](const std::vector<float> &y) {
+            double s = 0;
+            for (size_t i = y.size() / 2; i < y.size(); i++) s += double(y[i]) * y[i];
+            return std::sqrt(s / (y.size() / 2));
+        };
+        auto at = [&](float dist, float peak) {
+            auto m = make<ChainsawModule>();
+            setFloat(*m, ChainsawModule::DIST, dist);
+            return rms(run(*m, sine(220.0f, peak, N)));
+        };
+        std::printf("  Dist 0: output RMS %g for a -70 dBFS tone, %g for -40 dBFS\n", at(0.0f, 0.0003f), at(0.0f, 0.01f));
+        check(at(0.0f, 0.0003f) < 1e-9 && at(0.0f, 0.01f) > 1e-3, "the dead band gates a -70 dBFS tone at Dist 0 (silent), and a -40 dBFS tone passes");
+        const double sat = db(at(0.8f, 0.25f) / at(0.8f, 0.0056f));
+        std::printf("  output level change at the default Dist for an input change from -45 to -12 dBFS: %+.1f dB\n", sat);
+        check(sat < 2.0, "at the default Dist the output hardly grows with the input (fully saturated from about -45 dBFS)");
     }
 
     std::printf("\n%s\n", fails ? "DISTORTION FAMILY TESTS FAILED" : "ALL DISTORTION FAMILY TESTS PASSED");

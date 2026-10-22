@@ -20,7 +20,7 @@ run() { # run NAME SOURCES...   (extra compiler flags in XFLAGS)
     else FAILS=$((FAILS + 1)); fi
 }
 run distortion Effect-Modules/distortion_module.cpp $BASEMOD $LGPL/Filters/tone.cpp
-run distortion_family Effect-Modules/preamp_module.cpp Effect-Modules/screamer_module.cpp Effect-Modules/muff_fuzz_module.cpp Effect-Modules/wavefolder_module.cpp Effect-Modules/exciter_module.cpp Effect-Modules/bass_dist_module.cpp Effect-Modules/octave_fuzz_module.cpp Effect-Modules/tape_sat_module.cpp $BASEMOD
+run distortion_family Effect-Modules/preamp_module.cpp Effect-Modules/screamer_module.cpp Effect-Modules/muff_fuzz_module.cpp Effect-Modules/wavefolder_module.cpp Effect-Modules/exciter_module.cpp Effect-Modules/bass_dist_module.cpp Effect-Modules/octave_fuzz_module.cpp Effect-Modules/tape_sat_module.cpp Effect-Modules/chainsaw_module.cpp $BASEMOD
 run crusher Effect-Modules/crusher_module.cpp Util/frequency_detector_q.cpp $BASEMOD
 run compressor Effect-Modules/compressor_module.cpp $BASEMOD $LGPL/Dynamics/compressor.cpp
 run overdrive Effect-Modules/overdrive_module.cpp $BASEMOD dependencies/DaisySP/Source/Effects/overdrive.cpp

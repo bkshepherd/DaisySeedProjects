@@ -112,7 +112,7 @@
   "overdrive": {
    "dtcm": 0,
    "ram_d2": 0,
-   "sram": 890,
+   "sram": 1376,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)"
   },
@@ -257,9 +257,9 @@
    "static_source": "object files (arm-none-eabi-size -A)"
   },
   "distortion": {
-   "dtcm": 132,
+   "dtcm": 24,
    "ram_d2": 0,
-   "sram": 5020,
+   "sram": 13876,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)"
   },
@@ -301,7 +301,7 @@
   "crusher": {
    "dtcm": 0,
    "ram_d2": 0,
-   "sram": 3490,
+   "sram": 6934,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)"
   },
@@ -437,7 +437,7 @@
   "bass_dist": {
    "dtcm": 12,
    "ram_d2": 0,
-   "sram": 6841,
+   "sram": 6885,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
    "heap": 0,
@@ -473,7 +473,7 @@
   "preamp": {
    "dtcm": 12,
    "ram_d2": 0,
-   "sram": 10290,
+   "sram": 10362,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
    "heap": 0,
@@ -482,7 +482,7 @@
   "screamer": {
    "dtcm": 12,
    "ram_d2": 0,
-   "sram": 5092,
+   "sram": 5136,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
    "heap": 0,
@@ -491,7 +491,7 @@
   "tape_sat": {
    "dtcm": 8,
    "ram_d2": 0,
-   "sram": 4643,
+   "sram": 4637,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
    "heap": 0,
@@ -500,7 +500,25 @@
   "wavefolder": {
    "dtcm": 0,
    "ram_d2": 0,
-   "sram": 3177,
+   "sram": 3281,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 0,
+   "heap_source": "no new in the module (host count)"
+  },
+  "dist_bench": {
+   "dtcm": 1688,
+   "ram_d2": 0,
+   "sram": 72159,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 11568,
+   "heap_source": "host count: the bench object with its 44 child effects and their parameter arrays (Init allocates nothing more)"
+  },
+  "chainsaw": {
+   "dtcm": 0,
+   "ram_d2": 0,
+   "sram": 7181,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
    "heap": 0,
