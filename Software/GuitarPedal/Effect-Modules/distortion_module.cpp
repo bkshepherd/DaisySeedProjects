@@ -10,9 +10,6 @@ static const char *s_clippingOptions[6] = {"Hard Clip", "Soft Clip", "Fuzz", "Tu
 constexpr float preFilterCutoffBase = 140.0f;
 constexpr float preFilterCutoffMax = 300.0f;
 constexpr float postFilterCutoff = 8000.0f;
-cycfi::q::highpass preFilter(preFilterCutoffBase, 48000); // Dummy values that get overwritten in Init
-cycfi::q::lowpass postFilter(postFilterCutoff, 48000);    // Dummy values that get overwritten in Init
-cycfi::q::lowpass upsamplingLowpassFilter(0.0f, 48000);   // Dummy values that get overwritten in Init
 
 constexpr uint8_t oversamplingFactor = 16;
 // The pre-filter's cutoff follows the input level, but recalculating its coefficients (a sine and a cosine) for every sample is expensive: it is done
@@ -116,15 +113,15 @@ void DistortionModule::Init(float sample_rate) {
 }
 
 void DistortionModule::InitializeFilters() {
-    preFilter.config(preFilterCutoffBase, GetSampleRate());
+    m_preFilter.config(preFilterCutoffBase, GetSampleRate());
 
     if (m_oversampling) {
-        postFilter.config(postFilterCutoff, GetSampleRate() * oversamplingFactor);
+        m_postFilter.config(postFilterCutoff, GetSampleRate() * oversamplingFactor);
     } else {
-        postFilter.config(postFilterCutoff, GetSampleRate());
+        m_postFilter.config(postFilterCutoff, GetSampleRate());
     }
 
-    upsamplingLowpassFilter.config(GetSampleRate() / (2.0f * static_cast<float>(oversamplingFactor)), GetSampleRate());
+    m_upsamplingLowpassFilter.config(GetSampleRate() / (2.0f * static_cast<float>(oversamplingFactor)), GetSampleRate());
 }
 
 void DistortionModule::ParameterChanged(int parameter_id) {
@@ -241,11 +238,11 @@ void DistortionModule::ProcessMono(float in) {
 
     // Apply high-pass filter to remove excessive low frequencies
     if (m_preFilterCountdown == 0) {
-        preFilter.config(dynamicPreFilterCutoff(std::abs(distorted)), GetSampleRate());
+        m_preFilter.config(dynamicPreFilterCutoff(std::abs(distorted)), GetSampleRate());
         m_preFilterCountdown = kPreFilterUpdateInterval;
     }
     --m_preFilterCountdown;
-    distorted = preFilter(distorted);
+    distorted = m_preFilter(distorted);
 
     const float gain = m_gainMin + (GetParameterAsFloat(GAIN) * (m_gainMax - m_gainMin));
     const int clippingType = GetParameterAsBinnedValue(DIST_TYPE) - 1;
@@ -262,7 +259,7 @@ void DistortionModule::ProcessMono(float in) {
         float oversampled[oversamplingFactor];
         oversampled[0] = distorted;
         for (int i = 1; i < oversamplingFactor; ++i) {
-            oversampled[i] = upsamplingLowpassFilter(0.0f);
+            oversampled[i] = m_upsamplingLowpassFilter(0.0f);
         }
 
         // Apply gain and distortion processing
@@ -270,7 +267,7 @@ void DistortionModule::ProcessMono(float in) {
             processDistortion(sample, gain, clippingType, intensity);
 
             // Post-filter: Low-pass to smooth out harsh high frequencies
-            sample = postFilter(sample);
+            sample = m_postFilter(sample);
         }
 
         // Downsample back to original sample rate (decimate: every
@@ -283,7 +280,7 @@ void DistortionModule::ProcessMono(float in) {
         processDistortion(distorted, gain, clippingType, intensity);
 
         // Post-filter: Low-pass to smooth out harsh high frequencies
-        distorted = postFilter(distorted);
+        distorted = m_postFilter(distorted);
     }
 
     // Normalize the volume between the types of distortion
@@ -331,19 +328,25 @@ constexpr float volumeCompensation() { // normalizeVolume() for one type
     else return 0.0647f;
 }
 
+struct DistortionFilters {
+    cycfi::q::highpass &pre;
+    cycfi::q::lowpass &post;
+    cycfi::q::lowpass &upsampling;
+};
+
 template <int TYPE, bool OVERSAMPLE>
-void distortBlock(Tone &tone, uint8_t &preFilterCountdown, const float *in, float *out, size_t n, float sampleRate, float gain, float intensity, float toneAmount,
+void distortBlock(DistortionFilters f, Tone &tone, uint8_t &preFilterCountdown, const float *in, float *out, size_t n, float sampleRate, float gain, float intensity, float toneAmount,
                   float level) {
     for (size_t i = 0; i < n; i++) {
         float distorted = in[i];
 
         // The pre-filter's cutoff follows the signal's energy (updated every few samples, as in ProcessMono)
         if (preFilterCountdown == 0) {
-            preFilter.config(dynamicPreFilterCutoff(std::abs(distorted)), sampleRate);
+            f.pre.config(dynamicPreFilterCutoff(std::abs(distorted)), sampleRate);
             preFilterCountdown = kPreFilterUpdateInterval;
         }
         --preFilterCountdown;
-        distorted = preFilter(distorted);
+        distorted = f.pre(distorted);
 
         // Reduce signal amplitude before clipping
         distorted = distorted * 0.5f;
@@ -352,17 +355,17 @@ void distortBlock(Tone &tone, uint8_t &preFilterCountdown, const float *in, floa
             float oversampled[oversamplingFactor];
             oversampled[0] = distorted;
             for (int k = 1; k < oversamplingFactor; ++k) {
-                oversampled[k] = upsamplingLowpassFilter(0.0f);
+                oversampled[k] = f.upsampling(0.0f);
             }
             for (float &sample : oversampled) {
                 sample = clipSample<TYPE>(sample, gain, intensity);
-                sample = postFilter(sample);
+                sample = f.post(sample);
             }
             distorted = oversampled[0];
             distorted *= oversamplingFactor;
         } else {
             distorted = clipSample<TYPE>(distorted, gain, intensity);
-            distorted = postFilter(distorted);
+            distorted = f.post(distorted);
         }
 
         distorted *= volumeCompensation<TYPE>();
@@ -385,13 +388,14 @@ void DistortionModule::ProcessBlockInternal(const float *in, float *out, size_t 
     const float level = m_levelMin + (GetParameterAsFloat(LEVEL) * (m_levelMax - m_levelMin));
     const float sampleRate = GetSampleRate();
     const bool oversampling = m_oversampling;
+    const DistortionFilters filters{m_preFilter, m_postFilter, m_upsamplingLowpassFilter};
 
 #define DISTORTION_BLOCK_CASE(T)                                                                                                                       \
     case T:                                                                                                                                            \
         if (oversampling) {                                                                                                                            \
-            distortBlock<T, true>(m_tone, m_preFilterCountdown, in, out, n, sampleRate, gain, intensity, toneAmount, level);                                                \
+            distortBlock<T, true>(filters, m_tone, m_preFilterCountdown, in, out, n, sampleRate, gain, intensity, toneAmount, level);                                                \
         } else {                                                                                                                                       \
-            distortBlock<T, false>(m_tone, m_preFilterCountdown, in, out, n, sampleRate, gain, intensity, toneAmount, level);                                               \
+            distortBlock<T, false>(filters, m_tone, m_preFilterCountdown, in, out, n, sampleRate, gain, intensity, toneAmount, level);                                               \
         }                                                                                                                                              \
         break;
     switch (clippingType) {
@@ -402,7 +406,7 @@ void DistortionModule::ProcessBlockInternal(const float *in, float *out, size_t 
         DISTORTION_BLOCK_CASE(4)
         DISTORTION_BLOCK_CASE(5)
     default: // not reachable: the type is a choice of six
-        distortBlock<0, true>(m_tone, m_preFilterCountdown, in, out, n, sampleRate, gain, intensity, toneAmount, level);
+        distortBlock<0, true>(filters, m_tone, m_preFilterCountdown, in, out, n, sampleRate, gain, intensity, toneAmount, level);
         break;
     }
 #undef DISTORTION_BLOCK_CASE

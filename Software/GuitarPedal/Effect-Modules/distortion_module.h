@@ -6,6 +6,7 @@
 
 #include "base_effect_module.h"
 #include "daisysp.h"
+#include <q/fx/biquad.hpp>
 
 #ifdef __cplusplus
 
@@ -50,6 +51,11 @@ class DistortionModule : public BaseEffectModule {
     float m_gainMax = 20.0f;
 
     Tone m_tone;
+
+    // The filters belong to the instance, so several Distortions (on its own and in the Dist Bench's stages) do not share their state
+    cycfi::q::highpass m_preFilter{140.0f, 48000};            // the cutoffs and rates are set in Init
+    cycfi::q::lowpass m_postFilter{8000.0f, 48000};
+    cycfi::q::lowpass m_upsamplingLowpassFilter{0.0f, 48000};
 
     bool m_oversampling;
 
