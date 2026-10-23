@@ -84,6 +84,16 @@
    "note": "Distortion that keeps the lows clean: only the band above the crossover is distorted (soft, hard or fuzz)"
   },
   {
+   "id": "booster",
+   "class": "BoosterModule",
+   "header": "booster_module.h",
+   "sources": [
+    "Effect-Modules/booster_module.cpp"
+   ],
+   "origin": "this project (spamatica)",
+   "note": "A boost in front of an amp or a distortion in four types: Clean, Treble (Rangemaster-style), Mid and Warm (Echoplex-style); Gain, Tone, Level"
+  },
+  {
    "id": "chainsaw",
    "class": "ChainsawModule",
    "header": "chainsaw_module.h",
@@ -619,6 +629,16 @@
     "Effect-Modules/spectral_delay_module.cpp"
    ],
    "note": "single-instance only"
+  },
+  {
+   "id": "spring_reverb",
+   "class": "SpringReverbModule",
+   "header": "spring_reverb_module.h",
+   "sources": [
+    "Effect-Modules/spring_reverb_module.cpp"
+   ],
+   "origin": "this project (spamatica)",
+   "note": "Physical-modelling spring reverb: two springs (left and right), each a loop of a dispersive allpass chain (the highs arrive first: the drip of every echo) and a delay; Dwell, Decay, Tone, Mix, Drip, Tank"
   },
   {
    "id": "string_keys",

@@ -1,9 +1,10 @@
-// Tests of the distortion family (Preamp, Screamer, Muff Fuzz, Wavefolder, Exciter, Bass Dist, Octa Fuzz, Tape Sat, Chainsaw):
+// Tests of the distortion family (Preamp, Screamer, Muff Fuzz, Wavefolder, Exciter, Bass Dist, Octa Fuzz, Tape Sat, Chainsaw, and the Booster):
 //  1. the block path and the per-sample path give identical output, for the defaults and for several settings
 //  2. the output stays finite and bounded for any parameter setting, also when the parameters are changed while playing
 //  3. silence in gives silence out
 //  4. each effect does what it claims (tone controls, clean lows, octave, harmonics, saturation)
 #include "bass_dist_module.h"
+#include "booster_module.h"
 #include "chainsaw_module.h"
 #include "exciter_module.h"
 #include "muff_fuzz_module.h"
@@ -141,6 +142,7 @@ int main() {
     generic<OctaveFuzzModule>("Octa Fuzz");
     generic<TapeSatModule>("Tape Sat");
     generic<ChainsawModule>("Chainsaw");
+    generic<BoosterModule>("Booster");
 
     std::printf("\nBehaviour:\n");
     const size_t N = 48000;

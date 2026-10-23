@@ -201,8 +201,14 @@ else FAILS=$((FAILS + 1)); fi
 
 step "Distortion family (Preamp, Screamer, Muff Fuzz, Wavefolder, Exciter, Bass Dist, Octa Fuzz, Tape Sat, Chainsaw): block path, bounds, behaviour"
 FAMSRC="Effect-Modules/preamp_module.cpp Effect-Modules/screamer_module.cpp Effect-Modules/muff_fuzz_module.cpp Effect-Modules/wavefolder_module.cpp \
- Effect-Modules/exciter_module.cpp Effect-Modules/bass_dist_module.cpp Effect-Modules/octave_fuzz_module.cpp Effect-Modules/tape_sat_module.cpp Effect-Modules/chainsaw_module.cpp"
+ Effect-Modules/exciter_module.cpp Effect-Modules/bass_dist_module.cpp Effect-Modules/octave_fuzz_module.cpp Effect-Modules/tape_sat_module.cpp Effect-Modules/chainsaw_module.cpp Effect-Modules/booster_module.cpp"
 if build "$B/t_dist_family" $T/test_distortion_family.cpp $FAMSRC $BASEMOD; then check "$B/t_dist_family"; else FAILS=$((FAILS + 1)); fi
+
+step "Spring Reverb: the dispersive chain, the echoes of a burst (spacing, sweep, Drip), the decay time, Dwell, Tone, Mix, block path, bounds"
+if build "$B/t_spring_reverb" $T/test_spring_reverb.cpp Effect-Modules/spring_reverb_module.cpp $BASEMOD; then check "$B/t_spring_reverb"; else FAILS=$((FAILS + 1)); fi
+
+step "Booster (clean, treble, mid, warm): the frequency response of each type, Gain, Tone, Level, saturation"
+if build "$B/t_booster" $T/test_booster.cpp Effect-Modules/booster_module.cpp $BASEMOD; then check "$B/t_booster"; else FAILS=$((FAILS + 1)); fi
 
 step "Dist Bench (four distortion stages in series): each type as on its own, the generic controls, block path, bounds, type change"
 if build "$B/t_dist_bench" $T/test_dist_bench.cpp Effect-Modules/dist_bench_module.cpp $FAMSRC Effect-Modules/overdrive_module.cpp $DSP/Effects/overdrive.cpp \

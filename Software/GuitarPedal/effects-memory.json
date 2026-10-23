@@ -515,6 +515,24 @@
    "heap": 11568,
    "heap_source": "host count: the bench object with its 44 child effects and their parameter arrays (Init allocates nothing more)"
   },
+  "booster": {
+   "dtcm": 16,
+   "ram_d2": 0,
+   "sram": 8527,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 0,
+   "heap_source": "no new in the module (host count)"
+  },
+  "spring_reverb": {
+   "dtcm": 40,
+   "ram_d2": 0,
+   "sram": 9457,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 36760,
+   "heap_source": "host count: the module object, which holds the six springs' delay lines and allpass chains (no other allocation)"
+  },
   "chainsaw": {
    "dtcm": 0,
    "ram_d2": 0,

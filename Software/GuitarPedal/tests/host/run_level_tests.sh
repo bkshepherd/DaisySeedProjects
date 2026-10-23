@@ -22,6 +22,8 @@ run() { # run NAME SOURCES...   (extra compiler flags in XFLAGS)
 run distortion Effect-Modules/distortion_module.cpp $BASEMOD $LGPL/Filters/tone.cpp
 run distortion_family Effect-Modules/preamp_module.cpp Effect-Modules/screamer_module.cpp Effect-Modules/muff_fuzz_module.cpp Effect-Modules/wavefolder_module.cpp Effect-Modules/exciter_module.cpp Effect-Modules/bass_dist_module.cpp Effect-Modules/octave_fuzz_module.cpp Effect-Modules/tape_sat_module.cpp Effect-Modules/chainsaw_module.cpp $BASEMOD
 run crusher Effect-Modules/crusher_module.cpp Util/frequency_detector_q.cpp $BASEMOD
+run booster Effect-Modules/booster_module.cpp $BASEMOD
+run spring_reverb Effect-Modules/spring_reverb_module.cpp $BASEMOD
 run compressor Effect-Modules/compressor_module.cpp $BASEMOD $LGPL/Dynamics/compressor.cpp
 run overdrive Effect-Modules/overdrive_module.cpp $BASEMOD dependencies/DaisySP/Source/Effects/overdrive.cpp
 XFLAGS="-Idependencies/CloudSeed" run jupiter Effect-Modules/jupiter_module.cpp Effect-Modules/cloudseed_pool.cpp $BASEMOD dependencies/CloudSeed/AudioLib/Biquad2.cpp dependencies/CloudSeed/AudioLib/ShaRandom.cpp dependencies/CloudSeed/AudioLib/ValueTables.cpp dependencies/CloudSeed/FastSin.cpp dependencies/CloudSeed/Utils/Sha256.cpp
