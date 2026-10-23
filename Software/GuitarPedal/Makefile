@@ -40,7 +40,7 @@ C_SOURCES += $(CMSIS_DSP_SRC)
 # Which effects are built is chosen in effects.config (edit it, or use tools/effects.py: `list`, `enable`, `disable`, `preset`, `report`). generated/effects.mk, which is
 # generated from it and from effects.json, adds the sources of the chosen effects and of what they need (the CloudSeed pool, the CMSIS FFT tables, the GPL Dattorro engine)
 # to CPP_SOURCES, C_SOURCES and C_DEFS; the effect list in loaded_effects.h is generated too. Only the chosen effects are compiled and linked: besides saving build time
-# that matters for memory, since global buffers in an object file can stay in the firmware even if nothing uses them (see PERFORMANCE_AND_MEMORY.md).
+# that matters for memory, since global buffers in an object file can stay in the firmware even if nothing uses them (see docs/PERFORMANCE_AND_MEMORY.md).
 CPP_SOURCES += Effect-Modules/effect_chain.cpp
 include generated/effects.mk
 

@@ -1,5 +1,5 @@
 // Counts what each converted effect allocates with `new` during construction and Init(), on the host. The Daisy's heap (newlib, in RAM_D2 after the static data) is small and
-// unchecked, so this is how much of it each effect would take, to build the matrix of which effects fit together (see PERFORMANCE_AND_MEMORY.md).
+// unchecked, so this is how much of it each effect would take, to build the matrix of which effects fit together (see docs/PERFORMANCE_AND_MEMORY.md).
 // Host pointers are 8 bytes (the Daisy's 4), so the figures are an overestimate for pointer-heavy objects (the CloudSeed engine is mostly small allocations).
 #include <cstdio>
 #include <cstdlib>

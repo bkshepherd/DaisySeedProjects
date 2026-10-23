@@ -2,7 +2,7 @@
 
 This directory includes all the source code for my Multi-Effect Guitar Pedal that runs on various hardware platforms.
 
-For assembly and day-to-day operation of the 125B version, see the [125B user manual](USER_MANUAL_125B.md).
+For assembly and day-to-day operation of the 125B version, see the [125B user manual](docs/USER_MANUAL_125B.md).
 
 ## Getting Started
 
@@ -112,7 +112,7 @@ If you want to target the Pedal PCB hardware change the lines to:
 
 ### 4. Build and Deploy the Code
 
-Before building, choose which effects the firmware contains; there is no default firmware. See [GENERATE_FIRMWARE.md](GENERATE_FIRMWARE.md) for how to generate the firmware configuration with `./effects_config.sh`.
+Before building, choose which effects the firmware contains; there is no default firmware. See [GENERATE_FIRMWARE.md](docs/GENERATE_FIRMWARE.md) for how to generate the firmware configuration with `./effects_config.sh`.
 
 By default this project is configured to use the custom Boot Loader. To get up and running you'll need to do the following:
 
@@ -126,7 +126,7 @@ By default this project is configured to use the custom Boot Loader. To get up a
 
 If you run into trouble with the bootloader. Electro-Smith has better documentation on how to get it working here: https://github.com/electro-smith/libDaisy/blob/master/doc/md/_a7_Getting-Started-Daisy-Bootloader.md
 
-If you want to use built in flash memory only, you _can_, but it severely limits which effects you can use and how many you can have installed at once. I'd recommend choosing just 1 or 2 effects (see [GENERATE_FIRMWARE.md](GENERATE_FIRMWARE.md)). Then do the following to get running on internal flash:
+If you want to use built in flash memory only, you _can_, but it severely limits which effects you can use and how many you can have installed at once. I'd recommend choosing just 1 or 2 effects (see [GENERATE_FIRMWARE.md](docs/GENERATE_FIRMWARE.md)). Then do the following to get running on internal flash:
 
 1. Remove the "APP_TYPE = BOOT_SRAM" line from the Make File:
 2. Put your Daisy Seed into DFU mode.
@@ -143,7 +143,7 @@ Plug your guitar into the Input and connect the Output to your amp.
 
 ## Choosing which effects are built
 
-Which effects (and chains of effects) go into the firmware is chosen with the shell script `./effects_config.sh`; see [GENERATE_FIRMWARE.md](GENERATE_FIRMWARE.md) for how to generate a firmware, the memory limits, the optional GPL effects and how to combine effects into chains.
+Which effects (and chains of effects) go into the firmware is chosen with the shell script `./effects_config.sh`; see [GENERATE_FIRMWARE.md](docs/GENERATE_FIRMWARE.md) for how to generate a firmware, the memory limits, the optional GPL effects and how to combine effects into chains.
 
 ## MIDI Effect and Preset Recall
 

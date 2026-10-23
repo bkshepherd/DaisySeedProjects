@@ -1,11 +1,11 @@
 # Generating the firmware
 
-Which effects go into the firmware, and in which order, is chosen with the effect selection tool, started with the shell script **`./effects_config.sh`** (Python 3, no packages needed; run it from this directory, any arguments are passed on to the tool). The result is stored in `effects.config`, and the tool generates the files the build needs from it, so `loaded_effects.h` and the `Makefile` are not edited by hand. This document describes the tool, the limits a selection has to stay within, and how to combine effects into chains. For the toolchain, the hardware variant and flashing, see [README.md](README.md#getting-started).
+Which effects go into the firmware, and in which order, is chosen with the effect selection tool, started with the shell script **`./effects_config.sh`** (Python 3, no packages needed; run it from this directory, any arguments are passed on to the tool). The result is stored in `effects.config`, and the tool generates the files the build needs from it, so `loaded_effects.h` and the `Makefile` are not edited by hand. This document describes the tool, the limits a selection has to stay within, and how to combine effects into chains. For the toolchain, the hardware variant and flashing, see [README.md](../README.md#getting-started).
 
 The basic steps:
 
 1. Run `./effects_config.sh` and select the effects (arrows to move, space to select, `s` to save, `h` for help), or start from a preset (`./effects_config.sh preset <name>`).
-2. Build as described in [README.md](README.md#4-build-and-deploy-the-code). `make` regenerates the generated files by itself when `effects.config` or `effects.json` has changed.
+2. Build as described in [README.md](../README.md#4-build-and-deploy-the-code). `make` regenerates the generated files by itself when `effects.config` or `effects.json` has changed.
 3. Flash the firmware. Enabling, disabling or reordering effects changes the layout of the saved settings, which are reset on the next boot.
 
 
@@ -40,7 +40,7 @@ resets the saved settings on the next boot. To add an effect, add it to `effects
 
 `Effect-Modules/Dattorro/` contains a Dattorro (1997) plate reverb, in the same family used by
 the Hothouse "Flick" and "MuleBox" pedals. It's disabled by default (not in any preset, and the tool refuses it without `ALLOW_GPL=y`), because that code is licensed **GPL-3.0-or-later**, not MIT
-like the rest of this repository — see [`Effect-Modules/Dattorro/README.md`](Effect-Modules/Dattorro/README.md)
+like the rest of this repository — see [`Effect-Modules/Dattorro/README.md`](../Effect-Modules/Dattorro/README.md)
 for the full provenance chain and license text. Enabling it means the firmware binary you build
 must be distributed under GPLv3 (or not distributed at all); leaving it out keeps your
 build entirely MIT.

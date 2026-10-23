@@ -10,7 +10,7 @@ Selects which effects are built into the firmware, generates the parts of the bu
   generated/            what `generate` writes: effects.mk (included by the Makefile), effects_includes.inc and effects_instances.inc (included by loaded_effects.h)
 
 Commands:  tui (the default in a terminal) | list | info ID... | lint | observe RESULT | preset NAME | enable ID... | disable ID... | generate | report | measure | calibrate | matrix [ID...]
-See PERFORMANCE_AND_MEMORY.md for what the figures mean and where they come from.
+See docs/PERFORMANCE_AND_MEMORY.md for what the figures mean and where they come from.
 """
 import argparse
 import itertools
@@ -583,7 +583,7 @@ def cmd_report(args):
         size = mem["regions"][r]
         print("%-24s %9d K %9d K %5d%%" % (REGION_NAMES[r], used[r] // 1024, size // 1024, 100 * used[r] // size))
     static_d2 = used["ram_d2"] - heap
-    print("\nRAM_D2: %d KB of static data leaves %d KB for the heap; the effects are estimated to need %d KB of it (estimates, see PERFORMANCE_AND_MEMORY.md): %d KB to spare" % (static_d2 // 1024, (mem["regions"]["ram_d2"] - static_d2) // 1024, heap // 1024, (mem["regions"]["ram_d2"] - used["ram_d2"]) // 1024))
+    print("\nRAM_D2: %d KB of static data leaves %d KB for the heap; the effects are estimated to need %d KB of it (estimates, see docs/PERFORMANCE_AND_MEMORY.md): %d KB to spare" % (static_d2 // 1024, (mem["regions"]["ram_d2"] - static_d2) // 1024, heap // 1024, (mem["regions"]["ram_d2"] - used["ram_d2"]) // 1024))
     v, why = verdict(used, mem)
     print("\nverdict: %s%s" % (v, (" (" + "; ".join(why) + ")") if why else ""))
     for n in notes:

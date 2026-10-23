@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Prints how much heap (memory from `new`) each converted effect allocates in its constructor and Init(), measured on the host. See PERFORMANCE_AND_MEMORY.md.
+# Prints how much heap (memory from `new`) each converted effect allocates in its constructor and Init(), measured on the host. See docs/PERFORMANCE_AND_MEMORY.md.
 set -uo pipefail
 cd "$(dirname "$0")/../.."          # Software/GuitarPedal
 T=tests/host

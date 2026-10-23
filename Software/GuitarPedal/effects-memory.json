@@ -1,5 +1,5 @@
 {
- "_note": "Memory cost of the effects, read by tools/effects.py. Static figures are bytes per region measured from the object files (`tools/effects.py measure`). 'heap' is what the effect allocates with new: host estimates from tests/host/run_heap_report.sh (the CloudSeed engine takes about 9 KB: measured for Jupiter on the pedal; the host count of 129 KB was far too high, see PERFORMANCE_AND_MEMORY.md); null means not measured.",
+ "_note": "Memory cost of the effects, read by tools/effects.py. Static figures are bytes per region measured from the object files (`tools/effects.py measure`). 'heap' is what the effect allocates with new: host estimates from tests/host/run_heap_report.sh (the CloudSeed engine takes about 9 KB: measured for Jupiter on the pedal; the host count of 129 KB was far too high, see docs/PERFORMANCE_AND_MEMORY.md); null means not measured.",
  "regions": {
   "dtcm": 131072,
   "ram_d2": 262144,
