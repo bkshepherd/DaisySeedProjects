@@ -57,6 +57,7 @@
 - **Default levels** are calibrated against a -37 dBFS reference; several effects apply their defaults at start-up.
 
 ## NAM
+- **NAM A2 runtime computes four frames at a time** (the layers are accumulated in tiles of four frames of the 48-sample block, so each weight loaded serves four frames; after the A2-Lite kernel of squatch-dsp): the same output (bit for bit without fast-math), the same latency, a few more history columns per layer (+552 B). Measured on the pedal: the NAM load went from 69% to 65%; `NAM_A2_TILE4=0` selects the previous 2-frame kernels.
 - **One file per model** in `Effect-Modules/Nam/models/`; adding or removing a model needs no other edit.
 - **`update_models.sh`** can calibrate all models to the same level (default +12 dB).
 - **Reference test:** the NAM effect matches NeuralAmpModelerCore to 106-133 dB signal/error.

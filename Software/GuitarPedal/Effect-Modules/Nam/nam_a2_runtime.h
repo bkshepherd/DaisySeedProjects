@@ -128,37 +128,43 @@ static constexpr int kConvWeightCount = kKernelSum * kChannels * kChannels; // 1
 static constexpr int kLayer1x1WeightCount = kNumLayers * kChannels * kChannels; // 207
 static constexpr int kA2WeightCount = 1871;
 
-static constexpr int exact_cols_for_layer(int i) noexcept
-{
-    return (kKernelSizes[i] - 1) * kDilations[i] + 2;
-}
+// A ring holds the (K - 1) * dilation columns the oldest tap reaches back, the current column, and kRingMargin - 1 more: the 4-frame tile of
+// process_layer_tile4() writes its four new columns before it reads, and they must not overwrite what its first frame still needs (the 2-frame
+// kernel needs a margin of 2, the 4-frame tile 4).
+static constexpr int kRingMargin = 4;
 
-static constexpr int compute_exact_history_columns() noexcept
+struct HistoryLayout
 {
-    int total = 0;
+    int cols[kNumLayers];
+    int offset[kNumLayers];
+    int total; // columns
+};
+
+static constexpr HistoryLayout make_history_layout() noexcept
+{
+    HistoryLayout l{};
+    int off = 0;
     for (int i = 0; i < kNumLayers; ++i)
-        total += exact_cols_for_layer(i);
-    return total;
+    {
+        l.cols[i] = (kKernelSizes[i] - 1) * kDilations[i] + kRingMargin;
+        l.offset[i] = off;
+        off += l.cols[i] * kChannels;
+    }
+    l.total = off / kChannels;
+    return l;
 }
 
-static constexpr int kHistoryColumns = compute_exact_history_columns(); // 6377
-static constexpr int kHistoryFloats  = kHistoryColumns * kChannels;     // 19131
-static constexpr int kHistoryBytes   = kHistoryFloats * 4;              // 76524
+inline constexpr HistoryLayout kLayout = make_history_layout();
+inline constexpr const int* kLayerCols = kLayout.cols;
+inline constexpr const int* kLayerHistoryOffset = kLayout.offset;
+
+static constexpr int kHistoryColumns = kLayout.total;
+static constexpr int kHistoryFloats  = kHistoryColumns * kChannels;
+static constexpr int kHistoryBytes   = kHistoryFloats * 4;
 
 // -----------------------------------------------------------------------------
 // Runtime structures
 // -----------------------------------------------------------------------------
-
-inline constexpr int kLayerCols[kNumLayers] = {
-    7, 17, 37, 87, 207, 507, 1197, 7, 17, 37, 87, 207, 507, 1197,
-    16, 184, 7, 17, 37, 87, 207, 507, 1197
-};
-
-inline constexpr int kLayerHistoryOffset[kNumLayers] = {
-    0, 21, 72, 183, 444, 1065, 2586, 6177, 6198, 6249,
-    6360, 6621, 7242, 8763, 12354, 12402, 12954, 12975, 13026, 13137,
-    13398, 14019, 15540
-};
 
 inline constexpr int kLayerConvOffset[kNumLayers] = {
     0, 54, 108, 162, 216, 270, 324, 378, 432, 486, 540, 594,
@@ -215,6 +221,11 @@ struct A2HotState
 // -----------------------------------------------------------------------------
 // DSP helpers
 // -----------------------------------------------------------------------------
+
+// 1: the layers are computed in tiles of four frames (process_layer_tile4); 0: the previous kernels (two frames at a time)
+#ifndef NAM_A2_TILE4
+#define NAM_A2_TILE4 1
+#endif
 
 #ifndef NAM_A2_BRANCHLESS_LEAKY
 #define NAM_A2_BRANCHLESS_LEAKY 1
@@ -557,6 +568,143 @@ NAM_A2_NOINLINE void process_layer_kernel6_dual(A2State& st,
     st.layerWritePos[li] = wp;
 }
 
+// The 4-frame tile (after the A2-Lite kernel of squatch-dsp, docs/benchmarks/daisy-seed3.md): the three outputs of four consecutive frames are accumulated
+// together, so each weight loaded serves four frames and the twelve accumulators stay in registers. The sums are formed in the same order as in
+// process_layer_kernel() and process_layer_kernel6_dual(), per frame, so the result is the same (to the last bit without -ffast-math).
+NAM_A2_TINY_INLINE void acc_tap3x4(const float* __restrict__ w,
+                                    const float* __restrict__ s0,
+                                    const float* __restrict__ s1,
+                                    const float* __restrict__ s2,
+                                    const float* __restrict__ s3,
+                                    float (&z)[4][3]) noexcept
+{
+    const float w0 = w[0], w1 = w[1], w2 = w[2];
+    const float w3 = w[3], w4 = w[4], w5 = w[5];
+    const float w6 = w[6], w7 = w[7], w8 = w[8];
+    const float* const s[4] = {s0, s1, s2, s3};
+    for (int j = 0; j < 4; ++j)
+    {
+        const float a = s[j][0];
+        const float b = s[j][1];
+        const float c = s[j][2];
+        z[j][0] += a * w0 + b * w3 + c * w6;
+        z[j][1] += a * w1 + b * w4 + c * w7;
+        z[j][2] += a * w2 + b * w5 + c * w8;
+    }
+}
+
+template<int K>
+NAM_A2_NOINLINE void process_layer_tile4(A2State& st,
+                                         A2HotState& hot,
+                                         const A2SharedWeights& sw,
+                                         int li,
+                                         const float* __restrict__ cond,
+                                         const float* __restrict__ in,
+                                         float* __restrict__ out) noexcept
+{
+    static_assert(kBlockSize % 4 == 0, "the 4-frame tile needs a block size that is a multiple of 4");
+    const A2LayerRuntime& L = sw.layer[li];
+
+    int wp = st.layerWritePos[li];
+    const int cols = kLayerCols[li];
+    const int dilation = kDilations[li];
+
+    float* const hist = st.history + kLayerHistoryOffset[li];
+    const float* __restrict__ const wAll = sw.convW + kLayerConvOffset[li];
+    const float* __restrict__ const lx = sw.l1x1W + kLayerL1Offset[li];
+
+    // K = 6: the current tap is added first (layer 0 has it folded into the mix-in weight), as process_layer_kernel6_dual() does;
+    // otherwise it is the last tap, as in process_layer_kernel()
+    constexpr bool currentFirst = (K == 6);
+    const bool precombineCurrent = (li == 0 && K == 6);
+    const float mw0 = precombineCurrent ? L.preCurrent[0] : L.mixinW[0];
+    const float mw1 = precombineCurrent ? L.preCurrent[1] : L.mixinW[1];
+    const float mw2 = precombineCurrent ? L.preCurrent[2] : L.mixinW[2];
+    const float cb0 = L.convB[0], cb1 = L.convB[1], cb2 = L.convB[2];
+    const float b0 = L.l1x1B[0], b1 = L.l1x1B[1], b2 = L.l1x1B[2];
+    const float* const wc = wAll + (K - 1) * 9; // the current tap
+
+    for (int n = 0; n < kBlockSize; n += 4)
+    {
+        // the four new columns first (the taps of the later frames of the tile reach into them)
+        for (int j = 0; j < 4; ++j)
+        {
+            int w = wp + j;
+            if (w >= cols)
+                w -= cols;
+            float* const col = hist + w * 3;
+            const float* const x = in + (n + j) * 3;
+            col[0] = x[0];
+            col[1] = x[1];
+            col[2] = x[2];
+        }
+
+        float z[4][3];
+        for (int j = 0; j < 4; ++j)
+        {
+            const float cj = cond[n + j];
+            z[j][0] = cb0 + mw0 * cj;
+            z[j][1] = cb1 + mw1 * cj;
+            z[j][2] = cb2 + mw2 * cj;
+        }
+
+        const float* const x0 = in + n * 3;
+        if (currentFirst && !precombineCurrent)
+            acc_tap3x4(wc, x0, x0 + 3, x0 + 6, x0 + 9, z);
+
+        for (int k = 0; k < K - 1; ++k)
+        {
+            const int lag = (K - 1 - k) * dilation;
+            int col = wp - lag;
+            if (col < 0)
+                col += cols;
+
+            const float* const w = wAll + k * 9;
+            if (col + 3 < cols)
+            {
+                // the four columns are one after the other
+                const float* const s = hist + col * 3;
+                acc_tap3x4(w, s, s + 3, s + 6, s + 9, z);
+            }
+            else
+            {
+                int c1 = col + 1, c2 = col + 2, c3 = col + 3;
+                if (c1 >= cols) c1 -= cols;
+                if (c2 >= cols) c2 -= cols;
+                if (c3 >= cols) c3 -= cols;
+                acc_tap3x4(w, hist + col * 3, hist + c1 * 3, hist + c2 * 3, hist + c3 * 3, z);
+            }
+        }
+
+        if (!currentFirst)
+            acc_tap3x4(wc, x0, x0 + 3, x0 + 6, x0 + 9, z);
+
+        for (int j = 0; j < 4; ++j)
+        {
+            const float a0 = leaky(z[j][0]);
+            const float a1 = leaky(z[j][1]);
+            const float a2 = leaky(z[j][2]);
+
+            float* const hs = hot.headSum + (n + j) * 3;
+            hs[0] += a0;
+            hs[1] += a1;
+            hs[2] += a2;
+
+            const float* const x = x0 + j * 3;
+            float* const dst = out + (n + j) * 3;
+            dst[0] = x[0] + b0 + a0 * lx[0] + a1 * lx[3] + a2 * lx[6];
+            dst[1] = x[1] + b1 + a0 * lx[1] + a1 * lx[4] + a2 * lx[7];
+            dst[2] = x[2] + b2 + a0 * lx[2] + a1 * lx[5] + a2 * lx[8];
+        }
+
+        wp += 4;
+        if (wp >= cols)
+            wp -= cols;
+    }
+
+    st.layerWritePos[li] = wp;
+}
+
 NAM_A2_NOINLINE void process_head(A2HotState& hot,
                                   const A2SharedWeights& sw,
                                   float* output) noexcept
@@ -632,10 +780,17 @@ NAM_A2_NOINLINE void process_block_48(A2State& st,
 
     for (int li = 0; li < kNumLayers; ++li)
     {
+#if NAM_A2_TILE4
+        if (kKernelSizes[li] == 6)
+            process_layer_tile4<6>(st, hot, sw, li, input, in, out);
+        else
+            process_layer_tile4<15>(st, hot, sw, li, input, in, out);
+#else
         if (kKernelSizes[li] == 6)
             process_layer_kernel6_dual(st, hot, sw, li, input, in, out);
         else
             process_layer_kernel<15>(st, hot, sw, li, input, in, out);
+#endif
 
         float* tmp = in;
         in = out;
