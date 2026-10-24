@@ -533,6 +533,15 @@
    "heap": 36760,
    "heap_source": "host count: the module object, which holds the six springs' delay lines and allpass chains (no other allocation)"
   },
+  "multi_phaser": {
+   "dtcm": 1880,
+   "ram_d2": 0,
+   "sram": 9641,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 1108,
+   "heap_source": "host count: the module object, which holds the four phasers' filter states (no other allocation)"
+  },
   "chainsaw": {
    "dtcm": 0,
    "ram_d2": 0,

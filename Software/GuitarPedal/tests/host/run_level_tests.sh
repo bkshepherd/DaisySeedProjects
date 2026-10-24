@@ -24,6 +24,7 @@ run distortion_family Effect-Modules/preamp_module.cpp Effect-Modules/screamer_m
 run crusher Effect-Modules/crusher_module.cpp Util/frequency_detector_q.cpp $BASEMOD
 run booster Effect-Modules/booster_module.cpp $BASEMOD
 run spring_reverb Effect-Modules/spring_reverb_module.cpp $BASEMOD
+run multi_phaser Effect-Modules/multi_phaser_module.cpp $BASEMOD
 run compressor Effect-Modules/compressor_module.cpp $BASEMOD $LGPL/Dynamics/compressor.cpp
 run overdrive Effect-Modules/overdrive_module.cpp $BASEMOD dependencies/DaisySP/Source/Effects/overdrive.cpp
 XFLAGS="-Idependencies/CloudSeed" run jupiter Effect-Modules/jupiter_module.cpp Effect-Modules/cloudseed_pool.cpp $BASEMOD dependencies/CloudSeed/AudioLib/Biquad2.cpp dependencies/CloudSeed/AudioLib/ShaRandom.cpp dependencies/CloudSeed/AudioLib/ValueTables.cpp dependencies/CloudSeed/FastSin.cpp dependencies/CloudSeed/Utils/Sha256.cpp

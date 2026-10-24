@@ -210,6 +210,9 @@ if build "$B/t_spring_reverb" $T/test_spring_reverb.cpp Effect-Modules/spring_re
 step "Booster (clean, treble, mid, warm): the frequency response of each type, Gain, Tone, Level, saturation"
 if build "$B/t_booster" $T/test_booster.cpp Effect-Modules/booster_module.cpp $BASEMOD; then check "$B/t_booster"; else FAILS=$((FAILS + 1)); fi
 
+step "Multi Phaser (four phasers in series or parallel): the allpass formula, the notches, the sweep rate, routing, feedback, Stereo, switching without clicks, block path, bounds"
+if build "$B/t_multi_phaser" $T/test_multi_phaser.cpp Effect-Modules/multi_phaser_module.cpp $BASEMOD; then check "$B/t_multi_phaser"; else FAILS=$((FAILS + 1)); fi
+
 step "Dist Bench (four distortion stages in series): each type as on its own, the generic controls, block path, bounds, type change"
 if build "$B/t_dist_bench" $T/test_dist_bench.cpp Effect-Modules/dist_bench_module.cpp $FAMSRC Effect-Modules/overdrive_module.cpp $DSP/Effects/overdrive.cpp \
     Effect-Modules/distortion_module.cpp $LGPL/Filters/tone.cpp $BASEMOD; then

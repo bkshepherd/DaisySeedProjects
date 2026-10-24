@@ -486,6 +486,16 @@
    "note": "single-instance only"
   },
   {
+   "id": "multi_phaser",
+   "class": "MultiPhaserModule",
+   "header": "multi_phaser_module.h",
+   "sources": [
+    "Effect-Modules/multi_phaser_module.cpp"
+   ],
+   "origin": "this project (spamatica)",
+   "note": "Up to four phasers, each with its own Rate, Depth, Feedback, Stages, Center, Wave and Phase, in series or in parallel; mono or stereo"
+  },
+  {
    "id": "nam",
    "class": "NamA2Module",
    "header": "nam_a2_module.h",

@@ -70,6 +70,7 @@ These are the effects that can be included in a firmware; which of them your ped
 
 - **Tremolo, Harm Trem, AutoPan, Chopper:** Amplitude or stereo-pan modulation; rate/tempo, depth, waveform, and related modulation controls.
 - **Chorus, Phaser, Flanger:** Sweeping modulation effects; rate, depth, mix, feedback, and tone controls.
+- **Multi Phaser:** Up to four phasers in one effect, each with its own rate, depth, feedback, number of stages, centre frequency, wave and phase, in series or in parallel, mono or stereo. See [MULTI_PHASER.md](MULTI_PHASER.md).
 - **Overdrive, Distortion, Crusher:** Saturation and digital reduction; drive/gain, tone, output level, bit depth, or sample-rate reduction.
 - **Booster:** A gain stage to put in front of an amp or a distortion, in four types (Clean, Treble, Mid, Warm); gain (0 to 24 dB), tone, level. See [BOOSTER.md](BOOSTER.md) for what the types do.
 - **Preamp:** A light amp-like tone (a cheaper alternative to a NAM model): gain, bass, mid, treble, level, and three voicings (Clean, Crunch, Lead).
