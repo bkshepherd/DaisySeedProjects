@@ -6,9 +6,13 @@ This is a DIY pedal project, not a finished product. You build the PCB-based har
 
 - Follow the [125B hardware build guide](../../../Hardware/GuitarPedal125b/docs/README.md) for PCB manufacture, parts, assembly, and enclosure details. The guide includes ready-to-order board files and describes the additional parts and soldering required.
 - Install the toolchain and dependencies, then follow the [software build and deployment instructions](../README.md#4-build-and-deploy-the-code). The 125B is the default hardware target; check `guitar_pedal.cpp` if you have changed variants.
-- There is no ready-made firmware: choose the installed effects and their order with `./effects_config.sh`, as described in [GENERATE_FIRMWARE.md](GENERATE_FIRMWARE.md), then build and flash, per the instruction in the README. Since only one effect is active at a time, there is little penalty for enabling a lot of different effects, but if there are ones you won't use, it's better to leave them out so they don't clutter the menu system.
+- Choose the installed effects and their order with `./effects_config.sh`, as described in [GENERATE_FIRMWARE.md](GENERATE_FIRMWARE.md), then build and flash, per the instruction in [SETUP.md](SETUP.md).
 
-If you want to have two or three active effects at the same time, it is possible (with some limitations) to make a combined effect, by defining an `EffectChain` (in `./effects_config.sh`, press `c`); it appears as one selectable effect and processes its child effects in sequence. Each effect in a chain can be switched on and off on its own, and with the chain's **Switches** parameter two of them can be put on the footswitches, like two pedals on a board (see [Footswitches and LEDs](#footswitches-and-leds)). Keep an eye on CPU headroom: a large chain can exceed the processor's capacity, and some modules have restrictions on chaining. See the [EffectChain notes](GENERATE_FIRMWARE.md#combining-effects-effectchain) before building a chain.
+## Effect Chains
+
+There is now support for combining several effects into an effect chain, meaning you can enable more than one effect at the same time.
+
+By defining an `EffectChain` (in `./effects_config.sh`, press `c`); it appears as one selectable effect and processes its child effects in sequence. Each effect in a chain can be switched on and off on its own, and with the chain's **Switches** parameter two of them can be put on the footswitches, like two pedals on a board (see [Footswitches and LEDs](#footswitches-and-leds)). Keep an eye on CPU headroom: a large chain can exceed the processor's capacity, and some modules have restrictions on chaining. 
 
 ## Connections
 
@@ -33,9 +37,15 @@ The rotary encoder underneath the screen controls the menu system. Turn the enco
 
 The right LED (above the primary footswitch) generally indicates if the pedal is active (light on) or bypassed (light off). The left LED (above the secondary footswitch) is effect-dependent. For example, it may blink in time to the delay temp, or indicate a secondary effect.
 
-**Effect chains: the Switches parameter.** An effect chain has a **Switches** parameter in its menu (after the effects' On switches): set to 1+2, 1+3 or 2+3, the two footswitches switch two of the chain's effects on and off instead: the right footswitch the first of the two (in 2+3, effect 2), the left one the second, and each LED shows its footswitch's effect. The chain itself stays on; an effect without a footswitch (effect 3 in 1+2) stays as set in the menu, and with both footswitch effects off you hear that one, or the dry signal. Tap tempo and the left footswitch's own functions (including the second knob bank) are not available then. Holding the right footswitch for the tuner and holding both to save work as usual. At **Normal** (the default), and for effects that are not chains, the footswitches work as usual. A chain of two effects offers only Normal and 1+2. The setting is saved with the chain's presets, so each chain (and each preset) can have its own.
+### Effect chains: the Switches parameter
+An effect chain has a **Switches** parameter in its menu (after the effects' On switches) with options: 1+2, 1+3 or 2+3.
 
-*Example:* a chain of Screamer → Chainsaw → Reverb with **Switches** at **1+2**. The right footswitch switches the Screamer (a boost in front of the distortion), the left one the Chainsaw, and the Reverb is always on: both off gives a clean sound with reverb, the left one alone the distortion, both together the boosted distortion. The right LED shows the Screamer, the left one the Chainsaw. To keep the Reverb on a footswitch instead, use **2+3** (right: Chainsaw, left: Reverb) and leave the Screamer on or off in the menu.
+This allows for assigning the two footswitches to both enable/disable one of the effects in the chain.
+The right footswitch the first of the two (in 2+3, effect 2), the left one the second, and each LED shows its footswitch's effect. 
+
+With this feature enabled the chain itself always stays on; an effect without a footswitch (effect 3 in 1+2) stays as set in the menu, and with both footswitch effects off you hear whatever more is enabled, or the dry signal. 
+
+Tap tempo and the left footswitch's own functions (including the second knob bank) are not available in this mode.
 
 ## Menus and Presets
 
@@ -49,6 +59,8 @@ The selected effect and pedal on/bypass state are retained across power cycles. 
 
 ## Settings
 
+In the settings menu a number of global options can be configured.
+
 - **True Bypass:** Uses the hardware relay to route around the effect when bypassed. Turn it off to use buffered bypass instead.
 - **Split Mono:** Sends the left input to both processing channels for a mono source. This applies when True Bypass is off.
 - **MIDI On:** Enables MIDI input handling, including mapped controls and effect selection by program change.
@@ -57,7 +69,7 @@ The selected effect and pedal on/bypass state are retained across power cycles. 
 - **MIDI effect and preset recall:** A plain Program Change still selects an effect by its zero-based position in the firmware's effect list. To select both an effect and one of its saved presets, send Bank Select MSB (CC0), Bank Select LSB (CC32), then Program Change. The pedal uses the combined bank number to select the effect and the Program Change value to select that effect's saved preset. Bank 0 is reserved for legacy behavior, so the effect's bank number is its zero-based effect index plus one. For example, effect 4, preset 2 uses `CC0=0`, `CC32=5`, `PC=2`. A bank number of 5 is encoded as MSB 0 and LSB 5. Some controller editors display values as 1-128; the transmitted MIDI values are 0-127. The bank is consumed by the next Program Change, so configure the switcher to send the bank and Program Change with each recall. If the bank/effect or preset does not exist, the selection is ignored or the effect is selected without loading a preset, respectively.
 - **Reserved MIDI CCs:** CC0 and CC32 are used for Bank Select and are not available for effect parameters. Multi Delay Tap Mode now uses CC33 instead of CC32.
 - **Auto-save:** After parameter changes stop for five seconds, saves that effect's settings to Preset 0. This overwrites Preset 0; turn it off if you use that preset for a manual patch, or want the pedal to always return to a saved state on startup.
-- **Lock Knobs:** Ignores the knobs, so that parameters are only changed from the display and a bumped knob changes nothing. On by default.
+- **Lock Knobs:** Ignores the knobs, so that parameters are only changed from the display and a bumped knob changes nothing. Currently on by default.
 - **Show Debug:** Draws the CPU load (average/peak %) and the input and output levels on the effect screen, along with the heap use, to help calibrate levels and check the load of an effect. Off by default.
 - **Trails:** Lets delay and reverb tails ring out after the effect is turned off instead of cutting them. It does not apply with True Bypass, and the length of the tail depends on the effect. On by default.
 - **In Gain:** Gain in dB (-24 to +24, in steps of 0.5; the encoder's coarse step is 3 dB) applied to the input before it reaches the effect and the dry signal, to calibrate the pedal to your instrument or to the level of the rest of the rig. The input level readout of Show Debug shows the level after this gain.
@@ -66,32 +78,5 @@ The selected effect and pedal on/bypass state are retained across power cycles. 
 
 ## Effects
 
-These are the effects that can be included in a firmware; which of them your pedal has depends on how you generated it. Their exact controls and knob assignments can change with the build; the effect parameter menu lists the controls available in your version.
-
-- **Tremolo, Harm Trem, AutoPan, Chopper:** Amplitude or stereo-pan modulation; rate/tempo, depth, waveform, and related modulation controls.
-- **Chorus, Phaser, Flanger:** Sweeping modulation effects; rate, depth, mix, feedback, and tone controls.
-- **Multi Phaser:** Up to four phasers in one effect, each with its own rate, depth, feedback, number of stages, centre frequency, wave and phase, in series or in parallel, mono or stereo. See [MULTI_PHASER.md](MULTI_PHASER.md).
-- **Overdrive, Distortion, Crusher:** Saturation and digital reduction; drive/gain, tone, output level, bit depth, or sample-rate reduction.
-- **Booster:** A gain stage to put in front of an amp or a distortion, in four types (Clean, Treble, Mid, Warm); gain (0 to 24 dB), tone, level. See [BOOSTER.md](BOOSTER.md) for what the types do.
-- **Preamp:** A light amp-like tone (a cheaper alternative to a NAM model): gain, bass, mid, treble, level, and three voicings (Clean, Crunch, Lead).
-- **Screamer:** Tube Screamer-style overdrive with the typical mid hump and a clean low end; drive, tone, level, and three clipping modes.
-- **Muff Fuzz:** Big Muff-style fuzz with a booster and two clipping stages; sustain, tone (dark to bright, scooped in the middle), volume, and three tone voicings.
-- **Wavefolder:** Metallic, synth-like harmonics from a sine fold instead of clipping; fold, symmetry, tone, mix, level.
-- **Exciter:** Adds the 2nd to 5th harmonic of the highs (a level for each) to a clean sound for sparkle and warmth; drive, focus, mix, level.
-- **Bass Dist:** Distortion that keeps the low end clean (only the band above the crossover is distorted); drive, crossover, clip type (soft, hard, fuzz), lows, tone, mix, level.
-- **Octa Fuzz:** Octave-up fuzz in the spirit of the Octavia; fuzz, octave blend, tone, level.
-- **Tape Sat:** Soft tape or transformer saturation that compresses loud notes and adds warmth, with unity gain for small signals; drive, warmth, tone, mix, level, and two modes (Tape, Trafo).
-- **Compressor, Noise Gate:** Dynamic range and noise control; level, ratio, threshold, attack, and release.
-- **Reverb, CloudSeed:** Short room-like to expansive reverberation; mix, decay, pre-delay, size, and tone/damping.
-- **Spring Reverb:** A physical model of a spring-reverb tank with 2 to 6 springs of different lengths: the bright, splashy "drip" of old amps; dwell (how hard the tank is driven), decay, tone, mix, drip (how much each echo sweeps), tank length (short, medium, long), the number of springs (more springs: a denser, less echo-like tail) and an Output of mono (the default) or stereo (every other spring on each side). See [SPRING_REVERB.md](SPRING_REVERB.md).
-- **Earth:** Plate reverb (Dattorro) with an optional octave up / up and down in front of it, and a momentary footswitch action (freeze the reverb, swell an overdrive on it, or switch the octave on); pre-delay, mix, decay, modulation depth and speed, input filter, size. Adapted from the FunBox project; GPLv3, so it is only in builds that opt in to the Dattorro reverb.
-- **Venus:** Spectral reverb with octave and fifth shimmer, detune, spectral freeze (hold the secondary footswitch), lo-fi and drift modes; decay, mix, damp, shimmer, shimmer tone, and detune. Adapted from the FunBox project.
-- **Delay, Multi Delay, Tape Delay, Dual Echo ("Halo"), Granular Delay, Spectral Delay:** Echo and time-based textures; delay/tap times, feedback, mix, filtering, modulation, and grain or spectral controls.
-- **Pitch, PolyOctave, SciFi:** Pitch shifting, octave generation, and processed pitch effects; interval, dry/wet balance, and effect-specific controls.
-- **Graphic EQ, Parametric EQ:** Tone shaping; band gain and, for parametric bands, frequency and bandwidth.
-- **NAM, IR:** Amp and cabinet impulse-response processing; model or IR selection, gain, level, and EQ.
-- **Looper, Drum, Metronome, Tuner:** Performance and utility tools; loop levels/actions, rhythm or tempo controls, and tuning options.
-- **Other FunBox effects (funbox-jupiter, -saturn, -neptune, -uranus, -balnea, -pluto, -cassini, -mars, -mercury):** Further effects adapted from the FunBox project, available when selected in the firmware; they show up in the effect list with the `funbox-` prefix, like Earth and Venus above.
-- **Duck Compressor, Reverb Delay, Scope, MIDI Keys, String Keys, Modal Keys, FM Keys, Pluck Echo:** Further effects (a ducking compressor, a combined reverb and delay, an oscilloscope display, and synths and a plucked-echo effect played from a MIDI keyboard).
-- **Test Tone:** A signal generator for calibrating levels together with In Gain, Out Gain and the level readout of Show Debug: a sine, square or triangle wave of a chosen frequency (20 Hz to 20 kHz), or white noise, at a chosen level (-60 to 0 dB; the tone's peak level, and for noise the same RMS as a sine of that level). It replaces the input while the effect is on.
+For the current set see the [effects](EFFECTS.md) document.
 
