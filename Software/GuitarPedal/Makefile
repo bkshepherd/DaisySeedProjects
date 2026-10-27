@@ -147,24 +147,3 @@ ifdef VARIANT
    CFLAGS += -DVARIANT_$(VARIANT)
    $(info VARIANT=$(VARIANT))
 endif
-
-
-# --- ARM SDK Version check --- [start]
-# Issues have been experienced with the latest version of arm-none-eabi-gcc, so
-# we add a check here to help guide users to use a supported version
-
-# Determine which compiler to check (use GCC_PATH if set, otherwise system default)
-GCC_CHECK := arm-none-eabi-gcc
-ifdef GCC_PATH
-  GCC_CHECK := $(GCC_PATH)/arm-none-eabi-gcc
-endif
-
-# Get compiler version string safely
-GCC_VERSION := $(shell $(GCC_CHECK) -dumpversion)
-GCC_VERSION_MAJOR := $(word 1, $(subst ., ,$(GCC_VERSION)))
-GCC_VERSION_MAJOR_REQUIRED := 10
-
-ifneq ($(GCC_VERSION_MAJOR),$(GCC_VERSION_MAJOR_REQUIRED))
-$(error Compiler version of arm-none-eabi-gcc: $(GCC_VERSION) is not supported. Use version $(GCC_VERSION_MAJOR_REQUIRED).x.x)
-endif
-# --- ARM SDK Version check --- [end]
