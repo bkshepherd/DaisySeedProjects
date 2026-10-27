@@ -160,11 +160,11 @@ ifdef GCC_PATH
 endif
 
 # Get compiler version string safely
-GCC_VERSION := $(shell $(GCC_CHECK) -dumpversion)
-GCC_VERSION_MAJOR := $(word 1, $(subst ., ,$(GCC_VERSION)))
-GCC_VERSION_MAJOR_REQUIRED := 10
+# GCC_VERSION := $(shell $(GCC_CHECK) -dumpversion)
+# GCC_VERSION_MAJOR := $(word 1, $(subst ., ,$(GCC_VERSION)))
+# GCC_VERSION_MAJOR_REQUIRED := 10
 
-ifneq ($(GCC_VERSION_MAJOR),$(GCC_VERSION_MAJOR_REQUIRED))
-$(error Compiler version of arm-none-eabi-gcc: $(GCC_VERSION) is not supported. Use version $(GCC_VERSION_MAJOR_REQUIRED).x.x)
-endif
+# ifneq ($(GCC_VERSION_MAJOR),$(GCC_VERSION_MAJOR_REQUIRED))
+# $(error Compiler version of arm-none-eabi-gcc: $(GCC_VERSION) is not supported. Use version $(GCC_VERSION_MAJOR_REQUIRED).x.x)
+# endif
 # --- ARM SDK Version check --- [end]

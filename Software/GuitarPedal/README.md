@@ -12,11 +12,10 @@ Before you can use the software you'll need to do the following steps. There is 
 
 The code in this project is supplied with a Microsoft Visual Code project and depends on both **LibDaisy** and **DaisySP** from Electro-Smith. Detailed instructions on setting these up for your dev environment can be found here:
 
-https://electro-smith.github.io/libDaisy/index.html
+https://docs.daisy.audio/tutorials/cpp-dev-env/
 
-Some issues have been reported with newer ARM compiler versions. The documentation above from Electrosmith should be complete but for reference many users have had success with `10.3-2021.10`
-
-Version can be checked with `arm-none-eabi-gcc --version`
+Note: previously gcc 10 compiler was enforced by build system, the reasons for this should no longer be valid and the 
+compiler recommended by daisy.audio should work fine. 
 
 ### 2. Setup dependencies
 
